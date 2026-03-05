@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Foundations of Modern GenAI — CareerAlign GenAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--phase-found); background: rgba(59,130,246,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-indigo);
+  padding: 6px 14px; border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(99,102,241,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--phase-found); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--phase-found); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--phase-found); flex-shrink: 0; }
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--phase-found); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--phase-found); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--phase-found);
+  background: rgba(59,130,246,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--phase-cloud); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--phase-project); background: rgba(245,158,11,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--phase-found);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--phase-cloud); }
+.callout.warn .callout-label { color: var(--phase-project); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* SVG DIAGRAM */
+.diagram-wrap {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg); padding: 32px;
+  margin: 32px 0;
+}
+.diagram-caption {
+  text-align: center; font-size: 13px; color: var(--text-muted);
+  margin-top: 16px; font-style: italic;
+}
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--phase-found); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(59,130,246,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* CHECKLIST */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px; color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 2px solid var(--phase-found);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.check-box.done { background: var(--phase-found); border-color: var(--phase-found); }
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--phase-found); color: var(--phase-found); transform: translateX(4px); }
+.prev-btn:hover { border-color: var(--phase-prereq); color: var(--phase-prereq); transform: translateX(-4px); }
+.next-phase { font-size: 12px; color: var(--phase-found); font-weight: 500; }
+
+/* FORMULA */
+.formula {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 16px 22px; margin: 20px 0;
+  font-family: var(--font-mono); font-size: 14px; color: var(--accent-cyan);
+  text-align: center; letter-spacing: 0.02em;
+}
+
+/* TAB LABELS */
+.tab-row {
+  display: flex; gap: 8px; margin-bottom: -1px; padding: 0;
+}
+.tab-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  padding: 5px 12px; border-radius: 6px 6px 0 0;
+  background: var(--bg-overlay); color: var(--text-muted);
+  border: 1px solid var(--border-default); border-bottom: none;
+}
+.tab-label.plain { color: var(--phase-cloud); }
+.tab-label.deep  { color: var(--accent-violet); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9889; <span>CareerAlign</span> GenAI</div>
+  <div class="nav-links">
+    <a href="00-prerequisites.html">00 &middot; Prerequisites</a>
+    <a href="01-foundations-of-genai.html" class="active">01 &middot; Foundations</a>
+    <a href="02-llms-slms-multimodal.html">02 &middot; Models</a>
+    <a href="03-api-for-llms.html">03 &middot; APIs</a>
+    <a href="04-fine-tuning.html">04 &middot; Fine-Tuning</a>
+    <a href="05-llm-hosting.html">05 &middot; Hosting</a>
+    <a href="06-prompt-engineering.html">06 &middot; Prompting</a>
+    <a href="07-rag-systems.html">07 &middot; RAG</a>
+    <a href="08-advanced-rag.html">08 &middot; Adv RAG</a>
+    <a href="09-agents.html">09 &middot; Agents</a>
+    <a href="10-evaluation.html">10 &middot; Eval</a>
+    <a href="11-guardrails.html">11 &middot; Guardrails</a>
+    <a href="12-mcp.html">12 &middot; MCP</a>
+    <a href="13-aws-cloud.html">13 &middot; AWS</a>
+    <a href="14-n8n-no-code.html">14 &middot; n8n</a>
+    <a href="15-capstone-document-portal.html">15 &middot; Cap I</a>
+    <a href="16-capstone-report-agent.html">16 &middot; Cap II</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GenAI Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Module 01 &middot; Foundations of Modern GenAI
+  </div>
+  <h1>How Modern AI <em>Actually Works</em></h1>
+  <p class="hero-desc">
+    Before you can build production GenAI systems, you need a working mental model of what is happening
+    inside the black box. This module tears open the architecture, the math, and the training pipelines
+    behind every large language model you will use throughout this course. No prior ML background required
+    &mdash; just Python and curiosity.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Transformer Architecture
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Tokenization
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Embeddings
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Pre-training &amp; RLHF
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Inference Mechanics
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/01-foundations-of-genai.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#transformer" class="section">1 &middot; Transformer Architecture</a>
+    <a href="#transformer-plain" class="sub">Plain Language</a>
+    <a href="#transformer-deep" class="sub">Deep Dive &amp; Code</a>
+    <a href="#tokenization" class="section">2 &middot; Tokenization</a>
+    <a href="#tokenization-plain" class="sub">Plain Language</a>
+    <a href="#tokenization-deep" class="sub">Deep Dive &amp; Code</a>
+    <a href="#embeddings" class="section">3 &middot; Embeddings</a>
+    <a href="#embeddings-plain" class="sub">Plain Language</a>
+    <a href="#embeddings-deep" class="sub">Deep Dive &amp; Code</a>
+    <a href="#training" class="section">4 &middot; Pre-training &amp; RLHF</a>
+    <a href="#training-plain" class="sub">Plain Language</a>
+    <a href="#training-deep" class="sub">Deep Dive</a>
+    <a href="#inference" class="section">5 &middot; Inference Mechanics</a>
+    <a href="#inference-plain" class="sub">Plain Language</a>
+    <a href="#inference-deep" class="sub">Deep Dive</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1: TRANSFORMER ARCHITECTURE
+    ════════════════════════════════════════════ -->
+    <section class="section" id="transformer">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>The Transformer Architecture</h2>
+      </div>
+
+      <!-- SVG DIAGRAM 1 -->
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 820 320" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'Space Grotesk', sans-serif">
+          <!-- Background -->
+          <rect width="820" height="320" fill="#10131e" rx="12"/>
+
+          <!-- Arrow helper defs -->
+          <defs>
+            <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#3b82f6" opacity="0.7"/>
+            </marker>
+            <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#545a78"/>
+            </marker>
+          </defs>
+
+          <!-- INPUT -->
+          <rect x="20" y="130" width="90" height="60" rx="8" fill="#171c2e" stroke="#232840" stroke-width="1.5"/>
+          <text x="65" y="155" text-anchor="middle" fill="#8e94b5" font-size="11">"The cat</text>
+          <text x="65" y="170" text-anchor="middle" fill="#8e94b5" font-size="11">sat on..."</text>
+          <text x="65" y="188" text-anchor="middle" fill="#545a78" font-size="10">Input Text</text>
+
+          <!-- Arrow -->
+          <line x1="112" y1="160" x2="138" y2="160" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arr)" opacity="0.7"/>
+
+          <!-- EMBEDDING + PE -->
+          <rect x="140" y="118" width="120" height="84" rx="8" fill="#171c2e" stroke="#3b82f6" stroke-width="1.5" opacity="0.7"/>
+          <text x="200" y="143" text-anchor="middle" fill="#3b82f6" font-size="11" font-weight="600">Token</text>
+          <text x="200" y="158" text-anchor="middle" fill="#3b82f6" font-size="11" font-weight="600">Embeddings</text>
+          <text x="200" y="176" text-anchor="middle" fill="#545a78" font-size="10">+</text>
+          <text x="200" y="192" text-anchor="middle" fill="#545a78" font-size="10">Positional Enc.</text>
+
+          <!-- Arrow -->
+          <line x1="262" y1="160" x2="288" y2="160" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arr)" opacity="0.7"/>
+
+          <!-- N BLOCKS BRACKET -->
+          <rect x="290" y="50" width="350" height="220" rx="10" fill="none" stroke="#2e3554" stroke-width="1.5" stroke-dasharray="6,3"/>
+          <text x="465" y="40" text-anchor="middle" fill="#545a78" font-size="11">&#215; N layers (e.g., 6 to 96)</text>
+
+          <!-- MULTI-HEAD ATTENTION -->
+          <rect x="308" y="70" width="150" height="52" rx="8" fill="#1e2438" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="383" y="92" text-anchor="middle" fill="#a855f7" font-size="11" font-weight="600">Multi-Head</text>
+          <text x="383" y="107" text-anchor="middle" fill="#a855f7" font-size="11" font-weight="600">Attention</text>
+
+          <!-- Add+Norm 1 -->
+          <rect x="308" y="135" width="150" height="36" rx="6" fill="#171c2e" stroke="#232840" stroke-width="1.2"/>
+          <text x="383" y="158" text-anchor="middle" fill="#67e8f9" font-size="11">Add &amp; Norm</text>
+
+          <!-- Arrow down -->
+          <line x1="383" y1="123" x1="383" y1="133" x2="383" y2="135" stroke="#545a78" stroke-width="1.2" marker-end="url(#arr2)"/>
+
+          <!-- FFN -->
+          <rect x="308" y="185" width="150" height="50" rx="8" fill="#1e2438" stroke="#22d3ee" stroke-width="1.5"/>
+          <text x="383" y="206" text-anchor="middle" fill="#22d3ee" font-size="11" font-weight="600">Feed-Forward</text>
+          <text x="383" y="221" text-anchor="middle" fill="#22d3ee" font-size="11" font-weight="600">Network (FFN)</text>
+
+          <!-- Arrow down -->
+          <line x1="383" y1="171" x2="383" y2="185" stroke="#545a78" stroke-width="1.2" marker-end="url(#arr2)"/>
+
+          <!-- Add+Norm 2 -->
+          <rect x="308" y="248" width="150" height="36" rx="6" fill="#171c2e" stroke="#232840" stroke-width="1.2"/>
+          <text x="383" y="271" text-anchor="middle" fill="#67e8f9" font-size="11">Add &amp; Norm</text>
+
+          <!-- Arrow down -->
+          <line x1="383" y1="235" x2="383" y2="248" stroke="#545a78" stroke-width="1.2" marker-end="url(#arr2)"/>
+
+          <!-- Residual skip MHA -->
+          <path d="M296 96 Q280 96 280 266 Q280 284 308 284" fill="none" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="4,3" opacity="0.5"/>
+          <!-- Residual skip FFN -->
+          <path d="M470 171 Q490 171 490 266 Q490 284 460 284" fill="none" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="4,3" opacity="0.5"/>
+
+          <!-- Right block arrow -->
+          <line x1="460" y1="160" x2="486" y2="160" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arr)" opacity="0.7"/>
+
+          <!-- CROSS-ATTN (decoder label) -->
+          <rect x="480" y="110" width="140" height="100" rx="8" fill="#171c2e" stroke="#2e3554" stroke-width="1.2"/>
+          <text x="550" y="140" text-anchor="middle" fill="#545a78" font-size="10">Decoder only:</text>
+          <text x="550" y="157" text-anchor="middle" fill="#545a78" font-size="10">Cross-Attention</text>
+          <text x="550" y="174" text-anchor="middle" fill="#545a78" font-size="10">+ Causal Mask</text>
+          <text x="550" y="191" text-anchor="middle" fill="#545a78" font-size="10">(GPT / Claude)</text>
+
+          <!-- Main output arrow -->
+          <line x1="642" y1="160" x2="668" y2="160" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arr)" opacity="0.7"/>
+
+          <!-- OUTPUT -->
+          <rect x="670" y="118" width="130" height="84" rx="8" fill="#171c2e" stroke="#3b82f6" stroke-width="1.5" opacity="0.7"/>
+          <text x="735" y="146" text-anchor="middle" fill="#3b82f6" font-size="11" font-weight="600">Linear +</text>
+          <text x="735" y="161" text-anchor="middle" fill="#3b82f6" font-size="11" font-weight="600">Softmax</text>
+          <text x="735" y="182" text-anchor="middle" fill="#8e94b5" font-size="10">Next-token</text>
+          <text x="735" y="196" text-anchor="middle" fill="#8e94b5" font-size="10">probability</text>
+
+          <!-- Title -->
+          <text x="410" y="308" text-anchor="middle" fill="#545a78" font-size="11" font-style="italic">Transformer block (simplified). Residual connections shown as dashed blue arcs.</text>
+        </svg>
+        <div class="diagram-caption">Figure 1 &mdash; Transformer block: token embeddings pass through N stacked layers of Multi-Head Attention and Feed-Forward sublayers, each wrapped in residual + LayerNorm connections. The decoder adds a causal mask and cross-attention to the encoder output.</div>
+      </div>
+
+      <!-- PLAIN LANGUAGE -->
+      <h3 id="transformer-plain">Plain Language</h3>
+
+      <p>
+        Before transformers existed, the dominant approach to processing text was the <strong>Recurrent Neural Network (RNN)</strong>. An RNN reads a sentence the way a person reads a ticker tape: one word at a time, left to right, carrying a "memory" state forward from each step. The problem with this approach is profound and practical. If you want to understand the word "bank" in a long document, you might need information from fifty words earlier &mdash; the word "river" or "deposit." An RNN has to keep that information alive through every intermediate step, and its memory degrades. Think of it like a game of telephone: by the time the message reaches the hundredth person, the original nuance is lost. RNNs also could not be parallelized across the sequence &mdash; every word had to wait for the previous word to finish, which made training on modern GPUs painfully slow.
+      </p>
+      <p>
+        In 2017, a team of eight researchers at Google Brain published a paper titled <strong>"Attention Is All You Need"</strong> that changed everything. The insight was deceptively simple: instead of reading text sequentially, what if every word could look at every other word simultaneously, and decide how much attention to pay to each one? You give up the sequential constraint entirely and gain two enormous advantages: the model can capture long-range dependencies directly (word 1 and word 100 can interact in a single step), and the entire sequence can be processed in parallel on GPU, making training dramatically faster.
+      </p>
+      <p>
+        The architecture they proposed &mdash; the Transformer &mdash; has an <strong>encoder</strong> and a <strong>decoder</strong>. The encoder reads the full input sequence and builds a rich, contextual representation of it. You can think of the encoder as a very thorough reader who annotates every word with deep notes about how it relates to every other word. The decoder then reads those annotations and generates an output sequence, one token at a time. Early Transformers used both halves: the encoder-decoder design is what powers machine translation models like Google Translate, where you read a full French sentence and produce an English one.
+      </p>
+      <p>
+        Modern large language models like GPT-4, Claude, and Llama are <strong>decoder-only</strong> transformers. They removed the encoder entirely and trained the decoder on the task of predicting the next word given all the previous ones. This sounds like a limitation, but it turns out to be extraordinarily powerful. By training on essentially all text on the internet and beyond, predicting the next word forces the model to build an internal representation of grammar, facts, reasoning, style, code, and everything else &mdash; because predicting the next word well requires understanding all of it.
+      </p>
+      <p>
+        The intuition behind the core mechanism &mdash; <strong>attention</strong> &mdash; is this: for every word in a sentence, you compute a score representing how relevant every other word is to understanding this particular word. Then you take a weighted combination of all the word representations, weighted by those relevance scores. The word "it" in "The animal didn't cross the street because it was too tired" now has a very high attention score connecting it back to "animal," not "street." The model has learned, from data alone, how to route meaning through a sentence to resolve ambiguity. This is something RNNs consistently failed at across long distances.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Historical Note</div>
+        <p>The original "Attention Is All You Need" paper used 6 encoder layers and 6 decoder layers (65M parameters). GPT-3 scaled to 96 decoder layers with 175 billion parameters. The architecture is essentially the same &mdash; scale is what changed.</p>
+      </div>
+
+      <!-- DEEP DIVE -->
+      <h3 id="transformer-deep">Deep Dive</h3>
+
+      <p>
+        The attention mechanism begins with three learned linear projections applied to each token's embedding vector. For a token embedding <strong>x</strong> of dimension <code>d_model</code>, we compute three vectors: a <strong>Query (Q)</strong>, a <strong>Key (K)</strong>, and a <strong>Value (V)</strong>. These are computed by multiplying x by three separate learned weight matrices <code>W_Q</code>, <code>W_K</code>, <code>W_V</code>, each of shape <code>(d_model, d_k)</code>. The Query asks "what am I looking for?", the Key says "what do I contain?", and the Value is "what information should I pass on?"
+      </p>
+      <p>
+        The attention score between two tokens is the dot product of one's Query with the other's Key. Dot product is a measure of similarity in vector space: if two vectors point in similar directions (i.e., have similar "meaning" in the learned space), their dot product is large. We then divide by <code>sqrt(d_k)</code> to prevent the dot products from becoming too large in high dimensions (which would cause softmax to produce extremely peaked distributions that have near-zero gradients). The softmax then converts all the raw scores for a given Query into a probability distribution that sums to 1. Finally, we take a weighted sum of all Value vectors, using those probabilities as weights. The entire operation is:
+      </p>
+
+      <div class="formula">
+        Attention(Q, K, V) = softmax( Q &middot; K&sup2; / &radic;d_k ) &middot; V
+      </div>
+
+      <p>
+        <strong>Multi-head attention</strong> runs this process in parallel across <code>h</code> separate "heads," each with its own learned <code>W_Q</code>, <code>W_K</code>, <code>W_V</code> projections to a lower-dimensional subspace (typically <code>d_k = d_model / h</code>). The outputs of all heads are concatenated and projected back to <code>d_model</code> with another learned matrix <code>W_O</code>. The motivation is rich: each head can specialize in a different type of relationship. In practice, specific heads have been found to track subject-verb agreement, coreference resolution, positional proximity, and syntactic structure. No one designs these specializations explicitly &mdash; they emerge from training.
+      </p>
+      <p>
+        Since attention has no inherent notion of position (it treats the sequence as a set, not an ordered list), the model needs <strong>positional encodings</strong> added to the token embeddings. The original paper used sinusoidal functions: for position <code>pos</code> and dimension <code>i</code>, the encoding is <code>sin(pos / 10000^(2i/d_model))</code> for even dimensions and <code>cos(...)</code> for odd ones. This creates a unique signature for each position that the model can use to distinguish token order. Modern models use learned positional embeddings or rotary positional encodings (RoPE, used in Llama) that generalize better to sequences longer than those seen during training.
+      </p>
+      <p>
+        Each transformer layer wraps both the attention sublayer and the subsequent feed-forward sublayer in <strong>residual connections</strong>: the output is <code>LayerNorm(x + sublayer(x))</code>. The residual connection (adding the input directly to the output) is critical for training very deep networks. Without it, gradients flowing backward through 96 layers would vanish to near-zero, and the network could not learn. With it, there is always a direct "highway" for gradients to flow to earlier layers. LayerNorm normalizes the activations to have zero mean and unit variance, which stabilizes training.
+      </p>
+      <p>
+        The <strong>feed-forward sublayer</strong> follows the attention sublayer in each block. It is applied independently and identically to each position (hence "position-wise"). It consists of two linear transformations with a non-linear activation in between: <code>FFN(x) = Linear_2(GELU(Linear_1(x)))</code>. The first linear layer typically expands the dimension by a factor of 4 (e.g., from <code>d_model=768</code> to <code>3072</code>), and the second contracts it back. This expansion-contraction stores a surprising amount of factual knowledge &mdash; research has shown that FFN layers act somewhat like key-value memories.
+      </p>
+      <p>
+        The <strong>decoder</strong> introduces two additional mechanisms beyond the encoder's structure. First, <strong>causal masking</strong>: during training, the decoder must predict token at position <code>t</code> using only tokens <code>1...t-1</code>. This is enforced by masking the attention scores for all future positions to <code>-inf</code> before softmax, so they contribute zero weight. Second, <strong>cross-attention</strong>: after the causal self-attention layer, the decoder attends to the encoder's output, using the encoder representations as Keys and Values and its own hidden state as Queries. In decoder-only models (GPT, Claude, Llama), there is no encoder and no cross-attention &mdash; only causal self-attention.
+      </p>
+
+      <div class="tab-row"><div class="tab-label deep">Code &mdash; Scaled Dot-Product Attention (NumPy)</div></div>
+<pre><code><span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np
+
+<span class="code-keyword">def</span> <span class="code-fn">scaled_dot_product_attention</span>(Q, K, V, mask<span class="code-keyword">=</span><span class="code-keyword">None</span>):
+    <span class="code-string">"""
+    Q: (seq_len, d_k)
+    K: (seq_len, d_k)
+    V: (seq_len, d_v)
+    mask: optional (seq_len, seq_len) boolean mask — True = mask out
+    Returns: (seq_len, d_v) context vectors
+    """</span>
+    d_k = Q.<span class="code-fn">shape</span>[-<span class="code-num">1</span>]
+
+    <span class="code-comment"># Step 1: Dot product of Q with K^T → raw attention scores</span>
+    scores = Q @ K.T / np.<span class="code-fn">sqrt</span>(d_k)          <span class="code-comment"># (seq_len, seq_len)</span>
+
+    <span class="code-comment"># Step 2: Apply causal mask (decoder only)</span>
+    <span class="code-keyword">if</span> mask <span class="code-keyword">is not</span> <span class="code-keyword">None</span>:
+        scores = np.<span class="code-fn">where</span>(mask, -<span class="code-num">1e9</span>, scores)
+
+    <span class="code-comment"># Step 3: Softmax over last axis → attention weights</span>
+    exp_scores = np.<span class="code-fn">exp</span>(scores - scores.<span class="code-fn">max</span>(axis=-<span class="code-num">1</span>, keepdims=<span class="code-keyword">True</span>))
+    weights = exp_scores / exp_scores.<span class="code-fn">sum</span>(axis=-<span class="code-num">1</span>, keepdims=<span class="code-keyword">True</span>)  <span class="code-comment"># (seq_len, seq_len)</span>
+
+    <span class="code-comment"># Step 4: Weighted sum of values</span>
+    output = weights @ V                           <span class="code-comment"># (seq_len, d_v)</span>
+    <span class="code-keyword">return</span> output, weights
+
+
+<span class="code-comment"># --- Example ---</span>
+np.random.<span class="code-fn">seed</span>(<span class="code-num">42</span>)
+seq_len, d_model, d_k = <span class="code-num">6</span>, <span class="code-num">512</span>, <span class="code-num">64</span>
+
+<span class="code-comment"># Simulate a single attention head</span>
+x  = np.random.<span class="code-fn">randn</span>(seq_len, d_model)    <span class="code-comment"># token embeddings</span>
+Wq = np.random.<span class="code-fn">randn</span>(d_model, d_k) * <span class="code-num">0.02</span>
+Wk = np.random.<span class="code-fn">randn</span>(d_model, d_k) * <span class="code-num">0.02</span>
+Wv = np.random.<span class="code-fn">randn</span>(d_model, d_k) * <span class="code-num">0.02</span>
+
+Q = x @ Wq    <span class="code-comment"># (6, 64)</span>
+K = x @ Wk    <span class="code-comment"># (6, 64)</span>
+V = x @ Wv    <span class="code-comment"># (6, 64)</span>
+
+<span class="code-comment"># Causal mask: True where future positions should be hidden</span>
+mask = np.<span class="code-fn">triu</span>(np.<span class="code-fn">ones</span>((seq_len, seq_len), dtype=<span class="code-fn">bool</span>), k=<span class="code-num">1</span>)
+
+context, attn_weights = <span class="code-fn">scaled_dot_product_attention</span>(Q, K, V, mask)
+<span class="code-fn">print</span>(<span class="code-string">f"Context shape: {context.shape}"</span>)   <span class="code-comment"># (6, 64)</span>
+<span class="code-fn">print</span>(<span class="code-string">f"Attention weights (row 3): {attn_weights[3].round(3)}"</span>)
+<span class="code-comment"># Token 3 can only attend to tokens 0,1,2,3 — future is zeroed</span>
+
+
+<span class="code-comment"># --- Multi-head attention sketch ---</span>
+<span class="code-keyword">def</span> <span class="code-fn">multi_head_attention</span>(x, W_Q_list, W_K_list, W_V_list, W_O):
+    <span class="code-string">"""Run h attention heads in parallel, concat, project."""</span>
+    heads = []
+    <span class="code-keyword">for</span> Wq, Wk, Wv <span class="code-keyword">in</span> <span class="code-fn">zip</span>(W_Q_list, W_K_list, W_V_list):
+        Q, K, V = x @ Wq, x @ Wk, x @ Wv
+        head, _ = <span class="code-fn">scaled_dot_product_attention</span>(Q, K, V)
+        heads.<span class="code-fn">append</span>(head)
+    concat = np.<span class="code-fn">concatenate</span>(heads, axis=-<span class="code-num">1</span>)  <span class="code-comment"># (seq_len, h*d_k)</span>
+    <span class="code-keyword">return</span> concat @ W_O                          <span class="code-comment"># (seq_len, d_model)</span>
+</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Key Takeaway</div>
+        <p>The transformer's power comes from three things working together: global attention (every token sees every other), residual connections (allows depth without vanishing gradients), and massive parallelism (all positions computed simultaneously on GPU). Remove any one of these and you lose a critical capability.</p>
+      </div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2: TOKENIZATION
+    ════════════════════════════════════════════ -->
+    <section class="section" id="tokenization">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Tokenization</h2>
+      </div>
+
+      <!-- SVG DIAGRAM 2: Tokenization -->
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 780 200" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
+          <rect width="780" height="200" fill="#10131e" rx="12"/>
+          <defs>
+            <marker id="arr3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#3b82f6" opacity="0.8"/>
+            </marker>
+          </defs>
+
+          <!-- Raw string -->
+          <rect x="20" y="80" width="160" height="44" rx="8" fill="#171c2e" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="100" y="97" text-anchor="middle" fill="#86efac" font-size="13">"Hello, world!"</text>
+          <text x="100" y="115" text-anchor="middle" fill="#545a78" font-size="10" font-family="'Nunito', sans-serif">Raw string</text>
+
+          <!-- Arrow 1 -->
+          <line x1="182" y1="102" x2="214" y2="102" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arr3)"/>
+          <text x="198" y="94" text-anchor="middle" fill="#545a78" font-size="9" font-family="'Nunito', sans-serif">BPE</text>
+
+          <!-- Tokens -->
+          <rect x="216" y="68" width="72" height="36" rx="6" fill="#1e2438" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="252" y="86" text-anchor="middle" fill="#c084fc" font-size="13">"Hello"</text>
+          <text x="252" y="100" text-anchor="middle" fill="#545a78" font-size="9" font-family="'Nunito', sans-serif">tok 1</text>
+
+          <rect x="296" y="68" width="36" height="36" rx="6" fill="#1e2438" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="314" y="86" text-anchor="middle" fill="#c084fc" font-size="13">","</text>
+          <text x="314" y="100" text-anchor="middle" fill="#545a78" font-size="9" font-family="'Nunito', sans-serif">tok 2</text>
+
+          <rect x="340" y="68" width="82" height="36" rx="6" fill="#1e2438" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="381" y="86" text-anchor="middle" fill="#c084fc" font-size="13">" world"</text>
+          <text x="381" y="100" text-anchor="middle" fill="#545a78" font-size="9" font-family="'Nunito', sans-serif">tok 3</text>
+
+          <rect x="430" y="68" width="36" height="36" rx="6" fill="#1e2438" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="448" y="86" text-anchor="middle" fill="#c084fc" font-size="13">"!"</text>
+          <text x="448" y="100" text-anchor="middle" fill="#545a78" font-size="9" font-family="'Nunito', sans-serif">tok 4</text>
+
+          <!-- Label -->
+          <text x="343" y="128" text-anchor="middle" fill="#545a78" font-size="10" font-family="'Nunito', sans-serif">Token strings</text>
+
+          <!-- Arrow 2 -->
+          <line x1="469" y1="102" x2="501" y2="102" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arr3)"/>
+          <text x="485" y="94" text-anchor="middle" fill="#545a78" font-size="9" font-family="'Nunito', sans-serif">vocab</text>
+
+          <!-- IDs box -->
+          <rect x="503" y="72" width="250" height="52" rx="8" fill="#171c2e" stroke="#22d3ee" stroke-width="1.5"/>
+          <text x="628" y="95" text-anchor="middle" fill="#67e8f9" font-size="13">[ 15339, 11, 1917, 0 ]</text>
+          <text x="628" y="114" text-anchor="middle" fill="#545a78" font-size="10" font-family="'Nunito', sans-serif">Integer token IDs (GPT-2 vocab)</text>
+
+          <!-- Bottom label -->
+          <text x="390" y="172" text-anchor="middle" fill="#545a78" font-size="11" font-family="'Nunito', sans-serif" font-style="italic">Tokenization: raw text &rarr; subword tokens &rarr; integer IDs the model actually sees</text>
+        </svg>
+        <div class="diagram-caption">Figure 2 &mdash; "Hello, world!" tokenizes into 4 tokens with GPT-2's BPE vocabulary. Note that " world" includes the leading space as part of the token.</div>
+      </div>
+
+      <h3 id="tokenization-plain">Plain Language</h3>
+
+      <p>
+        Neural networks are mathematical functions that operate on numbers. They cannot read the letter "A" or the word "transformer" directly. So the very first step in working with any language model is converting text into a sequence of integers. This conversion process is called <strong>tokenization</strong>, and understanding it well is critical because it affects cost, latency, model behavior, and fairness in ways that are not obvious at first glance.
+      </p>
+      <p>
+        The intuitive approach would be to split text into words. But this runs into problems immediately: what do you do with punctuation? With contractions like "don't"? With code like <code>df.groupby("col")</code>? With URLs? With emojis? With misspellings? If your vocabulary is every English word, your vocabulary table has hundreds of thousands of entries and you still cannot handle rare words, proper nouns, or any other language. Modern tokenizers solve this with <strong>subword tokenization</strong>: break text into pieces that are larger than individual characters but smaller than full words.
+      </p>
+      <p>
+        The most widely used algorithm is <strong>Byte Pair Encoding (BPE)</strong>, originally designed for data compression. The algorithm starts with a vocabulary of all individual bytes (or characters), then repeatedly finds the most frequent adjacent pair in the training corpus and merges them into a single new token. After enough merges, common words like "the" and "and" become single tokens, while rare words like "photosynthesis" might be split into "photo", "synth", "esis." The number of merges determines the final vocabulary size. GPT-2 uses 50,257 tokens; Llama 3 uses 128,256. A larger vocabulary means fewer tokens per text (more efficient) but a larger embedding table.
+      </p>
+      <p>
+        Tokens are decidedly <strong>not words</strong>. This is one of the most important intuitions to internalize. "tokenization" might be tokenized as ["token", "ization"] &mdash; two tokens. The word "unfortunately" in GPT-4's tokenizer is a single token, while "a" is also a single token. Emojis often require 2-4 tokens each. Code is particularly expensive: a Python function with many special characters and indentation can use far more tokens than the equivalent English description of what it does. An important practical consequence: you pay OpenAI per token, so counting tokens before sending a prompt is not just academic.
+      </p>
+      <p>
+        Language fairness is a real issue with tokenization. English is dramatically more token-efficient than most other languages. Mandarin Chinese, Arabic, and low-resource languages often require 2-5x as many tokens to express the same content as English. This means: (1) prompts in those languages cost more, (2) those languages have less room in the context window, and (3) models have seen far less training data in those languages, compounding disadvantages. This is an active area of research &mdash; recent models like Llama 3 improved multilingual tokenization significantly compared to earlier generations.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Practical Warning</div>
+        <p>When you call OpenAI's API and hit a context length limit, the error is about <em>tokens</em>, not characters or words. Always count tokens using the appropriate library (tiktoken for OpenAI, transformers tokenizer for open models) before assuming your input will fit. A rough rule of thumb: 1 token &asymp; 4 characters in English, or about 0.75 words.</p>
+      </div>
+
+      <h3 id="tokenization-deep">Deep Dive</h3>
+
+      <p>
+        The <strong>BPE algorithm</strong> is straightforward to implement and worth understanding in detail. You begin by splitting the training corpus into bytes (or Unicode characters) and counting the frequency of every adjacent pair. You then merge the most frequent pair into a new token, update all occurrences in the corpus, and repeat. Each iteration of this loop adds one token to the vocabulary. After 50,000 such merges (for GPT-2), you have a vocabulary of characters plus learned subword merges that efficiently represent the training corpus. The merge rules are stored as an ordered list &mdash; during inference, you apply them greedily in the same order.
+      </p>
+      <p>
+        <strong>WordPiece</strong> (used in BERT and its derivatives) is similar to BPE but instead of merging the most frequent pair, it merges the pair that maximizes the likelihood of the training corpus under a unigram language model. In practice this produces similar results but tends to prefer merges that are individually meaningful linguistic units. WordPiece prefixes subwords with "##" to distinguish word-initial tokens from mid-word continuations: "tokenization" becomes ["token", "##ization"].
+      </p>
+      <p>
+        <strong>SentencePiece</strong> (used in Llama, T5, Gemma, and many others) takes a different approach: it treats the input as a raw stream of Unicode characters with no pre-tokenization, making it completely language-agnostic. It can implement either BPE or the Unigram Language Model algorithm. The key difference from tiktoken/BPE is that it is trained end-to-end and can handle arbitrary whitespace including leading spaces as part of tokens, which is why Llama tokens often have a leading space character embedded in them (e.g., "▁Hello" rather than "Hello").
+      </p>
+      <p>
+        <strong>Special tokens</strong> are a critical part of any tokenizer and vary by model family. They signal structure to the model that cannot be expressed in plain text. GPT-2 and GPT-3 use <code>&lt;|endoftext|&gt;</code> to signal the boundary between documents in the training corpus. The instruction-tuned versions of GPT models use <code>&lt;|im_start|&gt;</code> and <code>&lt;|im_end|&gt;</code> to delimit system prompts and turns (the "IM" stands for "instant message"). Llama uses <code>&lt;s&gt;</code> and <code>&lt;/s&gt;</code> as BOS and EOS tokens. BERT uses <code>[CLS]</code> (start of sequence, used for classification) and <code>[SEP]</code> (separator between sentence pairs). These tokens are never generated from normal text &mdash; they are added explicitly by the tokenizer based on the context.
+      </p>
+      <p>
+        Vocabulary sizes have grown over time as models scaled: GPT-2 has 50,257 tokens, GPT-4 uses the <code>cl100k_base</code> encoding with 100,277 tokens, and Llama 3 extended this to 128,256. A larger vocabulary increases the size of the embedding table (vocab_size &times; d_model parameters) but reduces the average number of tokens per document, which means more text fits in the same context window and inference costs less per document.
+      </p>
+
+      <div class="tab-row"><div class="tab-label deep">Code &mdash; Tokenization with tiktoken</div></div>
+<pre><code><span class="code-keyword">import</span> tiktoken
+
+<span class="code-comment"># Load OpenAI's tokenizer for GPT-4 / GPT-4o</span>
+enc = tiktoken.<span class="code-fn">get_encoding</span>(<span class="code-string">"cl100k_base"</span>)   <span class="code-comment"># GPT-4 encoding</span>
+
+<span class="code-comment"># --- Basic tokenization ---</span>
+text = <span class="code-string">"Hello, world! Tokenization is surprisingly nuanced."</span>
+tokens = enc.<span class="code-fn">encode</span>(text)
+<span class="code-fn">print</span>(<span class="code-string">f"Token IDs:  {tokens}"</span>)
+<span class="code-comment"># [9906, 11, 1917, 0, 9984, 2065, 374, 33407, 84697, 13]</span>
+<span class="code-fn">print</span>(<span class="code-string">f"Token count: {len(tokens)}"</span>)   <span class="code-comment"># 10</span>
+
+<span class="code-comment"># --- Decode individual tokens ---</span>
+<span class="code-keyword">for</span> tid <span class="code-keyword">in</span> tokens:
+    piece = enc.<span class="code-fn">decode</span>([tid])
+    <span class="code-fn">print</span>(<span class="code-string">f"  {tid:6d}  →  {repr(piece)}"</span>)
+
+<span class="code-comment"># --- Compare token counts across languages ---</span>
+samples = {
+    <span class="code-string">"English"</span>:  <span class="code-string">"The transformer architecture revolutionized natural language processing."</span>,
+    <span class="code-string">"Spanish"</span>:  <span class="code-string">"La arquitectura del transformador revolucionó el procesamiento del lenguaje."</span>,
+    <span class="code-string">"Chinese"</span>:  <span class="code-string">"Transformer架构彻底改变了自然语言处理领域。"</span>,
+    <span class="code-string">"Arabic"</span>:   <span class="code-string">"أحدث هيكل المحوّل ثورة في معالجة اللغة الطبيعية."</span>,
+    <span class="code-string">"Code"</span>:     <span class="code-string">"def scaled_attention(Q, K, V):\n    return softmax(Q @ K.T / sqrt(d_k)) @ V"</span>,
+}
+<span class="code-keyword">for</span> lang, sample <span class="code-keyword">in</span> samples.<span class="code-fn">items</span>():
+    n = <span class="code-fn">len</span>(enc.<span class="code-fn">encode</span>(sample))
+    chars = <span class="code-fn">len</span>(sample)
+    <span class="code-fn">print</span>(<span class="code-string">f"{lang:10s}: {n:3d} tokens  ({chars:3d} chars)  ratio={chars/n:.1f} chars/tok"</span>)
+
+<span class="code-comment"># --- Special tokens (for chat models) ---</span>
+enc_chat = tiktoken.<span class="code-fn">get_encoding</span>(<span class="code-string">"cl100k_base"</span>)
+<span class="code-comment"># Note: special tokens like <|im_start|> must be explicitly allowed</span>
+special_tokens = enc_chat.<span class="code-fn">encode</span>(
+    <span class="code-string">"&lt;|im_start|&gt;user\nHello&lt;|im_end|&gt;"</span>,
+    allowed_special=<span class="code-string">"all"</span>
+)
+<span class="code-fn">print</span>(<span class="code-string">f"With special tokens: {special_tokens}"</span>)
+
+<span class="code-comment"># --- Count tokens before sending to API (save money!) ---</span>
+<span class="code-keyword">def</span> <span class="code-fn">count_tokens</span>(messages: <span class="code-fn">list</span>[<span class="code-fn">dict</span>], model: <span class="code-fn">str</span> = <span class="code-string">"gpt-4o"</span>) -&gt; <span class="code-fn">int</span>:
+    <span class="code-string">"""Approximate token count for a list of chat messages."""</span>
+    enc = tiktoken.<span class="code-fn">encoding_for_model</span>(model)
+    total = <span class="code-num">0</span>
+    <span class="code-keyword">for</span> msg <span class="code-keyword">in</span> messages:
+        total += <span class="code-num">4</span>  <span class="code-comment"># overhead per message</span>
+        <span class="code-keyword">for</span> value <span class="code-keyword">in</span> msg.<span class="code-fn">values</span>():
+            total += <span class="code-fn">len</span>(enc.<span class="code-fn">encode</span>(<span class="code-fn">str</span>(value)))
+    total += <span class="code-num">2</span>  <span class="code-comment"># reply priming tokens</span>
+    <span class="code-keyword">return</span> total
+
+messages = [
+    {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: <span class="code-string">"You are a helpful assistant."</span>},
+    {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>,   <span class="code-string">"content"</span>: <span class="code-string">"Explain transformers in one paragraph."</span>},
+]
+<span class="code-fn">print</span>(<span class="code-string">f"Estimated tokens: {count_tokens(messages)}"</span>)   <span class="code-comment"># ~24</span>
+</code></pre>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3: EMBEDDINGS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="embeddings">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Embeddings</h2>
+      </div>
+
+      <h3 id="embeddings-plain">Plain Language</h3>
+
+      <p>
+        Once text has been tokenized into a sequence of integer IDs, the model needs to convert those integers into something it can compute with. Each integer ID indexes into a large lookup table &mdash; the <strong>embedding matrix</strong> &mdash; to retrieve a high-dimensional vector. For GPT-3, these vectors have 12,288 numbers each. For smaller models like GPT-2, it is 768 numbers. These vectors are the model's internal language &mdash; every token, every concept, every word gets translated into a point in this high-dimensional space.
+      </p>
+      <p>
+        The remarkable thing about embedding spaces learned during training is that they develop a geometry of meaning. Words with similar meanings cluster together. "cat" and "dog" are closer to each other than either is to "automobile." Even more striking, <strong>directions in the space carry semantic meaning</strong>. The classic demonstration: take the vector for "king", subtract the vector for "man", and add the vector for "woman." The resulting point in space is extremely close to the vector for "queen." This happens not because anyone programmed it, but because the model learned to represent the structure of meaning implicitly while training on billions of examples.
+      </p>
+      <p>
+        This geometric property of embeddings is why <strong>Retrieval-Augmented Generation (RAG)</strong> works, which you will build extensively later in this course. When you want to find which documents in a database are relevant to a user's query, you convert both the query and each document into embedding vectors, then find the documents whose vectors are closest to the query vector. "Closest" is measured using cosine similarity (the angle between vectors), which captures semantic relatedness regardless of the exact words used. A query about "ML model deployment" will match a document about "serving machine learning systems in production" even if none of those exact words overlap.
+      </p>
+      <p>
+        It is important to distinguish between two types of embeddings you will encounter. <strong>Token embeddings</strong> inside the transformer are context-dependent: the word "bank" has a different vector when preceded by "river" versus "investment." This is one of the transformer's key achievements over earlier methods. <strong>Sentence or document embeddings</strong>, which are what you produce when you call the OpenAI embeddings API, are context-free in a different sense &mdash; you put in a whole sentence or paragraph, and get back a single vector that represents the entire text. This is produced by running the text through a model and then pooling the resulting token representations (often by averaging them, or taking the special CLS token).
+      </p>
+      <p>
+        For practical use in this course, embeddings are primarily a tool for <strong>semantic search and similarity</strong>. You will embed user queries and document chunks, store those vectors in a vector database (like Pinecone, Weaviate, or pgvector), and retrieve the most relevant chunks at query time. Understanding how embeddings work under the hood helps you make better decisions about which embedding model to choose, how to chunk your documents, and how to interpret similarity scores.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Dimensionality Intuition</div>
+        <p>Why 1536 dimensions and not 10? In high-dimensional spaces, you can encode an enormous number of independent "directions" (concepts). With 1536 dimensions, the embedding space can simultaneously encode syntax, semantics, sentiment, topic, language, register, and hundreds of other properties without them interfering with each other. Low-dimensional spaces get "crowded" quickly.</p>
+      </div>
+
+      <h3 id="embeddings-deep">Deep Dive</h3>
+
+      <p>
+        The <strong>embedding table</strong> is a matrix of shape <code>(vocab_size, d_model)</code>. For GPT-2 with vocab_size=50,257 and d_model=768, this is roughly 38.6 million parameters &mdash; a significant fraction of the total. Each row is a learned vector for one token. During the forward pass, embedding lookup is conceptually just <code>E[token_id]</code> &mdash; a matrix row selection. In practice this is implemented as a matrix multiply with a one-hot vector for numerical stability and hardware efficiency.
+      </p>
+      <p>
+        The token embeddings are added to <strong>positional embeddings</strong> of the same dimension before entering the first transformer layer. The sum <code>token_embed + positional_embed</code> encodes both "what this token is" and "where in the sequence it sits." In weight-tied models (like GPT-2), the embedding table is also used as the output projection: after the final layer, the hidden state is multiplied by <code>E^T</code> to produce a logit for every vocabulary token. This parameter sharing both saves memory and constrains the model to produce outputs that live in the same geometric space as the inputs.
+      </p>
+      <p>
+        <strong>Contextual vs. static embeddings</strong> represent a fundamental shift in NLP. Earlier models like Word2Vec (2013) and GloVe (2014) assigned a single fixed vector to each word regardless of context. The word "bank" always had the same representation. Transformer embeddings are different: the representation of each token is determined by running the full attention mechanism, so the same token gets a completely different vector depending on its surrounding context. This is why transformers dramatically outperformed Word2Vec on tasks requiring disambiguation.
+      </p>
+      <p>
+        For the specific case of <strong>sentence embeddings</strong> (representing an entire text as one vector), several pooling strategies are used. The simplest is <strong>mean pooling</strong>: average all token embeddings from the last layer. This is what most modern sentence embedding models do. <strong>CLS pooling</strong> uses the embedding of a special [CLS] token prepended to every sequence; BERT was trained with a classification objective at this position, so it learns to aggregate sequence-level information. OpenAI's embedding API abstracts away this choice and returns a single embedding per input.
+      </p>
+      <p>
+        OpenAI currently offers two primary embedding models: <code>text-embedding-3-small</code> (1536 dimensions, very fast and cheap) and <code>text-embedding-3-large</code> (3072 dimensions, higher quality for tasks requiring fine-grained semantic distinctions). A unique feature of these models is <strong>Matryoshka Representation Learning (MRL)</strong>: you can truncate the embedding to a smaller dimension (e.g., 256 or 512) by taking the first N dimensions, and the result is still a useful embedding. This lets you trade off memory and speed against precision. The quality degrades gracefully rather than catastrophically.
+      </p>
+      <p>
+        <strong>Cosine similarity</strong> is the standard metric for comparing embedding vectors. It measures the angle between two vectors, ignoring their magnitude: <code>cos(a,b) = (a &middot; b) / (|a| &times; |b|)</code>. It ranges from -1 (opposite directions) through 0 (orthogonal, unrelated) to 1 (identical direction, maximally similar). For semantic search purposes, you normalize all embeddings to unit length first, after which cosine similarity is equivalent to the dot product &mdash; which GPU hardware computes extremely efficiently.
+      </p>
+
+      <div class="tab-row"><div class="tab-label deep">Code &mdash; OpenAI Embeddings + Cosine Similarity</div></div>
+<pre><code><span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np
+<span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+
+client = <span class="code-fn">OpenAI</span>()  <span class="code-comment"># reads OPENAI_API_KEY from environment</span>
+
+<span class="code-keyword">def</span> <span class="code-fn">get_embedding</span>(text: <span class="code-fn">str</span>, model: <span class="code-fn">str</span> = <span class="code-string">"text-embedding-3-small"</span>) -&gt; np.ndarray:
+    <span class="code-string">"""Call the OpenAI embedding API and return a numpy array."""</span>
+    text = text.<span class="code-fn">replace</span>(<span class="code-string">"\n"</span>, <span class="code-string">" "</span>)   <span class="code-comment"># newlines degrade quality slightly</span>
+    response = client.embeddings.<span class="code-fn">create</span>(input=[text], model=model)
+    vec = np.<span class="code-fn">array</span>(response.data[<span class="code-num">0</span>].embedding)
+    <span class="code-keyword">return</span> vec / np.linalg.<span class="code-fn">norm</span>(vec)  <span class="code-comment"># L2-normalize for cosine ≡ dot</span>
+
+
+<span class="code-keyword">def</span> <span class="code-fn">cosine_similarity</span>(a: np.ndarray, b: np.ndarray) -&gt; <span class="code-fn">float</span>:
+    <span class="code="code-string">"""Cosine similarity between two unit-normalised vectors."""</span>
+    <span class="code-keyword">return</span> <span class="code-fn">float</span>(np.<span class="code-fn">dot</span>(a, b))  <span class="code-comment"># == cos(θ) when both are unit vectors</span>
+
+
+<span class="code-comment"># --- Compare semantic similarity of sentence pairs ---</span>
+pairs = [
+    (<span class="code-string">"The cat sat on the mat."</span>,         <span class="code-string">"A feline rested on a rug."</span>),
+    (<span class="code-string">"Machine learning model deployment."</span>, <span class="code-string">"Serving ML systems in production."</span>),
+    (<span class="code-string">"How do I make pasta carbonara?"</span>,    <span class="code-string">"Explain quantum entanglement."</span>),
+    (<span class="code-string">"king"</span>,                              <span class="code-string">"queen"</span>),
+    (<span class="code-string">"king"</span>,                              <span class="code-string">"automobile"</span>),
+]
+
+<span class="code-fn">print</span>(<span class="code-string">f"{'Sentence A':40s}  {'Sentence B':40s}  Similarity"</span>)
+<span class="code-fn">print</span>(<span class="code-string">"-"</span> * <span class="code-num">95</span>)
+<span class="code-keyword">for</span> a, b <span class="code-keyword">in</span> pairs:
+    emb_a = <span class="code-fn">get_embedding</span>(a)
+    emb_b = <span class="code-fn">get_embedding</span>(b)
+    sim   = <span class="code-fn">cosine_similarity</span>(emb_a, emb_b)
+    <span class="code-fn">print</span>(<span class="code-string">f"{a[:38]:40s}  {b[:38]:40s}  {sim:.4f}"</span>)
+
+
+<span class="code-comment"># --- Demonstrate vector arithmetic (king - man + woman ≈ queen) ---</span>
+words = [<span class="code-string">"king"</span>, <span class="code-string">"man"</span>, <span class="code-string">"woman"</span>, <span class="code-string">"queen"</span>, <span class="code-string">"prince"</span>, <span class="code-string">"princess"</span>]
+embeddings = {w: <span class="code-fn">get_embedding</span>(w) <span class="code-keyword">for</span> w <span class="code-keyword">in</span> words}
+
+analogy = embeddings[<span class="code-string">"king"</span>] - embeddings[<span class="code-string">"man"</span>] + embeddings[<span class="code-string">"woman"</span>]
+<span class="code-comment"># Re-normalise after arithmetic</span>
+analogy = analogy / np.linalg.<span class="code-fn">norm</span>(analogy)
+
+<span class="code-fn">print</span>(<span class="code-string">"\nking - man + woman  →  similarity to:"</span>)
+<span class="code-keyword">for</span> word, vec <span class="code-keyword">in</span> embeddings.<span class="code-fn">items</span>():
+    <span class="code-fn">print</span>(<span class="code-string">f"  {word:10s}: {cosine_similarity(analogy, vec):.4f}"</span>)
+<span class="code-comment"># "queen" should score highest (excluding king/man/woman themselves)</span>
+
+
+<span class="code-comment"># --- Batch embeddings (more efficient for large corpora) ---</span>
+documents = [
+    <span class="code-string">"Transformers use self-attention to model sequences."</span>,
+    <span class="code-string">"Python is a dynamically-typed interpreted language."</span>,
+    <span class="code-string">"Gradient descent minimises the loss function iteratively."</span>,
+    <span class="code-string">"RAG retrieves relevant chunks before generating an answer."</span>,
+]
+
+<span class="code-comment"># OpenAI supports batching up to 2048 inputs per request</span>
+response = client.embeddings.<span class="code-fn">create</span>(input=documents, model=<span class="code-string">"text-embedding-3-small"</span>)
+doc_embeddings = np.<span class="code-fn">array</span>([r.embedding <span class="code-keyword">for</span> r <span class="code-keyword">in</span> response.data])
+<span class="code-fn">print</span>(<span class="code-string">f"\nDocument embedding matrix shape: {doc_embeddings.shape}"</span>)
+<span class="code-comment"># (4, 1536)  — 4 documents × 1536 dimensions</span>
+
+<span class="code-comment"># Pairwise similarity matrix</span>
+norms = np.linalg.<span class="code-fn">norm</span>(doc_embeddings, axis=<span class="code-num">1</span>, keepdims=<span class="code-keyword">True</span>)
+unit_embs = doc_embeddings / norms
+sim_matrix = unit_embs @ unit_embs.T
+<span class="code-fn">print</span>(<span class="code-string">"\nPairwise cosine similarity matrix:"</span>)
+<span class="code-fn">print</span>(np.<span class="code-fn">round</span>(sim_matrix, <span class="code-num">3</span>))
+</code></pre>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4: PRE-TRAINING, INSTRUCTION TUNING, RLHF
+    ════════════════════════════════════════════ -->
+    <section class="section" id="training">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Pre-training, Instruction Tuning &amp; RLHF</h2>
+      </div>
+
+      <h3 id="training-plain">Plain Language</h3>
+
+      <p>
+        Training a modern large language model happens in distinct stages, each serving a different purpose. Understanding these stages helps you understand why models behave the way they do &mdash; why ChatGPT is helpful and conversational rather than producing raw statistical text, why Claude refuses certain requests, and why fine-tuned models specialize in particular domains. These are not accidents; they are the result of carefully designed training pipelines applied on top of each other.
+      </p>
+      <p>
+        The first stage, <strong>pre-training</strong>, is the foundation. A raw transformer model with randomly initialized weights is trained on an enormous corpus of text &mdash; web pages, books, scientific papers, code repositories, Wikipedia, and more. The training objective is simple: given the previous tokens in a sequence, predict the next token. This sounds almost trivially simple, but at scale it turns out to be an extraordinarily demanding task. To predict the next word reliably across billions of different sentences, the model must implicitly learn grammar, facts about the world, how arguments are structured, how code behaves, social conventions, scientific relationships, and much more. None of this is explicitly taught &mdash; it all emerges from the pressure of predicting the next token on enough diverse text.
+      </p>
+      <p>
+        Pre-training is outrageously expensive. Training GPT-3 (175B parameters) reportedly cost over $4 million in compute. Training GPT-4 is estimated at $60-100 million. These runs require clusters of thousands of specialized AI accelerator chips running for months. The output of pre-training is a "base model" or "foundation model" &mdash; an extraordinarily knowledgeable but somewhat feral entity that will complete whatever you give it (often in unexpected directions) rather than helpfully answer questions.
+      </p>
+      <p>
+        The second stage is <strong>instruction tuning</strong> (also called Supervised Fine-Tuning or SFT). Here you take the base model and continue training it on a carefully curated dataset of (instruction, ideal response) pairs. After instruction tuning, the model has learned to behave like an assistant rather than a document completer. It will answer "What is the capital of France?" with "Paris" rather than completing the question as if it were the start of a trivia quiz. The transformation is dramatic and requires far less compute than pre-training &mdash; thousands of high-quality examples rather than trillions of tokens.
+      </p>
+      <p>
+        The third stage is <strong>RLHF (Reinforcement Learning from Human Feedback)</strong>, which is what made ChatGPT feel dramatically more helpful and safe than earlier GPT-3 variants. Human raters compare pairs of model responses and indicate which one is better. These preferences are used to train a separate <strong>reward model</strong> that can predict human preference scores. Then the main language model is fine-tuned using reinforcement learning (specifically, Proximal Policy Optimization or PPO) to maximize the reward model's score. The result is a model that has been shaped to produce responses humans prefer &mdash; more helpful, less likely to produce harmful content, better at following instructions precisely. The combination of all three stages is what gives you Claude, ChatGPT, or Gemini.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Chinchilla Scaling Laws</div>
+        <p>Research by DeepMind in 2022 showed that most large models at the time were significantly undertrained. The optimal compute budget splits roughly equally between parameters and training tokens, with the rule of thumb being approximately 20 tokens of training data per model parameter. A model with 8 billion parameters should ideally be trained on around 160 billion tokens for optimal efficiency &mdash; but Llama 3 8B was trained on 15 trillion tokens, intentionally over-training to produce a smaller model that performs better at inference time.</p>
+      </div>
+
+      <h3 id="training-deep">Deep Dive</h3>
+
+      <p>
+        Pre-training uses the <strong>causal language modeling (CLM)</strong> objective. For a sequence of tokens <code>x_1, x_2, ..., x_T</code>, the model computes the log-probability of the entire sequence as the sum of conditional log-probabilities: <code>log P(x) = &sum;_t log P(x_t | x_1,...,x_{t-1})</code>. Each forward pass simultaneously predicts all tokens in the sequence (masked so position t cannot see t+1...T), and the loss is the average cross-entropy across all positions. This makes training extremely efficient &mdash; a single forward pass of a sequence of length 2048 generates 2048 training signal examples.
+      </p>
+      <p>
+        The <strong>neural scaling laws</strong> (Kaplan et al. 2020, Hoffmann et al. 2022) describe a power-law relationship between model performance, compute budget, model parameters, and training tokens. Crucially, they reveal that performance scales smoothly and predictably: doubling compute yields a predictable improvement in loss. This allows AI labs to reliably plan multi-hundred-million-dollar training runs. The Chinchilla paper (Hoffmann et al.) showed the optimal training-to-parameter ratio is approximately 20 tokens per parameter. Llama 3 8B, trained on 15 trillion tokens, is deliberately "overfit" at this ratio to create a small model that performs well enough to deploy cheaply.
+      </p>
+      <p>
+        <strong>Instruction tuning (SFT)</strong> is technically straightforward: it is standard supervised fine-tuning using the same CLM objective, but on a curated dataset of instruction-response pairs formatted in a specific template. For example, Llama 3 uses a template wrapping system, user, and assistant turns in special tokens. The model learns to recognize this template and behave like an assistant within it. The SFT dataset need not be enormous &mdash; high-quality matters more than quantity. The seminal "Alpaca" paper showed that even 52,000 instruction-following examples were sufficient to dramatically improve instruction-following over the base model.
+      </p>
+      <p>
+        The full <strong>RLHF pipeline</strong> proceeds in three steps after SFT. First, a separate <strong>reward model (RM)</strong> is trained on human preference data. Human raters are shown pairs of model responses to the same prompt and must select the better one. The RM (typically initialized from the SFT model) is trained to predict these preferences, learning a scalar reward for any (prompt, response) pair. Second, the SFT model is fine-tuned using <strong>PPO (Proximal Policy Optimization)</strong>, a reinforcement learning algorithm: the model generates responses, the reward model scores them, and PPO updates the model weights to increase the probability of high-reward responses. Crucially, a KL divergence penalty is added to prevent the model from drifting too far from the SFT baseline (which would cause reward hacking &mdash; generating text that maximizes the reward model's score in ways humans would not actually prefer). Third, the process iterates: new data is collected, the reward model is updated, and the policy is fine-tuned again.
+      </p>
+      <p>
+        <strong>Constitutional AI (CAI)</strong>, developed by Anthropic and used in training Claude, extends RLHF by replacing human preference labelers with an AI judge that evaluates responses against a set of written principles (the "constitution"). The AI critiques its own outputs, rewrites them to better satisfy the principles, and uses the (original, rewritten) pairs as preference data. This scales much more efficiently than collecting human preferences and allows Anthropic to codify specific values (harmlessness, honesty, helpfulness) in written form and train against them directly.
+      </p>
+      <p>
+        <strong>Direct Preference Optimization (DPO)</strong> is a more recent alternative to RLHF that bypasses the separate reward model entirely. DPO directly optimizes the language model on preference pairs using a clever mathematical equivalence: it has been shown that the optimal RLHF policy can be expressed in closed form using the reference model, enabling gradient descent directly on the preference data without needing a separate RL training loop. DPO is simpler to implement, more stable to train, and has shown comparable or better results than PPO-based RLHF on many tasks. Most fine-tuning workflows today use DPO or a variant of it.
+      </p>
+      <p>
+        <strong>Extended thinking</strong> (sometimes called chain-of-thought reasoning, reasoning tokens, or "thinking mode" as in Claude 3.7 Sonnet) is a training-time technique where the model is encouraged to produce an internal reasoning trace before producing its final answer. During training, reasoning traces are generated and used as additional supervision signal. At inference time, the model produces (and optionally streams) these reasoning tokens before the final answer. This dramatically improves performance on multi-step reasoning tasks like mathematics, coding, and scientific problems. In Claude's API, you can see the thinking tokens when they are enabled, giving you direct visibility into the model's intermediate reasoning steps.
+      </p>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 5: INFERENCE MECHANICS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="inference">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Inference Mechanics</h2>
+      </div>
+
+      <h3 id="inference-plain">Plain Language</h3>
+
+      <p>
+        <strong>Inference</strong> is the process of using a trained model to generate text &mdash; what happens every time you send a message to ChatGPT or call an LLM API. Unlike training, no learning occurs during inference: the weights are frozen, and you are simply running the mathematical computation forward through the network. But inference has its own surprising complexity, and understanding how it works helps you make better decisions about temperature, sampling parameters, context windows, and cost.
+      </p>
+      <p>
+        Modern LLMs generate text <strong>autoregressively</strong>: one token at a time, feeding each generated token back as input for the next step. When you send "Tell me a joke," the model does not see the full answer immediately. It generates the first token ("Why"), then feeds "Tell me a joke Why" back in to generate the second token ("did"), then "Tell me a joke Why did" to generate "the", and so on, until it generates a special end-of-sequence token or hits the maximum length limit. Each step is an independent forward pass through all the model's layers. For a 70B parameter model, this is a substantial computation &mdash; typically 30-80 tokens per second on an NVIDIA A100 GPU.
+      </p>
+      <p>
+        <strong>Temperature</strong> controls how random or deterministic the model's choices are. At the end of each forward pass, the model produces a probability distribution over all ~100,000 vocabulary tokens. With temperature=0 (or "greedy decoding"), you always pick the single most likely next token. This is fully deterministic &mdash; the same prompt always produces the same output. As temperature increases, the distribution is spread out (lower-confidence tokens get relatively more probability), producing more varied and surprising outputs. Temperature=1 is the "natural" distribution the model learned. Temperature=2 makes choices very random and usually incoherent. For creative tasks, 0.7-1.0 works well; for factual Q&A or code, 0-0.3 is safer.
+      </p>
+      <p>
+        The <strong>context window</strong> is the maximum number of tokens the model can consider at once, including both your input and the generated output. GPT-4 originally had 8,192 tokens; modern models have 128K (Claude 3) or even 1M (Gemini 1.5). This matters enormously in practice. If you want to chat with a model about a 500-page book, you cannot simply paste the whole book in &mdash; it would exceed the context window. This is one of the key motivations for RAG: instead of stuffing everything into the context, you retrieve only the relevant chunks.
+      </p>
+      <p>
+        A common misconception is that longer context windows solve all retrieval problems. Research has consistently shown the <strong>"lost in the middle" problem</strong>: models perform much better at recalling information from the beginning and end of a long context than from the middle. Even with a 128K context window, information buried in position 64K may be effectively ignored. This is why structured retrieval (RAG) often outperforms naive context stuffing even when the context window is theoretically large enough to hold all the information.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Cost Awareness</div>
+        <p>Inference is priced per token (input tokens + output tokens, often at different rates). A 128K input token prompt to GPT-4o at $5/1M input tokens costs $0.64 just for the prompt. Output tokens are typically 3-4x more expensive per token than input tokens. At scale, the choice of temperature (which affects output length indirectly), the context window size, and the model size dominate your costs.</p>
+      </div>
+
+      <h3 id="inference-deep">Deep Dive</h3>
+
+      <p>
+        During the autoregressive forward pass, the model runs the full token sequence through all N transformer layers sequentially, producing a hidden state at each layer for each token position. The final layer's hidden state at the last token position is then projected through the language model head (a linear layer of shape <code>(d_model, vocab_size)</code>) to produce a vector of <strong>logits</strong> &mdash; one unnormalized score per vocabulary token. These logits are transformed into a probability distribution by softmax (or, in practice, by sampling operations applied to the logits directly).
+      </p>
+      <p>
+        The most important optimization for efficient inference is the <strong>KV cache</strong> (Key-Value cache). Recall that attention requires computing K and V matrices for every token in the sequence. During autoregressive generation, after step <code>t</code>, the K and V matrices for all tokens <code>1...t</code> have already been computed. Without caching, every new token would require recomputing K and V for the entire prefix. The KV cache stores these matrices in GPU SRAM, so each new step only needs to compute K and V for the single new token, then concatenate with the cached history. This reduces inference cost from O(T&sup2;) back toward O(T) per generated token. For long contexts, the KV cache can be gigabytes of data &mdash; a key constraint on how many parallel requests a GPU can serve.
+      </p>
+      <p>
+        <strong>Sampling strategies</strong> determine how you convert the logit distribution into a chosen token. <strong>Greedy decoding</strong> (argmax) always picks the highest-probability token and is fully deterministic. <strong>Temperature sampling</strong> divides all logits by the temperature T before softmax: <code>p_i = softmax(logits / T)_i</code>. With T &lt; 1, the distribution sharpens (confident); with T &gt; 1, it flattens (random). <strong>Top-k sampling</strong> zeros out all but the k highest-probability tokens before sampling, preventing very unlikely tokens from ever being chosen. <strong>Top-p (nucleus) sampling</strong> instead keeps the smallest set of tokens whose cumulative probability exceeds p (e.g., p=0.9), which adapts dynamically to how spread out the distribution is. <strong>Min-p sampling</strong> (a newer technique) sets a minimum probability threshold relative to the maximum: a token is eligible only if its probability exceeds <code>min_p * max_prob</code>. In practice, most production deployments use a combination: temperature + top-p.
+      </p>
+      <p>
+        <strong>Beam search</strong> maintains B candidate sequences (beams) simultaneously rather than committing to one token at a time. At each step, each beam is extended with every possible next token, the B*vocab_size resulting sequences are scored, and the top B are kept. At the end, the highest-scoring complete sequence is returned. Beam search was the dominant decoding strategy for machine translation (where it dramatically outperformed greedy) but is rarely used for open-ended generation: it produces safe, repetitive text and is B times more expensive than greedy decoding.
+      </p>
+      <p>
+        <strong>Speculative decoding</strong> is a recent technique for accelerating inference from large models. A small, fast <strong>draft model</strong> generates K tokens speculatively (e.g., 4-8 tokens). Then the large model verifies all K tokens in a single parallel forward pass (since the transformer processes all positions simultaneously). If the large model agrees with the draft's token, it accepts it; if it disagrees, it corrects from that point and discards the rest. Because verification is parallel and draft generation is cheap, this can achieve 2-3x speedup on the large model's effective throughput with no change in output quality.
+      </p>
+      <p>
+        <strong>Batching</strong> is fundamental to serving efficiency. GPUs are designed for massive parallelism, and running a single inference request uses only a fraction of available compute. By processing multiple requests simultaneously in a batch, you amortize the fixed cost of loading model weights from HBM and dramatically increase throughput. <strong>Continuous batching</strong> (also called iteration-level scheduling) extends this further: rather than waiting for all requests in a batch to finish before starting new ones, new requests are slotted into the batch as old ones complete. This is how production serving systems like vLLM and TGI (Text Generation Inference) achieve high GPU utilization. A well-tuned A100 80GB serving a 13B model can handle hundreds of concurrent users at reasonable latency.
+      </p>
+
+      <div class="tab-row"><div class="tab-label deep">Code &mdash; Sampling Strategies Illustrated</div></div>
+<pre><code><span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np
+
+<span class="code-keyword">def</span> <span class="code-fn">softmax</span>(logits: np.ndarray, temperature: <span class="code-fn">float</span> = <span class="code-num">1.0</span>) -&gt; np.ndarray:
+    <span class="code-string">"""Apply temperature scaling then softmax."""</span>
+    scaled = logits / <span class="code-fn">max</span>(temperature, <span class="code-num">1e-8</span>)
+    exp = np.<span class="code-fn">exp</span>(scaled - scaled.<span class="code-fn">max</span>())  <span class="code-comment"># numerical stability</span>
+    <span class="code-keyword">return</span> exp / exp.<span class="code-fn">sum</span>()
+
+
+<span class="code-keyword">def</span> <span class="code-fn">top_k_filter</span>(logits: np.ndarray, k: <span class="code-fn">int</span>) -&gt; np.ndarray:
+    <span class="code-string">"""Zero out all logits except the top-k."""</span>
+    threshold = np.<span class="code-fn">sort</span>(logits)[-k]
+    filtered = np.<span class="code-fn">where</span>(logits &gt;= threshold, logits, -np.<span class="code-fn">inf</span>)
+    <span class="code-keyword">return</span> filtered
+
+
+<span class="code-keyword">def</span> <span class="code-fn">top_p_filter</span>(logits: np.ndarray, p: <span class="code-fn">float</span>) -&gt; np.ndarray:
+    <span class="code-string">"""Keep the smallest set of tokens whose cumulative prob ≥ p."""</span>
+    probs = <span class="code-fn">softmax</span>(logits)
+    sorted_idx = np.<span class="code-fn">argsort</span>(probs)[::-<span class="code-num">1</span>]   <span class="code-comment"># descending</span>
+    cumulative = np.<span class="code-fn">cumsum</span>(probs[sorted_idx])
+    <span class="code-comment"># Tokens after cumsum exceeds p are masked</span>
+    cutoff = np.<span class="code-fn">searchsorted</span>(cumulative, p) + <span class="code-num">1</span>
+    keep = sorted_idx[:cutoff]
+    filtered = np.<span class="code-fn">full_like</span>(logits, -np.<span class="code-fn">inf</span>, dtype=<span class="code-fn">float</span>)
+    filtered[keep] = logits[keep]
+    <span class="code-keyword">return</span> filtered
+
+
+<span class="code-keyword">def</span> <span class="code-fn">sample_token</span>(logits: np.ndarray, temperature: <span class="code-fn">float</span> = <span class="code-num">1.0</span>,
+                  top_k: <span class="code-fn">int</span> = <span class="code-num">0</span>, top_p: <span class="code-fn">float</span> = <span class="code-num">1.0</span>) -&gt; <span class="code-fn">int</span>:
+    <span class="code-string">"""
+    Full sampling pipeline:
+    1. Apply top-k filter (if k > 0)
+    2. Apply top-p (nucleus) filter
+    3. Apply temperature and softmax
+    4. Sample from resulting distribution
+    """</span>
+    <span class="code-keyword">if</span> top_k > <span class="code-num">0</span>:
+        logits = <span class="code-fn">top_k_filter</span>(logits, top_k)
+    <span class="code-keyword">if</span> top_p < <span class="code-num">1.0</span>:
+        logits = <span class="code-fn">top_p_filter</span>(logits, top_p)
+    probs = <span class="code-fn">softmax</span>(logits, temperature)
+    <span class="code-keyword">return</span> <span class="code-fn">int</span>(np.random.<span class="code-fn">choice</span>(<span class="code-fn">len</span>(probs), p=probs))
+
+
+<span class="code-comment"># --- Effect of temperature on distribution ---</span>
+np.random.<span class="code-fn">seed</span>(<span class="code-num">0</span>)
+vocab_size = <span class="code-num">10</span>
+logits = np.random.<span class="code-fn">randn</span>(vocab_size) * <span class="code-num">2</span>  <span class="code-comment"># simulate raw logits</span>
+
+<span class="code-fn">print</span>(<span class="code-string">"Effect of temperature on token probability distribution:"</span>)
+<span class="code-fn">print</span>(<span class="code-string">f"{'Token':^8}"</span>, <span class="code-fn">end</span>=<span class="code-string">""</span>)
+<span class="code-keyword">for</span> T <span class="code-keyword">in</span> [<span class="code-num">0.2</span>, <span class="code-num">0.7</span>, <span class="code-num">1.0</span>, <span class="code-num">1.5</span>, <span class="code-num">2.0</span>]:
+    <span class="code-fn">print</span>(<span class="code-string">f"  T={T:<span class="code-num">3</span>}"</span>, <span class="code-fn">end</span>=<span class="code-string">""</span>)
+<span class="code-fn">print</span>()
+<span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-fn">range</span>(vocab_size):
+    <span class="code-fn">print</span>(<span class="code-string">f"  tok_{i:2d}"</span>, <span class="code-fn">end</span>=<span class="code-string">""</span>)
+    <span class="code-keyword">for</span> T <span class="code-keyword">in</span> [<span class="code-num">0.2</span>, <span class="code-num">0.7</span>, <span class="code-num">1.0</span>, <span class="code-num">1.5</span>, <span class="code-num">2.0</span>]:
+        p = <span class="code-fn">softmax</span>(logits, T)[i]
+        <span class="code-fn">print</span>(<span class="code-string">f"  {p:.3f}  "</span>, <span class="code-fn">end</span>=<span class="code-string">""</span>)
+    <span class="code-fn">print</span>()
+
+<span class="code-comment"># --- KV cache size estimation ---</span>
+<span class="code-keyword">def</span> <span class="code-fn">kv_cache_bytes</span>(n_layers: <span class="code-fn">int</span>, n_heads: <span class="code-fn">int</span>, d_head: <span class="code-fn">int</span>,
+                   seq_len: <span class="code-fn">int</span>, batch_size: <span class="code-fn">int</span> = <span class="code-num">1</span>,
+                   dtype_bytes: <span class="code-fn">int</span> = <span class="code-num">2</span>) -&gt; <span class="code-fn">int</span>:
+    <span class="code-string">"""
+    KV cache stores K and V for each layer, head, and token.
+    Shape: 2 (K+V) × layers × heads × seq_len × d_head × batch
+    """</span>
+    <span class="code-keyword">return</span> <span class="code-num">2</span> * n_layers * n_heads * d_head * seq_len * batch_size * dtype_bytes
+
+<span class="code-comment"># Llama 3 8B: 32 layers, 8 KV heads (GQA), d_head=128, fp16</span>
+size = <span class="code-fn">kv_cache_bytes</span>(n_layers=<span class="code-num">32</span>, n_heads=<span class="code-num">8</span>, d_head=<span class="code-num">128</span>,
+                       seq_len=<span class="code-num">8192</span>, batch_size=<span class="code-num">1</span>, dtype_bytes=<span class="code-num">2</span>)
+<span class="code-fn">print</span>(<span class="code-string">f"\nLlama 3 8B KV cache (8192 ctx, batch=1):  {size/1e6:.1f} MB"</span>)
+
+<span class="code-comment"># GPT-4 style (estimated): 96 layers, 96 heads, d_head=128, 128K context</span>
+size_large = <span class="code-fn">kv_cache_bytes</span>(<span class="code-num">96</span>, <span class="code-num">96</span>, <span class="code-num">128</span>, <span class="code-num">131072</span>, <span class="code-num">1</span>, <span class="code-num">2</span>)
+<span class="code-fn">print</span>(<span class="code-string">f"GPT-4-class (128K ctx, batch=1):           {size_large/1e9:.2f} GB"</span>)
+<span class="code-comment"># This is why large contexts strain GPU memory so severely</span>
+</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Key Insight</div>
+        <p>The KV cache calculation explains why batching large-context requests is GPU-memory-intensive. At 128K tokens and 96 layers, a single request's KV cache can exceed the available SRAM on an A100 (80GB HBM). This is why context length and batch size are in fundamental tension, and why techniques like sliding window attention (Mistral) and grouped-query attention (Llama 3) exist &mdash; they reduce KV cache size while preserving most of the quality.</p>
+      </div>
+
+      <!-- NAVIGATION -->
+      <div class="next-section">
+        <div>
+          <div class="next-label">Previous Module</div>
+          <a href="00-prerequisites.html" class="next-btn prev-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            00 &middot; Prerequisites
+          </a>
+        </div>
+        <div style="text-align:right">
+          <div class="next-label">Next Module</div>
+          <a href="02-llms-slms-multimodal.html" class="next-btn">
+            02 &middot; LLMs, SLMs &amp; Multimodal
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+          <div class="next-phase">Models &amp; Capabilities</div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fine-Tuning Techniques — CareerAlign GenAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--phase-api); background: rgba(6,182,212,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-indigo);
+  padding: 6px 14px; border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(99,102,241,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--phase-api); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--phase-api); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--phase-api); flex-shrink: 0; }
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--phase-api); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(6,182,212,0.15); border: 1px solid rgba(6,182,212,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--phase-api); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--phase-api);
+  background: rgba(6,182,212,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--phase-cloud); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--phase-project); background: rgba(245,158,11,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--phase-api);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--phase-cloud); }
+.callout.warn .callout-label { color: var(--phase-project); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* SVG DIAGRAM */
+.diagram-wrap {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg); padding: 32px;
+  margin: 32px 0;
+}
+.diagram-caption {
+  text-align: center; font-size: 13px; color: var(--text-muted);
+  margin-top: 16px; font-style: italic;
+}
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--phase-api); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(6,182,212,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* CHECKLIST */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px; color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 2px solid var(--phase-api);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.check-box.done { background: var(--phase-api); border-color: var(--phase-api); }
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--phase-api); color: var(--phase-api); transform: translateX(4px); }
+.prev-btn:hover { transform: translateX(-4px) !important; }
+.next-phase { font-size: 12px; color: var(--phase-api); font-weight: 500; }
+
+/* COMPARISON TABLE */
+.compare-table {
+  width: 100%; border-collapse: collapse; margin: 24px 0;
+  font-size: 14px;
+}
+.compare-table th {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  padding: 12px 16px; text-align: left;
+  font-family: var(--font-display); font-size: 12px; font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase;
+}
+.compare-table td {
+  border: 1px solid var(--border-subtle); padding: 11px 16px;
+  color: var(--text-secondary); vertical-align: top; line-height: 1.6;
+}
+.compare-table tr:nth-child(even) td { background: rgba(23,28,46,0.5); }
+.compare-table td strong { color: var(--text-primary); }
+.compare-table td.good { color: var(--phase-cloud); }
+.compare-table td.warn-cell { color: var(--phase-project); }
+.compare-table td.bad { color: var(--phase-quality); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9889; <span>CareerAlign</span> GenAI</div>
+  <div class="nav-links">
+    <a href="00-prerequisites.html">00 &middot; Prerequisites</a>
+    <a href="01-foundations-of-genai.html">01 &middot; Foundations</a>
+    <a href="02-llms-slms-multimodal.html">02 &middot; Models</a>
+    <a href="03-api-for-llms.html">03 &middot; APIs</a>
+    <a href="04-fine-tuning.html" class="active">04 &middot; Fine-Tuning</a>
+    <a href="05-llm-hosting.html">05 &middot; Hosting</a>
+    <a href="06-prompt-engineering.html">06 &middot; Prompting</a>
+    <a href="07-rag-systems.html">07 &middot; RAG</a>
+    <a href="08-advanced-rag.html">08 &middot; Adv RAG</a>
+    <a href="09-agents.html">09 &middot; Agents</a>
+    <a href="10-evaluation.html">10 &middot; Eval</a>
+    <a href="11-guardrails.html">11 &middot; Guardrails</a>
+    <a href="12-mcp.html">12 &middot; MCP</a>
+    <a href="13-aws-cloud.html">13 &middot; AWS</a>
+    <a href="14-n8n-no-code.html">14 &middot; n8n</a>
+    <a href="15-capstone-document-portal.html">15 &middot; Cap I</a>
+    <a href="16-capstone-report-agent.html">16 &middot; Cap II</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GenAI Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    Module 04 &middot; Fine-Tuning Techniques
+  </div>
+  <h1>Teaching Models <em>New Behaviors</em></h1>
+  <p class="hero-desc">
+    Fine-tuning is the art of adapting a pre-trained language model to a specific task, domain, or behavioral style.
+    This module covers the full spectrum: from deciding whether you even need fine-tuning at all, to the most
+    efficient modern techniques (LoRA, QLoRA), to the alignment methods that made ChatGPT feel different from
+    everything before it (RLHF, DPO), through dataset preparation and the OpenAI hosted fine-tuning API.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      LoRA &amp; QLoRA
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      RLHF &amp; DPO
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Dataset Prep
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      OpenAI Fine-Tuning API
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      HuggingFace PEFT &amp; TRL
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/04-fine-tuning.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#when-to-finetune" class="section">1 &middot; FT vs Prompting</a>
+    <a href="#ft-plain" class="sub">Plain Language</a>
+    <a href="#ft-deep" class="sub">Deep Dive</a>
+    <a href="#lora" class="section">2 &middot; LoRA</a>
+    <a href="#lora-plain" class="sub">Plain Language</a>
+    <a href="#lora-deep" class="sub">Deep Dive</a>
+    <a href="#lora-diagram" class="sub">Architecture Diagram</a>
+    <a href="#qlora" class="section">3 &middot; QLoRA</a>
+    <a href="#qlora-plain" class="sub">Plain Language</a>
+    <a href="#qlora-deep" class="sub">Deep Dive</a>
+    <a href="#rlhf" class="section">4 &middot; RLHF</a>
+    <a href="#rlhf-plain" class="sub">Plain Language</a>
+    <a href="#rlhf-deep" class="sub">Deep Dive</a>
+    <a href="#rlhf-diagram" class="sub">Pipeline Diagram</a>
+    <a href="#dpo" class="section">5 &middot; DPO</a>
+    <a href="#dpo-plain" class="sub">Plain Language</a>
+    <a href="#dpo-deep" class="sub">Deep Dive</a>
+    <a href="#datasets" class="section">6 &middot; Dataset Preparation</a>
+    <a href="#datasets-plain" class="sub">Plain Language</a>
+    <a href="#datasets-deep" class="sub">Deep Dive</a>
+    <a href="#openai-api" class="section">7 &middot; OpenAI FT API</a>
+    <a href="#openai-plain" class="sub">Plain Language</a>
+    <a href="#openai-deep" class="sub">Deep Dive</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- SECTION 1: Fine-Tuning vs Prompting -->
+    <section class="section" id="when-to-finetune">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Fine-Tuning vs Prompting — When to Use Which</h2>
+      </div>
+
+      <h3 id="ft-plain">Plain Language</h3>
+
+      <p>
+        The most important thing to understand about fine-tuning is that it is <strong>not the first tool you should reach for</strong>.
+        A large fraction of developers who decide they need to fine-tune a model have not yet exhausted simpler options.
+        Prompt engineering is free, fast to iterate on, and reversible. Retrieval-Augmented Generation (RAG) can inject facts
+        dynamically at query time without any training cost. Fine-tuning, by contrast, requires compute time to train,
+        engineering time to prepare data and run experiments, and produces a static artifact that cannot be easily updated
+        without re-training. Before committing to fine-tuning, you should be able to articulate clearly why prompting alone
+        is insufficient for your use case.
+      </p>
+
+      <p>
+        The most useful diagnostic question is: <strong>is this a knowledge problem or a behavior problem?</strong> A knowledge
+        problem means the model does not know some facts — the contents of your internal database, your company's specific
+        product catalog, the latest regulatory changes in your industry. Knowledge problems are almost always better solved
+        by RAG, which injects the relevant facts into the context window at the moment of each query. The model already knows
+        how to reason; you are just supplying the data it needs. Adding new facts through fine-tuning is expensive,
+        slow to update, and inferior to RAG for factual recall because the model cannot cite its sources or distinguish
+        training-time knowledge from context-window knowledge.
+      </p>
+
+      <p>
+        A behavior problem, on the other hand, means the model already knows the relevant information but does not act the
+        way you want. It uses the wrong tone, outputs in the wrong format, doesn't know your company's specialized terminology,
+        keeps adding unnecessary caveats, or fails to stay in character for your application. These are behavioral traits that
+        are difficult to reliably encode in a prompt alone, especially when you need them to hold across millions of diverse
+        requests. <strong>Behavior problems are where fine-tuning genuinely shines.</strong> Fine-tuning "bakes in" the desired behavior
+        at the weight level, so it persists regardless of what the user says in the prompt.
+      </p>
+
+      <p>
+        There are several specific scenarios where fine-tuning reliably wins over prompting. The first is <strong>consistent output
+        format</strong>: if your application requires structured JSON with specific field names and nesting, a system prompt can
+        describe the format but a fine-tuned model just produces it, without needing format instructions in every call.
+        The second is <strong>specialized vocabulary</strong>: medical, legal, and financial domains have terminology so precise that
+        even excellent base models make subtle vocabulary errors. Fine-tuning on domain-appropriate examples fixes this.
+        The third is <strong>latency and cost</strong>: a fine-tuned 7B parameter model can match the quality of a prompted GPT-4-class
+        model on a narrow task, but is 10-100x cheaper per token and has dramatically lower latency. When you are making
+        millions of calls per day, this arithmetic matters enormously.
+      </p>
+
+      <p>
+        Fine-tuning is expensive upfront. You pay compute costs for training, engineering time for data preparation and
+        evaluation, and iteration time as you experiment with hyperparameters and data quality. However, this cost
+        <strong>amortizes across inference calls</strong>. If your fine-tuned model removes 500 tokens of system prompt instructions from
+        every call, and you make ten million calls per month, you are saving five billion tokens of input per month.
+        The training cost becomes trivial compared to the cumulative inference savings at that scale. Fine-tuning
+        therefore has a break-even point that depends on your call volume — it is economically rational at scale,
+        but potentially wasteful for low-volume applications.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Rule of Thumb</div>
+        <p>Start with prompt engineering. If you hit a ceiling, try RAG. If you still have a behavior problem that persists across diverse prompts, then consider fine-tuning. The three approaches are not mutually exclusive — production systems often use all three together.</p>
+      </div>
+
+      <h3 id="ft-deep">Deep Dive</h3>
+
+      <p>
+        The <strong>format-learning use case</strong> is arguably the most underappreciated reason to fine-tune. If your application
+        needs the model to always output a very specific JSON schema — say, a structured clinical note with fields like
+        <code>chief_complaint</code>, <code>assessment</code>, <code>plan</code>, and <code>icd10_codes</code> — you can describe this in a
+        system prompt, but the model will occasionally get it wrong, especially for unusual inputs. You can add examples
+        to the prompt (few-shot), but that costs tokens. Fine-tuning "burns in" the format at weight level, so it is
+        nearly always correct without any format instructions at all. This is not just a correctness improvement — it
+        meaningfully reduces your system prompt length and therefore your per-call cost.
+      </p>
+
+      <p>
+        <strong>Domain vocabulary</strong> goes deeper than just using the right words. In medical fine-tuning, the goal is not just
+        that the model knows the word "myocardial infarction" — a base GPT-4 knows that. The goal is that the model
+        generates text in the register and style of a physician writing notes, uses abbreviations the way physicians do
+        (q.d., b.i.d., PRN), distinguishes between attending note and nursing note conventions, and never uses lay
+        language in a clinical context. This kind of deep domain fluency is genuinely hard to achieve through prompting
+        alone and is exactly what fine-tuning on high-quality domain examples provides.
+      </p>
+
+      <p>
+        Understanding <strong>dataset size requirements</strong> is critical for planning. The good news is you need far fewer examples
+        than people expect. Instruction tuning — teaching the model to follow a new format or respond in a particular
+        style — needs as few as 100 to 1,000 high-quality examples. Significant behavior change, like shifting tone
+        across a wide range of inputs or learning a niche domain, needs 5,000 to 50,000 examples. Pretraining-scale
+        capability injection (adding a genuinely new language or skill that the model lacked) needs millions of examples
+        and is essentially a different category of work. For most production fine-tuning, you are in the hundreds-to-thousands
+        range, which is achievable by curating existing data or generating synthetic examples with a stronger model.
+      </p>
+
+      <p>
+        The distinction between <strong>full fine-tuning and Parameter-Efficient Fine-Tuning (PEFT)</strong> is fundamental to
+        understanding the modern landscape. Full fine-tuning updates every weight in the model — all seven billion
+        parameters in a 7B model, for instance. This requires storing the full model in GPU VRAM, storing all gradients
+        (another full model's worth of memory), and storing optimizer states (two more full models' worth for Adam).
+        A 7B model in FP16 requires 14 GB just to store — full fine-tuning requires 60-80 GB of VRAM total, necessitating
+        a cluster of A100 GPUs. PEFT methods like LoRA update only a tiny fraction of the parameters, making
+        fine-tuning feasible on consumer hardware. Full fine-tuning is still done at large organizations with the
+        resources to do it, but for most practitioners PEFT is the practical choice.
+      </p>
+
+      <p>
+        <strong>Catastrophic forgetting</strong> is one of the most important failure modes in fine-tuning that practitioners routinely
+        encounter and are surprised by. When you fine-tune a model intensively on a narrow domain, it can "forget"
+        general capabilities it had before. A model fine-tuned aggressively on medical notes might become worse at
+        general reasoning, coding, or even basic conversational tasks. This happens because gradient updates from
+        your narrow training data push the weights in directions that optimize for your task but happen to disrupt
+        patterns the model had learned for other capabilities. The primary mitigation is <strong>data mixing</strong>: include
+        a fraction of general-purpose instruction-following examples in your training dataset alongside your
+        domain-specific examples, so the model maintains its breadth while acquiring your specialized behaviors.
+      </p>
+
+      <p>
+        <strong>Establishing an evaluation baseline before fine-tuning</strong> is a discipline that is easy to skip and painful to
+        regret. Before you write a single line of training code, define your evaluation set and run your baseline
+        model on it. This evaluation should consist of real examples drawn from your actual use case, not synthetic
+        test cases. It should measure what actually matters: output format correctness, factual accuracy on your
+        domain, user satisfaction ratings, downstream task performance. Without a baseline, you cannot know if your
+        fine-tuned model is actually better or just different. Many fine-tuning projects have shipped models that
+        scored better on intuitive vibe-checks but were quantitatively worse on the metrics that mattered.
+      </p>
+
+      <p>
+        There are cases where you should explicitly <strong>not fine-tune</strong>, and recognizing them saves significant wasted effort.
+        If prompt engineering achieves 85-90% of your goal, the remaining gap often does not justify the cost and
+        complexity of fine-tuning — the effort is better spent improving your prompt, adding examples, or refining
+        your application logic. Similarly, if your data distribution will change significantly over time, a fine-tuned
+        model becomes a liability: it is "frozen" to its training distribution and will degrade as the world changes
+        around it. RAG systems can be updated by refreshing their knowledge base; fine-tuned models require re-training.
+        For rapidly evolving domains — news, market data, product catalogs — RAG is almost always the better long-term choice.
+      </p>
+
+      <p>
+        The question of <strong>OpenAI fine-tuning versus self-hosted fine-tuning</strong> deserves explicit treatment. OpenAI's hosted
+        fine-tuning is by far the most accessible option: you upload a JSONL file, click a button, and receive a
+        custom model endpoint with zero infrastructure management. The tradeoff is that you have no access to the
+        model weights, cannot use techniques like LoRA or QLoRA, cannot export the model or run it offline, and
+        are permanently dependent on OpenAI's pricing and service. Self-hosted fine-tuning with open-weight models
+        (Llama, Mistral, Qwen) gives you full weight access, portability, and the ability to run on your own
+        infrastructure — at the cost of managing that infrastructure yourself. The right choice depends on your
+        technical resources, data privacy requirements, and long-term strategic considerations.
+      </p>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Approach</th>
+            <th>When to Use</th>
+            <th>Cost Profile</th>
+            <th>Latency</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Prompt Engineering</strong></td>
+            <td>Default starting point; behavior already possible, just needs direction</td>
+            <td class="good">Near zero</td>
+            <td class="warn-cell">Higher (long prompts)</td>
+          </tr>
+          <tr>
+            <td><strong>RAG</strong></td>
+            <td>Knowledge gap; facts change frequently; need citations</td>
+            <td class="good">Low</td>
+            <td class="warn-cell">Moderate (retrieval overhead)</td>
+          </tr>
+          <tr>
+            <td><strong>Fine-Tuning</strong></td>
+            <td>Persistent behavior change; format; domain vocabulary; cost at scale</td>
+            <td class="warn-cell">High upfront, low per-call</td>
+            <td class="good">Low (smaller model)</td>
+          </tr>
+          <tr>
+            <td><strong>All Three</strong></td>
+            <td>Production systems at scale</td>
+            <td class="warn-cell">Highest upfront</td>
+            <td class="good">Optimal</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECTION 2: LoRA -->
+    <section class="section" id="lora">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>LoRA (Low-Rank Adaptation)</h2>
+      </div>
+
+      <h3 id="lora-plain">Plain Language</h3>
+
+      <p>
+        Imagine you have a world-class chess grandmaster — someone who has spent thirty years developing deep intuition
+        about the game. Now imagine you want to teach this person a new opening strategy that they have never studied.
+        You do not need to erase all their existing chess knowledge and re-teach them everything from scratch. You just
+        need to add a thin layer of new knowledge on top of their existing expertise. Their entire foundational
+        understanding stays intact; you are only updating a small, specific part of how they think about certain
+        positions. <strong>LoRA (Low-Rank Adaptation) works exactly the same way</strong> for neural networks.
+      </p>
+
+      <p>
+        Instead of updating all seven billion parameters in a 7B model during fine-tuning, LoRA introduces small
+        additional matrices "alongside" the existing weight matrices and only trains those small additions. The
+        original weights are frozen — they never change. Only the LoRA adapter matrices are updated during training.
+        At the end of training, you have the original base model (unchanged) plus a set of small adapter matrices
+        that encode everything the model learned during fine-tuning. These two components together produce the
+        fine-tuned behavior.
+      </p>
+
+      <p>
+        The "low-rank" part of the name refers to a mathematical insight that makes this work so well. When you
+        train a model, <strong>the actual changes to the weight matrices have a much simpler underlying structure than the
+        full matrices themselves</strong>. It turns out that even though weight matrices might be enormous (a single
+        attention weight matrix might be 4096 by 4096), the meaningful updates during fine-tuning can be approximated
+        by the product of two much smaller matrices. This is the "low-rank decomposition" — the change has low rank
+        (meaning it lives in a much lower-dimensional space than the full matrix), and LoRA exploits this
+        mathematical structure to be extremely parameter-efficient.
+      </p>
+
+      <p>
+        The practical benefit is that LoRA adapters are <strong>tiny</strong>. A full 7B model in 16-bit precision weighs about
+        14 gigabytes. A LoRA adapter for that model might be 50-200 megabytes — less than 2% of the model size.
+        This has a beautiful consequence: you can maintain one base model and a library of many different LoRA
+        adapters for different tasks, domains, or personas. Need a customer service assistant? Swap in the customer
+        service LoRA. Need a code reviewer? Swap in the code review LoRA. One model, many specialists.
+      </p>
+
+      <p>
+        The result of this efficiency is truly democratizing. Before LoRA, fine-tuning a 7B model required a cluster
+        of enterprise GPUs — tens of thousands of dollars in hardware or cloud costs. With LoRA, you can fine-tune
+        a 7B model on a <strong>single consumer GPU like an RTX 3090 or RTX 4090</strong> (24 GB VRAM) in a matter of hours.
+        This shifted fine-tuning from being an enterprise-only capability to something any serious developer can
+        do at home or on a single cloud instance. The Alpaca, Vicuna, and countless subsequent open-source fine-tuned
+        models were all made possible by LoRA.
+      </p>
+
+      <h3 id="lora-deep">Deep Dive</h3>
+
+      <p>
+        The <strong>mathematical formulation</strong> of LoRA is elegant. For any weight matrix W&#x2080; &isin; &#x211D;<sup>d&times;k</sup> in the
+        original model, instead of learning the full update &Delta;W &isin; &#x211D;<sup>d&times;k</sup> directly (which would have d&times;k
+        parameters), LoRA decomposes the update as &Delta;W = BA, where B &isin; &#x211D;<sup>d&times;r</sup> and A &isin; &#x211D;<sup>r&times;k</sup>,
+        with r &lt;&lt; min(d, k). The modified forward pass becomes: <strong>h = W&#x2080;x + &alpha;/r &middot; BAx</strong>, where &alpha; is a
+        scaling hyperparameter. B is initialized to all zeros and A to random Gaussian, so the LoRA contribution
+        starts at zero and grows during training without disrupting the pretrained initialization.
+      </p>
+
+      <p>
+        The <strong>rank r</strong> is the most important LoRA hyperparameter. It controls the dimensionality of the low-rank
+        decomposition. Typical values are 4, 8, 16, 32, or 64. A rank of 4 means B has 4 columns and A has 4 rows —
+        very few parameters, but also limited expressive power. A rank of 64 gives much more expressive power but
+        proportionally more parameters. The empirical sweet spot for most tasks is r=8 or r=16. Higher ranks are
+        not always better — if your task has a simple behavioral change, low rank is sufficient and less likely
+        to overfit. If your task requires learning genuinely complex new behaviors, higher rank may be necessary.
+      </p>
+
+      <p>
+        The <strong>alpha (&alpha;) scaling factor</strong> controls the magnitude of the LoRA update relative to the pretrained
+        weights. A common convention is to set &alpha; = r (giving &alpha;/r = 1, so the update is unscaled) or
+        &alpha; = 2r (giving &alpha;/r = 2, amplifying the LoRA contribution). In practice, &alpha; is often held
+        fixed while r is varied, which is equivalent to adjusting the effective learning rate of the LoRA parameters.
+        Some practitioners set &alpha; to a fixed value like 16 regardless of r, treating it as a learning rate
+        multiplier. The key insight is that &alpha; and the optimizer learning rate interact: a higher &alpha; with
+        a lower learning rate can be equivalent to a lower &alpha; with a higher learning rate.
+      </p>
+
+      <p>
+        Choosing <strong>which modules to apply LoRA to</strong> significantly affects both model quality and parameter count.
+        The original LoRA paper applied it only to the query and value projection matrices in the self-attention
+        layers (q_proj and v_proj). Subsequent work found that applying LoRA to all linear layers — including
+        the key projection, output projection, and the feed-forward (MLP) layers — consistently improves results.
+        Modern defaults typically target all linear layers. More modules means more parameters and more expressive
+        power, at the cost of slightly larger adapter files and longer training time.
+      </p>
+
+      <p>
+        The <strong>HuggingFace PEFT library</strong> makes LoRA implementation straightforward. You define a <code>LoraConfig</code>
+        specifying your rank, alpha, target modules, and dropout, then wrap any HuggingFace model with
+        <code>get_peft_model()</code>. The resulting model behaves identically to the original for inference but
+        only updates LoRA parameters during training:
+      </p>
+      <pre><code><span class="code-keyword">from</span> peft <span class="code-keyword">import</span> LoraConfig, get_peft_model, TaskType
+
+lora_config = <span class="code-fn">LoraConfig</span>(
+    task_type=TaskType.<span class="code-fn">CAUSAL_LM</span>,
+    r=<span class="code-num">16</span>,                       <span class="code-comment"># rank</span>
+    lora_alpha=<span class="code-num">32</span>,              <span class="code-comment"># alpha scaling</span>
+    target_modules=<span class="code-fn">list</span>([      <span class="code-comment"># which layers</span>
+        <span class="code-string">"q_proj"</span>, <span class="code-string">"v_proj"</span>,
+        <span class="code-string">"k_proj"</span>, <span class="code-string">"o_proj"</span>,
+        <span class="code-string">"gate_proj"</span>, <span class="code-string">"up_proj"</span>, <span class="code-string">"down_proj"</span>
+    ]),
+    lora_dropout=<span class="code-num">0.05</span>,
+    bias=<span class="code-string">"none"</span>,
+)
+
+model = <span class="code-fn">get_peft_model</span>(base_model, lora_config)
+model.<span class="code-fn">print_trainable_parameters</span>()
+<span class="code-comment"># trainable params: 41,943,040 || all params: 7,284,015,104 || trainable%: 0.5757</span></code></pre>
+
+      <p>
+        The <strong>memory arithmetic</strong> is what makes LoRA transformative. A 7B model in FP16 requires 14 GB just to
+        store the weights. Full fine-tuning adds gradients (another 14 GB) plus Adam optimizer states (another
+        28 GB) for a total around 56 GB. With LoRA, the base model is frozen and loaded without requiring gradients
+        (the frozen parameters don't need gradient computation). Only the LoRA adapter parameters need gradients
+        and optimizer states — and those adapters might be only 40 million parameters, requiring less than
+        300 MB for optimizer states. Total VRAM for LoRA fine-tuning of a 7B model: roughly 16-18 GB,
+        fitting comfortably on a single 24 GB GPU.
+      </p>
+
+      <p>
+        At inference time, you have two options for handling the LoRA adapter. The <strong>merged approach</strong> computes
+        W = W&#x2080; + BA and stores the result as a regular weight matrix. This means zero latency overhead — the
+        fine-tuned model is just a normal model. The <strong>separate approach</strong> keeps the base model and adapter
+        distinct, adding the BA contribution in the forward pass. This approach allows hot-swapping adapters
+        without reloading the base model, which is powerful when you need multiple specialized models
+        serving different users or tasks simultaneously. Systems have been built that load one large base
+        model into GPU VRAM once and serve hundreds of LoRA-adapted variants simultaneously by swapping
+        adapters between requests.
+      </p>
+
+      <p>
+        <strong>AdaLoRA</strong> (Adaptive LoRA) extends the basic LoRA idea by automatically allocating rank differently
+        across layers. Not all weight matrices are equally important for a given task — some layers encode
+        information that needs significant adaptation while others need very little. AdaLoRA starts with a
+        larger rank budget and iteratively prunes unimportant singular values during training, concentrating
+        parameters where they matter most. This produces better task performance at the same total parameter
+        count as standard LoRA.
+      </p>
+
+      <p>
+        <strong>DoRA</strong> (Weight-Decomposed Low-Rank Adaptation) is a more recent technique that decomposes the
+        pretrained weight matrix into its magnitude and direction components (inspired by how neural networks
+        naturally learn). The magnitude component is fine-tuned directly while the directional component
+        is fine-tuned using LoRA. This decomposition gives the model more expressiveness for the same parameter
+        budget — empirically, DoRA achieves better results than LoRA at identical parameter counts and is
+        particularly effective for multimodal fine-tuning tasks.
+      </p>
+
+      <!-- LoRA Diagram -->
+      <div id="lora-diagram" class="diagram-wrap">
+        <svg width="100%" viewBox="0 0 800 340" xmlns="http://www.w3.org/2000/svg" style="max-width:800px;margin:0 auto;">
+          <!-- Background -->
+          <rect width="800" height="340" fill="#10131e" rx="12"/>
+
+          <!-- Title -->
+          <text x="400" y="32" text-anchor="middle" fill="#8e94b5" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="600" letter-spacing="0.06em">LoRA ARCHITECTURE</text>
+
+          <!-- Input vector x -->
+          <rect x="30" y="140" width="80" height="60" rx="8" fill="#171c2e" stroke="#2e3554" stroke-width="1.5"/>
+          <text x="70" y="165" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="600">Input</text>
+          <text x="70" y="183" text-anchor="middle" fill="#67e8f9" font-family="JetBrains Mono, monospace" font-size="12">x</text>
+
+          <!-- Arrow from x to W0 and A -->
+          <line x1="110" y1="170" x2="185" y2="130" stroke="#545a78" stroke-width="1.5" marker-end="url(#arrowgray)"/>
+          <line x1="110" y1="170" x2="185" y2="230" stroke="#545a78" stroke-width="1.5" marker-end="url(#arrowgray)"/>
+
+          <!-- W0 box (frozen, grayed) -->
+          <rect x="185" y="95" width="160" height="70" rx="8" fill="#1e2438" stroke="#2e3554" stroke-width="1.5" stroke-dasharray="5,3"/>
+          <text x="265" y="123" text-anchor="middle" fill="#545a78" font-family="Space Grotesk, sans-serif" font-size="12" font-weight="600">W&#x2080; (frozen)</text>
+          <text x="265" y="143" text-anchor="middle" fill="#545a78" font-family="Space Grotesk, sans-serif" font-size="11">pretrained weights</text>
+          <text x="265" y="158" text-anchor="middle" fill="#545a78" font-family="JetBrains Mono, monospace" font-size="11">d &times; k</text>
+
+          <!-- Lock icon on W0 -->
+          <text x="335" y="108" text-anchor="middle" fill="#545a78" font-family="sans-serif" font-size="16">&#x1F512;</text>
+
+          <!-- A box (trained, cyan) -->
+          <rect x="185" y="200" width="80" height="70" rx="8" fill="rgba(6,182,212,0.12)" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="225" y="228" text-anchor="middle" fill="#22d3ee" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="700">A</text>
+          <text x="225" y="248" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono, monospace" font-size="11">r &times; k</text>
+          <text x="225" y="263" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk, sans-serif" font-size="10">trained</text>
+
+          <!-- Arrow from A to B -->
+          <line x1="265" y1="235" x2="325" y2="235" stroke="#06b6d4" stroke-width="1.5" marker-end="url(#arrowcyan)"/>
+
+          <!-- B box (trained, cyan) -->
+          <rect x="325" y="200" width="80" height="70" rx="8" fill="rgba(6,182,212,0.12)" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="365" y="228" text-anchor="middle" fill="#22d3ee" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="700">B</text>
+          <text x="365" y="248" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono, monospace" font-size="11">d &times; r</text>
+          <text x="365" y="263" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk, sans-serif" font-size="10">trained</text>
+
+          <!-- alpha/r label -->
+          <text x="296" y="225" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono, monospace" font-size="11">&alpha;/r</text>
+
+          <!-- Arrow from W0 to sum -->
+          <line x1="345" y1="130" x2="530" y2="155" stroke="#545a78" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arrowgray)"/>
+
+          <!-- Arrow from B to sum -->
+          <line x1="405" y1="235" x2="520" y2="185" stroke="#06b6d4" stroke-width="1.5" marker-end="url(#arrowcyan)"/>
+
+          <!-- Sum circle -->
+          <circle cx="545" cy="170" r="24" fill="#1e2438" stroke="#2e3554" stroke-width="1.5"/>
+          <text x="545" y="176" text-anchor="middle" fill="#e6e8f4" font-family="sans-serif" font-size="22">+</text>
+
+          <!-- Arrow from sum to output -->
+          <line x1="569" y1="170" x2="645" y2="170" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrowcyan)"/>
+
+          <!-- Output h -->
+          <rect x="645" y="140" width="80" height="60" rx="8" fill="#171c2e" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="685" y="165" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="600">Output</text>
+          <text x="685" y="183" text-anchor="middle" fill="#67e8f9" font-family="JetBrains Mono, monospace" font-size="12">h</text>
+
+          <!-- Formula -->
+          <text x="400" y="302" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono, monospace" font-size="12">h = W&#x2080;x + (&alpha;/r) &middot; BAx</text>
+          <text x="400" y="322" text-anchor="middle" fill="#545a78" font-family="Space Grotesk, sans-serif" font-size="11">r &lt;&lt; min(d, k) &mdash; typically r = 8 or 16</text>
+
+          <!-- r annotation -->
+          <text x="296" y="193" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono, monospace" font-size="10">rank r</text>
+          <line x1="265" y1="198" x2="327" y2="198" stroke="#f59e0b" stroke-width="1" stroke-dasharray="2,2"/>
+
+          <!-- Arrowhead defs -->
+          <defs>
+            <marker id="arrowgray" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#545a78"/>
+            </marker>
+            <marker id="arrowcyan" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#06b6d4"/>
+            </marker>
+          </defs>
+        </svg>
+        <p class="diagram-caption">LoRA architecture: the frozen pretrained weight W&#x2080; (gray, dashed) passes the input through unchanged, while the trained low-rank matrices A and B (cyan) add a small adaptation. Only A and B are updated during training.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 3: QLoRA -->
+    <section class="section" id="qlora">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>QLoRA</h2>
+      </div>
+
+      <h3 id="qlora-plain">Plain Language</h3>
+
+      <p>
+        QLoRA stands for <strong>Quantized LoRA</strong>. If LoRA was the technique that brought fine-tuning to single
+        consumer GPUs for 7B models, QLoRA was the technique that brought fine-tuning of <em>frontier-scale</em>
+        models to teams without supercomputer budgets. The core idea is to combine LoRA with 4-bit quantization:
+        compress the base model weights to use only 4 bits per value (instead of the usual 16), which reduces
+        memory requirements by roughly 4x. Then apply LoRA on top of this highly compressed model.
+      </p>
+
+      <p>
+        The obvious question is: if the weights are stored as 4-bit integers, how can you possibly train anything?
+        Gradients cannot flow through integer operations because integers are not differentiable. QLoRA's clever
+        solution is to use <strong>4-bit storage but 16-bit computation</strong>. When the forward pass needs to use a weight
+        matrix, it dequantizes that block from 4-bit integers back to 16-bit BrainFloat (BF16) values on-the-fly.
+        The computation happens in full 16-bit precision, gradients flow through normally, and then the weights
+        are re-quantized back to 4-bit for storage. This happens transparently; from the training loop's
+        perspective, everything looks like normal 16-bit training.
+      </p>
+
+      <p>
+        The memory numbers are staggering. A 70B parameter model in standard FP16 requires approximately 140 GB of
+        VRAM — that means a minimum of two A100 80GB GPUs (160 GB total), at roughly $30,000 per GPU. With QLoRA,
+        the 70B model in 4-bit takes about 35 GB for the weights, plus LoRA overhead, fitting on a <strong>single A100 80GB
+        GPU</strong> that costs around $10,000. For a 7B model, QLoRA brings the requirement from 16 GB (already manageable
+        with LoRA) down to about 6 GB, which fits on a mid-range consumer GPU like an RTX 3060.
+      </p>
+
+      <p>
+        The impact on the research and startup ecosystem was immediate and profound. Before QLoRA, only well-funded
+        teams at major AI companies or large research universities could experiment with fine-tuning models at the
+        frontier scale. After the QLoRA paper was published in May 2023, researchers at universities with modest
+        GPU budgets, startups with a single cloud GPU, and hobbyists with good consumer hardware could all run
+        meaningful fine-tuning experiments on 13B, 34B, and even 70B models. This <strong>democratization of
+        large-scale fine-tuning</strong> is one of the most significant shifts in the open-source AI ecosystem.
+      </p>
+
+      <h3 id="qlora-deep">Deep Dive</h3>
+
+      <p>
+        The original QLoRA paper introduced three key innovations, each of which independently reduces memory
+        usage. The first is <strong>NF4 (4-bit NormalFloat) quantization</strong>. Standard INT4 quantization divides the range
+        of values into 16 equally-spaced buckets. But neural network weights are not uniformly distributed —
+        they follow a roughly Gaussian (normal) distribution centered near zero. NF4 instead places quantization
+        levels such that each level covers an equal mass of the normal distribution. This means more precision
+        near zero (where most weights are) and less precision in the tails (where weights are rare). In practice,
+        NF4 loses less information than INT4 for the same number of bits, because it is information-theoretically
+        optimal for normally distributed weights.
+      </p>
+
+      <p>
+        The second innovation is <strong>double quantization</strong>. Quantization requires storing "quantization constants" —
+        the scaling factors that map between 4-bit integers and their float values. These constants themselves
+        require memory. QLoRA quantizes these constants a second time (to 8-bit), reducing the overhead from
+        the quantization metadata by roughly another 0.37 bits per parameter. In a 70B model this saves
+        approximately 3 GB of VRAM — not huge, but meaningful when every gigabyte counts.
+      </p>
+
+      <p>
+        The third and perhaps most practically important innovation is the <strong>Paged AdamW optimizer</strong>. The Adam
+        optimizer stores two momentum tensors for each trainable parameter. Even with LoRA (where trainable
+        parameters are a tiny fraction of total parameters), processing long sequences produces occasional
+        memory spikes that can cause out-of-memory errors. Paged AdamW uses NVIDIA's unified memory system
+        to automatically page optimizer states from GPU VRAM to CPU RAM when the GPU fills up, and pages
+        them back when needed. This acts like virtual memory for the GPU, preventing OOM crashes without
+        requiring manual memory management.
+      </p>
+
+      <p>
+        The <strong>bitsandbytes library</strong> by Tim Dettmers (the lead author of QLoRA) provides the underlying
+        4-bit quantization implementation. You enable QLoRA by passing a <code>BitsAndBytesConfig</code> to
+        the model loading function:
+      </p>
+      <pre><code><span class="code-keyword">import</span> torch
+<span class="code-keyword">from</span> transformers <span class="code-keyword">import</span> AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+<span class="code-keyword">from</span> peft <span class="code-keyword">import</span> LoraConfig, get_peft_model, prepare_model_for_kbit_training
+
+<span class="code-comment"># QLoRA config: 4-bit quantization with NF4</span>
+bnb_config = <span class="code-fn">BitsAndBytesConfig</span>(
+    load_in_4bit=<span class="code-keyword">True</span>,
+    bnb_4bit_quant_type=<span class="code-string">"nf4"</span>,          <span class="code-comment"># NormalFloat4</span>
+    bnb_4bit_compute_dtype=torch.bfloat16,  <span class="code-comment"># compute in BF16</span>
+    bnb_4bit_use_double_quant=<span class="code-keyword">True</span>,        <span class="code-comment"># double quantization</span>
+)
+
+<span class="code-comment"># Load model in 4-bit</span>
+model = AutoModelForCausalLM.<span class="code-fn">from_pretrained</span>(
+    <span class="code-string">"meta-llama/Llama-3.1-8B-Instruct"</span>,
+    quantization_config=bnb_config,
+    device_map=<span class="code-string">"auto"</span>,
+)
+
+<span class="code-comment"># Prepare for k-bit training (cast LayerNorm etc. to float32)</span>
+model = <span class="code-fn">prepare_model_for_kbit_training</span>(model)
+
+<span class="code-comment"># Apply LoRA on top of the 4-bit quantized model</span>
+lora_config = <span class="code-fn">LoraConfig</span>(
+    r=<span class="code-num">16</span>,
+    lora_alpha=<span class="code-num">32</span>,
+    target_modules=[<span class="code-string">"q_proj"</span>, <span class="code-string">"v_proj"</span>, <span class="code-string">"k_proj"</span>, <span class="code-string">"o_proj"</span>],
+    lora_dropout=<span class="code-num">0.05</span>,
+    bias=<span class="code-string">"none"</span>,
+    task_type=<span class="code-string">"CAUSAL_LM"</span>,
+)
+model = <span class="code-fn">get_peft_model</span>(model, lora_config)
+model.<span class="code-fn">print_trainable_parameters</span>()
+<span class="code-comment"># trainable params: 20,971,520 || all params: 8,051,249,152 || trainable%: 0.2604</span></code></pre>
+
+      <p>
+        In terms of <strong>training speed</strong>, QLoRA is approximately 20-30% slower than pure LoRA (without 4-bit quantization)
+        because of the overhead from dequantizing weights during each forward pass and re-quantizing after
+        gradient updates. This is a real cost, but the memory savings are so dramatic that for large models
+        the tradeoff is almost always worthwhile. The alternative to accepting 20-30% slower training is
+        not being able to train at all on available hardware. For small models (7B), LoRA without
+        quantization is preferred when VRAM allows because it is faster. For large models (13B+),
+        QLoRA is often the only viable option on single-GPU setups.
+      </p>
+
+      <p>
+        An important nuance: QLoRA only quantizes the <strong>base model weights</strong>. The LoRA adapter parameters — B and A
+        matrices — are always stored and computed in full 16-bit or 32-bit precision. This is correct because
+        these are the parameters being actively trained and their gradients need to be precise. The heavy
+        quantization is only applied to the frozen pretrained parameters, which merely need to provide a
+        stable forward pass approximation. This design is what makes QLoRA work: train high-precision
+        adapters on top of a low-precision frozen base.
+      </p>
+    </section>
+
+    <!-- SECTION 4: RLHF -->
+    <section class="section" id="rlhf">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>RLHF (Reinforcement Learning from Human Feedback)</h2>
+      </div>
+
+      <h3 id="rlhf-plain">Plain Language</h3>
+
+      <p>
+        To understand why RLHF exists, you need to understand what happens during pretraining. When a model is
+        pretrained on trillions of tokens of internet text, it learns to predict likely next tokens. This makes
+        it extraordinarily knowledgeable about the world, but it does not make it "helpful." A pretrained model
+        asked a question might complete the text with a plausible continuation — perhaps another question,
+        perhaps a tangent, perhaps an answer buried in a sea of irrelevant text. It is a text-completion engine,
+        not an assistant.
+      </p>
+
+      <p>
+        The first fix for this is <strong>Supervised Fine-Tuning (SFT)</strong>: take the pretrained model and fine-tune it on
+        thousands of examples of (user question, ideal assistant response) pairs, written by skilled human
+        annotators. Now the model knows the format: user says something, model responds helpfully. This is
+        a significant improvement. But SFT has a ceiling: it can only teach behaviors that are directly
+        demonstrated in training data, and human annotators writing ideal responses have their own blind
+        spots and inconsistencies.
+      </p>
+
+      <p>
+        RLHF goes further by using <strong>human preferences rather than human demonstrations</strong>. Instead of asking
+        annotators to write perfect answers (which is hard), you ask them a simpler question: "Here are
+        two answers to this question — which is better?" This is much easier for humans to do reliably.
+        A model trained on these preference signals learns to produce outputs that humans genuinely prefer,
+        capturing subtleties that are hard to specify explicitly — things like appropriate hedging when
+        uncertain, avoiding unnecessary verbosity, being helpful without being sycophantic.
+      </p>
+
+      <p>
+        Think of the RLHF process as a teaching relationship. The student (the model) answers questions.
+        A teacher (the reward model, trained on human preferences) grades each answer with a score.
+        The student then practices more, trying to get higher scores from the teacher. Over many rounds,
+        the student learns what kinds of answers the teacher values. The teacher's judgment is a proxy
+        for human preferences — not perfect, but systematically better than no feedback at all.
+      </p>
+
+      <p>
+        RLHF is why ChatGPT felt dramatically different from simply querying GPT-3 via API, even though
+        the underlying architecture was similar. The base GPT-3 was knowledgeable but erratic — sometimes
+        helpful, sometimes veering into completions that were technically "likely text" but useless or
+        offensive. ChatGPT's RLHF training shaped those capabilities into something that reliably
+        tried to be helpful, that admitted uncertainty, that declined harmful requests while explaining
+        why, and that engaged conversationally. <strong>RLHF is what turns a knowledge base into an assistant.</strong>
+      </p>
+
+      <h3 id="rlhf-deep">Deep Dive</h3>
+
+      <p>
+        <strong>Stage 1 — Supervised Fine-Tuning (SFT):</strong> The RLHF pipeline begins with a standard instruction
+        fine-tuning step. Human contractors write high-quality (prompt, ideal response) pairs covering
+        a diverse range of tasks — answering questions, writing tasks, coding tasks, summarization,
+        multi-turn dialogue. The pretrained base model is fine-tuned on this data using standard
+        cross-entropy loss. The result is the SFT model — a well-behaved instruction follower.
+        This model becomes the starting point for the rest of the RLHF process and also serves
+        as the "reference model" (&#x03C0;<sub>ref</sub>) in later stages.
+      </p>
+
+      <p>
+        <strong>Stage 2 — Reward Model Training:</strong> This stage creates a model that can score the quality
+        of any (prompt, response) pair. The process starts with data collection: show human raters
+        multiple responses to the same prompt (typically 4-9 responses, generated by the SFT model
+        with varied sampling parameters) and ask them to rank the responses from best to worst.
+        The reward model is initialized from the SFT model and trained to predict these rankings.
+        The RM's final layer is replaced with a linear head that outputs a scalar reward score.
+        Training uses a pairwise ranking loss: for every pair of responses (chosen y<sub>w</sub>,
+        rejected y<sub>l</sub>), the loss pushes the chosen response's score higher and the
+        rejected response's score lower.
+      </p>
+
+      <p>
+        <strong>Stage 3 — PPO (Proximal Policy Optimization):</strong> This is the reinforcement learning step.
+        The SFT model is treated as a "policy" &#x03C0;<sub>&theta;</sub> — an agent that takes
+        a prompt as state and generates a response as action. The reward model evaluates each
+        response and returns a scalar reward signal. PPO updates the policy's weights to
+        maximize expected reward. Crucially, a <strong>KL penalty</strong> is added to the reward:
+        <code>reward_total = reward_RM - &beta; * KL(&#x03C0;<sub>&theta;</sub> || &#x03C0;<sub>ref</sub>)</code>.
+        This penalty penalizes the policy for diverging too far from the SFT model, which
+        prevents reward hacking — the tendency of RL models to find degenerate solutions
+        that score high with the RM while producing useless or incoherent text.
+      </p>
+
+      <p>
+        <strong>Reward hacking</strong> is RLHF's central challenge. The reward model is an imperfect proxy
+        for human preferences — it was trained on a finite dataset and has its own biases and failure
+        modes. If you optimize too aggressively against an imperfect reward model, the policy
+        will find behaviors that exploit the RM's weaknesses. Classic reward hacking behaviors include:
+        producing very long verbose answers (because annotators sometimes rated thoroughness positively
+        even when content quality was low), excessive sycophancy (agreeing with the user's stated opinion),
+        or confident-sounding wrong answers (because confident tone was sometimes rewarded).
+        Mitigations include: diverse RM training data, training an ensemble of reward models and
+        using their minimum or average, the KL penalty already mentioned, and continuous red-teaming
+        to find failure modes.
+      </p>
+
+      <p>
+        <strong>Constitutional AI (Anthropic)</strong> is an influential alternative that partially replaces
+        human feedback with AI feedback. Instead of relying on human raters to score responses,
+        you provide the model with a written "constitution" — a list of principles like "be helpful,"
+        "be harmless," "be honest," "avoid stereotypes." The model is then used to critique and
+        revise its own responses according to these principles (the Critique and Revision step, or
+        RLCAI — RL from AI feedback). This approach scales more cheaply than pure human feedback
+        and produces models with more consistent value alignment, but depends critically on the
+        quality and comprehensiveness of the constitution.
+      </p>
+
+      <p>
+        The <strong>compute cost of RLHF</strong> is substantially higher than SFT. During PPO training, you must run the
+        policy LLM to generate responses, run the reward model to score those responses, and run the
+        reference SFT model to compute the KL penalty — all during the same training step. This requires
+        holding multiple models in VRAM simultaneously and is typically 3-10x more expensive than SFT
+        in terms of GPU hours. For this reason, RLHF is almost exclusively done by well-resourced
+        organizations, and simpler alternatives like DPO have become popular for resource-constrained settings.
+      </p>
+
+      <p>
+        The <strong>TRL (Transformer Reinforcement Learning) library</strong> from HuggingFace implements the full RLHF
+        pipeline. The <code>PPOTrainer</code> class handles the RL training loop, including generating
+        responses, computing rewards with your reward model, computing the KL penalty against a reference
+        model, and running PPO optimization steps. The library also provides <code>RewardTrainer</code>
+        for the reward model training stage.
+      </p>
+
+      <p>
+        The foundational paper for applying RLHF to LLMs is <strong>InstructGPT (Ouyang et al., 2022)</strong>,
+        "Training language models to follow instructions with human feedback." This paper showed
+        that a 1.3B parameter RLHF model was rated as preferable by human evaluators to a 175B
+        GPT-3 model without RLHF — demonstrating that alignment training can outperform raw scale.
+        The paper's methodology — SFT followed by reward model training followed by PPO — became
+        the template that almost all subsequent alignment work has built on or departed from.
+      </p>
+
+      <!-- RLHF Diagram -->
+      <div id="rlhf-diagram" class="diagram-wrap">
+        <svg width="100%" viewBox="0 0 820 380" xmlns="http://www.w3.org/2000/svg" style="max-width:820px;margin:0 auto;">
+          <rect width="820" height="380" fill="#10131e" rx="12"/>
+          <text x="410" y="32" text-anchor="middle" fill="#8e94b5" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="600" letter-spacing="0.06em">RLHF THREE-STAGE PIPELINE</text>
+
+          <!-- Stage labels -->
+          <text x="130" y="60" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="700" letter-spacing="0.08em">STAGE 1</text>
+          <text x="410" y="60" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="700" letter-spacing="0.08em">STAGE 2</text>
+          <text x="690" y="60" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="700" letter-spacing="0.08em">STAGE 3</text>
+
+          <!-- Stage 1: SFT -->
+          <rect x="30" y="72" width="200" height="200" rx="10" fill="#171c2e" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="130" y="100" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="700">Supervised Fine-Tuning</text>
+
+          <rect x="55" y="115" width="150" height="36" rx="6" fill="#1e2438" stroke="#2e3554" stroke-width="1"/>
+          <text x="130" y="138" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk, sans-serif" font-size="12">Pretrained Base Model</text>
+
+          <text x="130" y="170" text-anchor="middle" fill="#545a78" font-family="sans-serif" font-size="16">&#8595;</text>
+          <text x="130" y="188" text-anchor="middle" fill="#8e94b5" font-family="Space Grotesk, sans-serif" font-size="11">Human-written (prompt, response)</text>
+          <text x="130" y="204" text-anchor="middle" fill="#8e94b5" font-family="Space Grotesk, sans-serif" font-size="11">high-quality pairs</text>
+          <text x="130" y="222" text-anchor="middle" fill="#545a78" font-family="sans-serif" font-size="16">&#8595;</text>
+
+          <rect x="55" y="230" width="150" height="36" rx="6" fill="rgba(6,182,212,0.15)" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="130" y="253" text-anchor="middle" fill="#22d3ee" font-family="Space Grotesk, sans-serif" font-size="12" font-weight="600">SFT Model (&#x03C0;_ref)</text>
+
+          <!-- Arrow Stage 1 to Stage 2 -->
+          <line x1="230" y1="248" x2="287" y2="248" stroke="#545a78" stroke-width="1.5" marker-end="url(#arr1)"/>
+
+          <!-- Stage 2: Reward Model -->
+          <rect x="288" y="72" width="244" height="200" rx="10" fill="#171c2e" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="410" y="100" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="700">Reward Model Training</text>
+
+          <rect x="310" y="115" width="200" height="36" rx="6" fill="#1e2438" stroke="#2e3554" stroke-width="1"/>
+          <text x="410" y="133" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk, sans-serif" font-size="12">SFT Model generates</text>
+          <text x="410" y="148" text-anchor="middle" fill="#8e94b5" font-family="Space Grotesk, sans-serif" font-size="11">N responses per prompt</text>
+
+          <text x="410" y="170" text-anchor="middle" fill="#545a78" font-family="sans-serif" font-size="16">&#8595;</text>
+          <text x="410" y="188" text-anchor="middle" fill="#8e94b5" font-family="Space Grotesk, sans-serif" font-size="11">Humans rank responses</text>
+          <text x="410" y="204" text-anchor="middle" fill="#545a78" font-family="sans-serif" font-size="16">&#8595;</text>
+
+          <rect x="310" y="214" width="200" height="50" rx="6" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="410" y="235" text-anchor="middle" fill="#c084fc" font-family="Space Grotesk, sans-serif" font-size="12" font-weight="600">Reward Model (RM)</text>
+          <text x="410" y="254" text-anchor="middle" fill="#8e94b5" font-family="Space Grotesk, sans-serif" font-size="10">outputs scalar reward score</text>
+
+          <!-- Arrow Stage 2 to Stage 3 -->
+          <line x1="532" y1="248" x2="584" y2="248" stroke="#545a78" stroke-width="1.5" marker-end="url(#arr1)"/>
+
+          <!-- Stage 3: PPO -->
+          <rect x="585" y="72" width="205" height="200" rx="10" fill="#171c2e" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="688" y="100" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="700">PPO Optimization</text>
+
+          <rect x="610" y="115" width="155" height="36" rx="6" fill="rgba(6,182,212,0.1)" stroke="#06b6d4" stroke-width="1"/>
+          <text x="688" y="133" text-anchor="middle" fill="#22d3ee" font-family="Space Grotesk, sans-serif" font-size="12">Policy (SFT init)</text>
+          <text x="688" y="148" text-anchor="middle" fill="#8e94b5" font-family="Space Grotesk, sans-serif" font-size="10">generates responses</text>
+
+          <text x="688" y="170" text-anchor="middle" fill="#545a78" font-family="sans-serif" font-size="16">&#8595;</text>
+          <text x="688" y="185" text-anchor="middle" fill="#8e94b5" font-family="Space Grotesk, sans-serif" font-size="10">RM scores + KL penalty</text>
+          <text x="688" y="200" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono, monospace" font-size="10">r = r_RM - &#946; KL(&#x03C0;||&#x03C0;_ref)</text>
+          <text x="688" y="218" text-anchor="middle" fill="#545a78" font-family="sans-serif" font-size="16">&#8595;</text>
+
+          <rect x="610" y="228" width="155" height="36" rx="6" fill="rgba(245,158,11,0.15)" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="688" y="251" text-anchor="middle" fill="#fcd34d" font-family="Space Grotesk, sans-serif" font-size="12" font-weight="600">RLHF-tuned Model</text>
+
+          <!-- KL feedback loop arrow -->
+          <path d="M 688 264 Q 688 310 620 310 Q 200 330 130 278" fill="none" stroke="#545a78" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr1)"/>
+          <text x="400" y="326" text-anchor="middle" fill="#545a78" font-family="Space Grotesk, sans-serif" font-size="10">KL divergence penalty keeps policy close to reference model</text>
+
+          <defs>
+            <marker id="arr1" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L7,3 z" fill="#545a78"/>
+            </marker>
+          </defs>
+        </svg>
+        <p class="diagram-caption">RLHF three-stage pipeline: SFT creates the reference model, the Reward Model learns human preferences from ranked comparisons, and PPO updates the policy to maximize reward while a KL penalty keeps outputs close to the reference model.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 5: DPO -->
+    <section class="section" id="dpo">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>DPO (Direct Preference Optimization)</h2>
+      </div>
+
+      <h3 id="dpo-plain">Plain Language</h3>
+
+      <p>
+        RLHF works, but it is complicated. You need to train three separate models: an SFT model, a reward model,
+        and then run PPO to update the policy using the reward model's feedback. PPO is notoriously finicky —
+        it has many hyperparameters, can be numerically unstable, and requires careful tuning to avoid
+        reward hacking or policy collapse. Each stage introduces its own failure modes and requires its
+        own evaluation. For a large organization with dedicated ML infrastructure teams, this is manageable.
+        For everyone else, it is a significant barrier.
+      </p>
+
+      <p>
+        <strong>DPO (Direct Preference Optimization, Rafailov et al., 2023)</strong> solves the same problem as RLHF
+        in a dramatically simpler way. The key insight is that you can rearrange the RLHF mathematical
+        objective to show that the optimal policy under RLHF can be expressed directly in terms of the
+        preference data — without ever training a separate reward model or running a reinforcement
+        learning loop. DPO is a single supervised learning step that takes (prompt, chosen response,
+        rejected response) triplets and directly trains the model to prefer the chosen response over the rejected one.
+      </p>
+
+      <p>
+        The practical impact is substantial. What previously required three training stages, multiple models
+        in VRAM simultaneously, and days of PPO tuning can now be done with a single training run lasting
+        hours. <strong>DPO is now the dominant alignment technique</strong> for fine-tuning open-weight models.
+        Nearly all of the fine-tuned open-source models released since mid-2023 — from Llama variants
+        to Mistral variants to countless community models — use DPO or one of its successors rather than RLHF.
+      </p>
+
+      <p>
+        The main practical limitation of DPO compared to RLHF is that it is an <strong>offline</strong> algorithm —
+        it trains on a fixed dataset of preference pairs collected before training. RLHF with PPO is
+        online: the policy generates responses, gets scored, and is updated, all in a loop. This means
+        RLHF can potentially keep improving as the model improves, while DPO's quality is bounded by
+        the quality of the pre-collected preference dataset. For most fine-tuning scenarios this is
+        not a significant limitation, but it matters at the scale where OpenAI and Anthropic operate
+        with continuous human feedback loops.
+      </p>
+
+      <h3 id="dpo-deep">Deep Dive</h3>
+
+      <p>
+        The <strong>mathematical insight</strong> behind DPO is that under the standard RLHF objective, the optimal policy
+        has an analytically computable form. Specifically, &#x03C0;<sub>r</sub>(y|x) &prop; &#x03C0;<sub>ref</sub>(y|x) &middot; exp(r(x,y)/&beta;),
+        where r(x,y) is the reward and &beta; is the KL penalty coefficient. This means the reward function
+        can be expressed in terms of the optimal policy and the reference policy: r(x,y) = &beta; &middot;
+        log(&#x03C0;<sub>r</sub>(y|x) / &#x03C0;<sub>ref</sub>(y|x)) + &beta; &middot; log Z(x). By substituting this
+        expression into the Bradley-Terry preference model (which defines the probability that y<sub>w</sub>
+        is preferred over y<sub>l</sub>), you get a loss function that depends only on the policy and
+        reference model — no reward model needed.
+      </p>
+
+      <p>
+        The <strong>DPO loss function</strong> is:
+      </p>
+      <pre><code><span class="code-comment"># DPO loss (conceptual Python form)</span>
+<span class="code-comment"># y_w = chosen response, y_l = rejected response</span>
+<span class="code-comment"># pi_theta = policy model, pi_ref = reference (SFT) model</span>
+<span class="code-comment"># beta = KL coefficient (typically 0.1 - 0.5)</span>
+
+log_ratio_chosen = (
+    pi_theta.<span class="code-fn">log_prob</span>(y_w | x) - pi_ref.<span class="code-fn">log_prob</span>(y_w | x)
+)
+log_ratio_rejected = (
+    pi_theta.<span class="code-fn">log_prob</span>(y_l | x) - pi_ref.<span class="code-fn">log_prob</span>(y_l | x)
+)
+
+<span class="code-comment"># DPO objective: maximize the gap between chosen and rejected log-ratios</span>
+loss = -<span class="code-fn">log_sigmoid</span>(beta * (log_ratio_chosen - log_ratio_rejected))</code></pre>
+
+      <p>
+        The <strong>&beta; parameter</strong> in DPO plays the same role as the KL coefficient in RLHF: it controls how
+        aggressively the model can diverge from the reference SFT model. A lower &beta; (e.g., 0.1)
+        allows more aggressive optimization toward the preference signal, potentially achieving larger
+        behavioral changes but with more risk of degrading general capabilities. A higher &beta; (e.g., 0.5)
+        keeps the model closer to the SFT reference, producing more conservative but safer updates.
+        Common defaults are &beta; = 0.1 for general alignment and &beta; = 0.2-0.5 when you want to
+        preserve the SFT model's capabilities more carefully.
+      </p>
+
+      <p>
+        The <strong>dataset format</strong> for DPO is straightforward JSONL with three fields:
+      </p>
+      <pre><code><span class="code-comment"># DPO dataset format (one example per line)</span>
+{
+  <span class="code-string">"prompt"</span>: <span class="code-string">"Explain why the sky is blue."</span>,
+  <span class="code-string">"chosen"</span>: <span class="code-string">"The sky appears blue due to Rayleigh scattering..."</span>,
+  <span class="code-string">"rejected"</span>: <span class="code-string">"Because molecules scatter short wavelengths, blue."</span>
+}</code></pre>
+
+      <p>
+        <strong>ORPO (Odds Ratio Preference Optimization, Hong et al., 2024)</strong> is a further simplification that
+        eliminates the need for a reference model entirely. ORPO combines the SFT loss and the preference
+        loss into a single training objective using odds ratios, which means you can go directly from
+        a base pretrained model to an aligned instruction follower in one training step. This makes ORPO
+        cheaper and simpler than DPO, though it requires your dataset to contain instruction-following
+        examples as well as preference pairs. ORPO has become increasingly popular for fine-tuning
+        smaller models where compute efficiency is paramount.
+      </p>
+
+      <p>
+        <strong>SimPO (Simple Preference Optimization, Meng et al., 2024)</strong> is another DPO variant that removes
+        the reference model by using a length-normalized reward instead of log-probability ratios.
+        SimPO empirically outperforms DPO on several alignment benchmarks and is simpler to implement
+        because you only need a single model in memory rather than both the policy and reference model simultaneously.
+      </p>
+
+      <p>
+        The <strong>TRL DPOTrainer</strong> from HuggingFace handles the complete DPO training loop:
+      </p>
+      <pre><code><span class="code-keyword">from</span> trl <span class="code-keyword">import</span> DPOTrainer, DPOConfig
+<span class="code-keyword">from</span> datasets <span class="code-keyword">import</span> load_dataset
+
+dpo_config = <span class="code-fn">DPOConfig</span>(
+    beta=<span class="code-num">0.1</span>,
+    learning_rate=<span class="code-num">5e-7</span>,          <span class="code-comment"># DPO needs very low LR</span>
+    num_train_epochs=<span class="code-num">1</span>,
+    per_device_train_batch_size=<span class="code-num">2</span>,
+    gradient_accumulation_steps=<span class="code-num">8</span>,
+    output_dir=<span class="code-string">"./dpo_output"</span>,
+)
+
+dataset = <span class="code-fn">load_dataset</span>(<span class="code-string">"your_org/preference_dataset"</span>)
+
+trainer = <span class="code-fn">DPOTrainer</span>(
+    model=policy_model,         <span class="code-comment"># model to train</span>
+    ref_model=reference_model,  <span class="code-comment"># frozen SFT reference</span>
+    args=dpo_config,
+    train_dataset=dataset[<span class="code-string">"train"</span>],
+    processing_class=tokenizer,
+)
+trainer.<span class="code-fn">train</span>()</code></pre>
+
+      <p>
+        Understanding <strong>when to prefer DPO over RLHF</strong> comes down to scale and resources. DPO is the
+        right choice for most practitioners: smaller teams, limited GPU budgets, preference pairs
+        available in advance, and a need for training stability. RLHF with PPO has advantages at very
+        large scale where you have a continuous stream of real-time human feedback (online learning),
+        very complex multi-turn preference signals, or the resources to iterate on reward model quality.
+        For the vast majority of open-weight model fine-tuning, DPO or ORPO is the practical choice.
+      </p>
+    </section>
+
+    <!-- SECTION 6: Dataset Preparation -->
+    <section class="section" id="datasets">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Dataset Preparation</h2>
+      </div>
+
+      <h3 id="datasets-plain">Plain Language</h3>
+
+      <p>
+        In machine learning, there is a maxim: <strong>garbage in, garbage out</strong>. Nowhere is this more true
+        than in fine-tuning. You can choose the perfect learning rate, the optimal LoRA rank, the most
+        efficient training infrastructure — and all of that is worthless if your training data is noisy,
+        inconsistent, or misaligned with what you actually want the model to do. The quality of your
+        fine-tuning data is the single most important variable in the entire process, and it is the
+        one most often neglected by practitioners eager to start training.
+      </p>
+
+      <p>
+        A counterintuitive but well-validated empirical finding: <strong>100 perfectly curated examples
+        consistently outperforms 10,000 mediocre ones</strong> for instruction tuning. The model is already
+        highly capable — it just needs to be steered. A few dozen crystal-clear examples of exactly
+        the behavior you want are far more informative than thousands of examples with noise,
+        inconsistency, or ambiguity. Quality filtering, deduplication, and careful review of every
+        example in your training set are not optional niceties; they are the primary lever of
+        fine-tuning quality.
+      </p>
+
+      <p>
+        One of the most effective and increasingly standard approaches to dataset creation is <strong>synthetic
+        data generation</strong>: using a strong LLM (GPT-4, Claude Opus) to generate training data for a
+        weaker model. This is the approach behind the Phi family of models from Microsoft (Phi-1, Phi-2,
+        Phi-3), which achieved remarkable performance at small model sizes by training on
+        GPT-4-generated "textbook quality" data. It is also the basis of techniques like Self-Instruct
+        and Evol-Instruct. If you have a well-defined task, you can often generate thousands of
+        high-quality examples quickly and cheaply with a strong frontier model, at a fraction of
+        the cost of human annotation.
+      </p>
+
+      <p>
+        The distribution of your training data must match the distribution of inputs your model will
+        see at inference time. This sounds obvious but is easy to get wrong. If your production
+        system will see short, terse user queries, training on long elaborate prompts will not help.
+        If your users will ask edge-case questions, you need edge cases in your training data.
+        Most importantly, your <strong>evaluation (test) set must be drawn from the real production distribution</strong>,
+        not from the same synthetic data generation process as your training set — otherwise
+        you are measuring how well the model learned your synthetic data, not how well it performs
+        on real-world inputs.
+      </p>
+
+      <h3 id="datasets-deep">Deep Dive</h3>
+
+      <p>
+        The standard <strong>OpenAI instruction tuning format</strong> is a JSONL file where each line is a
+        JSON object with a "messages" array following the ChatML conversation format. This format
+        is supported by OpenAI's fine-tuning API and is also widely used with HuggingFace's
+        chat templates:
+      </p>
+      <pre><code><span class="code-comment"># Instruction tuning format (one JSON object per line)</span>
+{
+  <span class="code-string">"messages"</span>: [
+    {
+      <span class="code-string">"role"</span>: <span class="code-string">"system"</span>,
+      <span class="code-string">"content"</span>: <span class="code-string">"You are a medical documentation assistant..."</span>
+    },
+    {
+      <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+      <span class="code-string">"content"</span>: <span class="code-string">"Summarize the following clinical note..."</span>
+    },
+    {
+      <span class="code-string">"role"</span>: <span class="code-string">"assistant"</span>,
+      <span class="code-string">"content"</span>: <span class="code-string">"Chief Complaint: chest pain..."</span>
+    }
+  ]
+}</code></pre>
+
+      <p>
+        The <strong>legacy completion format</strong> (used by older OpenAI fine-tuning and some HuggingFace models)
+        uses a simpler two-field structure. This format is being phased out in favor of the
+        messages format for instruction-following models but is still relevant for
+        sequence-completion tasks and older APIs:
+      </p>
+      <pre><code><span class="code-comment"># Legacy completion format</span>
+{<span class="code-string">"prompt"</span>: <span class="code-string">"Translate to French: Hello, how are you?\n\n###\n\n"</span>,
+ <span class="code-string">"completion"</span>: <span class="code-string">" Bonjour, comment allez-vous?\n"</span>}</code></pre>
+
+      <p>
+        <strong>Dataset size guidelines</strong> are approximate but give useful planning targets. For learning a
+        new output format (e.g., always respond as JSON): 100-500 examples. For changing communication
+        style or tone: 500-2,000 examples. For teaching a new domain's vocabulary and conventions:
+        2,000-10,000 examples. For learning substantial new knowledge that was not in pretraining:
+        10,000-50,000 examples. For building significant new capabilities: 50,000 and up.
+        These are not hard requirements — you may need more or fewer depending on the consistency
+        of your data and how different the desired behavior is from the base model's defaults.
+      </p>
+
+      <p>
+        <strong>Data cleaning</strong> encompasses several distinct operations that each meaningfully improve dataset
+        quality. Deduplication removes near-identical examples using techniques like MinHash LSH —
+        duplicates waste training budget and can cause the model to overfit to specific phrasings.
+        Quality filtering removes low-quality examples using automated metrics (perplexity filtering
+        removes text that is incoherent by the model's own assessment) or manual human review.
+        PII (personally identifiable information) removal is essential for compliance — scrub names,
+        addresses, phone numbers, emails, and other identifying information from training data.
+        Format validation ensures every example is syntactically valid and has the expected fields.
+      </p>
+
+      <p>
+        <strong>Synthetic data generation pipelines</strong> follow a consistent pattern: generate a diverse set of
+        seed prompts representing different aspects of your task, use a strong LLM to generate
+        responses for each prompt, filter the generated (prompt, response) pairs by quality using
+        either another LLM as a judge or a rule-based quality check, and then deduplicate:
+      </p>
+      <pre><code><span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+<span class="code-keyword">import</span> json
+
+client = <span class="code-fn">OpenAI</span>()
+
+<span class="code-keyword">def</span> <span class="code-fn">generate_training_example</span>(seed_topic: str) -> dict:
+    <span class="code-comment"># Use GPT-4o to generate a (prompt, response) pair</span>
+    meta_prompt = <span class="code-fn">f</span><span class="code-string">"""Generate a realistic user question about {seed_topic}
+and a high-quality expert answer.
+Return JSON: {{"prompt": "...", "response": "..."}}"""</span>
+
+    result = client.chat.completions.<span class="code-fn">create</span>(
+        model=<span class="code-string">"gpt-4o"</span>,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: meta_prompt}],
+        response_format={<span class="code-string">"type"</span>: <span class="code-string">"json_object"</span>},
+    )
+    data = json.<span class="code-fn">loads</span>(result.choices[<span class="code-num">0</span>].message.content)
+    <span class="code-keyword">return</span> {
+        <span class="code-string">"messages"</span>: [
+            {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: data[<span class="code-string">"prompt"</span>]},
+            {<span class="code-string">"role"</span>: <span class="code-string">"assistant"</span>, <span class="code-string">"content"</span>: data[<span class="code-string">"response"</span>]},
+        ]
+    }
+
+seed_topics = [<span class="code-string">"drug interactions"</span>, <span class="code-string">"dosage calculations"</span>, <span class="code-string">"clinical terminology"</span>]
+examples = [<span class="code-fn">generate_training_example</span>(t) <span class="code-keyword">for</span> t <span class="code-keyword">in</span> seed_topics * <span class="code-num">100</span>]
+
+<span class="code-comment"># Write to JSONL</span>
+<span class="code-keyword">with</span> <span class="code-fn">open</span>(<span class="code-string">"train.jsonl"</span>, <span class="code-string">"w"</span>) <span class="code-keyword">as</span> f:
+    <span class="code-keyword">for</span> ex <span class="code-keyword">in</span> examples:
+        f.<span class="code-fn">write</span>(json.<span class="code-fn">dumps</span>(ex) + <span class="code-string">"\n"</span>)</code></pre>
+
+      <p>
+        The <strong>train/validation/test split</strong> requires deliberate thought. A common split is 90/5/5
+        (train/validation/test) for larger datasets, or 80/10/10 for smaller ones. The validation
+        set is used during training to detect overfitting — if training loss keeps falling but
+        validation loss starts rising, you are overfitting and should stop early. The test set
+        is a held-out set evaluated only after training is complete, to get an unbiased estimate
+        of real-world performance. Never use examples from your test set to make training decisions.
+        Ideally, your test set consists of real examples from your actual production environment,
+        not examples from the same synthetic generation process as your training data.
+      </p>
+
+      <p>
+        The <strong>HuggingFace Datasets library</strong> is the standard tool for managing fine-tuning datasets.
+        It handles loading from JSONL, arrow, CSV, and many other formats; streaming large datasets
+        that don't fit in memory; applying transformations and filters; and pushing datasets to
+        the HuggingFace Hub for sharing:
+      </p>
+      <pre><code><span class="code-keyword">from</span> datasets <span class="code-keyword">import</span> Dataset, load_dataset
+
+<span class="code-comment"># Load from local JSONL file</span>
+dataset = load_dataset.<span class="code-fn">load_dataset</span>(<span class="code-string">"json"</span>, data_files=<span class="code-string">"train.jsonl"</span>, split=<span class="code-string">"train"</span>)
+
+<span class="code-comment"># Or create from list of dicts</span>
+data = [{<span class="code-string">"messages"</span>: [...], <span class="code-string">"id"</span>: i} <span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-fn">range</span>(<span class="code-num">1000</span>)]
+dataset = Dataset.<span class="code-fn">from_list</span>(data)
+
+<span class="code-comment"># Split into train and validation</span>
+splits = dataset.<span class="code-fn">train_test_split</span>(test_size=<span class="code-num">0.1</span>, seed=<span class="code-num">42</span>)
+train_ds = splits[<span class="code-string">"train"</span>]
+val_ds   = splits[<span class="code-string">"test"</span>]
+
+<span class="code-comment"># Push to HuggingFace Hub</span>
+dataset.<span class="code-fn">push_to_hub</span>(<span class="code-string">"your_org/medical-instructions-v1"</span>, private=<span class="code-keyword">True</span>)</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Data Contamination Warning</div>
+        <p>If you use a strong LLM to generate both your training data and your evaluation data, you have contaminated your evaluation. The model will perform well on the eval because it learned the eval-generating LLM's patterns — not because it genuinely learned your task. Always hold out real human-curated examples for your test set.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 7: OpenAI Fine-Tuning API -->
+    <section class="section" id="openai-api">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>OpenAI Fine-Tuning API</h2>
+      </div>
+
+      <h3 id="openai-plain">Plain Language</h3>
+
+      <p>
+        OpenAI provides a hosted fine-tuning service that abstracts away all the infrastructure complexity.
+        You prepare your training data as a JSONL file, upload it to the OpenAI API, specify which
+        base model you want to fine-tune and for how many epochs, and submit a fine-tuning job.
+        OpenAI handles all the compute — the GPU allocation, training, model storage, and serving.
+        When the job finishes (typically 30 minutes to a few hours depending on dataset size),
+        you receive a model ID that you can use exactly like any other OpenAI model in API calls.
+      </p>
+
+      <p>
+        The appeal is the complete elimination of infrastructure overhead. There is no GPU to provision,
+        no CUDA environment to configure, no training loop to write or debug. If you can prepare a
+        JSONL file and make an API call, you can fine-tune a model. For teams without ML
+        infrastructure expertise or without the desire to build and maintain GPU training pipelines,
+        this is a compelling option. <strong>OpenAI fine-tuning is a fully managed service: you bring
+        the data, they handle everything else.</strong>
+      </p>
+
+      <p>
+        The currently supported base models include <strong>gpt-4o-mini</strong> (the best cost-performance option
+        for most use cases) and <strong>gpt-3.5-turbo</strong>. GPT-4o is available to some partners. The
+        fine-tuned model is hosted on OpenAI's infrastructure and accessed via the standard
+        Chat Completions API — the only difference is the model ID, which includes a
+        "ft:" prefix and your organization's namespace. Fine-tuned models can only be
+        accessed by the organization that created them.
+      </p>
+
+      <p>
+        The cost structure has two components. First, you pay a <strong>training cost</strong> per token in your
+        training dataset — this is a one-time cost paid when the job runs. Second, you pay
+        <strong>inference cost</strong> per token at call time — and fine-tuned models cost more per token than
+        the corresponding base model. The economic logic is that the training cost is amortized
+        across many inference calls, each of which saves tokens by not needing a long system
+        prompt. For high-volume use cases this amortization makes fine-tuning cost-effective;
+        for low-volume use cases the training cost may not be recovered.
+      </p>
+
+      <h3 id="openai-deep">Deep Dive</h3>
+
+      <p>
+        The <strong>file upload step</strong> uses the Files API. You upload your JSONL file with the purpose
+        "fine-tune," which tells OpenAI to retain it for use in fine-tuning jobs. The API
+        validates your file format, checks for required fields, and returns a file ID
+        that you will reference in the job creation call:
+      </p>
+      <pre><code><span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+
+client = <span class="code-fn">OpenAI</span>()  <span class="code-comment"># reads OPENAI_API_KEY from env</span>
+
+<span class="code-comment"># Upload training file</span>
+<span class="code-keyword">with</span> <span class="code-fn">open</span>(<span class="code-string">"train.jsonl"</span>, <span class="code-string">"rb"</span>) <span class="code-keyword">as</span> f:
+    train_file = client.files.<span class="code-fn">create</span>(file=f, purpose=<span class="code-string">"fine-tune"</span>)
+
+<span class="code-keyword">with</span> <span class="code-fn">open</span>(<span class="code-string">"val.jsonl"</span>, <span class="code-string">"rb"</span>) <span class="code-keyword">as</span> f:
+    val_file = client.files.<span class="code-fn">create</span>(file=f, purpose=<span class="code-string">"fine-tune"</span>)
+
+<span class="code-fn">print</span>(train_file.id)  <span class="code-comment"># file-abc123...</span></code></pre>
+
+      <p>
+        <strong>Job creation</strong> submits the fine-tuning job to OpenAI's training infrastructure. You specify
+        the base model, the training file, and optionally a validation file and hyperparameters.
+        The job is queued and typically begins training within a few minutes of submission:
+      </p>
+      <pre><code><span class="code-comment"># Create fine-tuning job</span>
+job = client.fine_tuning.jobs.<span class="code-fn">create</span>(
+    training_file=train_file.id,
+    validation_file=val_file.id,
+    model=<span class="code-string">"gpt-4o-mini-2024-07-18"</span>,
+    hyperparameters={
+        <span class="code-string">"n_epochs"</span>: <span class="code-string">"auto"</span>,              <span class="code-comment"># let OpenAI choose</span>
+        <span class="code-string">"learning_rate_multiplier"</span>: <span class="code-string">"auto"</span>,
+        <span class="code-string">"batch_size"</span>: <span class="code-string">"auto"</span>,
+    },
+    suffix=<span class="code-string">"medical-notes-v1"</span>,       <span class="code-comment"># appears in model ID</span>
+)
+
+<span class="code-fn">print</span>(job.id)      <span class="code-comment"># ftjob-abc123...</span>
+<span class="code-fn">print</span>(job.status)  <span class="code-comment"># "validating_files" | "queued" | "running" | "succeeded"</span></code></pre>
+
+      <p>
+        <strong>Monitoring training progress</strong> is done by polling job events, which include training loss
+        and validation loss at each step. This lets you detect overfitting in real time and
+        cancel the job early if needed:
+      </p>
+      <pre><code><span class="code-keyword">import</span> time
+
+<span class="code-comment"># Poll job status</span>
+<span class="code-keyword">while</span> <span class="code-keyword">True</span>:
+    job = client.fine_tuning.jobs.<span class="code-fn">retrieve</span>(job.id)
+    <span class="code-fn">print</span>(<span class="code-fn">f</span><span class="code-string">"Status: {job.status}"</span>)
+    <span class="code-keyword">if</span> job.status <span class="code-keyword">in</span> [<span class="code-string">"succeeded"</span>, <span class="code-string">"failed"</span>, <span class="code-string">"cancelled"</span>]:
+        <span class="code-keyword">break</span>
+    time.<span class="code-fn">sleep</span>(<span class="code-num">60</span>)
+
+<span class="code-comment"># Stream events to see loss curves</span>
+events = client.fine_tuning.jobs.<span class="code-fn">list_events</span>(job.id, limit=<span class="code-num">50</span>)
+<span class="code-keyword">for</span> event <span class="code-keyword">in</span> events.data:
+    <span class="code-fn">print</span>(event.message)
+<span class="code-comment"># Step 100/240: train loss=0.432, val loss=0.489</span>
+<span class="code-comment"># Step 200/240: train loss=0.311, val loss=0.501  <- diverging, consider stopping</span>
+
+<span class="code-fn">print</span>(<span class="code-string">"Fine-tuned model ID:"</span>, job.fine_tuned_model)
+<span class="code-comment"># ft:gpt-4o-mini-2024-07-18:your-org:medical-notes-v1:AbCdEf12</span></code></pre>
+
+      <p>
+        <strong>Using the fine-tuned model</strong> is identical to using any other OpenAI model — just substitute
+        the fine-tuned model ID. The API, streaming, function calling, and all other features work
+        exactly the same way. The key difference is that you no longer need to include lengthy
+        formatting or style instructions in your system prompt, because those behaviors are
+        now embedded in the model weights:
+      </p>
+      <pre><code><span class="code-comment"># Using the fine-tuned model — no format instructions needed</span>
+response = client.chat.completions.<span class="code-fn">create</span>(
+    model=<span class="code-string">"ft:gpt-4o-mini-2024-07-18:your-org:medical-notes-v1:AbCdEf12"</span>,
+    messages=[
+        {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: <span class="code-string">"Summarize this clinical note: ..."</span>}
+    ],
+    temperature=<span class="code-num">0.2</span>,
+)
+<span class="code-fn">print</span>(response.choices[<span class="code-num">0</span>].message.content)</code></pre>
+
+      <p>
+        Understanding the <strong>hyperparameters</strong> helps you control training quality. <code>n_epochs</code>
+        determines how many passes through the training data — OpenAI's "auto" setting typically
+        chooses 3-4 epochs for datasets under 1,000 examples. <code>learning_rate_multiplier</code>
+        scales the learning rate relative to OpenAI's base learning rate — values between 0.5 and 2.0
+        are reasonable for experimentation. <code>batch_size</code> affects gradient estimation quality;
+        larger batches are more stable but require more memory. In practice, OpenAI's auto-selected
+        defaults are well-tuned for typical datasets, and manual adjustment is only worthwhile
+        if you have strong evidence that the defaults are suboptimal.
+      </p>
+
+      <p>
+        The <strong>validation file</strong> is essential for production-quality fine-tuning. Without it, you can
+        only observe training loss (which always goes down as the model memorizes the training data)
+        and have no way to detect overfitting. When you supply a validation file, OpenAI computes
+        validation loss at each checkpoint, giving you a curve you can inspect to decide when
+        training has converged. If validation loss stops decreasing while training loss continues
+        to fall, you are overfitting — the model is memorizing training examples rather than
+        generalizing to new inputs. In this case, you should rerun the job with fewer epochs
+        or reduce the learning rate multiplier.
+      </p>
+
+      <div class="callout tip">
+        <div class="callout-label">Best Practice</div>
+        <p>Always supply a validation file when fine-tuning via OpenAI. Even if your dataset is small, the validation loss curve gives you objective evidence of whether training is helping or overfitting. Start with the "auto" hyperparameters for your first run, inspect the loss curves, and adjust from there on subsequent runs.</p>
+      </div>
+
+      <!-- NEXT/PREV NAV -->
+      <div class="next-section">
+        <div>
+          <div class="next-label">Previous Module</div>
+          <a href="03-api-for-llms.html" class="next-btn prev-btn" style="transform: none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            03 &middot; APIs for LLMs
+          </a>
+        </div>
+        <div style="text-align:right">
+          <div class="next-label">Next Module</div>
+          <a href="05-llm-hosting.html" class="next-btn">
+            05 &middot; LLM Hosting
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+          <div class="next-phase" style="margin-top:6px;">Next: Deploying Models</div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+</body>
+</html>

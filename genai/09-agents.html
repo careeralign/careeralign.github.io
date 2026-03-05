@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agents &amp; Multi-Agent Systems — CareerAlign GenAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg-base:#0b0d14;--bg-surface:#10131e;--bg-elevated:#171c2e;--bg-overlay:#1e2438;--border-subtle:#1a1f34;--border-default:#232840;--border-strong:#2e3554;--text-primary:#e6e8f4;--text-secondary:#8e94b5;--text-muted:#545a78;--accent-indigo:#6366f1;--accent-cyan:#22d3ee;--accent-violet:#a855f7;--glow-indigo:rgba(99,102,241,0.25);--phase-prereq:#64748b;--phase-found:#3b82f6;--phase-api:#06b6d4;--phase-rag:#f97316;--phase-agent:#a855f7;--phase-quality:#ef4444;--phase-cloud:#22c55e;--phase-project:#f59e0b;--font-display:'Space Grotesk',sans-serif;--font-body:'Nunito',sans-serif;--font-mono:'JetBrains Mono',monospace;--radius:12px;--radius-sm:8px;--radius-lg:18px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:var(--bg-base);color:var(--text-primary);font-family:var(--font-body);font-size:16px;line-height:1.7;min-height:100vh}a{color:inherit;text-decoration:none}img,svg{display:block}
+.nav{position:sticky;top:0;z-index:100;background:rgba(11,13,20,0.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border-subtle);padding:0 32px;display:flex;align-items:center;height:58px;gap:24px}.nav-logo{font-family:var(--font-display);font-weight:700;font-size:17px;color:var(--text-primary);display:flex;align-items:center;gap:9px;white-space:nowrap}.nav-logo span{color:var(--accent-indigo)}.nav-links{display:flex;gap:6px;flex:1;flex-wrap:wrap;overflow:hidden}.nav-links a{font-size:12px;font-weight:500;color:var(--text-muted);padding:4px 8px;border-radius:6px;transition:all .2s;white-space:nowrap}.nav-links a:hover{color:var(--text-primary);background:var(--bg-elevated)}.nav-links a.active{color:var(--phase-agent);background:rgba(168,85,247,0.15)}.nav-home{font-size:12.5px;font-weight:600;color:var(--accent-indigo);padding:6px 14px;border:1px solid rgba(99,102,241,0.3);border-radius:7px;transition:all .2s;white-space:nowrap;margin-left:auto}.nav-home:hover{background:rgba(99,102,241,0.1)}
+.hero{padding:70px 60px 50px;max-width:1400px;margin:0 auto;border-bottom:1px solid var(--border-subtle)}.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.25);border-radius:20px;padding:5px 14px;margin-bottom:22px;font-size:12.5px;font-family:var(--font-display);font-weight:600;color:var(--phase-agent);letter-spacing:0.04em;text-transform:uppercase}.hero h1{font-family:var(--font-display);font-size:clamp(2.2rem,4vw,3.4rem);font-weight:700;line-height:1.15;color:var(--text-primary);max-width:820px;margin-bottom:20px}.hero h1 em{font-style:normal;color:var(--phase-agent)}.hero-desc{font-size:1.1rem;color:var(--text-secondary);max-width:760px;line-height:1.75;margin-bottom:36px}.hero-checklist{display:flex;gap:12px;flex-wrap:wrap}.hero-pill{display:flex;align-items:center;gap:7px;background:var(--bg-surface);border:1px solid var(--border-default);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--text-secondary)}.hero-pill svg{color:var(--phase-agent);flex-shrink:0}
+.content-grid{max-width:1400px;margin:0 auto;padding:0 60px 80px;display:grid;grid-template-columns:260px 1fr;gap:0;align-items:start}.toc{position:sticky;top:78px;padding:32px 0;border-right:1px solid var(--border-subtle);margin-right:48px}.toc-title{font-size:11px;font-family:var(--font-display);font-weight:700;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-subtle)}.toc a{display:block;font-size:13px;color:var(--text-secondary);padding:6px 0;transition:color .2s;border-left:2px solid transparent;padding-left:12px;margin-left:-2px}.toc a:hover{color:var(--text-primary);border-left-color:var(--phase-agent)}.toc a.section{font-weight:600;color:var(--text-primary);font-size:12.5px;margin-top:8px}.toc a.sub{padding-left:24px;font-size:12px}
+.main{padding:40px 0}.section{margin-bottom:60px}.section-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border-subtle)}.section-num{width:36px;height:36px;border-radius:50%;background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.3);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--phase-agent);flex-shrink:0}.section h2{font-family:var(--font-display);font-size:1.55rem;font-weight:700;color:var(--text-primary)}.section h3{font-family:var(--font-display);font-size:1.15rem;font-weight:600;color:var(--text-primary);margin:28px 0 12px}.section p{color:var(--text-secondary);margin-bottom:16px;font-size:1rem;line-height:1.8}.section p strong{color:var(--text-primary);font-weight:600}
+.callout{border-left:3px solid var(--phase-agent);background:rgba(168,85,247,0.07);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:16px 20px;margin:20px 0}.callout.info{border-color:var(--accent-indigo);background:rgba(99,102,241,0.07)}.callout.tip{border-color:var(--phase-cloud);background:rgba(34,197,94,0.07)}.callout.warn{border-color:var(--phase-project);background:rgba(245,158,11,0.07)}.callout-label{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;color:var(--phase-agent)}.callout.info .callout-label{color:var(--accent-indigo)}.callout.tip .callout-label{color:var(--phase-cloud)}.callout.warn .callout-label{color:var(--phase-project)}.callout p{margin:0;color:var(--text-secondary);font-size:0.95rem}
+pre{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:20px 24px;overflow-x:auto;margin:20px 0}code{font-family:var(--font-mono);font-size:13.5px;color:var(--accent-cyan);line-height:1.65}:not(pre)>code{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:5px;padding:2px 7px;font-size:13px}.code-comment{color:var(--text-muted)}.code-keyword{color:#c084fc}.code-string{color:#86efac}.code-fn{color:#67e8f9}.code-num{color:#fca5a5}
+.diagram-wrap{background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--radius-lg);padding:32px;margin:32px 0}.diagram-caption{text-align:center;font-size:13px;color:var(--text-muted);margin-top:16px;font-style:italic}
+.comp-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px}.comp-table th,.comp-table td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--border-subtle)}.comp-table th{background:var(--bg-elevated);font-family:var(--font-display);font-weight:600;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em}.comp-table td{color:var(--text-secondary)}.comp-table tr:hover td{background:rgba(168,85,247,0.04)}
+.next-section{margin-top:70px;padding-top:40px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center}.next-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;font-family:var(--font-display)}.next-btn{display:inline-flex;align-items:center;gap:10px;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:var(--radius);padding:14px 22px;font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--text-primary);transition:all .2s}.next-btn:hover{border-color:var(--phase-agent);color:var(--phase-agent);transform:translateX(4px)}.prev-btn:hover{transform:translateX(-4px)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">⚡ <span>CareerAlign</span> GenAI</div>
+  <div class="nav-links">
+    <a href="00-prerequisites.html">00 · Prerequisites</a>
+    <a href="01-foundations-of-genai.html">01 · Foundations</a>
+    <a href="02-llms-slms-multimodal.html">02 · Models</a>
+    <a href="03-api-for-llms.html">03 · APIs</a>
+    <a href="04-fine-tuning.html">04 · Fine-Tuning</a>
+    <a href="05-llm-hosting.html">05 · Hosting</a>
+    <a href="06-prompt-engineering.html">06 · Prompting</a>
+    <a href="07-rag-systems.html">07 · RAG</a>
+    <a href="08-advanced-rag.html">08 · Adv RAG</a>
+    <a href="09-agents.html" class="active">09 · Agents</a>
+    <a href="10-evaluation.html">10 · Eval</a>
+    <a href="11-guardrails.html">11 · Guardrails</a>
+    <a href="12-mcp.html">12 · MCP</a>
+    <a href="13-aws-cloud.html">13 · AWS</a>
+    <a href="14-n8n-no-code.html">14 · n8n</a>
+    <a href="15-capstone-document-portal.html">15 · Capstone I</a>
+    <a href="16-capstone-report-agent.html">16 · Capstone II</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GenAI Hub</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Module 09 — Agents Phase
+  </div>
+  <h1>Agents &amp; <em>Multi-Agent</em> Systems</h1>
+  <p class="hero-desc">
+    Agents transform LLMs from passive text generators into autonomous actors that can reason, plan, use tools, and take real actions in the world. Instead of answering a question and stopping, an agent decides what steps to take, executes those steps using tools (APIs, databases, code execution), observes the results, and iterates until the task is complete. This module covers the ReAct pattern, tool integration, LangGraph for complex workflows, and multi-agent architectures where specialized agents collaborate to solve problems no single agent can handle alone.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>ReAct Pattern</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Tool Use / Function Calling</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>LangGraph Workflows</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Multi-Agent Systems</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Human-in-the-Loop</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Agent Safety</div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/09-agents.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</section>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#react" class="section">1 · The ReAct Pattern</a>
+    <a href="#react-plain" class="sub">Plain Language</a>
+    <a href="#react-deep" class="sub">Deep Dive</a>
+    <a href="#tools" class="section">2 · Tool Use &amp; Function Calling</a>
+    <a href="#tools-plain" class="sub">Plain Language</a>
+    <a href="#tools-deep" class="sub">Deep Dive</a>
+    <a href="#langgraph" class="section">3 · LangGraph Workflows</a>
+    <a href="#lg-plain" class="sub">Plain Language</a>
+    <a href="#lg-deep" class="sub">Deep Dive</a>
+    <a href="#multi-agent" class="section">4 · Multi-Agent Systems</a>
+    <a href="#ma-plain" class="sub">Plain Language</a>
+    <a href="#ma-deep" class="sub">Deep Dive</a>
+    <a href="#human-loop" class="section">5 · Human-in-the-Loop</a>
+    <a href="#hl-plain" class="sub">Plain Language</a>
+    <a href="#hl-deep" class="sub">Deep Dive</a>
+    <a href="#safety" class="section">6 · Agent Safety &amp; Reliability</a>
+    <a href="#safety-plain" class="sub">Plain Language</a>
+    <a href="#safety-deep" class="sub">Deep Dive</a>
+  </aside>
+
+  <main class="main">
+
+    <!-- SECTION 1: REACT -->
+    <div class="section" id="react">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>The ReAct Pattern</h2>
+      </div>
+
+      <h3 id="react-plain">Plain Language</h3>
+
+      <p>The ReAct pattern (Reasoning + Acting) is the foundational framework for how LLM agents operate. It is inspired by how humans solve problems: we think about what to do, take an action, observe the result, think about what to do next, and repeat until the problem is solved. In the ReAct loop, the LLM alternates between <strong>reasoning</strong> (thinking through the problem and planning the next step) and <strong>acting</strong> (executing a tool or taking an action). After each action, the agent observes the result and uses that observation to inform its next reasoning step.</p>
+
+      <p>Consider a user asking: "What was the weather like in the city where Apple was founded, on the day the iPhone was announced?" A standard LLM would try to answer from memory and likely get details wrong. A ReAct agent thinks: "I need to know where Apple was founded. Let me search for that." It calls a search tool and learns "Cupertino, California." Then it thinks: "I need the date the iPhone was announced." It searches again and finds "January 9, 2007." Finally, it thinks: "Now I need historical weather for Cupertino on January 9, 2007." It calls a weather API and gets the answer. Each step builds on the previous result, and the agent dynamically plans its path rather than following a fixed script.</p>
+
+      <p>What makes ReAct powerful is its flexibility. Unlike traditional programming where you specify every step in advance, a ReAct agent figures out the steps at runtime based on what it discovers along the way. If the first search returns ambiguous results, the agent can rephrase and search again. If an API call fails, it can try an alternative source. If the problem turns out to be simpler than expected, it can skip unnecessary steps. This adaptive behavior makes agents much more robust for real-world tasks where the path to the answer is not known in advance.</p>
+
+      <p>The ReAct loop typically runs for 3 to 10 iterations for most tasks. Each iteration involves one LLM call (for reasoning and deciding the next action) and one tool execution. The maximum number of iterations is usually capped to prevent runaway loops — if an agent cannot solve a task in N steps, it is better to return a partial result or ask the user for clarification than to loop indefinitely burning tokens and API costs.</p>
+
+      <h3 id="react-deep">Deep Dive</h3>
+
+      <p>Here is a minimal ReAct agent built from scratch using the OpenAI function calling API. This implementation shows the core loop without any framework dependencies:</p>
+
+      <pre><code><span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+<span class="code-keyword">import</span> json, requests
+
+client = <span class="code-fn">OpenAI</span>()
+
+<span class="code-comment"># --- Tool Definitions ---</span>
+tools = [
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"web_search"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Search the web for current information"</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"query"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Search query"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"query"</span>]
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"calculator"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Perform mathematical calculations"</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"expression"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Math expression to evaluate"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"expression"</span>]
+            }
+        }
+    }
+]
+
+<span class="code-comment"># --- Tool Implementations ---</span>
+<span class="code-keyword">def</span> <span class="code-fn">execute_tool</span>(name: str, args: dict) -> str:
+    <span class="code-keyword">if</span> name == <span class="code-string">"web_search"</span>:
+        <span class="code-comment"># In production, use a real search API (Tavily, Serper, etc.)</span>
+        <span class="code-keyword">return</span> f<span class="code-string">"Search results for '{args['query']}': [simulated results]"</span>
+    <span class="code-keyword">elif</span> name == <span class="code-string">"calculator"</span>:
+        <span class="code-keyword">try</span>:
+            result = <span class="code-fn">eval</span>(args[<span class="code-string">"expression"</span>])  <span class="code-comment"># Use safe_eval in production!</span>
+            <span class="code-keyword">return</span> str(result)
+        <span class="code-keyword">except</span> Exception <span class="code-keyword">as</span> e:
+            <span class="code-keyword">return</span> f<span class="code-string">"Error: {e}"</span>
+    <span class="code-keyword">return</span> <span class="code-string">"Unknown tool"</span>
+
+<span class="code-comment"># --- ReAct Agent Loop ---</span>
+<span class="code-keyword">def</span> <span class="code-fn">run_agent</span>(user_message: str, max_steps: int = <span class="code-num">10</span>) -> str:
+    messages = [
+        {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: <span class="code-string">"""You are a helpful assistant with access to tools.
+Think step by step. Use tools when you need information you don't have.
+When you have enough information, provide a final answer to the user."""</span>},
+        {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: user_message}
+    ]
+
+    <span class="code-keyword">for</span> step <span class="code-keyword">in</span> <span class="code-fn">range</span>(max_steps):
+        <span class="code-comment"># Reasoning: LLM decides what to do</span>
+        response = client.chat.completions.<span class="code-fn">create</span>(
+            model=<span class="code-string">"gpt-4o"</span>,
+            messages=messages,
+            tools=tools,
+            tool_choice=<span class="code-string">"auto"</span>,
+        )
+
+        msg = response.choices[<span class="code-num">0</span>].message
+        messages.<span class="code-fn">append</span>(msg)
+
+        <span class="code-comment"># If no tool calls, the agent is done</span>
+        <span class="code-keyword">if</span> <span class="code-keyword">not</span> msg.tool_calls:
+            <span class="code-keyword">return</span> msg.content
+
+        <span class="code-comment"># Acting: Execute each tool call</span>
+        <span class="code-keyword">for</span> tool_call <span class="code-keyword">in</span> msg.tool_calls:
+            args = json.<span class="code-fn">loads</span>(tool_call.function.arguments)
+            <span class="code-fn">print</span>(f<span class="code-string">"  → {tool_call.function.name}({args})"</span>)
+
+            result = <span class="code-fn">execute_tool</span>(tool_call.function.name, args)
+
+            <span class="code-comment"># Observation: Feed result back to the LLM</span>
+            messages.<span class="code-fn">append</span>({
+                <span class="code-string">"role"</span>: <span class="code-string">"tool"</span>,
+                <span class="code-string">"tool_call_id"</span>: tool_call.id,
+                <span class="code-string">"content"</span>: result
+            })
+
+    <span class="code-keyword">return</span> <span class="code-string">"Agent reached maximum steps without completing the task."</span>
+
+<span class="code-comment"># Usage</span>
+answer = <span class="code-fn">run_agent</span>(<span class="code-string">"What is 15% of the current US population?"</span>)
+<span class="code-fn">print</span>(answer)</code></pre>
+
+      <!-- SVG: ReAct Loop -->
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 800 250" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- User -->
+          <rect x="20" y="90" width="100" height="50" rx="25" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="70" y="120" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600">User Task</text>
+
+          <line x1="120" y1="115" x2="170" y2="115" stroke="#2e3554" stroke-width="1.5" marker-end="url(#aA)"/>
+
+          <!-- Reason -->
+          <rect x="170" y="80" width="140" height="70" rx="10" fill="#171c2e" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="240" y="107" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk,sans-serif" font-size="13" font-weight="600">Reason</text>
+          <text x="240" y="128" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">"I need to search for..."</text>
+
+          <line x1="310" y1="115" x2="370" y2="115" stroke="#2e3554" stroke-width="1.5" marker-end="url(#aA)"/>
+
+          <!-- Act -->
+          <rect x="370" y="80" width="140" height="70" rx="10" fill="#171c2e" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="440" y="107" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk,sans-serif" font-size="13" font-weight="600">Act</text>
+          <text x="440" y="128" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">web_search("query")</text>
+
+          <line x1="510" y1="115" x2="570" y2="115" stroke="#2e3554" stroke-width="1.5" marker-end="url(#aA)"/>
+
+          <!-- Observe -->
+          <rect x="570" y="80" width="140" height="70" rx="10" fill="#171c2e" stroke="#f97316" stroke-width="1.5"/>
+          <text x="640" y="107" text-anchor="middle" fill="#f97316" font-family="Space Grotesk,sans-serif" font-size="13" font-weight="600">Observe</text>
+          <text x="640" y="128" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">"Results: ..."</text>
+
+          <!-- Loop arrow back to Reason -->
+          <path d="M640 150 L640 200 L240 200 L240 150" stroke="#f59e0b" stroke-width="1.5" fill="none" marker-end="url(#aA)" stroke-dasharray="6"/>
+          <text x="440" y="218" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk,sans-serif" font-size="11" font-weight="600">Loop until task complete</text>
+
+          <!-- Final answer branch -->
+          <line x1="240" y1="80" x2="240" y2="30" stroke="#22c55e" stroke-width="1.5" marker-end="url(#aA)"/>
+          <rect x="180" y="0" width="120" height="30" rx="15" fill="rgba(34,197,94,0.15)" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="240" y="20" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk,sans-serif" font-size="11" font-weight="600">Final Answer</text>
+          <text x="305" y="55" fill="#22c55e" font-family="JetBrains Mono,monospace" font-size="9">No tools needed</text>
+
+          <defs><marker id="aA" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#2e3554"/></marker></defs>
+        </svg>
+        <div class="diagram-caption">Figure 1 — The ReAct loop: Reason → Act → Observe, repeating until the task is complete</div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: TOOL USE -->
+    <div class="section" id="tools">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Tool Use &amp; Function Calling</h2>
+      </div>
+
+      <h3 id="tools-plain">Plain Language</h3>
+
+      <p>Tools are the arms and legs of an LLM agent. Without tools, an agent can only think and write text. With tools, it can search the web, query databases, call APIs, execute code, read files, send emails, and interact with virtually any software system. The mechanism that enables this is <strong>function calling</strong> — a feature where the LLM does not just generate text, but generates structured JSON that specifies which function to call and with what arguments. Your application code then executes that function and feeds the result back to the LLM.</p>
+
+      <p>The function calling flow works like this. You provide the LLM with a list of available tools, each described as a JSON schema with a name, description, and parameter definitions. When the LLM decides it needs to use a tool, instead of generating a text response, it generates a special tool call message containing the function name and arguments as JSON. Your code extracts these arguments, calls the actual function, and sends the result back to the LLM as a tool response message. The LLM then continues its reasoning with this new information. Both OpenAI and Anthropic support this pattern natively in their APIs.</p>
+
+      <p>The quality of tool descriptions is critical. The LLM decides which tool to use based on the description you provide, and it constructs arguments based on the parameter schema. Vague descriptions like "does stuff with data" will confuse the model. Precise descriptions like "Queries a PostgreSQL database with a SQL SELECT statement and returns results as JSON. Use this when the user asks questions about customer data, orders, or product inventory" give the model clear guidance on when and how to use the tool. Including examples of valid arguments in the description further improves reliability.</p>
+
+      <p>Most production agents use between 3 and 10 tools. Too few tools limit what the agent can do; too many tools confuse the model about which one to choose. When you need many capabilities, consider organizing tools into categories and having the agent first select a category, then select a specific tool within that category. This two-stage selection reduces the decision space at each step and improves tool selection accuracy.</p>
+
+      <h3 id="tools-deep">Deep Dive</h3>
+
+      <p>Here is a production-quality tool setup using the Anthropic SDK, which demonstrates the slightly different function calling format compared to OpenAI:</p>
+
+      <pre><code><span class="code-keyword">import</span> anthropic
+<span class="code-keyword">import</span> json
+
+client = anthropic.<span class="code-fn">Anthropic</span>()
+
+<span class="code-comment"># Tool definitions for Anthropic</span>
+tools = [
+    {
+        <span class="code-string">"name"</span>: <span class="code-string">"query_database"</span>,
+        <span class="code-string">"description"</span>: <span class="code-string">"""Execute a read-only SQL query against the application database.
+Returns results as a JSON array of objects. Only SELECT queries are allowed.
+Use for: customer lookups, order history, product searches, analytics."""</span>,
+        <span class="code-string">"input_schema"</span>: {
+            <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+            <span class="code-string">"properties"</span>: {
+                <span class="code-string">"sql"</span>: {
+                    <span class="code-string">"type"</span>: <span class="code-string">"string"</span>,
+                    <span class="code-string">"description"</span>: <span class="code-string">"SQL SELECT query to execute"</span>
+                }
+            },
+            <span class="code-string">"required"</span>: [<span class="code-string">"sql"</span>]
+        }
+    },
+    {
+        <span class="code-string">"name"</span>: <span class="code-string">"send_email"</span>,
+        <span class="code-string">"description"</span>: <span class="code-string">"""Send an email to a specified recipient. Requires explicit user
+confirmation before sending. Use for: notifications, reports, follow-ups."""</span>,
+        <span class="code-string">"input_schema"</span>: {
+            <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+            <span class="code-string">"properties"</span>: {
+                <span class="code-string">"to"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Recipient email"</span>},
+                <span class="code-string">"subject"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>},
+                <span class="code-string">"body"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>}
+            },
+            <span class="code-string">"required"</span>: [<span class="code-string">"to"</span>, <span class="code-string">"subject"</span>, <span class="code-string">"body"</span>]
+        }
+    }
+]
+
+<span class="code-comment"># Anthropic agent loop</span>
+<span class="code-keyword">def</span> <span class="code-fn">run_claude_agent</span>(task: str, max_steps: int = <span class="code-num">10</span>) -> str:
+    messages = [{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: task}]
+
+    <span class="code-keyword">for</span> _ <span class="code-keyword">in</span> <span class="code-fn">range</span>(max_steps):
+        response = client.messages.<span class="code-fn">create</span>(
+            model=<span class="code-string">"claude-sonnet-4-6"</span>,
+            max_tokens=<span class="code-num">4096</span>,
+            system=<span class="code-string">"You are a helpful assistant. Use tools when needed."</span>,
+            tools=tools,
+            messages=messages,
+        )
+
+        <span class="code-comment"># Check if Claude wants to use tools</span>
+        <span class="code-keyword">if</span> response.stop_reason == <span class="code-string">"tool_use"</span>:
+            <span class="code-comment"># Process tool calls</span>
+            tool_results = []
+            <span class="code-keyword">for</span> block <span class="code-keyword">in</span> response.content:
+                <span class="code-keyword">if</span> block.type == <span class="code-string">"tool_use"</span>:
+                    result = <span class="code-fn">execute_tool</span>(block.name, block.input)
+                    tool_results.<span class="code-fn">append</span>({
+                        <span class="code-string">"type"</span>: <span class="code-string">"tool_result"</span>,
+                        <span class="code-string">"tool_use_id"</span>: block.id,
+                        <span class="code-string">"content"</span>: result
+                    })
+
+            messages.<span class="code-fn">append</span>({<span class="code-string">"role"</span>: <span class="code-string">"assistant"</span>, <span class="code-string">"content"</span>: response.content})
+            messages.<span class="code-fn">append</span>({<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: tool_results})
+        <span class="code-keyword">else</span>:
+            <span class="code-comment"># Agent is done — extract text response</span>
+            <span class="code-keyword">return</span> <span class="code-string">""</span>.<span class="code-fn">join</span>(
+                b.text <span class="code-keyword">for</span> b <span class="code-keyword">in</span> response.content <span class="code-keyword">if</span> <span class="code-fn">hasattr</span>(b, <span class="code-string">"text"</span>)
+            )
+
+    <span class="code-keyword">return</span> <span class="code-string">"Max steps reached."</span></code></pre>
+
+      <div class="callout">
+        <div class="callout-label">Tool Description Tips</div>
+        <p>Include: (1) What the tool does, (2) When to use it, (3) Parameter constraints. Example: "Searches the company knowledge base for relevant documents. Use when the user asks about internal policies, procedures, or company-specific information. The query parameter should be a natural language search phrase, not a question."</p>
+      </div>
+    </div>
+
+    <!-- SECTION 3: LANGGRAPH -->
+    <div class="section" id="langgraph">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>LangGraph Workflows</h2>
+      </div>
+
+      <h3 id="lg-plain">Plain Language</h3>
+
+      <p>While the basic ReAct loop works well for straightforward tasks, complex workflows need more structure. Consider a customer support agent that must: (1) identify the customer, (2) look up their order history, (3) determine the issue type, (4) route to the appropriate resolution workflow (refund, replacement, technical support), and (5) execute the resolution with approval. This is not a simple loop — it is a directed graph with conditional branches, parallel paths, and human approval gates.</p>
+
+      <p><strong>LangGraph</strong> is a library (from the LangChain team) for building these complex agent workflows as state machines. You define nodes (functions that do work), edges (connections between nodes), and conditional edges (branches based on state). The state flows through the graph, getting modified at each node, with the graph engine handling execution order, error recovery, and checkpointing. Think of it like a flowchart that actually executes — each box in the flowchart is a function, and the arrows between boxes include conditions that determine the path.</p>
+
+      <p>LangGraph's key advantage over simple chains is <strong>cycles</strong> — the ability to loop back to earlier nodes. In the self-corrective RAG example from Module 08, the graph loops from "grade documents" back to "retrieve" when quality is insufficient. This is impossible with simple sequential chains but natural with LangGraph's graph-based execution model. Combined with state persistence (checkpointing), LangGraph can pause execution, wait for external input (like human approval), and resume exactly where it left off — even if the server restarts.</p>
+
+      <h3 id="lg-deep">Deep Dive</h3>
+
+      <p>Here is a complete LangGraph agent that implements a research assistant with conditional routing:</p>
+
+      <pre><code><span class="code-keyword">from</span> langgraph.graph <span class="code-keyword">import</span> StateGraph, END
+<span class="code-keyword">from</span> langgraph.checkpoint.memory <span class="code-keyword">import</span> MemorySaver
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> TypedDict, Annotated
+<span class="code-keyword">from</span> operator <span class="code-keyword">import</span> add
+
+<span class="code-keyword">class</span> <span class="code-fn">AgentState</span>(TypedDict):
+    task: str
+    plan: list[str]
+    results: Annotated[list[str], add]  <span class="code-comment"># Accumulates across nodes</span>
+    current_step: int
+    final_answer: str
+
+<span class="code-keyword">def</span> <span class="code-fn">planner</span>(state: AgentState) -> AgentState:
+    <span class="code-string">"""Break task into sub-steps using LLM."""</span>
+    response = client.chat.completions.<span class="code-fn">create</span>(
+        model=<span class="code-string">"gpt-4o"</span>,
+        messages=[{
+            <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+            <span class="code-string">"content"</span>: f<span class="code-string">"""Break this task into 2-4 research steps:
+Task: {state['task']}
+Return as JSON array under key "steps"."""</span>
+        }],
+        response_format={<span class="code-string">"type"</span>: <span class="code-string">"json_object"</span>}
+    )
+    steps = json.<span class="code-fn">loads</span>(response.choices[<span class="code-num">0</span>].message.content)[<span class="code-string">"steps"</span>]
+    <span class="code-keyword">return</span> {<span class="code-string">"plan"</span>: steps, <span class="code-string">"current_step"</span>: <span class="code-num">0</span>}
+
+<span class="code-keyword">def</span> <span class="code-fn">researcher</span>(state: AgentState) -> AgentState:
+    <span class="code-string">"""Execute current research step."""</span>
+    step = state[<span class="code-string">"plan"</span>][state[<span class="code-string">"current_step"</span>]]
+    <span class="code-comment"># In production: call search API, RAG, database, etc.</span>
+    response = client.chat.completions.<span class="code-fn">create</span>(
+        model=<span class="code-string">"gpt-4o"</span>,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: f<span class="code-string">"Research: {step}"</span>}]
+    )
+    result = response.choices[<span class="code-num">0</span>].message.content
+    <span class="code-keyword">return</span> {<span class="code-string">"results"</span>: [result], <span class="code-string">"current_step"</span>: state[<span class="code-string">"current_step"</span>] + <span class="code-num">1</span>}
+
+<span class="code-keyword">def</span> <span class="code-fn">should_continue</span>(state: AgentState) -> str:
+    <span class="code-string">"""Check if more research steps remain."""</span>
+    <span class="code-keyword">if</span> state[<span class="code-string">"current_step"</span>] < <span class="code-fn">len</span>(state[<span class="code-string">"plan"</span>]):
+        <span class="code-keyword">return</span> <span class="code-string">"research"</span>
+    <span class="code-keyword">return</span> <span class="code-string">"synthesize"</span>
+
+<span class="code-keyword">def</span> <span class="code-fn">synthesizer</span>(state: AgentState) -> AgentState:
+    <span class="code-string">"""Combine all research results into a final answer."""</span>
+    all_results = <span class="code-string">"\n\n"</span>.<span class="code-fn">join</span>(state[<span class="code-string">"results"</span>])
+    response = client.chat.completions.<span class="code-fn">create</span>(
+        model=<span class="code-string">"gpt-4o"</span>,
+        messages=[{
+            <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+            <span class="code-string">"content"</span>: f<span class="code-string">"""Synthesize these research findings into a comprehensive answer.
+Task: {state['task']}
+Findings:\n{all_results}"""</span>
+        }]
+    )
+    <span class="code-keyword">return</span> {<span class="code-string">"final_answer"</span>: response.choices[<span class="code-num">0</span>].message.content}
+
+<span class="code-comment"># Build the graph</span>
+graph = <span class="code-fn">StateGraph</span>(AgentState)
+graph.<span class="code-fn">add_node</span>(<span class="code-string">"planner"</span>, planner)
+graph.<span class="code-fn">add_node</span>(<span class="code-string">"researcher"</span>, researcher)
+graph.<span class="code-fn">add_node</span>(<span class="code-string">"synthesizer"</span>, synthesizer)
+
+graph.<span class="code-fn">set_entry_point</span>(<span class="code-string">"planner"</span>)
+graph.<span class="code-fn">add_edge</span>(<span class="code-string">"planner"</span>, <span class="code-string">"researcher"</span>)
+graph.<span class="code-fn">add_conditional_edges</span>(<span class="code-string">"researcher"</span>, should_continue, {
+    <span class="code-string">"research"</span>: <span class="code-string">"researcher"</span>,     <span class="code-comment"># Loop back for more steps</span>
+    <span class="code-string">"synthesize"</span>: <span class="code-string">"synthesizer"</span>  <span class="code-comment"># Move to synthesis</span>
+})
+graph.<span class="code-fn">add_edge</span>(<span class="code-string">"synthesizer"</span>, END)
+
+<span class="code-comment"># Compile with checkpointing</span>
+memory = <span class="code-fn">MemorySaver</span>()
+app = graph.<span class="code-fn">compile</span>(checkpointer=memory)
+
+<span class="code-comment"># Run</span>
+result = app.<span class="code-fn">invoke</span>(
+    {<span class="code-string">"task"</span>: <span class="code-string">"Compare vLLM and TGI for production deployment"</span>,
+     <span class="code-string">"plan"</span>: [], <span class="code-string">"results"</span>: [], <span class="code-string">"current_step"</span>: <span class="code-num">0</span>, <span class="code-string">"final_answer"</span>: <span class="code-string">""</span>},
+    config={<span class="code-string">"configurable"</span>: {<span class="code-string">"thread_id"</span>: <span class="code-string">"research-1"</span>}}
+)
+<span class="code-fn">print</span>(result[<span class="code-string">"final_answer"</span>])</code></pre>
+    </div>
+
+    <!-- SECTION 4: MULTI-AGENT -->
+    <div class="section" id="multi-agent">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Multi-Agent Systems</h2>
+      </div>
+
+      <h3 id="ma-plain">Plain Language</h3>
+
+      <p>A single agent with many tools becomes unreliable as complexity grows — the LLM must simultaneously understand all tools, maintain context about the overall task, and make good decisions at each step. Multi-agent systems solve this by splitting responsibilities across specialized agents that each excel at one thing. Think of it like a company: instead of one person doing sales, engineering, and accounting, you have specialists in each area who collaborate to run the business.</p>
+
+      <p>The most common multi-agent patterns are <strong>supervisor</strong> (one agent delegates to specialists), <strong>sequential</strong> (agents pass work in a pipeline), and <strong>collaborative</strong> (agents discuss and refine work together). In the supervisor pattern, a "manager" agent receives the user's request, breaks it down, and delegates sub-tasks to specialist agents — a researcher, a coder, a writer, an analyst. Each specialist has its own tools and system prompt optimized for its domain. The supervisor collects results and synthesizes the final output.</p>
+
+      <p>The sequential pattern works like an assembly line. A "planner" agent creates a task breakdown, a "researcher" agent gathers information, a "writer" agent drafts content, and a "reviewer" agent checks quality. Each agent's output becomes the next agent's input. If the reviewer finds issues, it can send work back to the writer for revision. This pattern is excellent for content creation, report generation, and any workflow with clear stages.</p>
+
+      <p>The collaborative pattern (inspired by the AutoGen framework) has agents engage in a conversation, debating approaches and refining ideas. A "proposer" agent suggests a solution, a "critic" agent identifies weaknesses, and the proposer revises based on the critique. This back-and-forth continues until the solution passes the critic's review. This pattern is powerful for code generation, where a "coder" writes code and a "tester" writes and runs tests, iterating until all tests pass.</p>
+
+      <h3 id="ma-deep">Deep Dive</h3>
+
+      <p>Here is a multi-agent system using the supervisor pattern with LangGraph:</p>
+
+      <pre><code><span class="code-keyword">from</span> langgraph.graph <span class="code-keyword">import</span> StateGraph, END
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> TypedDict, Literal
+
+<span class="code-keyword">class</span> <span class="code-fn">TeamState</span>(TypedDict):
+    task: str
+    messages: list[dict]
+    next_agent: str
+    research: str
+    code: str
+    review: str
+    final_output: str
+
+<span class="code-keyword">def</span> <span class="code-fn">supervisor</span>(state: TeamState) -> TeamState:
+    <span class="code-string">"""Supervisor decides which agent should work next."""</span>
+    response = client.chat.completions.<span class="code-fn">create</span>(
+        model=<span class="code-string">"gpt-4o"</span>,
+        messages=[{
+            <span class="code-string">"role"</span>: <span class="code-string">"system"</span>,
+            <span class="code-string">"content"</span>: <span class="code-string">"""You are a team supervisor. Based on the current task state,
+decide which agent should work next:
+- "researcher": Needs information gathering
+- "coder": Needs code written or modified
+- "reviewer": Code is ready for quality review
+- "FINISH": Task is complete
+
+Return only the agent name."""</span>
+        }, {
+            <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+            <span class="code-string">"content"</span>: f<span class="code-string">"""Task: {state['task']}
+Research: {state.get('research', 'Not done')}
+Code: {state.get('code', 'Not written')}
+Review: {state.get('review', 'Not reviewed')}"""</span>
+        }],
+        temperature=<span class="code-num">0.0</span>
+    )
+    next_agent = response.choices[<span class="code-num">0</span>].message.content.<span class="code-fn">strip</span>().<span class="code-fn">lower</span>()
+    <span class="code-keyword">return</span> {<span class="code-string">"next_agent"</span>: next_agent}
+
+<span class="code-keyword">def</span> <span class="code-fn">researcher_agent</span>(state: TeamState) -> TeamState:
+    <span class="code-string">"""Specialist: researches technical topics."""</span>
+    response = client.chat.completions.<span class="code-fn">create</span>(
+        model=<span class="code-string">"gpt-4o"</span>,
+        messages=[{
+            <span class="code-string">"role"</span>: <span class="code-string">"system"</span>,
+            <span class="code-string">"content"</span>: <span class="code-string">"You are a technical researcher. Provide thorough research findings."</span>
+        }, {
+            <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+            <span class="code-string">"content"</span>: f<span class="code-string">"Research this topic: {state['task']}"</span>
+        }]
+    )
+    <span class="code-keyword">return</span> {<span class="code-string">"research"</span>: response.choices[<span class="code-num">0</span>].message.content}
+
+<span class="code-keyword">def</span> <span class="code-fn">coder_agent</span>(state: TeamState) -> TeamState:
+    <span class="code-string">"""Specialist: writes production code."""</span>
+    response = client.chat.completions.<span class="code-fn">create</span>(
+        model=<span class="code-string">"gpt-4o"</span>,
+        messages=[{
+            <span class="code-string">"role"</span>: <span class="code-string">"system"</span>,
+            <span class="code-string">"content"</span>: <span class="code-string">"You are an expert Python developer. Write clean, production-ready code."</span>
+        }, {
+            <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+            <span class="code-string">"content"</span>: f<span class="code-string">"Task: {state['task']}\nResearch: {state['research']}\nWrite the code."</span>
+        }]
+    )
+    <span class="code-keyword">return</span> {<span class="code-string">"code"</span>: response.choices[<span class="code-num">0</span>].message.content}
+
+<span class="code-keyword">def</span> <span class="code-fn">reviewer_agent</span>(state: TeamState) -> TeamState:
+    <span class="code-string">"""Specialist: reviews code for quality and correctness."""</span>
+    response = client.chat.completions.<span class="code-fn">create</span>(
+        model=<span class="code-string">"gpt-4o"</span>,
+        messages=[{
+            <span class="code-string">"role"</span>: <span class="code-string">"system"</span>,
+            <span class="code-string">"content"</span>: <span class="code-string">"You are a senior code reviewer. Check for bugs, security issues, and suggest improvements."</span>
+        }, {
+            <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+            <span class="code-string">"content"</span>: f<span class="code-string">"Review this code:\n{state['code']}"</span>
+        }]
+    )
+    <span class="code-keyword">return</span> {<span class="code-string">"review"</span>: response.choices[<span class="code-num">0</span>].message.content}
+
+<span class="code-keyword">def</span> <span class="code-fn">route</span>(state: TeamState) -> str:
+    agent = state[<span class="code-string">"next_agent"</span>]
+    <span class="code-keyword">if</span> agent == <span class="code-string">"finish"</span>:
+        <span class="code-keyword">return</span> END
+    <span class="code-keyword">return</span> agent
+
+<span class="code-comment"># Build multi-agent graph</span>
+workflow = <span class="code-fn">StateGraph</span>(TeamState)
+workflow.<span class="code-fn">add_node</span>(<span class="code-string">"supervisor"</span>, supervisor)
+workflow.<span class="code-fn">add_node</span>(<span class="code-string">"researcher"</span>, researcher_agent)
+workflow.<span class="code-fn">add_node</span>(<span class="code-string">"coder"</span>, coder_agent)
+workflow.<span class="code-fn">add_node</span>(<span class="code-string">"reviewer"</span>, reviewer_agent)
+
+workflow.<span class="code-fn">set_entry_point</span>(<span class="code-string">"supervisor"</span>)
+workflow.<span class="code-fn">add_conditional_edges</span>(<span class="code-string">"supervisor"</span>, route, {
+    <span class="code-string">"researcher"</span>: <span class="code-string">"researcher"</span>,
+    <span class="code-string">"coder"</span>: <span class="code-string">"coder"</span>,
+    <span class="code-string">"reviewer"</span>: <span class="code-string">"reviewer"</span>,
+    END: END,
+})
+
+<span class="code-comment"># All agents report back to supervisor</span>
+<span class="code-keyword">for</span> agent <span class="code-keyword">in</span> [<span class="code-string">"researcher"</span>, <span class="code-string">"coder"</span>, <span class="code-string">"reviewer"</span>]:
+    workflow.<span class="code-fn">add_edge</span>(agent, <span class="code-string">"supervisor"</span>)
+
+team = workflow.<span class="code-fn">compile</span>()</code></pre>
+
+      <!-- SVG: Multi-Agent Architecture -->
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 700 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Supervisor -->
+          <rect x="250" y="20" width="200" height="60" rx="10" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="2"/>
+          <text x="350" y="48" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk,sans-serif" font-size="14" font-weight="700">Supervisor Agent</text>
+          <text x="350" y="66" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">Routes tasks to specialists</text>
+
+          <!-- Researcher -->
+          <rect x="30" y="140" width="170" height="70" rx="8" fill="#171c2e" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="115" y="168" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600">Researcher</text>
+          <text x="115" y="188" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">Search, RAG, APIs</text>
+
+          <!-- Coder -->
+          <rect x="265" y="140" width="170" height="70" rx="8" fill="#171c2e" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="350" y="168" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600">Coder</text>
+          <text x="350" y="188" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">Write & execute code</text>
+
+          <!-- Reviewer -->
+          <rect x="500" y="140" width="170" height="70" rx="8" fill="#171c2e" stroke="#f97316" stroke-width="1.5"/>
+          <text x="585" y="168" text-anchor="middle" fill="#f97316" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600">Reviewer</text>
+          <text x="585" y="188" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">Quality check & tests</text>
+
+          <!-- Arrows down from supervisor -->
+          <line x1="290" y1="80" x2="115" y2="140" stroke="#2e3554" stroke-width="1.5" marker-end="url(#aM)"/>
+          <line x1="350" y1="80" x2="350" y2="140" stroke="#2e3554" stroke-width="1.5" marker-end="url(#aM)"/>
+          <line x1="410" y1="80" x2="585" y2="140" stroke="#2e3554" stroke-width="1.5" marker-end="url(#aM)"/>
+
+          <!-- Arrows back up -->
+          <path d="M115 210 L115 250 L350 250 L350 80" stroke="#a855f7" stroke-width="1" stroke-dasharray="4" marker-end="url(#aM)"/>
+          <path d="M350 210 L350 240 L350 250" stroke="#a855f7" stroke-width="1" stroke-dasharray="4"/>
+          <path d="M585 210 L585 250 L350 250" stroke="#a855f7" stroke-width="1" stroke-dasharray="4"/>
+          <text x="350" y="268" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono,monospace" font-size="9">Results flow back to supervisor</text>
+
+          <defs><marker id="aM" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#2e3554"/></marker></defs>
+        </svg>
+        <div class="diagram-caption">Figure 2 — Supervisor multi-agent pattern: manager routes tasks to specialist agents</div>
+      </div>
+    </div>
+
+    <!-- SECTION 5: HUMAN-IN-THE-LOOP -->
+    <div class="section" id="human-loop">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Human-in-the-Loop</h2>
+      </div>
+
+      <h3 id="hl-plain">Plain Language</h3>
+
+      <p>Fully autonomous agents are powerful but risky. An agent that can send emails, modify databases, or deploy code could cause significant damage if it makes a wrong decision. Human-in-the-loop (HITL) patterns add checkpoints where the agent pauses and asks for human approval before taking high-impact actions. Think of it like a pilot and autopilot — the autopilot handles routine operations, but the pilot takes over for critical decisions like landing.</p>
+
+      <p>The key design decision is <strong>where to insert approval gates</strong>. Not every action needs human approval — that would make the agent painfully slow. The principle is to gate actions based on their <strong>reversibility</strong> and <strong>blast radius</strong>. Reading data? No approval needed. Writing a draft email? Auto-approve or light review. Sending that email to 10,000 customers? Definitely needs approval. Modifying production database records? Hard stop for human review. The goal is to maintain agent speed for safe operations while providing safety rails for dangerous ones.</p>
+
+      <p>LangGraph supports HITL natively through its <strong>interrupt</strong> mechanism. When a graph reaches an interrupt point, it saves its complete state (all variables, the current position in the graph, pending actions) to persistent storage and pauses. An external system (a web UI, Slack bot, or CLI) presents the pending action to a human reviewer. The human can approve (resume the graph), reject (terminate or redirect), or modify (change the pending action). The graph then continues from exactly where it paused, with the human's decision incorporated into its state.</p>
+
+      <h3 id="hl-deep">Deep Dive</h3>
+
+      <pre><code><span class="code-keyword">from</span> langgraph.graph <span class="code-keyword">import</span> StateGraph, END
+<span class="code-keyword">from</span> langgraph.checkpoint.memory <span class="code-keyword">import</span> MemorySaver
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> TypedDict
+
+<span class="code-keyword">class</span> <span class="code-fn">ApprovalState</span>(TypedDict):
+    task: str
+    proposed_action: str
+    approved: bool
+    result: str
+
+<span class="code-keyword">def</span> <span class="code-fn">plan_action</span>(state: ApprovalState) -> ApprovalState:
+    <span class="code-string">"""Agent plans an action that requires approval."""</span>
+    <span class="code-comment"># LLM decides what action to take</span>
+    <span class="code-keyword">return</span> {<span class="code-string">"proposed_action"</span>: f<span class="code-string">"Send email to customer about: {state['task']}"</span>}
+
+<span class="code-keyword">def</span> <span class="code-fn">execute_action</span>(state: ApprovalState) -> ApprovalState:
+    <span class="code-string">"""Execute the approved action."""</span>
+    <span class="code-keyword">if</span> state[<span class="code-string">"approved"</span>]:
+        <span class="code-keyword">return</span> {<span class="code-string">"result"</span>: f<span class="code-string">"Executed: {state['proposed_action']}"</span>}
+    <span class="code-keyword">return</span> {<span class="code-string">"result"</span>: <span class="code-string">"Action was rejected by human reviewer."</span>}
+
+graph = <span class="code-fn">StateGraph</span>(ApprovalState)
+graph.<span class="code-fn">add_node</span>(<span class="code-string">"plan"</span>, plan_action)
+graph.<span class="code-fn">add_node</span>(<span class="code-string">"execute"</span>, execute_action)
+
+graph.<span class="code-fn">set_entry_point</span>(<span class="code-string">"plan"</span>)
+graph.<span class="code-fn">add_edge</span>(<span class="code-string">"plan"</span>, <span class="code-string">"execute"</span>)
+graph.<span class="code-fn">add_edge</span>(<span class="code-string">"execute"</span>, END)
+
+<span class="code-comment"># Compile with interrupt BEFORE the execute node</span>
+checkpointer = <span class="code-fn">MemorySaver</span>()
+app = graph.<span class="code-fn">compile</span>(
+    checkpointer=checkpointer,
+    interrupt_before=[<span class="code-string">"execute"</span>]  <span class="code-comment"># Pause here for approval</span>
+)
+
+<span class="code-comment"># Run until interrupt</span>
+config = {<span class="code-string">"configurable"</span>: {<span class="code-string">"thread_id"</span>: <span class="code-string">"approval-1"</span>}}
+state = app.<span class="code-fn">invoke</span>(
+    {<span class="code-string">"task"</span>: <span class="code-string">"refund order #12345"</span>, <span class="code-string">"approved"</span>: <span class="code-keyword">False</span>, <span class="code-string">"proposed_action"</span>: <span class="code-string">""</span>, <span class="code-string">"result"</span>: <span class="code-string">""</span>},
+    config=config
+)
+<span class="code-fn">print</span>(f<span class="code-string">"Proposed: {state['proposed_action']}"</span>)
+
+<span class="code-comment"># Human reviews and approves...</span>
+<span class="code-comment"># Resume with approval</span>
+app.<span class="code-fn">update_state</span>(config, {<span class="code-string">"approved"</span>: <span class="code-keyword">True</span>})
+final = app.<span class="code-fn">invoke</span>(<span class="code-keyword">None</span>, config=config)  <span class="code-comment"># Resume from checkpoint</span>
+<span class="code-fn">print</span>(f<span class="code-string">"Result: {final['result']}"</span>)</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Approval Gate Guidelines</div>
+        <p><strong>Always gate:</strong> sending messages, modifying production data, financial transactions, deploying code. <strong>Light review:</strong> draft content, non-production data changes. <strong>No gate needed:</strong> reading data, internal computations, search queries, draft generation.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 6: SAFETY -->
+    <div class="section" id="safety">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Agent Safety &amp; Reliability</h2>
+      </div>
+
+      <h3 id="safety-plain">Plain Language</h3>
+
+      <p>Agents introduce unique safety challenges that do not exist with simple LLM calls. A chatbot that generates incorrect text is annoying; an agent that executes incorrect actions can delete data, send embarrassing emails, or burn through your entire cloud budget. Safety for agents means: limiting what tools they can access, constraining the scope of each tool, implementing timeouts and cost limits, logging every action for audit, and having kill switches to stop runaway agents.</p>
+
+      <p>The principle of <strong>least privilege</strong> applies directly to agent tools. A database tool should only have read access unless write access is specifically needed. An email tool should have a whitelist of allowed recipients during development. A code execution tool should run in a sandboxed environment with no network access. Each tool should validate its inputs against a strict schema and reject anything outside expected parameters. Defense in depth — multiple layers of safety checks — is essential because any single check might fail.</p>
+
+      <p><strong>Observability</strong> is non-negotiable for production agents. Every tool call, every LLM reasoning step, every decision branch must be logged with timestamps, input/output data, and latency metrics. When an agent produces a wrong answer or takes an incorrect action, you need to trace back through the entire execution to understand what went wrong. Tools like LangSmith, Phoenix (Arize), and custom structured logging provide this visibility. Without it, debugging agent failures is essentially impossible.</p>
+
+      <h3 id="safety-deep">Deep Dive</h3>
+
+      <pre><code><span class="code-keyword">import</span> time, logging
+<span class="code-keyword">from</span> functools <span class="code-keyword">import</span> wraps
+
+logger = logging.<span class="code-fn">getLogger</span>(<span class="code-string">"agent"</span>)
+
+<span class="code-comment"># --- Safety Wrapper for Tools ---</span>
+<span class="code-keyword">def</span> <span class="code-fn">safe_tool</span>(max_retries: int = <span class="code-num">2</span>, timeout_seconds: int = <span class="code-num">30</span>):
+    <span class="code-string">"""Decorator that adds safety features to agent tools."""</span>
+    <span class="code-keyword">def</span> <span class="code-fn">decorator</span>(func):
+        <span class="code-keyword">@wraps</span>(func)
+        <span class="code-keyword">def</span> <span class="code-fn">wrapper</span>(*args, **kwargs):
+            <span class="code-keyword">for</span> attempt <span class="code-keyword">in</span> <span class="code-fn">range</span>(max_retries + <span class="code-num">1</span>):
+                start = time.<span class="code-fn">perf_counter</span>()
+                <span class="code-keyword">try</span>:
+                    result = func(*args, **kwargs)
+                    elapsed = time.<span class="code-fn">perf_counter</span>() - start
+
+                    logger.<span class="code-fn">info</span>(f<span class="code-string">"Tool={func.__name__} status=success "
+                        f"elapsed={elapsed:.2f}s attempt={attempt+1}"</span>)
+
+                    <span class="code-keyword">if</span> elapsed > timeout_seconds:
+                        logger.<span class="code-fn">warning</span>(f<span class="code-string">"Tool {func.__name__} exceeded timeout"</span>)
+
+                    <span class="code-keyword">return</span> result
+                <span class="code-keyword">except</span> Exception <span class="code-keyword">as</span> e:
+                    logger.<span class="code-fn">error</span>(f<span class="code-string">"Tool={func.__name__} error={e} attempt={attempt+1}"</span>)
+                    <span class="code-keyword">if</span> attempt == max_retries:
+                        <span class="code-keyword">return</span> f<span class="code-string">"Error after {max_retries+1} attempts: {e}"</span>
+        <span class="code-keyword">return</span> wrapper
+    <span class="code-keyword">return</span> decorator
+
+<span class="code-comment"># --- Cost Tracking ---</span>
+<span class="code-keyword">class</span> <span class="code-fn">AgentBudget</span>:
+    <span class="code-string">"""Track and limit agent spending."""</span>
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self, max_llm_calls: int = <span class="code-num">20</span>, max_tokens: int = <span class="code-num">50_000</span>):
+        self.max_llm_calls = max_llm_calls
+        self.max_tokens = max_tokens
+        self.llm_calls = <span class="code-num">0</span>
+        self.total_tokens = <span class="code-num">0</span>
+
+    <span class="code-keyword">def</span> <span class="code-fn">track</span>(self, tokens_used: int):
+        self.llm_calls += <span class="code-num">1</span>
+        self.total_tokens += tokens_used
+        <span class="code-keyword">if</span> self.llm_calls > self.max_llm_calls:
+            <span class="code-keyword">raise</span> <span class="code-fn">RuntimeError</span>(f<span class="code-string">"Agent exceeded max LLM calls: {self.max_llm_calls}"</span>)
+        <span class="code-keyword">if</span> self.total_tokens > self.max_tokens:
+            <span class="code-keyword">raise</span> <span class="code-fn">RuntimeError</span>(f<span class="code-string">"Agent exceeded token budget: {self.max_tokens}"</span>)</code></pre>
+
+      <table class="comp-table">
+        <thead><tr><th>Safety Layer</th><th>What It Prevents</th><th>Implementation</th></tr></thead>
+        <tbody>
+          <tr><td>Max iterations</td><td>Infinite loops</td><td>Counter in agent loop</td></tr>
+          <tr><td>Token budget</td><td>Runaway costs</td><td>Token counter + hard limit</td></tr>
+          <tr><td>Tool timeouts</td><td>Hung tool calls</td><td>asyncio.timeout or threading</td></tr>
+          <tr><td>Input validation</td><td>Injection attacks</td><td>Pydantic schemas per tool</td></tr>
+          <tr><td>Output filtering</td><td>PII/sensitive data leaks</td><td>Regex + LLM guardrail check</td></tr>
+          <tr><td>Audit logging</td><td>Untrackable actions</td><td>Structured logs per step</td></tr>
+          <tr><td>Human approval</td><td>Irreversible actions</td><td>LangGraph interrupt_before</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- NEXT / PREV -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">← Previous</div>
+        <a class="next-btn prev-btn" href="08-advanced-rag.html"><span>08 · Advanced RAG</span></a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next →</div>
+        <a class="next-btn" href="10-evaluation.html">
+          <span>10 · Evaluation</span>
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

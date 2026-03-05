@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API for Accessing LLMs — CareerAlign GenAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg-base:#0b0d14;--bg-surface:#10131e;--bg-elevated:#171c2e;--bg-overlay:#1e2438;--border-subtle:#1a1f34;--border-default:#232840;--border-strong:#2e3554;--text-primary:#e6e8f4;--text-secondary:#8e94b5;--text-muted:#545a78;--accent-indigo:#6366f1;--accent-cyan:#22d3ee;--accent-violet:#a855f7;--glow-indigo:rgba(99,102,241,0.25);--phase-prereq:#64748b;--phase-found:#3b82f6;--phase-api:#06b6d4;--phase-rag:#f97316;--phase-agent:#a855f7;--phase-quality:#ef4444;--phase-cloud:#22c55e;--phase-project:#f59e0b;--font-display:'Space Grotesk',sans-serif;--font-body:'Nunito',sans-serif;--font-mono:'JetBrains Mono',monospace;--radius:12px;--radius-sm:8px;--radius-lg:18px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:var(--bg-base);color:var(--text-primary);font-family:var(--font-body);font-size:16px;line-height:1.7;min-height:100vh}a{color:inherit;text-decoration:none}img,svg{display:block}
+.nav{position:sticky;top:0;z-index:100;background:rgba(11,13,20,0.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border-subtle);padding:0 32px;display:flex;align-items:center;height:58px;gap:24px}
+.nav-logo{font-family:var(--font-display);font-weight:700;font-size:17px;color:var(--text-primary);display:flex;align-items:center;gap:9px;white-space:nowrap}.nav-logo span{color:var(--accent-indigo)}
+.nav-links{display:flex;gap:6px;flex:1;flex-wrap:wrap;overflow:hidden}.nav-links a{font-size:12px;font-weight:500;color:var(--text-muted);padding:4px 8px;border-radius:6px;transition:all .2s;white-space:nowrap}.nav-links a:hover{color:var(--text-primary);background:var(--bg-elevated)}.nav-links a.active{color:var(--phase-api);background:rgba(6,182,212,0.15)}
+.nav-home{font-size:12.5px;font-weight:600;color:var(--accent-indigo);padding:6px 14px;border:1px solid rgba(99,102,241,0.3);border-radius:7px;transition:all .2s;white-space:nowrap;margin-left:auto}.nav-home:hover{background:rgba(99,102,241,0.1)}
+.hero{padding:70px 60px 50px;max-width:1400px;margin:0 auto;border-bottom:1px solid var(--border-subtle)}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(6,182,212,0.12);border:1px solid rgba(6,182,212,0.25);border-radius:20px;padding:5px 14px;margin-bottom:22px;font-size:12.5px;font-family:var(--font-display);font-weight:600;color:var(--phase-api);letter-spacing:0.04em;text-transform:uppercase}
+.hero h1{font-family:var(--font-display);font-size:clamp(2.2rem,4vw,3.4rem);font-weight:700;line-height:1.15;color:var(--text-primary);max-width:820px;margin-bottom:20px}.hero h1 em{font-style:normal;color:var(--phase-api)}
+.hero-desc{font-size:1.1rem;color:var(--text-secondary);max-width:760px;line-height:1.75;margin-bottom:36px}
+.hero-checklist{display:flex;gap:12px;flex-wrap:wrap}.hero-pill{display:flex;align-items:center;gap:7px;background:var(--bg-surface);border:1px solid var(--border-default);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--text-secondary)}.hero-pill svg{color:var(--phase-api);flex-shrink:0}
+.content-grid{max-width:1400px;margin:0 auto;padding:0 60px 80px;display:grid;grid-template-columns:260px 1fr;gap:0;align-items:start}
+.toc{position:sticky;top:78px;padding:32px 0;border-right:1px solid var(--border-subtle);margin-right:48px}.toc-title{font-size:11px;font-family:var(--font-display);font-weight:700;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-subtle)}.toc a{display:block;font-size:13px;color:var(--text-secondary);padding:6px 0;transition:color .2s;border-left:2px solid transparent;padding-left:12px;margin-left:-2px}.toc a:hover{color:var(--text-primary);border-left-color:var(--phase-api)}.toc a.section{font-weight:600;color:var(--text-primary);font-size:12.5px;margin-top:8px}.toc a.sub{padding-left:24px;font-size:12px}
+.main{padding:40px 0}
+.section{margin-bottom:60px}.section-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border-subtle)}.section-num{width:36px;height:36px;border-radius:50%;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--phase-api);flex-shrink:0}.section h2{font-family:var(--font-display);font-size:1.55rem;font-weight:700;color:var(--text-primary)}.section h3{font-family:var(--font-display);font-size:1.15rem;font-weight:600;color:var(--text-primary);margin:28px 0 12px}.section p{color:var(--text-secondary);margin-bottom:16px;font-size:1rem;line-height:1.8}.section p strong{color:var(--text-primary);font-weight:600}
+.callout{border-left:3px solid var(--phase-api);background:rgba(6,182,212,0.07);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:16px 20px;margin:20px 0}.callout.info{border-color:var(--accent-indigo);background:rgba(99,102,241,0.07)}.callout.tip{border-color:var(--phase-cloud);background:rgba(34,197,94,0.07)}.callout.warn{border-color:var(--phase-project);background:rgba(245,158,11,0.07)}.callout-label{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;color:var(--phase-api)}.callout.info .callout-label{color:var(--accent-indigo)}.callout.tip .callout-label{color:var(--phase-cloud)}.callout.warn .callout-label{color:var(--phase-project)}.callout p{margin:0;color:var(--text-secondary);font-size:0.95rem}
+pre{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:20px 24px;overflow-x:auto;margin:20px 0}code{font-family:var(--font-mono);font-size:13.5px;color:var(--accent-cyan);line-height:1.65}:not(pre)>code{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:5px;padding:2px 7px;font-size:13px}.code-comment{color:var(--text-muted)}.code-keyword{color:#c084fc}.code-string{color:#86efac}.code-fn{color:#67e8f9}.code-num{color:#fca5a5}
+.diagram-wrap{background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--radius-lg);padding:32px;margin:32px 0}.diagram-caption{text-align:center;font-size:13px;color:var(--text-muted);margin-top:16px;font-style:italic}
+.price-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}.price-table th{text-align:left;padding:12px 16px;background:var(--bg-elevated);border:1px solid var(--border-default);font-family:var(--font-display);font-weight:600;font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em}.price-table td{padding:10px 16px;border:1px solid var(--border-default);color:var(--text-secondary)}.price-table tbody tr:hover{background:var(--bg-surface)}.price-table code{font-size:12px}
+.next-section{margin-top:70px;padding-top:40px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center}.next-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;font-family:var(--font-display)}.next-btn{display:inline-flex;align-items:center;gap:10px;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:var(--radius);padding:14px 22px;font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--text-primary);transition:all .2s}.next-btn:hover{border-color:var(--phase-api);color:var(--phase-api);transform:translateX(4px)}.prev-btn:hover{transform:translateX(-4px)}.next-phase{font-size:12px;color:var(--phase-api);font-weight:500}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">&#9889; <span>CareerAlign</span> GenAI</div>
+  <div class="nav-links">
+    <a href="00-prerequisites.html">00</a>
+    <a href="01-foundations-of-genai.html">01</a>
+    <a href="02-llms-slms-multimodal.html">02</a>
+    <a href="03-api-for-llms.html" class="active">03 &middot; APIs</a>
+    <a href="04-fine-tuning.html">04</a>
+    <a href="05-llm-hosting.html">05</a>
+    <a href="06-prompt-engineering.html">06</a>
+    <a href="07-rag-systems.html">07</a>
+    <a href="08-advanced-rag.html">08</a>
+    <a href="09-agents.html">09</a>
+    <a href="10-evaluation.html">10</a>
+    <a href="11-guardrails.html">11</a>
+    <a href="12-mcp.html">12</a>
+    <a href="13-aws-cloud.html">13</a>
+    <a href="14-n8n-no-code.html">14</a>
+    <a href="15-capstone-document-portal.html">15</a>
+    <a href="16-capstone-report-agent.html">16</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GenAI Hub</a>
+</nav>
+
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    Module 03 &middot; API Layer
+  </div>
+  <h1>API for Accessing <em>Large Language Models</em></h1>
+  <p class="hero-desc">Every production GenAI system communicates with language models through HTTP APIs. This module takes you from raw HTTP requests through provider SDKs, streaming, cost management, multi-provider routing with LiteLLM, and structured outputs. You will learn the exact request and response schemas, understand token economics, and build resilient, cost-aware LLM client code.</p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Chat Completions</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Provider SDKs</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Streaming</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Cost Management</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>LiteLLM Routing</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Structured Outputs</div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/03-api-for-llms.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<div class="content-grid">
+<aside class="toc">
+  <div class="toc-title">On This Page</div>
+  <a href="#chat-completions" class="section">1 &middot; Chat Completions</a>
+  <a href="#messages-array" class="sub">Messages Array</a>
+  <a href="#request-response" class="sub">Request &amp; Response</a>
+  <a href="#provider-diffs" class="sub">OpenAI vs Anthropic</a>
+  <a href="#provider-sdks" class="section">2 &middot; Provider SDKs</a>
+  <a href="#sdk-code" class="sub">SDK Comparison Code</a>
+  <a href="#error-retry" class="sub">Errors &amp; Retries</a>
+  <a href="#streaming" class="section">3 &middot; Streaming</a>
+  <a href="#sse-protocol" class="sub">SSE Protocol</a>
+  <a href="#async-stream-code" class="sub">Async Streaming Code</a>
+  <a href="#cost-management" class="section">4 &middot; Cost Management</a>
+  <a href="#pricing-table" class="sub">Pricing Table</a>
+  <a href="#caching" class="sub">Prompt Caching</a>
+  <a href="#litellm-routing" class="section">5 &middot; LiteLLM Routing</a>
+  <a href="#router-fallbacks" class="sub">Router &amp; Fallbacks</a>
+  <a href="#structured-outputs" class="section">6 &middot; Structured Outputs</a>
+  <a href="#instructor-lib" class="sub">Instructor &amp; Pydantic</a>
+  <a href="#diagrams" class="section">Diagrams</a>
+</aside>
+
+<main class="main">
+
+<!-- ===== SECTION 1 ===== -->
+<section class="section" id="chat-completions">
+<div class="section-header"><div class="section-num">01</div><h2>Chat Completions Interface</h2></div>
+
+<p>The Chat Completions interface is the universal contract between your application code and a large language model. Regardless of whether you are working with OpenAI's GPT-4o, Anthropic's Claude Sonnet, Google's Gemini, or an open-source model hosted on your own infrastructure, the fundamental interaction pattern is identical: you construct an array of messages that represent a conversation, you send that array along with configuration parameters to an HTTP endpoint, and you receive back a response containing the model's generated text plus metadata about the generation process. Understanding this interface at a deep level is not optional for production work. It is the foundation on which every other concept in this module is built, and misunderstanding any part of it will create subtle bugs that are extremely difficult to diagnose later.</p>
+
+<p>The reason this interface exists as a "chat" format rather than a simple prompt-in, text-out format is both historical and deeply practical. Early LLM APIs from the GPT-3 era used a simple completions endpoint where you sent a single string and received a continuation. This created an enormous number of problems in practice: developers had to manually format multi-turn conversations by concatenating strings with hand-chosen delimiters, there was no clean way to distinguish between instructions and user input, and prompt injection attacks were trivially easy because everything was one undifferentiated blob of text. The chat format solves all of these problems by giving each message a role that the model can treat differently during inference, establishing clear semantic boundaries between different types of input.</p>
+
+<p>When you make a chat completions request, you are providing a structured context window that the model uses to understand its role, the conversation history, and what is expected of it. The model processes the entire messages array as a single input sequence, applies its attention mechanism across all the tokens in all the messages, and generates a response token by token. The distinction between roles is encoded as special tokens in the model's vocabulary, which means the model genuinely treats system, user, and assistant messages differently during the attention computation. A system message carries more persistent instructional weight than a user message for controlling output behavior.</p>
+
+<p>The quality of your results depends enormously on how you construct your messages array. A sloppy messages array with vague system prompts, missing conversation history, or poorly structured user messages will produce dramatically worse results than a carefully constructed one, even with the same model and the same underlying question. This is why prompt engineering is an entire module unto itself. But before you can engineer prompts effectively, you need to understand the mechanical interface through which those prompts are delivered, which is exactly what this section covers in detail.</p>
+
+<p>One crucial aspect that beginners overlook is that LLM APIs are <strong>inherently stateless</strong>. Each request is completely independent and the provider maintains zero conversation state between requests. Your application code is entirely responsible for maintaining the conversation history and sending the relevant portions with each request. For short conversations this is trivial, but for long conversations or multi-session applications, you need strategies for persistence in a database, truncation when approaching context limits, and summarization to compress old messages while preserving essential context.</p>
+
+<h3 id="messages-array">The Messages Array and Role System</h3>
+
+<p>The messages array is an ordered list of message objects, each containing at minimum a <code>role</code> field and a <code>content</code> field. The role is one of three values in the OpenAI convention: <strong>system</strong>, <strong>user</strong>, or <strong>assistant</strong>. Anthropic uses a slightly different convention where the system message is a separate top-level parameter rather than a member of the messages array, but the conceptual model is identical. The system role sets the persona, behavioral constraints, and task instructions for the model. The user role represents the human or the application acting on behalf of the human. The assistant role represents previous model responses, which you include in multi-turn conversations so the model has context about what it already said and can maintain consistency across turns.</p>
+
+<p>The ordering of messages matters critically. Messages are processed sequentially as if they were a transcript of a conversation, and the model generates its response as the next turn after the final message in the array. If you want to implement a multi-turn chatbot, you maintain the full conversation history by appending each new user message and each model response to the array, then sending the entire growing array with each request. This means the token cost of a long conversation grows with the number of turns, which is why context window management and summarization strategies become important for production applications that need to support long conversations without exceeding context limits or running up excessive costs.</p>
+
+<p>The content field can be a simple string for text-only messages, but modern APIs support multimodal content where the content is an array of content blocks. For example, in OpenAI's API you can send an image by providing a content array with a text block and an image_url block. In Anthropic's API, you can send images as base64-encoded content blocks or as URL references. This multimodal capability is what powers vision-language applications like document analysis, image captioning, and visual question answering. The content block format also enables structured content like tool use results, which we cover in the structured outputs section later in this module.</p>
+
+<p>A subtle but important detail is that the system message is not just a suggestion. It establishes the model's behavioral frame for the entire conversation. Research and practical experience consistently show that detailed, specific system messages produce dramatically better results than vague ones. A system message like "You are a helpful assistant" is almost useless. A system message like "You are a senior Python developer reviewing code for security vulnerabilities. Report each finding with severity, the file and line number, the vulnerability type by OWASP category, and a specific remediation with code example. If no vulnerabilities are found, say so explicitly." will produce focused, structured, actionable output. The specificity of your system message is the single highest-leverage knob you have for controlling output quality.</p>
+
+<p>One advanced pattern worth understanding is <strong>few-shot examples</strong> within the messages array. Instead of describing what you want in the system message alone, you demonstrate it by including example user/assistant message pairs before the actual user query. You include a user message with an example input and an assistant message with the ideal output format, followed by the real user message. The model sees these examples and mimics the pattern. This technique is extraordinarily powerful for getting consistent output formats, and it works because the model treats the example assistant messages as if it had actually generated them, creating a strong pattern for continuation that the model will follow faithfully.</p>
+
+<p>Another important consideration for production applications is the handling of <strong>message truncation</strong> when conversations grow long. Each model has a finite context window, and if your messages array exceeds that window, the API will return an error. Strategies for managing this include: sliding window truncation where you keep only the most recent N messages, summary-based compression where you periodically summarize older messages into a condensed form, and semantic truncation where you selectively remove messages that are least relevant to the current query. The right strategy depends on your application, but every production chatbot needs one of these approaches.</p>
+
+<p>The practical implication of the stateless design is that every single API call must be entirely self-contained: the messages array must contain everything the model needs to understand the conversation context and generate an appropriate response. You cannot rely on the model remembering previous calls because there is no memory between calls whatsoever. This design choice was deliberate because it makes the API simple, horizontally scalable, and deterministic for a given input, but it places the entire burden of state management on the application developer. Later modules will cover how frameworks like LangGraph manage this state automatically through checkpointed conversation graphs.</p>
+
+<h3 id="request-response">Request and Response Schema</h3>
+
+<p>The request to a chat completions endpoint contains several important fields beyond the messages array. The <code>model</code> field specifies which model to use, such as <code>gpt-4o</code> or <code>claude-sonnet-4-20250514</code>. The <code>temperature</code> parameter controls randomness in the output: a value of 0.0 produces nearly deterministic output by always choosing the highest-probability token, while 1.0 or higher produces more creative and varied output. For factual tasks, code generation, and structured outputs, use temperature 0.0. For creative writing and brainstorming, use 0.7 to 1.0. The <code>max_tokens</code> field caps the length of the generated response. This is a hard limit, not a target, so always set it generously to avoid truncation of responses that the model would otherwise complete naturally.</p>
+
+<p>The <code>top_p</code> parameter, also known as nucleus sampling, is an alternative to temperature for controlling randomness. It limits the model to considering only the smallest set of tokens whose cumulative probability exceeds the threshold. For example, a top_p of 0.1 means the model only considers tokens in the top 10% of the probability mass. In practice, most developers use either temperature or top_p but not both simultaneously, as their effects overlap and combining them can produce unpredictable behavior. OpenAI's documentation explicitly recommends adjusting one and leaving the other at its default value. The <code>frequency_penalty</code> and <code>presence_penalty</code> parameters, which are OpenAI-specific, penalize token repetition and are useful for reducing the verbatim repetition that models sometimes exhibit in long outputs.</p>
+
+<p>The response object from a chat completions call contains the generated message along with critical metadata. The <code>choices</code> array contains one or more response options, usually just one unless you set n greater than 1 to request multiple completions. Each choice contains a <code>message</code> object with the assistant's response and a <code>finish_reason</code> field. The finish_reason is essential for understanding why the model stopped generating: <code>stop</code> means the model naturally completed its response, <code>length</code> means it hit the max_tokens limit and your response is truncated, <code>tool_calls</code> means the model wants to invoke a tool, and <code>content_filter</code> means the response was blocked by safety filters. Always check finish_reason in production code because a length finish_reason means you are losing information.</p>
+
+<p>The <code>usage</code> field in the response reports token consumption: <code>prompt_tokens</code> for input token count, <code>completion_tokens</code> for generated token count, and <code>total_tokens</code> for the sum. This is the basis for cost calculation since providers charge per token. Understanding token counts is critical for budgeting. A detailed system prompt might use 500 tokens, a conversation history might use 3000 tokens, and a long response might use 2000 tokens. At GPT-4o pricing of $2.50 and $10.00 per million input and output tokens respectively, that single request costs roughly three cents. These numbers add up very quickly at scale.</p>
+
+<p>An often-overlooked aspect of the response schema is the <code>id</code> field, which provides a unique identifier for the completion request. This identifier is invaluable for debugging and audit logging. If a user reports a problematic response, you can use the completion ID to trace back to the exact request. Similarly, the <code>created</code> timestamp tells you when the response was generated, and the <code>model</code> field in the response confirms which model actually served the request, which may differ from what you requested if a model alias resolves to a specific snapshot version.</p>
+
+<p>For Anthropic's Messages API, the response schema has notable differences. Instead of a choices array, Anthropic returns a top-level <code>content</code> array containing content blocks. Each block has a type, usually text but possibly tool_use, and the corresponding data. The <code>stop_reason</code> field serves the same purpose as OpenAI's finish_reason but uses different values: <code>end_turn</code> for natural completion, <code>max_tokens</code> for truncation, and <code>tool_use</code> when the model wants to call a tool. Anthropic also returns an id starting with <code>msg_</code> and a usage object with <code>input_tokens</code> and <code>output_tokens</code> fields. Understanding these schema differences is essential when writing provider-agnostic code, which is exactly what LiteLLM in Section 5 solves.</p>
+
+<p>One nuanced difference between providers relates to reasoning capabilities. Anthropic's Claude models support an explicit thinking feature where you can enable extended thinking with a budget of thinking tokens. The model produces a visible thinking content block before its final response. OpenAI's equivalent is the o1 and o3 reasoning models which perform chain-of-thought internally but do not expose the reasoning tokens to the caller by default. This architectural difference affects how you design prompts for complex reasoning tasks and how you budget for token costs, because reasoning tokens count toward your usage even when the content is hidden.</p>
+
+<p>Temperature and sampling parameter ranges also differ subtly between providers. OpenAI's temperature parameter ranges from 0 to 2, while Anthropic's ranges from 0 to 1. Both default to approximately 1.0, but the effective randomness at the same numeric value differs between models because the underlying probability distributions are calibrated differently. In practice, temperature 0 for deterministic tasks and around 0.3 to 0.7 for creative tasks works reasonably well across both providers. However, if you are doing rigorous A/B testing between providers, be aware that temperature values are not directly comparable across different model families.</p>
+
+<p>Authentication is handled via bearer tokens for both providers but with different header conventions. OpenAI uses the standard <code>Authorization: Bearer sk-...</code> header while Anthropic uses a custom <code>x-api-key: sk-ant-...</code> header. Anthropic also requires an <code>anthropic-version</code> header specifying the API version. Both the OpenAI and Anthropic SDKs abstract these differences completely, reading the API key from environment variables and setting the correct headers automatically. This is one of the primary reasons to use the SDKs rather than making raw HTTP calls.</p>
+
+<h3 id="provider-diffs">OpenAI vs Anthropic: Key Differences</h3>
+
+<p>The most visible structural difference between the two APIs is system message handling. OpenAI places the system message as the first element in the messages array with role set to system. Anthropic extracts it to a separate top-level <code>system</code> parameter. Anthropic's rationale is that the system prompt is fundamentally a configuration parameter for the model's behavior rather than a conversational turn, and separating it makes the API semantics cleaner. In practice this means provider-switching code must handle the system message extraction, not just endpoint and authentication changes.</p>
+
+<p>Error handling patterns differ as well. OpenAI returns standard HTTP error codes with a JSON error body containing error.type, error.message, and error.code. Anthropic returns errors with a type field in the body such as invalid_request_error, authentication_error, rate_limit_error, or overloaded_error. Rate limiting headers differ too: OpenAI uses x-ratelimit-remaining-requests and x-ratelimit-remaining-tokens, while Anthropic uses anthropic-ratelimit-requests-remaining and anthropic-ratelimit-tokens-remaining. Understanding these differences is critical for implementing proper retry logic and rate limit management in production systems that call both providers.</p>
+
+<p>Multimodal content handling also differs between providers. OpenAI expects image content as a content array with objects containing type image_url and a URL or base64 data URL. Anthropic expects images as content blocks with type image containing a source object that specifies media type and data. Token counting for images differs too: OpenAI uses a tile-based system where cost depends on resolution, while Anthropic charges based on image dimensions with a specific formula. These differences mean that provider-switching code must handle content format transformation, not just endpoint routing.</p>
+
+<p>One important area where the providers diverge is in their approach to structured outputs. OpenAI offers a native response_format parameter with json_schema mode that constrains generation at the token level. Anthropic achieves structured outputs through the tool use mechanism, where you define a tool with an input schema and the model generates structured JSON to call that tool. Both approaches are effective, but the implementation code is quite different. The instructor library, covered in Section 6, abstracts these differences and provides a unified Pydantic-based interface for structured outputs across both providers.</p>
+
+<p>Pricing structures also differ in ways that affect architecture decisions. Anthropic's prompt caching provides a 90% discount on cached input tokens with explicit cache control annotations, while OpenAI's automatic caching provides a 50% discount for sequences over 1024 tokens with no code changes required. Anthropic's models generally have larger context windows (200K tokens for Claude versus 128K for GPT-4o) but higher per-token prices for output. These tradeoffs mean that the optimal provider choice depends heavily on your specific workload: long-context tasks with heavy prompt reuse favor Anthropic, while high-volume simple tasks favor OpenAI's cheaper models.</p>
+
+<p>The streaming implementations also differ in meaningful ways. OpenAI streams individual token deltas through the choices array's delta field, with the stream terminated by a <code>data: [DONE]</code> sentinel. Anthropic uses a richer event-based streaming protocol with distinct event types: message_start, content_block_start, content_block_delta, content_block_stop, and message_stop. The Anthropic approach provides more granular lifecycle information but requires more complex parsing logic. Both SDKs abstract these differences behind iterator interfaces, but if you need to implement custom stream processing, understanding the underlying protocol for each provider is essential.</p>
+
+<pre><code><span class="code-comment"># OpenAI Chat Completions request</span>
+<span class="code-keyword">import</span> openai
+
+client = openai.OpenAI()  <span class="code-comment"># reads OPENAI_API_KEY from env</span>
+
+response = client.chat.completions.<span class="code-fn">create</span>(
+    model=<span class="code-string">"gpt-4o"</span>,
+    messages=[
+        {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: <span class="code-string">"You are a senior Python developer."</span>},
+        {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>,   <span class="code-string">"content"</span>: <span class="code-string">"Explain decorators with an example."</span>},
+    ],
+    temperature=<span class="code-num">0.0</span>,
+    max_tokens=<span class="code-num">1024</span>,
+)
+
+text   = response.choices[<span class="code-num">0</span>].message.content
+reason = response.choices[<span class="code-num">0</span>].finish_reason   <span class="code-comment"># "stop" | "length" | "tool_calls"</span>
+usage  = response.usage                       <span class="code-comment"># prompt_tokens, completion_tokens</span>
+
+<span class="code-comment"># --- Anthropic Messages request ---</span>
+<span class="code-keyword">import</span> anthropic
+
+client = anthropic.Anthropic()  <span class="code-comment"># reads ANTHROPIC_API_KEY from env</span>
+
+message = client.messages.<span class="code-fn">create</span>(
+    model=<span class="code-string">"claude-sonnet-4-20250514"</span>,
+    system=<span class="code-string">"You are a senior Python developer."</span>,   <span class="code-comment"># separate param</span>
+    messages=[
+        {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: <span class="code-string">"Explain decorators with an example."</span>},
+    ],
+    temperature=<span class="code-num">0.0</span>,
+    max_tokens=<span class="code-num">1024</span>,
+)
+
+text   = message.content[<span class="code-num">0</span>].text
+reason = message.stop_reason    <span class="code-comment"># "end_turn" | "max_tokens" | "tool_use"</span>
+usage  = message.usage          <span class="code-comment"># input_tokens, output_tokens</span></code></pre>
+
+<div class="callout info">
+  <div class="callout-label">Key Takeaway</div>
+  <p>The chat completions interface is conceptually identical across providers: messages array plus configuration in, generated text plus metadata out. The differences are in system message placement, response schema field names, and authentication headers. LiteLLM (Section 5) normalizes all of these differences behind a unified interface.</p>
+</div>
+</section>
+
+<!-- ===== SECTION 2 ===== -->
+<section class="section" id="provider-sdks">
+<div class="section-header"><div class="section-num">02</div><h2>Provider SDKs</h2></div>
+
+<p>While you could interact with LLM APIs using raw HTTP requests via httpx or requests, nobody does this in production. Provider SDKs handle authentication, request construction, response parsing, automatic retries, connection pooling, streaming, and type safety. The three most important SDKs for this course are the OpenAI Python SDK, the Anthropic Python SDK, and LiteLLM which provides a unified interface across all providers. Understanding all three gives you the flexibility to use the right tool for each situation: the native SDKs when you need provider-specific features, and LiteLLM when you want portability across providers without rewriting your application code.</p>
+
+<p>The OpenAI Python SDK is the most widely used LLM SDK in the ecosystem. It is a thin, well-typed wrapper around the OpenAI REST API that uses Pydantic models for all request and response types. The SDK handles authentication by reading the OPENAI_API_KEY environment variable or accepting it as a constructor parameter. It constructs the proper HTTP request with the correct headers and endpoint, parses the JSON response into typed Python objects, and provides both synchronous and asynchronous clients via the OpenAI and AsyncOpenAI classes. The typed response objects mean you get IDE autocompletion and type checking for every field, which dramatically reduces bugs compared to working with raw dictionaries.</p>
+
+<p>The Anthropic Python SDK follows a very similar design philosophy. It provides Anthropic and AsyncAnthropic clients, reads ANTHROPIC_API_KEY from the environment, and returns typed response objects with full IDE support. The SDK handles the Anthropic-specific authentication header and version header automatically. One notable feature of the Anthropic SDK is its built-in streaming support through the <code>with client.messages.stream()</code> context manager, which provides a convenient iterator interface with separate streams for text content and tool use content, making it easier to build applications that process streamed responses.</p>
+
+<p>LiteLLM takes a fundamentally different approach: instead of being a single provider's SDK, it acts as a translation layer that converts a single unified API call into the appropriate provider-specific call. You call <code>litellm.completion()</code> with an OpenAI-compatible messages format, and LiteLLM translates the request to whatever provider you specify via the model name. For example, model gpt-4o routes to OpenAI, model anthropic/claude-sonnet-4-20250514 routes to Anthropic, and model groq/llama-3.1-70b-versatile routes to Groq. This unified interface is extraordinarily valuable for production systems that need to switch between providers without rewriting application code.</p>
+
+<p>Each SDK has its own error hierarchy that you must understand for robust error handling. The OpenAI SDK raises <code>openai.APIError</code> as the base exception, with specific subclasses like RateLimitError for 429 responses, AuthenticationError for 401 responses, BadRequestError for 400 responses, and APIConnectionError for network failures. The Anthropic SDK similarly raises anthropic.APIError with subclasses for each error type. LiteLLM wraps provider-specific errors into its own exception types but also surfaces the underlying provider error for debugging. Catching and handling specific exception types allows you to implement targeted retry logic for different failure modes.</p>
+
+<p>Production LLM applications need robust retry logic because LLM APIs are inherently unreliable at scale. Rate limiting is the most common transient failure, as providers limit requests per minute and tokens per minute, and bursts of traffic will inevitably hit these limits. Server errors occur during provider outages or high-load periods. Network errors occur due to DNS issues, connection timeouts, or TLS handshake failures. The <code>tenacity</code> library is the standard Python solution for implementing retry logic with exponential backoff, jitter, and configurable retry conditions. Both the OpenAI and Anthropic SDKs include some built-in retry logic configurable via the max_retries parameter, but for production systems you often want more control over different retry strategies for different error types.</p>
+
+<p>An important consideration when choosing between native SDKs and LiteLLM is feature completeness versus portability. Native SDKs always support the latest provider features immediately, while LiteLLM may lag behind on newly released features. If you need Anthropic's extended thinking, OpenAI's structured output mode, or any other cutting-edge provider feature, the native SDK is the safest choice. However, LiteLLM covers the vast majority of common use cases well, and the productivity gain from having a single interface that works across all providers is enormous for teams that need multi-provider support.</p>
+
+<p>Connection management is another reason to use SDKs rather than raw HTTP. Both the OpenAI and Anthropic SDKs maintain internal connection pools via httpx, reusing TCP connections across multiple API calls. This eliminates the overhead of establishing a new TLS handshake for every request, which can save 100-200ms per call. The SDKs also handle HTTP/2 multiplexing where supported, allowing multiple concurrent requests over a single connection. For high-throughput applications making hundreds of calls per second, this connection pooling can meaningfully reduce both latency and resource consumption on your application server.</p>
+
+<p>Type safety provided by the SDKs deserves emphasis. Both SDKs return fully typed Pydantic objects, which means your IDE can provide autocompletion for response fields, your type checker can catch field access errors at development time rather than runtime, and your code is self-documenting because the types explicitly declare what fields are available. When you write <code>response.choices[0].message.content</code>, your IDE knows that choices is a list, that each choice has a message attribute, and that message has a content attribute that is a string. This is vastly superior to working with raw JSON dictionaries where typos in field names become runtime KeyError exceptions.</p>
+
+<p>For asynchronous applications, which include virtually all web servers and high-throughput processing pipelines, the async variants of the SDKs are essential. The AsyncOpenAI and AsyncAnthropic clients use async httpx under the hood, which means they yield control to the event loop while waiting for network responses. This allows a single Python process to handle hundreds or thousands of concurrent LLM requests without threading. Using the synchronous client in an async context, such as inside a FastAPI endpoint, blocks the entire event loop and serializes all requests, destroying your server's throughput. Always use the async client in async code.</p>
+
+<p>The SDKs also provide important observability features. Both include request and response logging capabilities that you can hook into for monitoring and debugging. The OpenAI SDK supports custom HTTP client injection, allowing you to wrap the underlying httpx client with middleware for metrics collection, request tracing, or audit logging. The Anthropic SDK provides similar extensibility through its client configuration. LiteLLM goes further with its built-in callback system, which can automatically send metrics to observability platforms like Langfuse, Helicone, or Datadog without any custom instrumentation code.</p>
+
+<h3 id="sdk-code">The Same Call in Three SDKs</h3>
+
+<pre><code><span class="code-comment"># ---- 1. OpenAI SDK ----</span>
+<span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+
+oai = OpenAI()  <span class="code-comment"># OPENAI_API_KEY env var</span>
+
+rsp = oai.chat.completions.<span class="code-fn">create</span>(
+    model=<span class="code-string">"gpt-4o"</span>,
+    messages=[
+        {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: <span class="code-string">"Return only valid JSON."</span>},
+        {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>,   <span class="code-string">"content"</span>: <span class="code-string">"List 3 Python web frameworks."</span>},
+    ],
+    temperature=<span class="code-num">0</span>,
+    max_tokens=<span class="code-num">256</span>,
+)
+print(rsp.choices[<span class="code-num">0</span>].message.content)
+
+<span class="code-comment"># ---- 2. Anthropic SDK ----</span>
+<span class="code-keyword">from</span> anthropic <span class="code-keyword">import</span> Anthropic
+
+ant = Anthropic()  <span class="code-comment"># ANTHROPIC_API_KEY env var</span>
+
+msg = ant.messages.<span class="code-fn">create</span>(
+    model=<span class="code-string">"claude-sonnet-4-20250514"</span>,
+    system=<span class="code-string">"Return only valid JSON."</span>,
+    messages=[
+        {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: <span class="code-string">"List 3 Python web frameworks."</span>},
+    ],
+    temperature=<span class="code-num">0</span>,
+    max_tokens=<span class="code-num">256</span>,
+)
+print(msg.content[<span class="code-num">0</span>].text)
+
+<span class="code-comment"># ---- 3. LiteLLM (unified) ----</span>
+<span class="code-keyword">import</span> litellm
+
+<span class="code-comment"># Same interface for ANY provider</span>
+<span class="code-keyword">for</span> model <span class="code-keyword">in</span> [<span class="code-string">"gpt-4o"</span>, <span class="code-string">"anthropic/claude-sonnet-4-20250514"</span>, <span class="code-string">"groq/llama-3.1-70b-versatile"</span>]:
+    rsp = litellm.<span class="code-fn">completion</span>(
+        model=model,
+        messages=[
+            {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: <span class="code-string">"Return only valid JSON."</span>},
+            {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>,   <span class="code-string">"content"</span>: <span class="code-string">"List 3 Python web frameworks."</span>},
+        ],
+        temperature=<span class="code-num">0</span>,
+        max_tokens=<span class="code-num">256</span>,
+    )
+    print(f<span class="code-string">"{model}: {rsp.choices[0].message.content}"</span>)</code></pre>
+
+<h3 id="error-retry">Error Handling and Retry with Tenacity</h3>
+
+<pre><code><span class="code-keyword">import</span> openai
+<span class="code-keyword">from</span> tenacity <span class="code-keyword">import</span> (
+    retry, stop_after_attempt, wait_exponential,
+    retry_if_exception_type
+)
+
+@<span class="code-fn">retry</span>(
+    retry=<span class="code-fn">retry_if_exception_type</span>((
+        openai.RateLimitError,       <span class="code-comment"># 429</span>
+        openai.APIConnectionError,   <span class="code-comment"># network</span>
+        openai.InternalServerError,  <span class="code-comment"># 500</span>
+    )),
+    wait=<span class="code-fn">wait_exponential</span>(multiplier=<span class="code-num">1</span>, min=<span class="code-num">2</span>, max=<span class="code-num">60</span>),
+    stop=<span class="code-fn">stop_after_attempt</span>(<span class="code-num">5</span>),
+)
+<span class="code-keyword">def</span> <span class="code-fn">robust_completion</span>(messages: list, model: str = <span class="code-string">"gpt-4o"</span>) -> str:
+    <span class="code-string">"""Call LLM with automatic retry on transient failures."""</span>
+    client = openai.OpenAI()
+    <span class="code-keyword">try</span>:
+        rsp = client.chat.completions.<span class="code-fn">create</span>(
+            model=model, messages=messages,
+            temperature=<span class="code-num">0</span>, max_tokens=<span class="code-num">1024</span>
+        )
+        <span class="code-keyword">if</span> rsp.choices[<span class="code-num">0</span>].finish_reason == <span class="code-string">"length"</span>:
+            <span class="code-keyword">raise</span> ValueError(<span class="code-string">"Response truncated -- increase max_tokens"</span>)
+        <span class="code-keyword">return</span> rsp.choices[<span class="code-num">0</span>].message.content
+    <span class="code-keyword">except</span> openai.BadRequestError <span class="code-keyword">as</span> e:
+        <span class="code-comment"># Don't retry 400s -- the request itself is wrong</span>
+        <span class="code-keyword">raise</span> ValueError(f<span class="code-string">"Bad request: {e}"</span>) <span class="code-keyword">from</span> e</code></pre>
+
+<div class="callout warn">
+  <div class="callout-label">Production Warning</div>
+  <p>Never retry <code>400 Bad Request</code> or <code>401 Unauthorized</code> errors. These indicate bugs in your code or invalid credentials, not transient failures. Only retry <code>429</code>, <code>500</code>, <code>502</code>, <code>503</code>, and connection errors.</p>
+</div>
+</section>
+
+<!-- ===== SECTION 3 ===== -->
+<section class="section" id="streaming">
+<div class="section-header"><div class="section-num">03</div><h2>Streaming Responses</h2></div>
+
+<p>Without streaming, the user experience of an LLM application is terrible: the user submits a prompt, stares at a blank screen for 5 to 30 seconds while the model generates its entire response, and then sees the complete text appear all at once. Streaming solves this by delivering the response token by token as the model generates each one, so the user sees text appearing almost immediately and can start reading while generation continues. Every production LLM application uses streaming for user-facing interactions. The time to first token is typically 200 to 500 milliseconds, compared to 5 to 30 seconds for the complete non-streamed response, and this improvement in perceived responsiveness is transformative for user experience and engagement.</p>
+
+<p>The streaming protocol used by LLM APIs is Server-Sent Events, an HTTP-based protocol defined in the HTML5 specification. SSE works over a standard HTTP connection: the client sends a normal HTTP request with <code>stream: true</code> in the request body, and the server responds with Content-Type text/event-stream and keeps the connection open. The server then sends a series of events, each formatted as one or more lines prefixed with <code>data:</code>, separated by blank lines. Each event contains a JSON object with a delta representing the incremental change since the last event. The stream ends with a <code>data: [DONE]</code> event in the OpenAI convention or by sending a final event with stop_reason set in the Anthropic convention.</p>
+
+<p>Understanding the delta accumulation pattern is essential because it is the core loop of any streaming LLM application. The first delta typically contains role information but no content. Subsequent deltas contain content fragments of varying length, sometimes a single character and sometimes a whole word or phrase. The final delta contains an empty content field and the finish_reason. Your accumulation code must handle all of these cases: skip deltas with no content, append content deltas to a buffer, and check for the finish signal to know when generation is complete. Getting this wrong leads to missing text, duplicated text, or applications that hang waiting for a termination signal that has already passed.</p>
+
+<p>In a web application context, you need to forward the stream from the LLM API to the client browser. FastAPI provides the StreamingResponse class for exactly this purpose. You create an async generator function that consumes the LLM stream and yields formatted chunks, then wrap it in a StreamingResponse with the text/event-stream media type. The client-side JavaScript uses the Fetch API with a ReadableStream reader or the EventSource API to consume the stream. This end-to-end streaming pipeline from user browser to your FastAPI server to LLM API and back is the standard architecture for any chat-style application, and you will implement it multiple times throughout this course.</p>
+
+<p>There are important nuances to production streaming that are easy to overlook. First, error handling is more complex with streaming because the HTTP connection has already returned a 200 status code before the model starts generating. If an error occurs mid-stream, the error arrives as a stream event rather than an HTTP error code. Your code must handle these mid-stream errors gracefully. Second, connection management is critical: if the client disconnects mid-stream because the user navigates away, your server should detect this and cancel the upstream LLM API call to avoid paying for tokens that nobody will see.</p>
+
+<h3 id="sse-protocol">SSE Protocol Details</h3>
+
+<p>The Server-Sent Events protocol is simple but rigid. Each event is a sequence of field lines, where each field has the format <code>field: value\n</code>. The most common field is <code>data:</code> which carries the payload. Events are separated by a blank line consisting of two newline characters. The event field can specify an event type for routing, and the id field provides a last-event-ID for reconnection. In LLM APIs, only the data field is typically used, containing a JSON-serialized chunk object. The SSE specification also supports automatic reconnection via the retry field, but LLM APIs do not use this because each stream is a unique generation that cannot be resumed from a checkpoint.</p>
+
+<p>The raw SSE format on the wire looks like this: the server sends <code>data: {"id":"chatcmpl-...","choices":[{"delta":{"content":"Hello"}}]}</code> followed by a blank line, then <code>data: {"id":"chatcmpl-...","choices":[{"delta":{"content":" world"}}]}</code> and so on. Each delta object contains just the new content since the last event. Your application code accumulates these deltas by concatenating the content strings to build the complete response. The SDK libraries handle all the SSE parsing for you, exposing the stream as a Python async iterator that yields parsed chunk objects, but understanding the underlying protocol is valuable for debugging when things go wrong.</p>
+
+<p>Another production concern is token counting for streamed responses. When streaming, most providers do not send the token usage information until the final event. This means you cannot calculate cost in real-time during streaming. If you need real-time token counting to implement a hard token budget that stops generation mid-stream, you need to count tokens client-side using a tokenizer library like tiktoken. However, client-side counting is approximate because the tokenization of the accumulated text may differ slightly from the model's internal tokenization due to partial token boundaries in the stream.</p>
+
+<p>The performance characteristics of streaming are worth understanding in detail. The time to first token is determined by the model's prefill phase, which is the time it takes to process all input tokens through the transformer layers. Longer prompts have longer time to first token because there are more input tokens to process. After the first token, the inter-token latency is typically very consistent, determined by the model's decode speed and the provider's infrastructure. For GPT-4o, inter-token latency is roughly 10 to 20 milliseconds, meaning a 500-token response takes about 5 to 10 seconds to stream completely but the user sees the first token within 200 to 400 milliseconds.</p>
+
+<p>Backpressure is a consideration for high-throughput streaming applications. If your server processes stream events faster than the client can consume them, you can end up buffering large amounts of data in memory. In ASGI servers like Uvicorn, the framework handles TCP-level backpressure automatically, but your application-level buffers should be bounded. Similarly, if you are processing the stream by applying a content filter to each chunk before forwarding it, the processing time adds to the effective latency. Keep stream processing as lightweight as possible to maintain the responsiveness benefit that streaming provides.</p>
+
+<p>One powerful pattern enabled by streaming is the ability to display thinking or reasoning tokens to the user in real-time. Anthropic's extended thinking feature streams the thinking content before the final response, allowing you to show a "thinking" phase with visible reasoning followed by the actual answer. This transparency can significantly improve user trust and engagement. Implementing this requires parsing the stream events for content block types and routing thinking blocks to a separate UI element from the response blocks.</p>
+
+<p>Streaming also enables a technique called <strong>progressive rendering</strong> in user interfaces, where you process and render partial content as it arrives rather than waiting for the complete response. For example, if the model is generating a Markdown table, you can start rendering the table headers as soon as they arrive and add rows progressively. If the model is generating code, you can start syntax highlighting the first lines while the rest is still being generated. This creates a much more fluid and responsive user experience compared to waiting for the complete response and rendering it all at once.</p>
+
+<p>For applications that need to process or transform streamed content before displaying it, consider implementing a stream transformation pipeline. This is an async generator that consumes the raw LLM stream, applies transformations such as content filtering, citation injection, or format conversion, and yields the transformed chunks. FastAPI's StreamingResponse works perfectly with these chained async generators, allowing you to compose multiple stream processing stages without buffering the entire response in memory.</p>
+
+<p>Finally, testing streaming code requires special consideration. Unit testing a streaming endpoint means verifying that chunks arrive in the correct order, that the accumulated content matches the expected output, that errors mid-stream are handled gracefully, and that client disconnection is detected and propagated. The httpx library provides an async streaming response mock that you can use in tests. You should also have integration tests that verify end-to-end streaming from a real LLM API, since the SSE event format and timing characteristics of real providers can differ from mocks in subtle ways.</p>
+
+<h3 id="async-stream-code">Async Streaming Implementation</h3>
+
+<pre><code><span class="code-keyword">import</span> asyncio
+<span class="code-keyword">from</span> openai <span class="code-keyword">import</span> AsyncOpenAI
+<span class="code-keyword">from</span> anthropic <span class="code-keyword">import</span> AsyncAnthropic
+<span class="code-keyword">from</span> fastapi <span class="code-keyword">import</span> FastAPI
+<span class="code-keyword">from</span> fastapi.responses <span class="code-keyword">import</span> StreamingResponse
+
+app = FastAPI()
+
+<span class="code-comment"># --- OpenAI async streaming ---</span>
+<span class="code-keyword">async def</span> <span class="code-fn">stream_openai</span>(prompt: str):
+    client = AsyncOpenAI()
+    stream = <span class="code-keyword">await</span> client.chat.completions.<span class="code-fn">create</span>(
+        model=<span class="code-string">"gpt-4o"</span>,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: prompt}],
+        stream=<span class="code-num">True</span>,
+        max_tokens=<span class="code-num">2048</span>,
+    )
+    full_text = <span class="code-string">""</span>
+    <span class="code-keyword">async for</span> chunk <span class="code-keyword">in</span> stream:
+        delta = chunk.choices[<span class="code-num">0</span>].delta
+        <span class="code-keyword">if</span> delta.content:
+            full_text += delta.content
+            print(delta.content, end=<span class="code-string">""</span>, flush=<span class="code-num">True</span>)
+    print()
+    <span class="code-keyword">return</span> full_text
+
+<span class="code-comment"># --- Anthropic async streaming ---</span>
+<span class="code-keyword">async def</span> <span class="code-fn">stream_anthropic</span>(prompt: str):
+    client = AsyncAnthropic()
+    full_text = <span class="code-string">""</span>
+    <span class="code-keyword">async with</span> client.messages.<span class="code-fn">stream</span>(
+        model=<span class="code-string">"claude-sonnet-4-20250514"</span>,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: prompt}],
+        max_tokens=<span class="code-num">2048</span>,
+    ) <span class="code-keyword">as</span> stream:
+        <span class="code-keyword">async for</span> text <span class="code-keyword">in</span> stream.<span class="code-fn">text_stream</span>:
+            full_text += text
+            print(text, end=<span class="code-string">""</span>, flush=<span class="code-num">True</span>)
+    print()
+    <span class="code-keyword">return</span> full_text
+
+<span class="code-comment"># --- FastAPI streaming endpoint ---</span>
+@app.<span class="code-fn">get</span>(<span class="code-string">"/stream"</span>)
+<span class="code-keyword">async def</span> <span class="code-fn">stream_endpoint</span>(prompt: str):
+    <span class="code-keyword">async def</span> <span class="code-fn">event_generator</span>():
+        client = AsyncOpenAI()
+        stream = <span class="code-keyword">await</span> client.chat.completions.<span class="code-fn">create</span>(
+            model=<span class="code-string">"gpt-4o"</span>,
+            messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: prompt}],
+            stream=<span class="code-num">True</span>, max_tokens=<span class="code-num">2048</span>,
+        )
+        <span class="code-keyword">async for</span> chunk <span class="code-keyword">in</span> stream:
+            delta = chunk.choices[<span class="code-num">0</span>].delta
+            <span class="code-keyword">if</span> delta.content:
+                <span class="code-keyword">yield</span> f<span class="code-string">"data: {delta.content}\n\n"</span>
+        <span class="code-keyword">yield</span> <span class="code-string">"data: [DONE]\n\n"</span>
+
+    <span class="code-keyword">return</span> <span class="code-fn">StreamingResponse</span>(
+        <span class="code-fn">event_generator</span>(),
+        media_type=<span class="code-string">"text/event-stream"</span>,
+    )</code></pre>
+
+<div class="callout tip">
+  <div class="callout-label">Performance Tip</div>
+  <p>Always use the async client (<code>AsyncOpenAI</code>, <code>AsyncAnthropic</code>) in FastAPI endpoints. The sync client blocks the event loop, meaning your server handles only one request at a time. Async clients yield control while waiting for network I/O, enabling thousands of concurrent streams.</p>
+</div>
+</section>
+
+<!-- ===== SECTION 4 ===== -->
+<section class="section" id="cost-management">
+<div class="section-header"><div class="section-num">04</div><h2>Cost Management</h2></div>
+
+<p>LLM API costs can escalate from a few dollars during prototyping to thousands of dollars per day in production, and many teams discover this the hard way. Understanding the economics of LLM API usage is not an afterthought but a core engineering requirement that should influence your architecture from day one. The cost model is straightforward: you pay per token, with separate rates for input tokens and output tokens. Output tokens are always more expensive than input tokens, typically by a factor of 3 to 5x, because output tokens require sequential autoregressive generation while input tokens can be processed in parallel during the prefill phase.</p>
+
+<p>The token itself is not a word. It is a subword unit produced by the model's tokenizer. Common English words are often a single token, but less common words may be split into multiple tokens. As a rough heuristic, one token is approximately three-quarters of a word in English, or about four characters. The exact mapping depends on the specific tokenizer: OpenAI models use the cl100k_base or o200k_base tokenizer depending on the model, Anthropic uses their own tokenizer, and open-source models use various SentencePiece or BPE tokenizers. The tiktoken library lets you count tokens for OpenAI models precisely, which is essential for predicting costs before sending a request.</p>
+
+<p>The pricing landscape across providers varies dramatically, and choosing the right model for each task is the single most impactful cost optimization. A task that works well with GPT-4o-mini at $0.15 and $0.60 per million tokens does not need GPT-4o at $2.50 and $10.00 per million tokens. Many production systems use a tiered approach: fast and cheap models for simple tasks like classification, extraction, and routing; mid-tier models for standard tasks like summarization and question answering; and premium models only for complex tasks like multi-step reasoning and creative writing. This tiering alone can reduce costs by 80% or more compared to using a premium model for everything.</p>
+
+<p>Beyond model selection, there are several structural cost optimizations. Prompt caching, offered by both Anthropic and OpenAI, dramatically reduces input token costs for requests that share a common prefix. If you send the same system prompt with every request, the provider can cache the key-value computation for that prefix and charge a reduced rate for the cached portion. Anthropic's prompt caching charges 90% less for cache hits, and OpenAI's caching provides a 50% discount on cached input tokens. The batch API offered by OpenAI provides a 50% discount on all token costs in exchange for accepting higher latency, with results delivered within 24 hours instead of real-time. This is perfect for bulk processing tasks like dataset annotation, evaluation runs, or offline analysis.</p>
+
+<p>Application-level caching with Redis or a similar key-value store provides even more dramatic savings by completely avoiding redundant API calls. If two users ask the same question, you can serve the cached response instantly without making an API call at all. The implementation involves hashing the messages array after normalization and checking Redis before calling the LLM. Cache hit rates vary enormously by application: a customer support bot might see 30 to 50% cache hits because many users ask the same questions, while a creative writing assistant might see nearly 0% because every request is unique. Even modest cache hit rates translate to significant cost savings and latency improvements.</p>
+
+<p>Token counting before sending a request is an essential production practice. By counting input tokens with tiktoken, you can predict the cost of a request before incurring it, enforce per-request or per-user budget limits, detect accidentally large prompts which is a common bug where an entire document is included instead of a summary, and optimize context window usage by trimming conversation history to fit within a target token budget. The counting is fast, taking only microseconds for typical prompts, and should be part of your standard request pipeline.</p>
+
+<h3 id="pricing-table">Token Pricing Comparison (early 2025)</h3>
+
+<table class="price-table">
+<thead>
+  <tr><th>Model</th><th>Provider</th><th>Input / 1M tokens</th><th>Output / 1M tokens</th><th>Context</th></tr>
+</thead>
+<tbody>
+  <tr><td><code>gpt-4o</code></td><td>OpenAI</td><td>$2.50</td><td>$10.00</td><td>128K</td></tr>
+  <tr><td><code>gpt-4o-mini</code></td><td>OpenAI</td><td>$0.15</td><td>$0.60</td><td>128K</td></tr>
+  <tr><td><code>claude-sonnet-4-20250514</code></td><td>Anthropic</td><td>$3.00</td><td>$15.00</td><td>200K</td></tr>
+  <tr><td><code>gemini-2.0-flash</code></td><td>Google</td><td>$0.10</td><td>$0.40</td><td>1M</td></tr>
+</tbody>
+</table>
+
+<p>Monitoring and alerting on API costs should be implemented from day one of any production deployment. This means logging every API call with its token usage and model, aggregating costs by user, feature, and model, setting budget alerts at daily and monthly thresholds, and building dashboards that show cost trends over time. LiteLLM includes built-in cost tracking that can write to a database, making this significantly easier than implementing cost monitoring from scratch. Without monitoring, it is frighteningly easy for a bug like an infinite retry loop or an accidentally large context to run up thousands of dollars in API costs before anyone notices.</p>
+
+<p>One often-overlooked cost factor is the interaction between context window usage and quality. Sending a longer prompt with more context typically produces better results, but it also costs more. There is an optimal point where adding more context no longer improves quality enough to justify the cost increase. Finding this point requires empirical testing for your specific use case, which is why the evaluation module is so closely linked to cost management. A well-designed evaluation pipeline lets you measure quality at different context sizes and find the cost-quality sweet spot for each task type in your application.</p>
+
+<p>For organizations with high-volume usage, negotiated enterprise pricing and commitment-based discounts can reduce costs further. Both OpenAI and Anthropic offer enterprise agreements with volume discounts, higher rate limits, dedicated capacity, and data processing agreements. If your projected monthly spend exceeds $10,000, it is almost always worth initiating an enterprise conversation. The discount structures are not publicly documented but typically range from 15 to 40% depending on volume commitment and contract length.</p>
+
+<p>Finally, consider the hidden costs beyond token pricing. Rate limiting can be a cost in terms of throughput, as requests queue up and latency increases when you hit limits. You may need to provision higher rate limit tiers, which some providers charge for, or distribute requests across multiple API keys. Network egress costs from cloud providers can add up for high-volume streaming responses. And the engineering cost of optimizing prompts, managing caches, and monitoring costs is itself a significant investment that should be factored into your total cost of ownership calculation for any LLM-powered feature.</p>
+
+<h3 id="caching">Cost Calculator and Caching Setup</h3>
+
+<pre><code><span class="code-keyword">import</span> tiktoken
+<span class="code-keyword">import</span> hashlib, json, redis
+
+<span class="code-comment"># ---- Token counting with tiktoken ----</span>
+PRICING = {
+    <span class="code-string">"gpt-4o"</span>:        (<span class="code-num">2.50</span>,  <span class="code-num">10.00</span>),   <span class="code-comment"># (input, output) per 1M tokens</span>
+    <span class="code-string">"gpt-4o-mini"</span>:   (<span class="code-num">0.15</span>,  <span class="code-num">0.60</span>),
+    <span class="code-string">"claude-sonnet"</span>: (<span class="code-num">3.00</span>,  <span class="code-num">15.00</span>),
+    <span class="code-string">"gemini-flash"</span>:  (<span class="code-num">0.10</span>,  <span class="code-num">0.40</span>),
+}
+
+<span class="code-keyword">def</span> <span class="code-fn">count_tokens</span>(text: str, model: str = <span class="code-string">"gpt-4o"</span>) -> int:
+    <span class="code-string">"""Count tokens for OpenAI models using tiktoken."""</span>
+    enc = tiktoken.<span class="code-fn">encoding_for_model</span>(model)
+    <span class="code-keyword">return</span> len(enc.<span class="code-fn">encode</span>(text))
+
+<span class="code-keyword">def</span> <span class="code-fn">estimate_cost</span>(
+    messages: list,
+    model: str = <span class="code-string">"gpt-4o"</span>,
+    est_output_tokens: int = <span class="code-num">500</span>,
+) -> dict:
+    <span class="code-string">"""Estimate cost before sending a request."""</span>
+    enc = tiktoken.<span class="code-fn">encoding_for_model</span>(model)
+    input_tokens = sum(
+        len(enc.<span class="code-fn">encode</span>(m[<span class="code-string">"content"</span>])) + <span class="code-num">4</span>  <span class="code-comment"># +4 for role overhead</span>
+        <span class="code-keyword">for</span> m <span class="code-keyword">in</span> messages
+    )
+    rate_in, rate_out = PRICING.get(model, (<span class="code-num">2.50</span>, <span class="code-num">10.00</span>))
+    cost_in  = (input_tokens / <span class="code-num">1_000_000</span>) * rate_in
+    cost_out = (est_output_tokens / <span class="code-num">1_000_000</span>) * rate_out
+    <span class="code-keyword">return</span> {
+        <span class="code-string">"input_tokens"</span>: input_tokens,
+        <span class="code-string">"est_output_tokens"</span>: est_output_tokens,
+        <span class="code-string">"est_cost_usd"</span>: round(cost_in + cost_out, <span class="code-num">6</span>),
+    }
+
+<span class="code-comment"># ---- Redis response cache ----</span>
+rdb = redis.Redis(host=<span class="code-string">"localhost"</span>, port=<span class="code-num">6379</span>, db=<span class="code-num">0</span>)
+CACHE_TTL = <span class="code-num">3600</span>  <span class="code-comment"># 1 hour</span>
+
+<span class="code-keyword">def</span> <span class="code-fn">cache_key</span>(messages: list, model: str) -> str:
+    <span class="code-string">"""Deterministic hash of request for cache lookup."""</span>
+    blob = json.<span class="code-fn">dumps</span>({<span class="code-string">"model"</span>: model, <span class="code-string">"messages"</span>: messages}, sort_keys=<span class="code-num">True</span>)
+    <span class="code-keyword">return</span> <span class="code-string">"llm:"</span> + hashlib.<span class="code-fn">sha256</span>(blob.encode()).<span class="code-fn">hexdigest</span>()
+
+<span class="code-keyword">def</span> <span class="code-fn">cached_completion</span>(messages: list, model: str = <span class="code-string">"gpt-4o"</span>) -> str:
+    <span class="code-string">"""LLM call with Redis caching."""</span>
+    key = <span class="code-fn">cache_key</span>(messages, model)
+    cached = rdb.<span class="code-fn">get</span>(key)
+    <span class="code-keyword">if</span> cached:
+        <span class="code-keyword">return</span> cached.decode()
+    <span class="code-comment"># Cache miss -- call the LLM</span>
+    <span class="code-keyword">import</span> openai
+    rsp = openai.OpenAI().chat.completions.<span class="code-fn">create</span>(
+        model=model, messages=messages,
+        temperature=<span class="code-num">0</span>, max_tokens=<span class="code-num">1024</span>
+    )
+    text = rsp.choices[<span class="code-num">0</span>].message.content
+    rdb.<span class="code-fn">setex</span>(key, CACHE_TTL, text)
+    <span class="code-keyword">return</span> text</code></pre>
+
+<div class="callout">
+  <div class="callout-label">Prompt Caching</div>
+  <p>Anthropic's prompt caching gives a 90% discount on cached input tokens. Add <code>cache_control: {"type": "ephemeral"}</code> to your system message content block. OpenAI automatically caches input prefixes for sequences over 1024 tokens at a 50% discount with no code changes needed. The Batch API provides 50% off all tokens but returns results within 24 hours.</p>
+</div>
+</section>
+
+<!-- ===== SECTION 5 ===== -->
+<section class="section" id="litellm-routing">
+<div class="section-header"><div class="section-num">05</div><h2>LiteLLM Provider Switching</h2></div>
+
+<p>LiteLLM is a Python library that provides a unified interface for calling over 100 LLM providers through a single API. The core insight is simple but powerful: if you write your application code against the OpenAI-compatible interface and use LiteLLM as the client layer, you can switch between providers by changing a single string without modifying any other code. This provider portability is invaluable for production systems because it enables cost optimization by routing to cheaper models for simpler tasks, reliability by falling back to alternative providers during outages, and future-proofing by adopting new models as they become available without code changes.</p>
+
+<p>LiteLLM uses a model naming convention to identify providers: the model name is either a bare name which defaults to OpenAI such as gpt-4o, or a prefixed name with the provider such as anthropic/claude-sonnet-4-20250514, groq/llama-3.1-70b-versatile, bedrock/anthropic.claude-3-sonnet, or vertex_ai/gemini-2.0-flash. LiteLLM reads the prefix to determine which provider to route to, then translates the OpenAI-compatible request into the provider-specific format, sends the request, and translates the provider-specific response back into the OpenAI-compatible format. The translation layer handles all the differences: system message placement, response schema, authentication headers, and error types.</p>
+
+<p>The <code>litellm.Router</code> class is where LiteLLM becomes truly powerful for production systems. The Router supports multiple model deployments, automatic fallbacks, load balancing, and cost tracking. You configure it with a list of model groups, where each group contains one or more model deployments. When you make a request to a model group, the Router selects a deployment based on the configured strategy such as round-robin, least-busy, latency-based, or cost-based, and if that deployment fails, it automatically falls back to the next deployment in the group. This is exactly the pattern you need for high-availability LLM applications.</p>
+
+<p>Fallback chains are the most common Router pattern. You define a primary model, usually the best quality, and one or more fallback models, usually cheaper or hosted on different infrastructure. If the primary model fails due to rate limiting, outage, or timeout, the Router automatically retries with the next model in the chain. For example, you might configure GPT-4o as primary, Claude Sonnet as the first fallback, and Llama 3.1 on Groq as the second fallback. This ensures your application stays responsive even during provider outages, and the fallback to cheaper models during rate limiting provides a natural cost pressure valve that prevents budget overruns.</p>
+
+<p>Load balancing across multiple deployments of the same model is another key Router feature. If you have multiple API keys for the same provider, common in enterprise setups to get higher aggregate rate limits, you can configure each key as a separate deployment and the Router will distribute requests across them. The Router supports several load balancing strategies: simple round-robin, weighted round-robin to send more traffic to faster or cheaper deployments, and least-busy routing to the deployment with the fewest pending requests. For applications that need maximum throughput, distributing requests across multiple keys can multiply your effective rate limit by the number of keys.</p>
+
+<p>Cost tracking is built into the Router and provides real-time visibility into API spending. The Router logs every request with its token usage, model, and calculated cost. You can query aggregated costs by model, by user, by time period, or by any custom metadata you attach to requests. This data is essential for budgeting, for identifying cost anomalies, and for making informed decisions about model selection. The Router can also enforce spending limits: you can set a maximum daily or monthly budget, and the Router will reject requests that would exceed the limit, protecting you from runaway costs.</p>
+
+<p>The LiteLLM Proxy Server extends the library's capabilities into a standalone service that acts as an OpenAI-compatible API gateway. Instead of using LiteLLM as a Python library embedded in your application, you run the proxy as a separate service and point your application code at it as if it were the OpenAI API. The proxy provides all the Router features plus additional capabilities like virtual API keys where you can issue keys to team members with individual budgets and model access controls, request and response logging to a database, per-key rate limiting, and a web UI for monitoring. For teams with multiple applications or developers accessing LLM APIs, the proxy centralizes management and provides organization-wide visibility.</p>
+
+<p>An important consideration when using LiteLLM is that while the translation layer handles the common case well, provider-specific features may not be fully available through the unified interface. For example, Anthropic's extended thinking feature, OpenAI's structured output mode, or provider-specific parameters may require passing extra parameters that LiteLLM forwards as-is. LiteLLM supports this through provider-specific keyword arguments, but you should always test that provider-specific features work correctly through LiteLLM rather than assuming compatibility. The library is actively maintained and coverage improves with each release, but edge cases do exist.</p>
+
+<p>Integration with observability tools is another strength of LiteLLM. It supports callbacks that fire on every request, allowing you to send metrics to Prometheus, Datadog, or any monitoring system. You can also integrate with LLM observability platforms like Langfuse, Helicone, or LangSmith by configuring the appropriate callback. This means that by routing all your LLM calls through LiteLLM, you automatically get centralized logging, cost tracking, and observability without instrumenting each individual call site.</p>
+
+<p>For practical purposes, LiteLLM serves as the default LLM client layer in most projects. The standard pattern is to import litellm, configure the Router with your model deployments and fallbacks, and use router.completion() or router.acompletion() everywhere in your application code. This gives you provider portability, fault tolerance, and cost tracking out of the box, with minimal code overhead compared to using a provider SDK directly. When you need provider-specific features, you can always drop down to the native SDK for that particular call while keeping LiteLLM for everything else.</p>
+
+<p>A practical tip for development environments: LiteLLM can route to local models served by Ollama or vLLM using the openai/ prefix with a custom api_base parameter. This allows you to develop and test your application locally using free open-source models, then switch to cloud providers in production by changing only the model configuration. This workflow dramatically reduces development costs and eliminates the need for API keys during the development and testing phases of your project.</p>
+
+<h3 id="router-fallbacks">Router with Fallback Chain</h3>
+
+<pre><code><span class="code-keyword">from</span> litellm <span class="code-keyword">import</span> Router
+
+<span class="code-comment"># Define model deployments with fallback chain:</span>
+<span class="code-comment"># Primary: GPT-4o  ->  Fallback 1: Claude  ->  Fallback 2: Llama/Groq</span>
+model_list = [
+    {
+        <span class="code-string">"model_name"</span>: <span class="code-string">"main-llm"</span>,
+        <span class="code-string">"litellm_params"</span>: {
+            <span class="code-string">"model"</span>: <span class="code-string">"gpt-4o"</span>,
+            <span class="code-string">"api_key"</span>: <span class="code-string">"sk-..."</span>,
+        },
+    },
+    {
+        <span class="code-string">"model_name"</span>: <span class="code-string">"main-llm"</span>,
+        <span class="code-string">"litellm_params"</span>: {
+            <span class="code-string">"model"</span>: <span class="code-string">"anthropic/claude-sonnet-4-20250514"</span>,
+            <span class="code-string">"api_key"</span>: <span class="code-string">"sk-ant-..."</span>,
+        },
+    },
+    {
+        <span class="code-string">"model_name"</span>: <span class="code-string">"main-llm"</span>,
+        <span class="code-string">"litellm_params"</span>: {
+            <span class="code-string">"model"</span>: <span class="code-string">"groq/llama-3.1-70b-versatile"</span>,
+            <span class="code-string">"api_key"</span>: <span class="code-string">"gsk-..."</span>,
+        },
+    },
+]
+
+router = Router(
+    model_list=model_list,
+    fallbacks=[{<span class="code-string">"main-llm"</span>: [<span class="code-string">"main-llm"</span>]}],
+    num_retries=<span class="code-num">2</span>,
+    timeout=<span class="code-num">30</span>,
+    routing_strategy=<span class="code-string">"least-busy"</span>,
+)
+
+<span class="code-comment"># Usage -- identical to litellm.completion()</span>
+<span class="code-keyword">async def</span> <span class="code-fn">call_with_fallback</span>(prompt: str) -> str:
+    response = <span class="code-keyword">await</span> router.<span class="code-fn">acompletion</span>(
+        model=<span class="code-string">"main-llm"</span>,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: prompt}],
+        temperature=<span class="code-num">0</span>,
+        max_tokens=<span class="code-num">1024</span>,
+    )
+    <span class="code-keyword">return</span> response.choices[<span class="code-num">0</span>].message.content
+
+<span class="code-comment"># Cost tracking via callbacks</span>
+<span class="code-keyword">import</span> litellm
+litellm.success_callback = [<span class="code-string">"langfuse"</span>]  <span class="code-comment"># or "lunary", "helicone"</span></code></pre>
+
+<div class="callout tip">
+  <div class="callout-label">LiteLLM Proxy</div>
+  <p>Run <code>litellm --model gpt-4o --port 4000</code> to start a local OpenAI-compatible proxy. Point any OpenAI SDK client at <code>http://localhost:4000</code> and it routes through LiteLLM with all fallback and tracking features. Add <code>--config config.yaml</code> for full Router configuration.</p>
+</div>
+</section>
+
+<!-- ===== SECTION 6 ===== -->
+<section class="section" id="structured-outputs">
+<div class="section-header"><div class="section-num">06</div><h2>Structured Outputs</h2></div>
+
+<p>One of the most important capabilities for production LLM applications is the ability to extract structured data from model outputs. When you ask a model to extract key entities from a document, you do not want a free-form paragraph. You want a JSON object with specific fields that your downstream code can parse reliably. Without structured output enforcement, you are at the mercy of the model's formatting choices, which vary between calls, between models, and even between runs with the same model at non-zero temperature. Structured outputs solve this by constraining the model's generation to produce valid data conforming to a predetermined schema.</p>
+
+<p>There are several approaches to structured outputs, ranging from simple prompting to provider-native enforcement to library-based validation. The simplest approach, asking the model to respond in JSON via the prompt, works surprisingly well with modern models but provides no guarantee. The model might produce invalid JSON, include extra text before or after the JSON block, or use field names that differ from what you expected. For prototyping this is acceptable, but for production code that needs to parse the output programmatically, you need much stronger guarantees than a polite request in the prompt.</p>
+
+<p>OpenAI provides a native structured output feature called response_format with type json_schema. When you provide a JSON schema, OpenAI's API constrains the model's token generation to only produce tokens that are valid according to the schema. This is not post-hoc validation. It is built into the generation process itself, which means the model physically cannot produce output that violates the schema. The schema supports standard JSON Schema features including required fields, type constraints, enums, arrays, nested objects, and descriptions. This is the most reliable approach when using OpenAI models because it guarantees schema compliance with zero chance of parsing failure.</p>
+
+<p>Anthropic does not have an equivalent native JSON schema mode, but provides a powerful alternative through the tool use feature, also known as function calling. You define a tool with a name, description, and input schema using JSON Schema, and when the model decides to use the tool, it generates a structured JSON input that conforms to the schema. By designing your tool definition to represent the desired output structure, you effectively get structured outputs. The key insight is that you are not actually using the tool for its function-calling purpose. You are repurposing the tool schema as a structured output constraint. This pattern is so common that it has become an established idiom in the Anthropic developer community.</p>
+
+<p>The <code>instructor</code> library by Jason Liu is the most popular Python library for working with structured LLM outputs. Instructor wraps the OpenAI and Anthropic SDKs with a Pydantic-based interface: you define your desired output structure as a Pydantic model, and instructor handles the schema conversion, API call, response parsing, and validation automatically. If the model's response fails Pydantic validation, instructor can automatically retry with the validation error message appended to the conversation, giving the model a chance to correct its output. This retry-on-validation pattern typically produces valid structured output within one to two retries even for complex schemas.</p>
+
+<p>The power of Pydantic models as output schemas goes beyond basic type checking. You can use Pydantic validators to enforce business logic constraints such as minimum and maximum values, string patterns, cross-field consistency rules, and custom validation functions. Instructor surfaces these validation failures to the model during retries, effectively teaching the model your business rules through error feedback. This creates a remarkably robust extraction pipeline where the model handles the unstructured-to-structured conversion and Pydantic handles the quality assurance, with automatic retry bridging any gaps.</p>
+
+<p>For production systems, structured outputs enable a critical architectural pattern: the LLM as a data extraction or classification component in a larger pipeline. Instead of using the LLM's output as user-facing text, you use it as structured data that feeds into downstream computation, database storage, or API calls. For example, you might use an LLM to extract invoice line items as a list of Pydantic objects, then store those objects in a database and compute totals programmatically. The structured output guarantee means your downstream code can trust the schema and focus on business logic rather than defensive parsing of unpredictable text.</p>
+
+<p>Performance considerations for structured outputs are important to understand. JSON schema mode in OpenAI adds minimal latency because the schema constraint is applied during generation. However, complex schemas with many nested objects and enums can slightly reduce generation speed because the constraint checking at each token position is more computationally expensive. Instructor's retry mechanism adds latency proportional to the number of retries. If validation fails twice before succeeding, you have paid for three API calls instead of one. To minimize retries, keep schemas as simple as possible, provide clear field descriptions, and include few-shot examples in the prompt showing correctly structured output.</p>
+
+<p>Nested and recursive schemas deserve special attention. OpenAI's JSON schema mode supports nested objects and arrays but has limitations on deeply recursive or self-referencing schemas. If you need to extract tree structures or recursive data, you may need to flatten the schema and post-process the output into the desired structure. Instructor handles this more gracefully because Pydantic natively supports recursive models, and the validation-retry loop can guide the model toward producing valid recursive structures. For deeply nested schemas, it often helps to decompose the extraction into multiple simpler calls rather than trying to extract everything in one monolithic call.</p>
+
+<p>Testing structured outputs requires a different approach than testing free-text outputs. Since the output conforms to a known schema, you can write deterministic assertions: check that required fields are present, values are within expected ranges, enums contain valid values, and lists have the expected length. This makes structured output pipelines much more testable than free-text pipelines, which is another strong reason to prefer structured outputs in production systems. The evaluation module covers this in detail, but the key insight is that structured outputs transform the inherently non-deterministic LLM output into something you can test with standard software testing techniques.</p>
+
+<p>One advanced pattern is using structured outputs for chain-of-thought reasoning with structured results. You define a Pydantic model with a reasoning field of type string and a result field with your structured data type, and the model is forced to explain its reasoning before producing the structured answer. This combines the quality benefits of chain-of-thought prompting with the reliability benefits of structured outputs. The reasoning field serves as both a quality improvement mechanism and an audit trail for debugging when the structured result is incorrect, because you can read the reasoning to understand why the model made a particular extraction decision.</p>
+
+<h3 id="instructor-lib">Instructor with Pydantic Validation</h3>
+
+<pre><code><span class="code-keyword">import</span> instructor
+<span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+<span class="code-keyword">from</span> pydantic <span class="code-keyword">import</span> BaseModel, Field, field_validator
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Literal
+
+<span class="code-comment"># Define the output schema with Pydantic</span>
+<span class="code-keyword">class</span> <span class="code-fn">ExtractedEntity</span>(BaseModel):
+    name: str = Field(..., description=<span class="code-string">"Entity name"</span>)
+    entity_type: Literal[<span class="code-string">"person"</span>, <span class="code-string">"org"</span>, <span class="code-string">"location"</span>, <span class="code-string">"date"</span>]
+    confidence: float = Field(..., ge=<span class="code-num">0.0</span>, le=<span class="code-num">1.0</span>)
+
+    @<span class="code-fn">field_validator</span>(<span class="code-string">"name"</span>)
+    @classmethod
+    <span class="code-keyword">def</span> <span class="code-fn">name_not_empty</span>(cls, v):
+        <span class="code-keyword">if not</span> v.strip():
+            <span class="code-keyword">raise</span> ValueError(<span class="code-string">"Entity name cannot be empty"</span>)
+        <span class="code-keyword">return</span> v.strip()
+
+<span class="code-keyword">class</span> <span class="code-fn">ExtractionResult</span>(BaseModel):
+    reasoning: str = Field(..., description=<span class="code-string">"Step-by-step reasoning"</span>)
+    entities: List[ExtractedEntity] = Field(default_factory=list)
+    document_summary: str = Field(..., max_length=<span class="code-num">200</span>)
+
+<span class="code-comment"># Patch the OpenAI client with instructor</span>
+client = instructor.<span class="code-fn">from_openai</span>(OpenAI())
+
+<span class="code-comment"># Structured call -- returns a Pydantic model, not raw text</span>
+result = client.chat.completions.<span class="code-fn">create</span>(
+    model=<span class="code-string">"gpt-4o"</span>,
+    response_model=ExtractionResult,
+    max_retries=<span class="code-num">3</span>,
+    messages=[
+        {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: <span class="code-string">"Extract entities from the document."</span>},
+        {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>,   <span class="code-string">"content"</span>: <span class="code-string">"""
+            Anthropic, based in San Francisco, announced on March 4 2025
+            that CEO Dario Amodei will present new safety research at
+            the United Nations headquarters in New York.
+        """</span>},
+    ],
+    temperature=<span class="code-num">0</span>,
+)
+
+<span class="code-comment"># result is a validated Pydantic object</span>
+print(result.reasoning)
+<span class="code-keyword">for</span> entity <span class="code-keyword">in</span> result.entities:
+    print(f<span class="code-string">"  {entity.name} ({entity.entity_type}) conf={entity.confidence}"</span>)
+
+<span class="code-comment"># Works with Anthropic too:</span>
+<span class="code-keyword">from</span> anthropic <span class="code-keyword">import</span> Anthropic
+ant_client = instructor.<span class="code-fn">from_anthropic</span>(Anthropic())
+result2 = ant_client.messages.<span class="code-fn">create</span>(
+    model=<span class="code-string">"claude-sonnet-4-20250514"</span>,
+    response_model=ExtractionResult,
+    max_retries=<span class="code-num">3</span>,
+    max_tokens=<span class="code-num">1024</span>,
+    messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: <span class="code-string">"Extract entities from: ..."</span>}],
+)</code></pre>
+
+<div class="callout info">
+  <div class="callout-label">Schema Design Tip</div>
+  <p>Always include a <code>reasoning</code> or <code>thinking</code> field in your Pydantic model. Forcing the model to explain its reasoning before producing structured fields consistently improves extraction accuracy. It is chain-of-thought prompting built directly into the output schema.</p>
+</div>
+</section>
+
+<!-- ===== DIAGRAMS ===== -->
+<section class="section" id="diagrams">
+<div class="section-header"><div class="section-num">&#9672;</div><h2>Architecture Diagrams</h2></div>
+
+<!-- DIAGRAM 1: API Lifecycle -->
+<div class="diagram-wrap">
+  <svg viewBox="0 0 920 190" width="100%" xmlns="http://www.w3.org/2000/svg" aria-label="API lifecycle: Code to SDK to HTTPS to Provider to Model to Response">
+    <defs>
+      <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#06b6d4"/></marker>
+      <marker id="arr-back" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto"><polygon points="8 0, 0 3, 8 6" fill="#22d3ee"/></marker>
+    </defs>
+    <rect x="10" y="50" width="120" height="58" rx="10" fill="#171c2e" stroke="#2e3554"/>
+    <text x="70" y="76" text-anchor="middle" fill="#e6e8f4" font-family="'Space Grotesk',sans-serif" font-size="13" font-weight="600">Your Code</text>
+    <text x="70" y="93" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10">messages + config</text>
+    <line x1="130" y1="79" x2="158" y2="79" stroke="#06b6d4" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="162" y="50" width="110" height="58" rx="10" fill="#171c2e" stroke="#06b6d4"/>
+    <text x="217" y="76" text-anchor="middle" fill="#06b6d4" font-family="'Space Grotesk',sans-serif" font-size="13" font-weight="600">SDK</text>
+    <text x="217" y="93" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10">auth + serialize</text>
+    <line x1="272" y1="79" x2="300" y2="79" stroke="#06b6d4" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="304" y="50" width="120" height="58" rx="10" fill="#171c2e" stroke="#2e3554"/>
+    <text x="364" y="76" text-anchor="middle" fill="#e6e8f4" font-family="'Space Grotesk',sans-serif" font-size="13" font-weight="600">HTTPS</text>
+    <text x="364" y="93" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10">POST + Bearer token</text>
+    <line x1="424" y1="79" x2="452" y2="79" stroke="#06b6d4" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="456" y="50" width="130" height="58" rx="10" fill="#171c2e" stroke="#06b6d4"/>
+    <text x="521" y="76" text-anchor="middle" fill="#06b6d4" font-family="'Space Grotesk',sans-serif" font-size="13" font-weight="600">Provider API</text>
+    <text x="521" y="93" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10">validate + route</text>
+    <line x1="586" y1="79" x2="614" y2="79" stroke="#06b6d4" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="618" y="50" width="120" height="58" rx="10" fill="#1e2438" stroke="#a855f7"/>
+    <text x="678" y="76" text-anchor="middle" fill="#a855f7" font-family="'Space Grotesk',sans-serif" font-size="13" font-weight="600">LLM Model</text>
+    <text x="678" y="93" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10">inference</text>
+    <line x1="738" y1="79" x2="766" y2="79" stroke="#06b6d4" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="770" y="50" width="130" height="58" rx="10" fill="#171c2e" stroke="#22c55e"/>
+    <text x="835" y="76" text-anchor="middle" fill="#22c55e" font-family="'Space Grotesk',sans-serif" font-size="13" font-weight="600">Response</text>
+    <text x="835" y="93" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10">text + usage + id</text>
+    <path d="M 770 124 L 70 124" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="6 3" marker-end="url(#arr-back)"/>
+    <text x="420" y="144" text-anchor="middle" fill="#22d3ee" font-family="'Nunito',sans-serif" font-size="11">parsed response object returned to your code</text>
+    <text x="10" y="178" fill="#545a78" font-family="'Nunito',sans-serif" font-size="11">Full lifecycle: application code &#8594; SDK serialization &#8594; HTTPS transport &#8594; provider routing &#8594; model inference &#8594; response</text>
+  </svg>
+  <p class="diagram-caption">Figure 1 -- The complete lifecycle of an LLM API call, from application code through the SDK, network, provider infrastructure, model, and back.</p>
+</div>
+
+<!-- DIAGRAM 2: LiteLLM Router -->
+<div class="diagram-wrap">
+  <svg viewBox="0 0 900 270" width="100%" xmlns="http://www.w3.org/2000/svg" aria-label="LiteLLM Router: primary GPT-4o, fallback Claude, fallback Llama/Groq">
+    <defs>
+      <marker id="a2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#06b6d4"/></marker>
+      <marker id="a-red" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ef4444"/></marker>
+      <marker id="a-amb" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#f59e0b"/></marker>
+      <marker id="a-grn" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#22c55e"/></marker>
+    </defs>
+    <rect x="10" y="95" width="140" height="58" rx="10" fill="#171c2e" stroke="#2e3554"/>
+    <text x="80" y="121" text-anchor="middle" fill="#e6e8f4" font-family="'Space Grotesk',sans-serif" font-size="13" font-weight="600">Your App</text>
+    <text x="80" y="138" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10">router.acompletion()</text>
+    <line x1="150" y1="124" x2="195" y2="124" stroke="#06b6d4" stroke-width="2" marker-end="url(#a2)"/>
+    <rect x="199" y="75" width="155" height="98" rx="12" fill="#10131e" stroke="#06b6d4" stroke-width="2"/>
+    <text x="277" y="108" text-anchor="middle" fill="#06b6d4" font-family="'Space Grotesk',sans-serif" font-size="14" font-weight="700">LiteLLM Router</text>
+    <text x="277" y="126" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="11">fallbacks + balancing</text>
+    <text x="277" y="143" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="11">cost tracking</text>
+    <text x="277" y="162" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10">retries: 2 | timeout: 30s</text>
+    <!-- Primary GPT-4o -->
+    <line x1="354" y1="100" x2="468" y2="50" stroke="#06b6d4" stroke-width="2" marker-end="url(#a2)"/>
+    <rect x="472" y="20" width="170" height="58" rx="10" fill="#171c2e" stroke="#22c55e"/>
+    <text x="557" y="42" text-anchor="middle" fill="#22c55e" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600">PRIMARY</text>
+    <text x="557" y="59" text-anchor="middle" fill="#e6e8f4" font-family="'Space Grotesk',sans-serif" font-size="13" font-weight="600">GPT-4o (OpenAI)</text>
+    <text x="557" y="73" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10">$2.50 / $10.00 per 1M</text>
+    <!-- Fallback 1 Claude -->
+    <line x1="354" y1="124" x2="468" y2="124" stroke="#f59e0b" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#a-amb)"/>
+    <rect x="472" y="95" width="170" height="58" rx="10" fill="#171c2e" stroke="#f59e0b"/>
+    <text x="557" y="117" text-anchor="middle" fill="#f59e0b" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600">FALLBACK 1</text>
+    <text x="557" y="134" text-anchor="middle" fill="#e6e8f4" font-family="'Space Grotesk',sans-serif" font-size="13" font-weight="600">Claude Sonnet</text>
+    <text x="557" y="148" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10">$3.00 / $15.00 per 1M</text>
+    <!-- Fallback 2 Llama -->
+    <line x1="354" y1="148" x2="468" y2="200" stroke="#ef4444" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#a-red)"/>
+    <rect x="472" y="172" width="170" height="58" rx="10" fill="#171c2e" stroke="#ef4444"/>
+    <text x="557" y="194" text-anchor="middle" fill="#ef4444" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600">FALLBACK 2</text>
+    <text x="557" y="211" text-anchor="middle" fill="#e6e8f4" font-family="'Space Grotesk',sans-serif" font-size="13" font-weight="600">Llama 3.1 70B (Groq)</text>
+    <text x="557" y="225" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10">$0.59 / $0.79 per 1M</text>
+    <!-- Failure X markers -->
+    <text x="414" y="40" fill="#ef4444" font-family="'Space Grotesk',sans-serif" font-size="16" font-weight="700">&#10005;</text>
+    <text x="424" y="52" fill="#545a78" font-family="'Nunito',sans-serif" font-size="9">429</text>
+    <text x="414" y="114" fill="#ef4444" font-family="'Space Grotesk',sans-serif" font-size="16" font-weight="700">&#10005;</text>
+    <text x="424" y="126" fill="#545a78" font-family="'Nunito',sans-serif" font-size="9">503</text>
+    <!-- Response arrows -->
+    <line x1="642" y1="49" x2="790" y2="49" stroke="#22c55e" stroke-width="1.5" marker-end="url(#a-grn)"/>
+    <line x1="642" y1="124" x2="790" y2="124" stroke="#22c55e" stroke-width="1.5" marker-end="url(#a-grn)"/>
+    <line x1="642" y1="201" x2="790" y2="201" stroke="#22c55e" stroke-width="1.5" marker-end="url(#a-grn)"/>
+    <!-- Success -->
+    <rect x="794" y="92" width="72" height="58" rx="10" fill="#10131e" stroke="#22c55e"/>
+    <text x="830" y="121" text-anchor="middle" fill="#22c55e" font-family="'Space Grotesk',sans-serif" font-size="24" font-weight="700">&#10003;</text>
+    <text x="830" y="140" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10">response</text>
+    <text x="10" y="260" fill="#545a78" font-family="'Nunito',sans-serif" font-size="11">LiteLLM Router: tries primary first, falls back through the chain on failure (429, 503, timeout)</text>
+  </svg>
+  <p class="diagram-caption">Figure 2 -- LiteLLM Router fallback chain: requests go to GPT-4o first; on failure they fall back to Claude Sonnet, then Llama 3.1 on Groq.</p>
+</div>
+</section>
+
+<!-- PREV / NEXT -->
+<div class="next-section">
+  <div>
+    <div class="next-label">&#8592; Previous Module</div>
+    <a href="02-llms-slms-multimodal.html" class="next-btn prev-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      02 &middot; LLMs, SLMs &amp; Multimodal
+    </a>
+  </div>
+  <div style="text-align:right;">
+    <div class="next-label">Next Module &#8594;</div>
+    <a href="04-fine-tuning.html" class="next-btn">
+      04 &middot; Fine-Tuning
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+    <div class="next-phase">Phase: API &amp; Customization</div>
+  </div>
+</div>
+
+</main>
+</div>
+</body>
+</html>

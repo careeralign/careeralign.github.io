@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generative AI Learning Path — CareerAlign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN SYSTEM — used across ALL pages
+   ============================================================ */
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* ── NAV ───────────────────────────────────────────────────── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  height: 58px;
+  gap: 32px;
+}
+.nav-logo {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+}
+.nav-links a {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--text-primary); }
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+.progress-badge {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 12.5px;
+  font-family: var(--font-mono);
+  color: var(--accent-cyan);
+  white-space: nowrap;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all .2s;
+}
+.btn-primary {
+  background: var(--accent-indigo);
+  color: white;
+}
+.btn-primary:hover { background: #5254d4; transform: translateY(-1px); }
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+}
+.btn-outline:hover { border-color: var(--accent-indigo); color: var(--text-primary); }
+
+/* ── HERO ───────────────────────────────────────────────────── */
+.hero {
+  padding: 80px 60px 60px;
+  max-width: 1300px;
+  margin: 0 auto;
+  position: relative;
+}
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(99,102,241,0.1);
+  border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #a5b4fc;
+  margin-bottom: 24px;
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 20px;
+  letter-spacing: -.02em;
+  background: linear-gradient(135deg, #e6e8f4 30%, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-sub {
+  font-size: 18px;
+  color: var(--text-secondary);
+  max-width: 680px;
+  line-height: 1.75;
+  margin-bottom: 40px;
+}
+.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.stats-strip {
+  display: flex;
+  gap: 0;
+  margin: 56px 0 0;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-surface);
+}
+.stat-item {
+  flex: 1;
+  padding: 22px 24px;
+  border-right: 1px solid var(--border-default);
+  text-align: center;
+}
+.stat-item:last-child { border-right: none; }
+.stat-val {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+/* ── SECTION WRAPPER ────────────────────────────────────────── */
+.section {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 56px 60px;
+}
+.section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 36px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.section-title span { color: var(--accent-indigo); }
+.section-sub {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  max-width: 600px;
+  line-height: 1.65;
+}
+.divider {
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  margin: 0 60px;
+}
+
+/* ── LEARNING PATH SVG SECTION ──────────────────────────────── */
+.path-section {
+  padding: 56px 0;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.path-inner {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 60px;
+}
+.learning-path-svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.phase-tag {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.svg-module-box {
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.svg-module-box:hover { opacity: .85; }
+.svg-module-label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* ── MODULE CARD GRID ───────────────────────────────────────── */
+.phase-heading {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-bottom: 16px;
+}
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 18px;
+  margin-bottom: 40px;
+}
+.module-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  border-top: 3px solid var(--card-color, #6366f1);
+  transition: border-color .2s, box-shadow .2s, transform .2s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.module-card:hover {
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  transform: translateY(-2px);
+  border-color: var(--card-color, #6366f1);
+}
+.module-card.completed { opacity: .6; }
+.module-card.completed::after {
+  content: '✓ Read';
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #22c55e;
+  background: rgba(34,197,94,0.12);
+  border: 1px solid rgba(34,197,94,0.3);
+  border-radius: 20px;
+  padding: 2px 9px;
+}
+.card-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--card-color, #6366f1);
+  letter-spacing: .06em;
+}
+.card-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+.card-desc {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  flex: 1;
+}
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+.card-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.card-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+}
+.topic-pill {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  color: var(--text-muted);
+}
+.card-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.card-check:checked {
+  background: var(--card-color, #6366f1);
+  border-color: var(--card-color, #6366f1);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6l3 3 5-5' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* ── GLOSSARY ────────────────────────────────────────────────── */
+.glossary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 12px;
+}
+.glossary-item {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+}
+.gloss-term {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent-cyan);
+  margin-bottom: 6px;
+}
+.gloss-def {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ── PROGRESS OVERALL BAR ────────────────────────────────────── */
+.progress-bar-wrap {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  padding: 20px 28px;
+  margin-bottom: 36px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.progress-label {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+.progress-track {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-base);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-indigo), var(--accent-cyan));
+  border-radius: 4px;
+  transition: width .5s ease;
+}
+.progress-pct {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--accent-cyan);
+  white-space: nowrap;
+}
+.btn-reset {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: var(--font-body);
+}
+.btn-reset:hover { color: var(--text-secondary); background: var(--bg-overlay); }
+
+/* ── COLAB BUTTON ────────────────────────────────────────────── */
+.colab-btn {
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+.colab-btn:hover { opacity: 1; }
+
+/* ── FOOTER ──────────────────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--border-subtle);
+  padding: 36px 60px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+footer a { color: var(--accent-indigo); }
+footer a:hover { text-decoration: underline; }
+
+/* ── SCROLLBAR ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     NAV
+══════════════════════════════════════════════════════════ -->
+<nav class="nav">
+  <a href="../index.html" class="nav-links" style="margin-right:0;gap:0;flex:none;font-size:13.5px;font-weight:500;color:var(--text-secondary);">← CareerAlign</a>
+  <div class="nav-logo">🧠 <span>CareerAlign</span> GenAI</div>
+  <div class="nav-links">
+    <a href="#path">Learning Path</a>
+    <a href="#modules">All Modules</a>
+    <a href="#glossary">Glossary</a>
+  </div>
+  <div class="nav-right">
+    <div class="progress-badge" id="nav-progress">0 / 17 complete</div>
+    <button class="btn btn-primary" onclick="document.getElementById('modules').scrollIntoView({behavior:'smooth'})">Start Learning →</button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-eyebrow">📋 Generative AI Learning Path</div>
+  <h1>Generative AI<br>Learning Path</h1>
+  <p class="hero-sub">
+    Your complete pre-reading hub. Seventeen deep-dive study guides covering everything from
+    transformer internals to deploying autonomous multi-agent systems in production — designed
+    for learners who want to go from zero to building production GenAI systems.
+  </p>
+  <div class="hero-actions">
+    <a href="00-prerequisites.html" class="btn btn-primary">Begin with Prerequisites →</a>
+    <a href="01-foundations-of-genai.html" class="btn btn-outline">Jump to Module 1</a>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat-item">
+      <div class="stat-val">17</div>
+      <div class="stat-label">Study Guides</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">16</div>
+      <div class="stat-label">Course Modules</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">2</div>
+      <div class="stat-label">Capstone Projects</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">17</div>
+      <div class="stat-label">Notebooks</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">🌐</div>
+      <div class="stat-label">Open Source</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     LEARNING PATH SVG
+══════════════════════════════════════════════════════════ -->
+<div class="path-section" id="path">
+  <div class="path-inner">
+    <div class="section-header" style="margin-bottom:28px;">
+      <div>
+        <div class="section-title">Learning Path <span>Flowchart</span></div>
+        <div class="section-sub">The dependency graph of the course. Each phase builds on the previous. Click any box to open that study guide.</div>
+      </div>
+    </div>
+
+    <svg class="learning-path-svg" viewBox="0 0 1060 530" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L7,3.5 z" fill="#2e3554"/>
+        </marker>
+        <marker id="arr-hi" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L7,3.5 z" fill="#6366f1"/>
+        </marker>
+        <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="130%">
+          <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="rgba(0,0,0,0.5)"/>
+        </filter>
+      </defs>
+
+      <!-- ── Phase band backgrounds ── -->
+      <!-- Prereqs -->
+      <rect x="0" y="4" width="1060" height="54" rx="8" fill="rgba(100,116,139,0.06)"/>
+      <!-- Phase 1 Foundations -->
+      <rect x="0" y="68" width="1060" height="54" rx="8" fill="rgba(59,130,246,0.06)"/>
+      <!-- Phase 2 APIs -->
+      <rect x="0" y="132" width="1060" height="54" rx="8" fill="rgba(6,182,212,0.06)"/>
+      <!-- Phase 3 RAG -->
+      <rect x="0" y="196" width="1060" height="54" rx="8" fill="rgba(249,115,22,0.06)"/>
+      <!-- Phase 4 Agents -->
+      <rect x="0" y="260" width="1060" height="54" rx="8" fill="rgba(168,85,247,0.06)"/>
+      <!-- Phase 5 Quality -->
+      <rect x="0" y="324" width="1060" height="54" rx="8" fill="rgba(239,68,68,0.06)"/>
+      <!-- Phase 6 Cloud -->
+      <rect x="0" y="388" width="1060" height="54" rx="8" fill="rgba(34,197,94,0.06)"/>
+      <!-- Phase 7 Projects -->
+      <rect x="0" y="452" width="1060" height="68" rx="8" fill="rgba(245,158,11,0.06)"/>
+
+      <!-- ── Phase labels ── -->
+      <text x="12" y="22" class="phase-tag" fill="#64748b">PREREQUISITES</text>
+      <text x="12" y="86" class="phase-tag" fill="#3b82f6">PHASE 1 · FOUNDATIONS</text>
+      <text x="12" y="150" class="phase-tag" fill="#06b6d4">PHASE 2 · APIs &amp; TRAINING</text>
+      <text x="12" y="214" class="phase-tag" fill="#f97316">PHASE 3 · PROMPTING &amp; RAG</text>
+      <text x="12" y="278" class="phase-tag" fill="#a855f7">PHASE 4 · AGENTS</text>
+      <text x="12" y="342" class="phase-tag" fill="#ef4444">PHASE 5 · QUALITY &amp; SAFETY</text>
+      <text x="12" y="406" class="phase-tag" fill="#22c55e">PHASE 6 · CLOUD &amp; TOOLS</text>
+      <text x="12" y="470" class="phase-tag" fill="#f59e0b">PHASE 7 · CAPSTONE PROJECTS</text>
+
+      <!-- ── CONNECTOR LINES ── -->
+      <!-- Prereq → M1, M2 -->
+      <path d="M440,58 Q340,65 320,68" stroke="#2e3554" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+      <path d="M500,58 Q690,65 720,68" stroke="#2e3554" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+
+      <!-- M1 → M3 -->
+      <path d="M320,122 Q240,130 185,132" stroke="#2e3554" stroke-width="1.2" fill="none" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+      <!-- M2 → M3 -->
+      <path d="M720,122 Q500,130 270,132" stroke="#2e3554" stroke-width="1.2" fill="none" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+      <!-- M3 → M4 -->
+      <line x1="270" y1="158" x2="455" y2="132" stroke="#2e3554" stroke-width="1.2" marker-end="url(#arr)"/>
+      <!-- M4 → M5 -->
+      <line x1="605" y1="150" x2="750" y2="150" stroke="#2e3554" stroke-width="1.2" marker-end="url(#arr)"/>
+      <!-- M3 → M6 -->
+      <path d="M185,186 Q230,195 275,196" stroke="#2e3554" stroke-width="1.2" fill="none" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+      <!-- M3 → M7 -->
+      <path d="M185,186 Q340,196 540,196" stroke="#2e3554" stroke-width="1.2" fill="none" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+      <!-- M7 → M8 -->
+      <line x1="690" y1="214" x2="830" y2="214" stroke="#2e3554" stroke-width="1.2" marker-end="url(#arr)"/>
+      <!-- M8 → M9 (Agent) -->
+      <path d="M900,250 Q820,260 620,260" stroke="#a855f7" stroke-width="1.5" fill="none" marker-end="url(#arr-hi)"/>
+      <!-- M6 → M9 -->
+      <path d="M425,250 Q500,258 530,260" stroke="#2e3554" stroke-width="1.2" fill="none" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+      <!-- M9 → M10 -->
+      <path d="M530,314 Q420,320 300,324" stroke="#2e3554" stroke-width="1.2" fill="none" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+      <!-- M9 → M11 -->
+      <line x1="600" y1="314" x2="600" y2="324" stroke="#2e3554" stroke-width="1.2" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+      <!-- M9 → M12 -->
+      <path d="M660" y1="314" Q800,320 880,324" stroke="#2e3554" stroke-width="1.2" fill="none" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+      <path d="M660,314 Q800,320 880,324" stroke="#2e3554" stroke-width="1.2" fill="none" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+      <!-- M5 → M13 -->
+      <path d="M830,186 Q920,380 810,388" stroke="#22c55e" stroke-width="1" fill="none" marker-end="url(#arr)" stroke-dasharray="4,3" opacity=".6"/>
+      <!-- M13 → M14 -->
+      <line x1="810" y1="424" x2="950" y2="406" stroke="#2e3554" stroke-width="1.2" marker-end="url(#arr)"/>
+      <!-- M15,M16 inputs -->
+      <path d="M530,378 Q450,440 360,452" stroke="#f59e0b" stroke-width="1.5" fill="none" marker-end="url(#arr-hi)"/>
+      <path d="M600,378 Q720,440 790,452" stroke="#f59e0b" stroke-width="1.5" fill="none" marker-end="url(#arr-hi)"/>
+
+      <!-- ── MODULE BOXES ── -->
+
+      <!-- 00 Prerequisites -->
+      <a href="00-prerequisites.html" class="svg-module-box">
+        <rect x="335" y="8" width="390" height="44" rx="7" fill="#0f1621" stroke="#64748b" stroke-width="1.5" filter="url(#card-shadow)"/>
+        <text x="530" y="26" text-anchor="middle" class="svg-module-label" font-size="10" fill="#64748b" font-family="'JetBrains Mono',monospace">00 · PREREQUISITES</text>
+        <text x="530" y="42" text-anchor="middle" class="svg-module-label" font-size="12" fill="#94a3b8" font-family="'Space Grotesk',sans-serif">Python · APIs · Git · ML Basics · Docker</text>
+      </a>
+
+      <!-- 01 Foundations -->
+      <a href="01-foundations-of-genai.html" class="svg-module-box">
+        <rect x="175" y="72" width="290" height="44" rx="7" fill="#0f1621" stroke="#3b82f6" stroke-width="1.5" filter="url(#card-shadow)"/>
+        <text x="320" y="88" text-anchor="middle" class="svg-module-label" font-size="10" fill="#3b82f6" font-family="'JetBrains Mono',monospace">MODULE 01</text>
+        <text x="320" y="106" text-anchor="middle" class="svg-module-label" font-size="12.5" fill="#93c5fd" font-family="'Space Grotesk',sans-serif">Foundations of Modern GenAI</text>
+      </a>
+
+      <!-- 02 Models -->
+      <a href="02-llms-slms-multimodal.html" class="svg-module-box">
+        <rect x="585" y="72" width="290" height="44" rx="7" fill="#0f1621" stroke="#3b82f6" stroke-width="1.5" filter="url(#card-shadow)"/>
+        <text x="730" y="88" text-anchor="middle" class="svg-module-label" font-size="10" fill="#3b82f6" font-family="'JetBrains Mono',monospace">MODULE 02</text>
+        <text x="730" y="106" text-anchor="middle" class="svg-module-label" font-size="12.5" fill="#93c5fd" font-family="'Space Grotesk',sans-serif">LLMs, SLMs &amp; Multimodal</text>
+      </a>
+
+      <!-- 03 APIs -->
+      <a href="03-api-for-llms.html" class="svg-module-box">
+        <rect x="80" y="136" width="200" height="44" rx="7" fill="#0f1621" stroke="#06b6d4" stroke-width="1.5" filter="url(#card-shadow)"/>
+        <text x="180" y="152" text-anchor="middle" class="svg-module-label" font-size="10" fill="#06b6d4" font-family="'JetBrains Mono',monospace">MODULE 03</text>
+        <text x="180" y="170" text-anchor="middle" class="svg-module-label" font-size="12.5" fill="#67e8f9" font-family="'Space Grotesk',sans-serif">API for Accessing LLMs</text>
+      </a>
+
+      <!-- 04 Fine-Tuning -->
+      <a href="04-fine-tuning.html" class="svg-module-box">
+        <rect x="455" y="136" width="180" height="44" rx="7" fill="#0f1621" stroke="#06b6d4" stroke-width="1.5" filter="url(#card-shadow)"/>
+        <text x="545" y="152" text-anchor="middle" class="svg-module-label" font-size="10" fill="#06b6d4" font-family="'JetBrains Mono',monospace">MODULE 04</text>
+        <text x="545" y="170" text-anchor="middle" class="svg-module-label" font-size="12.5" fill="#67e8f9" font-family="'Space Grotesk',sans-serif">Fine-Tuning</text>
+      </a>
+
+      <!-- 05 Hosting -->
+      <a href="05-llm-hosting.html" class="svg-module-box">
+        <rect x="755" y="136" width="200" height="44" rx="7" fill="#0f1621" stroke="#06b6d4" stroke-width="1.5" filter="url(#card-shadow)"/>
+        <text x="855" y="152" text-anchor="middle" class="svg-module-label" font-size="10" fill="#06b6d4" font-family="'JetBrains Mono',monospace">MODULE 05</text>
+        <text x="855" y="170" text-anchor="middle" class="svg-module-label" font-size="12.5" fill="#67e8f9" font-family="'Space Grotesk',sans-serif">LLM Hosting &amp; APIs</text>
+      </a>
+
+      <!-- 06 Prompting -->
+      <a href="06-prompt-engineering.html" class="svg-module-box">
+        <rect x="275" y="200" width="180" height="44" rx="7" fill="#0f1621" stroke="#f97316" stroke-width="1.5" filter="url(#card-shadow)"/>
+        <text x="365" y="216" text-anchor="middle" class="svg-module-label" font-size="10" fill="#f97316" font-family="'JetBrains Mono',monospace">MODULE 06</text>
+        <text x="365" y="234" text-anchor="middle" class="svg-module-label" font-size="12.5" fill="#fdba74" font-family="'Space Grotesk',sans-serif">Prompt Engineering</text>
+      </a>
+
+      <!-- 07 RAG -->
+      <a href="07-rag-systems.html" class="svg-module-box">
+        <rect x="540" y="200" width="180" height="44" rx="7" fill="#0f1621" stroke="#f97316" stroke-width="1.5" filter="url(#card-shadow)"/>
+        <text x="630" y="216" text-anchor="middle" class="svg-module-label" font-size="10" fill="#f97316" font-family="'JetBrains Mono',monospace">MODULE 07</text>
+        <text x="630" y="234" text-anchor="middle" class="svg-module-label" font-size="12.5" fill="#fdba74" font-family="'Space Grotesk',sans-serif">RAG Systems</text>
+      </a>
+
+      <!-- 08 Advanced RAG -->
+      <a href="08-advanced-rag.html" class="svg-module-box">
+        <rect x="800" y="200" width="200" height="44" rx="7" fill="#0f1621" stroke="#f97316" stroke-width="1.5" filter="url(#card-shadow)"/>
+        <text x="900" y="216" text-anchor="middle" class="svg-module-label" font-size="10" fill="#f97316" font-family="'JetBrains Mono',monospace">MODULE 08</text>
+        <text x="900" y="234" text-anchor="middle" class="svg-module-label" font-size="12.5" fill="#fdba74" font-family="'Space Grotesk',sans-serif">Advanced RAG &amp; Multimodal</text>
+      </a>
+
+      <!-- 09 Agents -->
+      <a href="09-agents.html" class="svg-module-box">
+        <rect x="420" y="264" width="320" height="44" rx="7" fill="#0f1621" stroke="#a855f7" stroke-width="2" filter="url(#card-shadow)"/>
+        <text x="580" y="280" text-anchor="middle" class="svg-module-label" font-size="10" fill="#a855f7" font-family="'JetBrains Mono',monospace">MODULE 09</text>
+        <text x="580" y="298" text-anchor="middle" class="svg-module-label" font-size="12.5" fill="#d8b4fe" font-family="'Space Grotesk',sans-serif">Agents &amp; Multi-Agent Systems</text>
+      </a>
+
+      <!-- 10 Evaluation -->
+      <a href="10-evaluation.html" class="svg-module-box">
+        <rect x="165" y="328" width="200" height="44" rx="7" fill="#0f1621" stroke="#ef4444" stroke-width="1.5" filter="url(#card-shadow)"/>
+        <text x="265" y="344" text-anchor="middle" class="svg-module-label" font-size="10" fill="#ef4444" font-family="'JetBrains Mono',monospace">MODULE 10</text>
+        <text x="265" y="362" text-anchor="middle" class="svg-module-label" font-size="12.5" fill="#fca5a5" font-family="'Space Grotesk',sans-serif">Evaluation Strategies</text>
+      </a>
+
+      <!-- 11 Guardrails -->
+      <a href="11-guardrails.html" class="svg-module-box">
+        <rect x="490" y="328" width="200" height="44" rx="7" fill="#0f1621" stroke="#ef4444" stroke-width="1.5" filter="url(#card-shadow)"/>
+        <text x="590" y="344" text-anchor="middle" class="svg-module-label" font-size="10" fill="#ef4444" font-family="'JetBrains Mono',monospace">MODULE 11</text>
+        <text x="590" y="362" text-anchor="middle" class="svg-module-label" font-size="12.5" fill="#fca5a5" font-family="'Space Grotesk',sans-serif">Guardrails</text>
+      </a>
+
+      <!-- 12 MCP -->
+      <a href="12-mcp.html" class="svg-module-box">
+        <rect x="800" y="328" width="200" height="44" rx="7" fill="#0f1621" stroke="#ef4444" stroke-width="1.5" filter="url(#card-shadow)"/>
+        <text x="900" y="344" text-anchor="middle" class="svg-module-label" font-size="10" fill="#ef4444" font-family="'JetBrains Mono',monospace">MODULE 12</text>
+        <text x="900" y="362" text-anchor="middle" class="svg-module-label" font-size="12.5" fill="#fca5a5" font-family="'Space Grotesk',sans-serif">Model Context Protocol</text>
+      </a>
+
+      <!-- 13 AWS -->
+      <a href="13-aws-cloud.html" class="svg-module-box">
+        <rect x="640" y="392" width="200" height="44" rx="7" fill="#0f1621" stroke="#22c55e" stroke-width="1.5" filter="url(#card-shadow)"/>
+        <text x="740" y="408" text-anchor="middle" class="svg-module-label" font-size="10" fill="#22c55e" font-family="'JetBrains Mono',monospace">MODULE 13</text>
+        <text x="740" y="426" text-anchor="middle" class="svg-module-label" font-size="12.5" fill="#86efac" font-family="'Space Grotesk',sans-serif">AWS Cloud Services</text>
+      </a>
+
+      <!-- 14 n8n -->
+      <a href="14-n8n-no-code.html" class="svg-module-box">
+        <rect x="870" y="392" width="160" height="44" rx="7" fill="#0f1621" stroke="#22c55e" stroke-width="1.5" filter="url(#card-shadow)"/>
+        <text x="950" y="408" text-anchor="middle" class="svg-module-label" font-size="10" fill="#22c55e" font-family="'JetBrains Mono',monospace">MODULE 14</text>
+        <text x="950" y="426" text-anchor="middle" class="svg-module-label" font-size="12.5" fill="#86efac" font-family="'Space Grotesk',sans-serif">n8n No-Code</text>
+      </a>
+
+      <!-- 15 Document Portal -->
+      <a href="15-capstone-document-portal.html" class="svg-module-box">
+        <rect x="130" y="458" width="310" height="48" rx="7" fill="#0f1621" stroke="#f59e0b" stroke-width="2" filter="url(#card-shadow)"/>
+        <text x="285" y="474" text-anchor="middle" class="svg-module-label" font-size="10" fill="#f59e0b" font-family="'JetBrains Mono',monospace">CAPSTONE · MODULE 15</text>
+        <text x="285" y="494" text-anchor="middle" class="svg-module-label" font-size="12.5" fill="#fde68a" font-family="'Space Grotesk',sans-serif">Document Portal System</text>
+      </a>
+
+      <!-- 16 Report Agent -->
+      <a href="16-capstone-report-agent.html" class="svg-module-box">
+        <rect x="620" y="458" width="310" height="48" rx="7" fill="#0f1621" stroke="#f59e0b" stroke-width="2" filter="url(#card-shadow)"/>
+        <text x="775" y="474" text-anchor="middle" class="svg-module-label" font-size="10" fill="#f59e0b" font-family="'JetBrains Mono',monospace">CAPSTONE · MODULE 16</text>
+        <text x="775" y="494" text-anchor="middle" class="svg-module-label" font-size="12.5" fill="#fde68a" font-family="'Space Grotesk',sans-serif">Autonomous Report Agent</text>
+      </a>
+
+      <!-- Legend -->
+      <g transform="translate(12,510)">
+        <line x1="0" y1="8" x2="24" y2="8" stroke="#2e3554" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="30" y="12" font-size="10" fill="#555a78" font-family="'Nunito',sans-serif">required path</text>
+        <line x1="100" y1="8" x2="124" y2="8" stroke="#2e3554" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+        <text x="130" y="12" font-size="10" fill="#555a78" font-family="'Nunito',sans-serif">recommended order</text>
+        <line x1="240" y1="8" x2="264" y2="8" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arr-hi)"/>
+        <text x="270" y="12" font-size="10" fill="#555a78" font-family="'Nunito',sans-serif">leads to capstone</text>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODULE CARDS
+══════════════════════════════════════════════════════════ -->
+<section class="section" id="modules">
+  <div class="section-header">
+    <div>
+      <div class="section-title">All Study <span>Guides</span></div>
+      <div class="section-sub">Check off each page as you read it. Progress is saved in your browser.</div>
+    </div>
+    <button class="btn-reset" onclick="resetProgress()">Reset progress</button>
+  </div>
+
+  <div class="progress-bar-wrap">
+    <div class="progress-label">Reading Progress</div>
+    <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="progress-pct" id="prog-pct">0%</div>
+  </div>
+
+  <!-- Prerequisites -->
+  <div class="phase-heading" style="background:rgba(100,116,139,0.12);color:#94a3b8;">Prerequisites</div>
+  <div class="card-grid">
+    <a href="00-prerequisites.html" class="module-card" style="--card-color:#64748b" data-module="00">
+      <div class="card-num">00 · PREREQUISITES</div>
+      <div class="card-title">Before You Begin: Prerequisites</div>
+      <div class="card-desc">Everything you need to know before day one. Covers Python, REST APIs, Git, command-line fluency, NumPy/Pandas, basic neural networks, Docker, and cloud fundamentals.</div>
+      <div class="card-topics">
+        <span class="topic-pill">Python</span><span class="topic-pill">REST APIs</span><span class="topic-pill">Git</span><span class="topic-pill">ML Basics</span><span class="topic-pill">Docker</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">⏱ ~45 min read</span>
+        <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/00-prerequisites.ipynb" class="colab-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"></a>
+        <input type="checkbox" class="card-check" data-module="00" onclick="toggleProgress('00',event)">
+      </div>
+    </a>
+  </div>
+
+  <!-- Phase 1 -->
+  <div class="phase-heading" style="background:rgba(59,130,246,0.12);color:#93c5fd;">Phase 1 · Foundations</div>
+  <div class="card-grid">
+    <a href="01-foundations-of-genai.html" class="module-card" style="--card-color:#3b82f6" data-module="01">
+      <div class="card-num">MODULE 01</div>
+      <div class="card-title">Foundations of Modern GenAI</div>
+      <div class="card-desc">The bedrock of everything. How text becomes numbers, how transformers process those numbers, and how they generate coherent language. Start here.</div>
+      <div class="card-topics">
+        <span class="topic-pill">Transformers</span><span class="topic-pill">Tokenization</span><span class="topic-pill">Embeddings</span><span class="topic-pill">Attention</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">⏱ ~60 min read</span>
+        <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/01-foundations-of-genai.ipynb" class="colab-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"></a>
+        <input type="checkbox" class="card-check" data-module="01" onclick="toggleProgress('01',event)">
+      </div>
+    </a>
+    <a href="02-llms-slms-multimodal.html" class="module-card" style="--card-color:#3b82f6" data-module="02">
+      <div class="card-num">MODULE 02</div>
+      <div class="card-title">LLMs, SLMs &amp; Multimodal Models</div>
+      <div class="card-desc">The complete model zoo. What separates GPT-4o from LLaMA 3 from Phi-3? When do you choose a small model over a large one? How do vision-language models work?</div>
+      <div class="card-topics">
+        <span class="topic-pill">GPT / Claude</span><span class="topic-pill">LLaMA / Mistral</span><span class="topic-pill">Phi / Gemma</span><span class="topic-pill">CLIP / LLaVA</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">⏱ ~50 min read</span>
+        <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/02-llms-slms-multimodal.ipynb" class="colab-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"></a>
+        <input type="checkbox" class="card-check" data-module="02" onclick="toggleProgress('02',event)">
+      </div>
+    </a>
+  </div>
+
+  <!-- Phase 2 -->
+  <div class="phase-heading" style="background:rgba(6,182,212,0.12);color:#67e8f9;">Phase 2 · APIs &amp; Training</div>
+  <div class="card-grid">
+    <a href="03-api-for-llms.html" class="module-card" style="--card-color:#06b6d4" data-module="03">
+      <div class="card-num">MODULE 03</div>
+      <div class="card-title">API for Accessing LLMs</div>
+      <div class="card-desc">The practical layer. How to make API calls, control parameters like temperature, manage token costs, switch providers without rewriting code, and use enterprise cloud services.</div>
+      <div class="card-topics">
+        <span class="topic-pill">OpenAI API</span><span class="topic-pill">Groq</span><span class="topic-pill">Streaming</span><span class="topic-pill">Azure / Bedrock</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">⏱ ~55 min read</span>
+        <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/03-api-for-llms.ipynb" class="colab-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"></a>
+        <input type="checkbox" class="card-check" data-module="03" onclick="toggleProgress('03',event)">
+      </div>
+    </a>
+    <a href="04-fine-tuning.html" class="module-card" style="--card-color:#06b6d4" data-module="04">
+      <div class="card-num">MODULE 04</div>
+      <div class="card-title">Fine-Tuning Techniques</div>
+      <div class="card-desc">Teaching an LLM new tricks without breaking what it already knows. Covers the full spectrum from LoRA to RLHF, why QLoRA makes fine-tuning accessible, and how to prepare training data.</div>
+      <div class="card-topics">
+        <span class="topic-pill">LoRA / QLoRA</span><span class="topic-pill">PEFT</span><span class="topic-pill">RLHF / DPO</span><span class="topic-pill">Unsloth</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">⏱ ~70 min read</span>
+        <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/04-fine-tuning.ipynb" class="colab-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"></a>
+        <input type="checkbox" class="card-check" data-module="04" onclick="toggleProgress('04',event)">
+      </div>
+    </a>
+    <a href="05-llm-hosting.html" class="module-card" style="--card-color:#06b6d4" data-module="05">
+      <div class="card-num">MODULE 05</div>
+      <div class="card-title">LLM Hosting &amp; API Exposure</div>
+      <div class="card-desc">Taking a fine-tuned model from a notebook to a production endpoint. SageMaker training jobs, real-time inference endpoints, API Gateway configuration, and client integration patterns.</div>
+      <div class="card-topics">
+        <span class="topic-pill">SageMaker</span><span class="topic-pill">API Gateway</span><span class="topic-pill">ECS Fargate</span><span class="topic-pill">Lambda</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">⏱ ~50 min read</span>
+        <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/05-llm-hosting.ipynb" class="colab-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"></a>
+        <input type="checkbox" class="card-check" data-module="05" onclick="toggleProgress('05',event)">
+      </div>
+    </a>
+  </div>
+
+  <!-- Phase 3 -->
+  <div class="phase-heading" style="background:rgba(249,115,22,0.12);color:#fdba74;">Phase 3 · Prompting &amp; RAG</div>
+  <div class="card-grid">
+    <a href="06-prompt-engineering.html" class="module-card" style="--card-color:#f97316" data-module="06">
+      <div class="card-num">MODULE 06</div>
+      <div class="card-title">Prompt Engineering</div>
+      <div class="card-desc">The art and science of getting what you want from an LLM. System prompts, Chain-of-Thought reasoning, ReAct loops, Jinja2 template management, structured JSON outputs, and token cost optimization.</div>
+      <div class="card-topics">
+        <span class="topic-pill">CoT</span><span class="topic-pill">ReAct</span><span class="topic-pill">Few-shot</span><span class="topic-pill">Structured Output</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">⏱ ~55 min read</span>
+        <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/06-prompt-engineering.ipynb" class="colab-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"></a>
+        <input type="checkbox" class="card-check" data-module="06" onclick="toggleProgress('06',event)">
+      </div>
+    </a>
+    <a href="07-rag-systems.html" class="module-card" style="--card-color:#f97316" data-module="07">
+      <div class="card-num">MODULE 07</div>
+      <div class="card-title">RAG Systems</div>
+      <div class="card-desc">How to give an LLM a memory it doesn't have by retrieving relevant documents at query time. The full pipeline: ingestion, chunking, embedding, vector search, re-ranking, and grounded generation.</div>
+      <div class="card-topics">
+        <span class="topic-pill">Vector DBs</span><span class="topic-pill">Chunking</span><span class="topic-pill">Embeddings</span><span class="topic-pill">Re-ranking</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">⏱ ~65 min read</span>
+        <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/07-rag-systems.ipynb" class="colab-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"></a>
+        <input type="checkbox" class="card-check" data-module="07" onclick="toggleProgress('07',event)">
+      </div>
+    </a>
+    <a href="08-advanced-rag.html" class="module-card" style="--card-color:#f97316" data-module="08">
+      <div class="card-num">MODULE 08</div>
+      <div class="card-title">Advanced RAG &amp; Multimodal</div>
+      <div class="card-desc">RAG systems as they exist in the wild: context window management, semantic caching, RAGAS evaluation metrics, failure modes and how to debug them, and extending RAG to handle images alongside text.</div>
+      <div class="card-topics">
+        <span class="topic-pill">RAGAS</span><span class="topic-pill">MMR</span><span class="topic-pill">Multimodal</span><span class="topic-pill">HyDE</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">⏱ ~60 min read</span>
+        <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/08-advanced-rag.ipynb" class="colab-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"></a>
+        <input type="checkbox" class="card-check" data-module="08" onclick="toggleProgress('08',event)">
+      </div>
+    </a>
+  </div>
+
+  <!-- Phase 4 -->
+  <div class="phase-heading" style="background:rgba(168,85,247,0.12);color:#d8b4fe;">Phase 4 · Agents</div>
+  <div class="card-grid">
+    <a href="09-agents.html" class="module-card" style="--card-color:#a855f7" data-module="09">
+      <div class="card-num">MODULE 09</div>
+      <div class="card-title">Agents &amp; Multi-Agent Systems</div>
+      <div class="card-desc">Where LLMs stop being chatbots and start being autonomous workers. The Observe-Think-Act loop, tool use, multi-agent coordination with LangGraph and CrewAI, memory management, human-in-the-loop controls, and safety.</div>
+      <div class="card-topics">
+        <span class="topic-pill">LangGraph</span><span class="topic-pill">Tools</span><span class="topic-pill">Memory</span><span class="topic-pill">HITL</span><span class="topic-pill">Safety</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">⏱ ~80 min read</span>
+        <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/09-agents.ipynb" class="colab-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"></a>
+        <input type="checkbox" class="card-check" data-module="09" onclick="toggleProgress('09',event)">
+      </div>
+    </a>
+  </div>
+
+  <!-- Phase 5 -->
+  <div class="phase-heading" style="background:rgba(239,68,68,0.12);color:#fca5a5;">Phase 5 · Quality &amp; Safety</div>
+  <div class="card-grid">
+    <a href="10-evaluation.html" class="module-card" style="--card-color:#ef4444" data-module="10">
+      <div class="card-num">MODULE 10</div>
+      <div class="card-title">Evaluation Strategies</div>
+      <div class="card-desc">Knowing whether your GenAI system actually works — and why standard ML metrics spectacularly fail at this. LLM-as-a-judge patterns, RAGAS for RAG systems, observability pipelines, and the quality-speed-cost triangle.</div>
+      <div class="card-topics">
+        <span class="topic-pill">LLM-as-Judge</span><span class="topic-pill">RAGAS</span><span class="topic-pill">BLEU/ROUGE</span><span class="topic-pill">Tracing</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">⏱ ~55 min read</span>
+        <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/10-evaluation.ipynb" class="colab-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"></a>
+        <input type="checkbox" class="card-check" data-module="10" onclick="toggleProgress('10',event)">
+      </div>
+    </a>
+    <a href="11-guardrails.html" class="module-card" style="--card-color:#ef4444" data-module="11">
+      <div class="card-num">MODULE 11</div>
+      <div class="card-title">Guardrails</div>
+      <div class="card-desc">Keeping LLM systems safe, predictable, and compliant. Input sanitization, output validation, Pydantic schema enforcement, prompt injection attack vectors and defences, and the available guardrail frameworks.</div>
+      <div class="card-topics">
+        <span class="topic-pill">Input Validation</span><span class="topic-pill">Pydantic</span><span class="topic-pill">Prompt Injection</span><span class="topic-pill">Guardrails.ai</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">⏱ ~50 min read</span>
+        <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/11-guardrails.ipynb" class="colab-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"></a>
+        <input type="checkbox" class="card-check" data-module="11" onclick="toggleProgress('11',event)">
+      </div>
+    </a>
+    <a href="12-mcp.html" class="module-card" style="--card-color:#ef4444" data-module="12">
+      <div class="card-num">MODULE 12</div>
+      <div class="card-title">Model Context Protocol (MCP)</div>
+      <div class="card-desc">The emerging standard for how LLMs connect to tools, data, and each other. MCP versus function calling, the Host-Client-Server architecture, transport types, building FastMCP servers, and using MCP as the backbone of agentic systems.</div>
+      <div class="card-topics">
+        <span class="topic-pill">FastMCP</span><span class="topic-pill">STDIO/SSE</span><span class="topic-pill">Tool Layer</span><span class="topic-pill">OAuth</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">⏱ ~55 min read</span>
+        <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/12-mcp.ipynb" class="colab-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"></a>
+        <input type="checkbox" class="card-check" data-module="12" onclick="toggleProgress('12',event)">
+      </div>
+    </a>
+  </div>
+
+  <!-- Phase 6 -->
+  <div class="phase-heading" style="background:rgba(34,197,94,0.12);color:#86efac;">Phase 6 · Cloud &amp; Tools</div>
+  <div class="card-grid">
+    <a href="13-aws-cloud.html" class="module-card" style="--card-color:#22c55e" data-module="13">
+      <div class="card-num">MODULE 13</div>
+      <div class="card-title">AWS Cloud Services for GenAI</div>
+      <div class="card-desc">The AWS ecosystem for building enterprise GenAI applications. SageMaker for training and deployment, Bedrock for managed model access, OpenSearch for vector search, and specialized services for documents, NLP, vision, and speech.</div>
+      <div class="card-topics">
+        <span class="topic-pill">SageMaker</span><span class="topic-pill">Bedrock</span><span class="topic-pill">OpenSearch</span><span class="topic-pill">Textract</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">⏱ ~50 min read</span>
+        <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/13-aws-cloud.ipynb" class="colab-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"></a>
+        <input type="checkbox" class="card-check" data-module="13" onclick="toggleProgress('13',event)">
+      </div>
+    </a>
+    <a href="14-n8n-no-code.html" class="module-card" style="--card-color:#22c55e" data-module="14">
+      <div class="card-num">MODULE 14</div>
+      <div class="card-title">No-Code Agent Tools (n8n)</div>
+      <div class="card-desc">Building powerful GenAI automations without writing a single line of Python. n8n workflows, AI nodes, multi-agent patterns, RAG integration with Pinecone/Supabase, MCP in no-code context, and real-world automation examples.</div>
+      <div class="card-topics">
+        <span class="topic-pill">n8n Workflows</span><span class="topic-pill">LLM Nodes</span><span class="topic-pill">Agent Chains</span><span class="topic-pill">RAG</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">⏱ ~45 min read</span>
+        <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/14-n8n-no-code.ipynb" class="colab-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"></a>
+        <input type="checkbox" class="card-check" data-module="14" onclick="toggleProgress('14',event)">
+      </div>
+    </a>
+  </div>
+
+  <!-- Phase 7 -->
+  <div class="phase-heading" style="background:rgba(245,158,11,0.12);color:#fde68a;">Phase 7 · Capstone Projects</div>
+  <div class="card-grid">
+    <a href="15-capstone-document-portal.html" class="module-card" style="--card-color:#f59e0b" data-module="15">
+      <div class="card-num">CAPSTONE · MODULE 15</div>
+      <div class="card-title">Capstone: Document Portal System</div>
+      <div class="card-desc">An end-to-end intelligent document analysis platform. Async ingestion pipeline, advanced RAG with query rewriting and MMR, multi-document chat, document comparison engine, Redis caching, LLM routing, and production deployment on AWS ECS/Fargate.</div>
+      <div class="card-topics">
+        <span class="topic-pill">FastAPI</span><span class="topic-pill">Redis</span><span class="topic-pill">ECS/Fargate</span><span class="topic-pill">CI/CD</span><span class="topic-pill">RAGAS</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">⏱ ~90 min read</span>
+        <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/15-capstone-document-portal.ipynb" class="colab-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"></a>
+        <input type="checkbox" class="card-check" data-module="15" onclick="toggleProgress('15',event)">
+      </div>
+    </a>
+    <a href="16-capstone-report-agent.html" class="module-card" style="--card-color:#f59e0b" data-module="16">
+      <div class="card-num">CAPSTONE · MODULE 16</div>
+      <div class="card-title">Capstone: Autonomous Report Agent</div>
+      <div class="card-desc">A multi-agent system that autonomously researches topics, reads sources, analyses findings, and generates structured reports. LangGraph state graphs, role-based agent design, web search integration, human-in-the-loop checkpoints, and streaming FastAPI backend.</div>
+      <div class="card-topics">
+        <span class="topic-pill">LangGraph</span><span class="topic-pill">CrewAI</span><span class="topic-pill">SSE Streaming</span><span class="topic-pill">HITL</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">⏱ ~90 min read</span>
+        <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/16-capstone-report-agent.ipynb" class="colab-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"></a>
+        <input type="checkbox" class="card-check" data-module="16" onclick="toggleProgress('16',event)">
+      </div>
+    </a>
+  </div>
+
+</section>
+
+<hr class="divider">
+
+<!-- ══════════════════════════════════════════════════════════
+     KEY TERMS GLOSSARY
+══════════════════════════════════════════════════════════ -->
+<section class="section" id="glossary">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Quick-Reference <span>Glossary</span></div>
+      <div class="section-sub">Core terms you'll encounter throughout the course. Each module page has a deeper glossary specific to its topics.</div>
+    </div>
+  </div>
+  <div class="glossary-grid">
+    <div class="glossary-item"><div class="gloss-term">Transformer</div><div class="gloss-def">The neural network architecture behind all modern LLMs. Uses self-attention to process entire sequences in parallel, unlike RNNs which processed tokens one at a time.</div></div>
+    <div class="glossary-item"><div class="gloss-term">Token</div><div class="gloss-def">The atomic unit LLMs work with — roughly 0.75 words in English. "tokenization" splits text into tokens; models are billed per token and have a maximum context window measured in tokens.</div></div>
+    <div class="glossary-item"><div class="gloss-term">Embedding</div><div class="gloss-def">A vector (list of numbers) that represents the meaning of text. Semantically similar texts produce similar vectors. The foundation of all similarity search and RAG systems.</div></div>
+    <div class="glossary-item"><div class="gloss-term">Self-Attention</div><div class="gloss-def">The mechanism that lets each token in a sequence "attend" to every other token, learning relationships regardless of positional distance. The key innovation in transformers.</div></div>
+    <div class="glossary-item"><div class="gloss-term">Context Window</div><div class="gloss-def">The maximum number of tokens an LLM can see at once (prompt + response combined). GPT-4o: 128k; Claude 3.5: 200k. Larger windows cost more and can reduce focus.</div></div>
+    <div class="glossary-item"><div class="gloss-term">Temperature</div><div class="gloss-def">Controls randomness of LLM output. 0 = deterministic/factual. 1 = creative/varied. For classification tasks, use 0. For creative writing, use 0.7–1.2. Never set above 2.</div></div>
+    <div class="glossary-item"><div class="gloss-term">RAG</div><div class="gloss-def">Retrieval-Augmented Generation. Giving an LLM access to relevant documents at query time rather than relying solely on its training data. The primary solution to hallucination in domain-specific applications.</div></div>
+    <div class="glossary-item"><div class="gloss-term">Vector Database</div><div class="gloss-def">A database optimised for storing and querying embeddings via approximate nearest-neighbour search. Key options: Pinecone (managed), Qdrant (open-source), ChromaDB (local), pgvector (PostgreSQL extension).</div></div>
+    <div class="glossary-item"><div class="gloss-term">Fine-Tuning</div><div class="gloss-def">Continuing to train a pre-trained model on your own data to specialise its knowledge or style. Much cheaper than training from scratch. Can be full (all parameters) or parameter-efficient (LoRA/QLoRA).</div></div>
+    <div class="glossary-item"><div class="gloss-term">LoRA</div><div class="gloss-def">Low-Rank Adaptation. A PEFT technique that freezes the original model weights and trains only small low-rank matrices inserted into each layer. Reduces trainable parameters by ~99% while preserving quality.</div></div>
+    <div class="glossary-item"><div class="gloss-term">RLHF</div><div class="gloss-def">Reinforcement Learning from Human Feedback. The technique used to align LLMs with human preferences. Humans rank outputs, a reward model learns from rankings, and the LLM is optimised against that reward model.</div></div>
+    <div class="glossary-item"><div class="gloss-term">DPO</div><div class="gloss-def">Direct Preference Optimization. A simpler alternative to RLHF that skips the reward model entirely, directly training the LLM on preference pairs. Widely used for instruction-following alignment.</div></div>
+    <div class="glossary-item"><div class="gloss-term">Hallucination</div><div class="gloss-def">When an LLM confidently generates factually incorrect information. Arises because LLMs generate statistically plausible text, not truth-checked facts. RAG and grounding are the primary mitigations.</div></div>
+    <div class="glossary-item"><div class="gloss-term">Chain-of-Thought (CoT)</div><div class="gloss-def">A prompting technique where you ask the model to reason step-by-step before answering. Dramatically improves accuracy on multi-step reasoning tasks. "Let's think step by step" is the simplest CoT trigger.</div></div>
+    <div class="glossary-item"><div class="gloss-term">ReAct</div><div class="gloss-def">Reason + Act. A prompting pattern for agents: the model alternates between Thought (reasoning), Action (tool call), and Observation (tool result) until it reaches a final answer.</div></div>
+    <div class="glossary-item"><div class="gloss-term">Agent</div><div class="gloss-def">An LLM that can take actions — call tools, browse the web, write code, read files — in a loop until it completes a task. Differs from a chatbot by having autonomy and access to external capabilities.</div></div>
+    <div class="glossary-item"><div class="gloss-term">Tool Use / Function Calling</div><div class="gloss-def">A capability where the LLM generates a structured call to a pre-defined function (e.g. search_web, run_python, query_database) rather than prose. The function executes and its result is fed back to the model.</div></div>
+    <div class="glossary-item"><div class="gloss-term">LangGraph</div><div class="gloss-def">A Python library for building stateful, graph-based agent workflows. Represents agent logic as a directed graph of nodes (tasks) and edges (transitions), with built-in support for loops, branching, and human-in-the-loop interrupts.</div></div>
+    <div class="glossary-item"><div class="gloss-term">RAGAS</div><div class="gloss-def">RAG Assessment — a framework for evaluating RAG systems. Key metrics: Faithfulness (does the answer stay grounded in context?), Answer Relevancy (does it actually address the question?), Context Precision, Context Recall.</div></div>
+    <div class="glossary-item"><div class="gloss-term">Prompt Injection</div><div class="gloss-def">An attack where malicious text in user input or retrieved documents overrides the system prompt, causing the LLM to ignore its instructions. A critical security concern for any LLM system processing untrusted text.</div></div>
+    <div class="glossary-item"><div class="gloss-term">MCP</div><div class="gloss-def">Model Context Protocol. An open standard by Anthropic for connecting LLMs to external tools and data sources. Defines a Host-Client-Server architecture with standardised transport (STDIO, SSE, HTTP) and capability types (Tools, Resources, Prompts).</div></div>
+    <div class="glossary-item"><div class="gloss-term">PEFT</div><div class="gloss-def">Parameter-Efficient Fine-Tuning. A family of techniques (LoRA, QLoRA, prefix tuning, adapters) that fine-tune only a small fraction of model parameters, making fine-tuning feasible on consumer hardware.</div></div>
+    <div class="glossary-item"><div class="gloss-term">Chunking</div><div class="gloss-def">The process of splitting documents into smaller pieces before embedding for RAG. Critical decisions: chunk size (too small = no context, too large = noisy retrieval), overlap, and whether to chunk at character, sentence, or semantic boundaries.</div></div>
+    <div class="glossary-item"><div class="gloss-term">LLM-as-Judge</div><div class="gloss-def">Using a capable LLM (e.g. GPT-4o) to evaluate the output of another LLM or system. Produces scores for dimensions like helpfulness, factuality, and safety. Scalable but biased toward verbose and confident answers.</div></div>
+    <div class="glossary-item"><div class="gloss-term">Amazon Bedrock</div><div class="gloss-def">AWS's managed service for accessing foundation models from Anthropic, Meta, Mistral, Cohere, and Amazon. Provides enterprise-grade security, VPC integration, and access control without needing to manage infrastructure.</div></div>
+    <div class="glossary-item"><div class="gloss-term">Guardrails</div><div class="gloss-def">Validation and safety layers that sit before and after an LLM in a production pipeline. Prevent harmful inputs from reaching the model, and catch problematic outputs before they reach the user.</div></div>
+    <div class="glossary-item"><div class="gloss-term">System Prompt</div><div class="gloss-def">The invisible preamble to every conversation that defines the LLM's role, instructions, constraints, and persona. Set by the developer, not the user. Has the highest level of instruction priority in most models.</div></div>
+    <div class="glossary-item"><div class="gloss-term">Quantization</div><div class="gloss-def">Reducing the precision of model weights (e.g. from 32-bit float to 4-bit int) to shrink model size and increase inference speed, with a small quality trade-off. QLoRA uses quantization to enable fine-tuning on consumer GPUs.</div></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════════════════ -->
+<footer>
+  CareerAlign.com · Generative AI Learning Path ·
+  <a href="00-prerequisites.html">Start with Prerequisites</a> ·
+  <a href="01-foundations-of-genai.html">Module 01 →</a>
+</footer>
+
+<script>
+// One-time migration from old localStorage keys
+if (!localStorage.getItem('ca_genai_migrated')) {
+  ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16'].forEach(id => {
+    if (localStorage.getItem('genai_bc_done_' + id) === '1') {
+      localStorage.setItem('ca_genai_done_' + id, '1');
+    }
+    localStorage.removeItem('genai_bc_done_' + id);
+  });
+  ['fda01','fda02','fda03','fda04','fda05'].forEach(id => localStorage.removeItem('genai_bc_done_' + id));
+  localStorage.setItem('ca_genai_migrated', '1');
+}
+
+const TOTAL = 17;
+
+function getKey(id) { return `ca_genai_done_${id}`; }
+
+function toggleProgress(id, e) {
+  e.stopPropagation();
+  const done = localStorage.getItem(getKey(id)) === '1';
+  if (done) localStorage.removeItem(getKey(id));
+  else localStorage.setItem(getKey(id), '1');
+  refresh();
+}
+
+function resetProgress() {
+  if (!confirm('Reset all reading progress?')) return;
+  ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16'].forEach(id => localStorage.removeItem(getKey(id)));
+  refresh();
+}
+
+function refresh() {
+  let done = 0;
+  document.querySelectorAll('[data-module]').forEach(el => {
+    const id = el.dataset.module;
+    const isDone = localStorage.getItem(getKey(id)) === '1';
+    if (isDone) done++;
+    el.classList.toggle('completed', isDone);
+    const cb = el.querySelector('.card-check');
+    if (cb) cb.checked = isDone;
+  });
+  const pct = Math.round((done / TOTAL) * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('nav-progress').textContent = done + ' / ' + TOTAL + ' complete';
+}
+
+// Prevent card navigation when clicking checkbox
+document.querySelectorAll('.module-card').forEach(card => {
+  card.addEventListener('click', e => {
+    if (e.target.classList.contains('card-check')) { e.preventDefault(); return; }
+    const href = card.getAttribute('href');
+    if (href) window.location.href = href;
+  });
+});
+
+refresh();
+</script>
+</body>
+</html>

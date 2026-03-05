@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Hosting & API Exposure — CareerAlign GenAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--phase-api); background: rgba(6,182,212,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-indigo);
+  padding: 6px 14px; border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(99,102,241,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--phase-api); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--phase-api); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--phase-api); flex-shrink: 0; }
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--phase-api); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(6,182,212,0.15); border: 1px solid rgba(6,182,212,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--phase-api); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--phase-api);
+  background: rgba(6,182,212,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--phase-cloud); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--phase-project); background: rgba(245,158,11,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--phase-api);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--phase-cloud); }
+.callout.warn .callout-label { color: var(--phase-project); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* SVG DIAGRAM */
+.diagram-wrap {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg); padding: 32px;
+  margin: 32px 0;
+}
+.diagram-caption {
+  text-align: center; font-size: 13px; color: var(--text-muted);
+  margin-top: 16px; font-style: italic;
+}
+
+/* COMPARISON TABLE */
+.comp-table {
+  width: 100%; border-collapse: collapse; margin: 24px 0;
+  font-size: 14px;
+}
+.comp-table th, .comp-table td {
+  padding: 12px 16px; text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.comp-table th {
+  background: var(--bg-elevated); font-family: var(--font-display);
+  font-weight: 600; color: var(--text-primary); font-size: 13px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.comp-table td { color: var(--text-secondary); }
+.comp-table tr:hover td { background: rgba(6,182,212,0.04); }
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--phase-api); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(6,182,212,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--phase-api); color: var(--phase-api); transform: translateX(4px); }
+.prev-btn:hover { transform: translateX(-4px); }
+.next-phase { font-size: 12px; color: var(--phase-api); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">⚡ <span>CareerAlign</span> GenAI</div>
+  <div class="nav-links">
+    <a href="00-prerequisites.html">00 · Prerequisites</a>
+    <a href="01-foundations-of-genai.html">01 · Foundations</a>
+    <a href="02-llms-slms-multimodal.html">02 · Models</a>
+    <a href="03-api-for-llms.html">03 · APIs</a>
+    <a href="04-fine-tuning.html">04 · Fine-Tuning</a>
+    <a href="05-llm-hosting.html" class="active">05 · Hosting</a>
+    <a href="06-prompt-engineering.html">06 · Prompting</a>
+    <a href="07-rag-systems.html">07 · RAG</a>
+    <a href="08-advanced-rag.html">08 · Adv RAG</a>
+    <a href="09-agents.html">09 · Agents</a>
+    <a href="10-evaluation.html">10 · Eval</a>
+    <a href="11-guardrails.html">11 · Guardrails</a>
+    <a href="12-mcp.html">12 · MCP</a>
+    <a href="13-aws-cloud.html">13 · AWS</a>
+    <a href="14-n8n-no-code.html">14 · n8n</a>
+    <a href="15-capstone-document-portal.html">15 · Capstone I</a>
+    <a href="16-capstone-report-agent.html">16 · Capstone II</a>
+  </div>
+  <a href="index.html" class="nav-home">← GenAI Hub</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="3" stroke="currentColor" stroke-width="2"/><path d="M7 8h10M7 12h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Module 05 — APIs &amp; Hosting Phase
+  </div>
+  <h1>LLM <em>Hosting</em> &amp; API Exposure</h1>
+  <p class="hero-desc">
+    Running large language models in production means much more than calling someone else's API. This module covers the complete stack: choosing an inference engine, configuring GPU memory, exposing models through REST APIs, containerizing for cloud deployment, and operating self-hosted endpoints at scale. You will learn when self-hosting is worth the engineering investment, how to squeeze maximum throughput from every GPU dollar, and how to build production-grade FastAPI services around open-weight models.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      vLLM &amp; TGI
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Ollama
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      FastAPI Wrappers
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      SageMaker Endpoints
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Docker &amp; ECS
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      GPU Optimization
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/05-llm-hosting.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#why-self-host" class="section">1 · Why Self-Host</a>
+    <a href="#why-plain" class="sub">Plain Language</a>
+    <a href="#why-deep" class="sub">Deep Dive</a>
+    <a href="#inference-engines" class="section">2 · Inference Engines</a>
+    <a href="#engines-plain" class="sub">Plain Language</a>
+    <a href="#engines-deep" class="sub">Deep Dive</a>
+    <a href="#ollama" class="section">3 · Ollama for Local Dev</a>
+    <a href="#ollama-plain" class="sub">Plain Language</a>
+    <a href="#ollama-deep" class="sub">Deep Dive</a>
+    <a href="#fastapi-wrapper" class="section">4 · FastAPI LLM Services</a>
+    <a href="#fastapi-plain" class="sub">Plain Language</a>
+    <a href="#fastapi-deep" class="sub">Deep Dive</a>
+    <a href="#sagemaker" class="section">5 · AWS SageMaker Endpoints</a>
+    <a href="#sagemaker-plain" class="sub">Plain Language</a>
+    <a href="#sagemaker-deep" class="sub">Deep Dive</a>
+    <a href="#docker-ecs" class="section">6 · Docker &amp; ECS Deployment</a>
+    <a href="#docker-plain" class="sub">Plain Language</a>
+    <a href="#docker-deep" class="sub">Deep Dive</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ============================================ -->
+    <!-- SECTION 1: WHY SELF-HOST                     -->
+    <!-- ============================================ -->
+    <div class="section" id="why-self-host">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Why Self-Host LLMs</h2>
+      </div>
+
+      <h3 id="why-plain">Plain Language</h3>
+
+      <p>Think of using an LLM API like renting an apartment: it is convenient, someone else handles the plumbing, and you can move in quickly. Self-hosting is like buying a house — you have full control over the property, you can renovate however you like, but you are also responsible for every repair. The question is not which option is universally better, but which makes sense for your situation. Some organizations have strict data residency requirements that make it illegal to send customer data to a third-party API provider. Others need to run models at extremely high volumes where per-token pricing becomes prohibitively expensive compared to renting GPU hardware outright. Still others have fine-tuned custom models that only exist as local weight files and cannot be deployed through any commercial API provider.</p>
+
+      <p>The economic crossover point is surprisingly concrete. Most commercial APIs charge between one and thirty dollars per million tokens, depending on the model size. A single A100 GPU rented from a cloud provider costs roughly two to three dollars per hour, and a well-optimized inference engine can push through hundreds of thousands of tokens per minute on that hardware. If your application generates more than a few million tokens per day consistently, the math starts favoring self-hosting. But this calculation only covers compute — you also need to factor in the engineering time to set up, monitor, and maintain the infrastructure, the cost of handling failovers and scaling events, and the operational burden of keeping models updated.</p>
+
+      <p>Privacy and compliance provide another compelling reason. In industries like healthcare, finance, and government, regulations like HIPAA, SOC 2, and GDPR may require that data never leaves a controlled environment. Self-hosting lets you run inference inside your own VPC, on your own hardware, with full audit trails. No request ever touches an external server, which dramatically simplifies compliance reviews. Even when regulations do not strictly require it, many enterprises prefer the risk posture of keeping sensitive data internal.</p>
+
+      <p>Latency is a third consideration. When you call a commercial API, your request travels over the internet to the provider's data center, queues behind other customers' requests, and then returns. This round trip can add 200 to 500 milliseconds of overhead before the first token even starts generating. A self-hosted model running in the same data center as your application eliminates this network latency entirely, which matters enormously for real-time applications like coding assistants, interactive agents, and voice-driven interfaces where every millisecond of delay degrades the user experience.</p>
+
+      <p>Finally, self-hosting gives you complete control over model versions, quantization levels, and serving configurations. You can pin a specific model checkpoint for reproducibility, swap between quantization levels to balance speed and quality, and implement custom preprocessing pipelines that would be impossible through a standard API. This flexibility is essential for teams that need deterministic behavior across deployments or that are running experimental models not available through any commercial provider.</p>
+
+      <h3 id="why-deep">Deep Dive</h3>
+
+      <p>The decision framework for self-hosting versus API consumption should be evaluated across five dimensions: <strong>cost at scale</strong>, <strong>data governance</strong>, <strong>latency requirements</strong>, <strong>model customization needs</strong>, and <strong>operational maturity</strong>. Each dimension has a clear threshold beyond which self-hosting becomes the better choice, and understanding these thresholds prevents both premature optimization and missed opportunities.</p>
+
+      <p><strong>Cost modeling</strong> requires careful token-volume analysis. Consider a RAG application processing 10,000 queries per day, each consuming roughly 2,000 input tokens and generating 500 output tokens. At GPT-4o pricing of $2.50 per million input tokens and $10 per million output tokens, the daily cost is approximately $50 for input and $50 for output — $100 per day or $3,000 per month. A single A100-80GB instance on AWS (p4d.24xlarge with 8 GPUs) costs roughly $32.77 per hour, or about $23,600 per month. That seems more expensive until you realize that a well-optimized vLLM deployment on that instance can serve a 70B parameter model handling 50+ concurrent requests. If your query volume grows to 100,000 queries per day, the API cost jumps to $30,000 per month while the infrastructure cost remains fixed. The crossover point depends heavily on the model you choose — smaller open-weight models like Llama 3 8B can run on much cheaper hardware, making self-hosting economical at lower volumes.</p>
+
+      <p><strong>Data governance</strong> goes beyond simple compliance checkboxes. When you send data to an API provider, you are trusting their security practices, their employee access controls, their data retention policies, and their subprocessor agreements. Even providers that promise not to train on your data still store your requests temporarily for abuse monitoring and billing. Self-hosting eliminates this entire trust chain. Your requests flow from your application server to your inference server over a private network, logs are stored in your own systems, and you control every aspect of data lifecycle management. For organizations handling PII, PHI, financial data, or classified information, this level of control is not optional — it is a hard requirement.</p>
+
+      <p><strong>Latency optimization</strong> in self-hosted deployments can achieve remarkable results. A vLLM server running locally can deliver time-to-first-token (TTFT) under 50 milliseconds for a 7B model on a modern GPU, compared to 300-800ms for commercial APIs that include network overhead and queuing. For streaming applications, this translates to a dramatically snappier user experience. The inter-token latency — time between each generated token — is also more predictable in self-hosted deployments because you control the batch size and scheduling policy, whereas API providers may throttle your request during peak hours or batch your request with others in ways that increase variance.</p>
+
+      <p><strong>Quantization</strong> is a key self-hosting capability that directly impacts the cost-performance tradeoff. The same Llama 3 70B model that requires two A100-80GB GPUs at full FP16 precision (140GB of weight storage) can fit on a single GPU when quantized to 4-bit precision using GPTQ or AWQ, reducing memory to roughly 35GB. The quality degradation from 4-bit quantization is often minimal for production use cases — benchmarks typically show a 1-3% drop on standard evaluation metrics. This means you can often serve a much larger model on the same hardware, getting better quality at the same cost.</p>
+
+      <p>The <strong>operational maturity</strong> dimension is often underestimated. Self-hosting an LLM is not a "deploy and forget" operation. You need monitoring for GPU utilization, memory pressure, request latency percentiles, and error rates. You need autoscaling to handle traffic spikes. You need a model management pipeline to test new model versions, perform canary deployments, and roll back if quality degrades. You need health checks, graceful shutdown procedures, and disaster recovery plans. Teams that are not ready for this operational burden should start with APIs and migrate to self-hosting only when the economic or compliance case becomes compelling enough to justify the investment.</p>
+
+      <div class="callout warn">
+        <div class="callout-label">Decision Framework</div>
+        <p>Start with commercial APIs unless you have: (1) more than $5K/month in API spend, (2) strict data residency requirements, (3) latency-critical use cases under 100ms TTFT, or (4) custom fine-tuned models. When two or more conditions apply, self-hosting pays for itself within 3-6 months.</p>
+      </div>
+
+      <!-- SVG: Self-Host Decision Flowchart -->
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 900 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Start -->
+          <rect x="340" y="10" width="220" height="50" rx="25" fill="#06b6d4" fill-opacity="0.15" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="450" y="40" text-anchor="middle" fill="#22d3ee" font-family="Space Grotesk, sans-serif" font-size="14" font-weight="600">Need LLM in Production?</text>
+
+          <!-- Arrow down -->
+          <line x1="450" y1="60" x2="450" y2="100" stroke="#2e3554" stroke-width="1.5" marker-end="url(#arrowCyan)"/>
+
+          <!-- Decision 1: Data Sensitive? -->
+          <rect x="320" y="100" width="260" height="50" rx="10" fill="#171c2e" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="450" y="130" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="500">Data sensitive / regulated?</text>
+
+          <!-- Yes arrow right -->
+          <line x1="580" y1="125" x2="680" y2="125" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+          <text x="620" y="118" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="11">Yes</text>
+
+          <!-- Self-Host box (right) -->
+          <rect x="680" y="100" width="180" height="50" rx="10" fill="rgba(6,182,212,0.2)" stroke="#06b6d4" stroke-width="2"/>
+          <text x="770" y="130" text-anchor="middle" fill="#22d3ee" font-family="Space Grotesk, sans-serif" font-size="14" font-weight="700">SELF-HOST</text>
+
+          <!-- No arrow down -->
+          <line x1="450" y1="150" x2="450" y2="200" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrowRed)"/>
+          <text x="462" y="180" fill="#ef4444" font-family="JetBrains Mono, monospace" font-size="11">No</text>
+
+          <!-- Decision 2: Volume high? -->
+          <rect x="320" y="200" width="260" height="50" rx="10" fill="#171c2e" stroke="#f97316" stroke-width="1.5"/>
+          <text x="450" y="230" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="500">&gt;$5K/month API spend?</text>
+
+          <!-- Yes arrow right to self-host -->
+          <line x1="580" y1="225" x2="680" y2="225" stroke="#22c55e" stroke-width="1.5"/>
+          <line x1="770" y1="150" x2="770" y2="225" stroke="#2e3554" stroke-width="1" stroke-dasharray="4"/>
+          <line x1="680" y1="225" x2="770" y2="225" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="620" y="218" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="11">Yes</text>
+
+          <!-- No arrow down -->
+          <line x1="450" y1="250" x2="450" y2="300" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrowRed)"/>
+          <text x="462" y="280" fill="#ef4444" font-family="JetBrains Mono, monospace" font-size="11">No</text>
+
+          <!-- Decision 3: Latency critical? -->
+          <rect x="320" y="300" width="260" height="50" rx="10" fill="#171c2e" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="450" y="330" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="500">Latency &lt;100ms TTFT needed?</text>
+
+          <!-- Yes arrow right -->
+          <line x1="580" y1="325" x2="680" y2="325" stroke="#22c55e" stroke-width="1.5"/>
+          <line x1="680" y1="325" x2="770" y2="325" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="620" y="318" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="11">Yes</text>
+
+          <!-- No arrow down -->
+          <line x1="450" y1="350" x2="450" y2="385" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="462" y="375" fill="#ef4444" font-family="JetBrains Mono, monospace" font-size="11">No</text>
+
+          <!-- Use API box -->
+          <rect x="340" y="385" width="220" height="50" rx="10" fill="rgba(99,102,241,0.2)" stroke="#6366f1" stroke-width="2"/>
+          <text x="450" y="415" text-anchor="middle" fill="#6366f1" font-family="Space Grotesk, sans-serif" font-size="14" font-weight="700">USE COMMERCIAL API</text>
+
+          <!-- Arrow markers -->
+          <defs>
+            <marker id="arrowCyan" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#06b6d4"/></marker>
+            <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#22c55e"/></marker>
+            <marker id="arrowRed" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#ef4444"/></marker>
+          </defs>
+        </svg>
+        <div class="diagram-caption">Figure 1 — Self-hosting decision flowchart: data sensitivity, volume, and latency thresholds</div>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- SECTION 2: INFERENCE ENGINES                 -->
+    <!-- ============================================ -->
+    <div class="section" id="inference-engines">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Inference Engines: vLLM &amp; TGI</h2>
+      </div>
+
+      <h3 id="engines-plain">Plain Language</h3>
+
+      <p>An inference engine is the runtime software that loads a language model's weights into GPU memory and executes the mathematical operations needed to generate text. Think of it like a web server for AI — just as Nginx or Apache serve web pages, vLLM and TGI serve language model predictions. The engine handles all the low-level complexity: allocating GPU memory efficiently, batching multiple requests together to maximize throughput, and managing the key-value cache that prevents redundant computation during text generation.</p>
+
+      <p>The two dominant open-source inference engines are <strong>vLLM</strong> (from UC Berkeley) and <strong>Text Generation Inference (TGI)</strong> (from Hugging Face). Both solve the same fundamental problem — making LLM inference fast and efficient — but they approach it differently. vLLM introduced a breakthrough technique called PagedAttention that manages GPU memory the way an operating system manages virtual memory, allowing it to serve many more concurrent requests than naive implementations. TGI, on the other hand, is tightly integrated with the Hugging Face ecosystem and offers a polished production experience with built-in features like token streaming, watermarking, and automatic batching.</p>
+
+      <p>If you have ever wondered why running a model locally feels slow compared to ChatGPT, the answer is usually the inference engine. A naive PyTorch implementation generates tokens one at a time, waiting for each token to finish before starting the next request. Production inference engines like vLLM exploit a technique called continuous batching, where new requests are dynamically inserted into an ongoing batch without waiting for existing requests to finish. This keeps the GPU busy at all times instead of idling between requests, which can improve throughput by 10x to 30x compared to static batching approaches.</p>
+
+      <p>Another critical optimization is KV-cache management. During text generation, the model computes attention over all previous tokens. Without caching, this computation grows quadratically with sequence length. Both vLLM and TGI maintain a key-value cache that stores previously computed attention states, so each new token only requires attention computation against the new position. The clever part is how this cache is managed — vLLM's PagedAttention allocates cache memory in small pages (similar to OS virtual memory pages), avoiding the massive contiguous memory allocations that cause out-of-memory errors when serving many concurrent requests with varying sequence lengths.</p>
+
+      <h3 id="engines-deep">Deep Dive</h3>
+
+      <p><strong>vLLM</strong> has become the de facto standard for high-throughput LLM serving. Its core innovation, PagedAttention, partitions the KV cache into fixed-size blocks (pages) that can be stored non-contiguously in GPU memory. Traditional serving systems allocate a contiguous chunk of GPU memory for each request's KV cache, sized for the maximum possible sequence length. This leads to massive memory waste — a request that generates only 100 tokens still reserves memory for the full 4,096 or 8,192 token context window. PagedAttention eliminates this waste by allocating pages on demand, allowing memory to be shared across requests and reclaimed immediately when a request completes. In practice, this enables vLLM to serve 2-4x more concurrent requests than traditional approaches on the same hardware.</p>
+
+      <p>Starting a vLLM server is straightforward. The <code>vllm serve</code> command launches an OpenAI-compatible API server that accepts the exact same request format as the OpenAI Chat Completions API. This means you can point any application that uses the OpenAI SDK at your vLLM server simply by changing the base URL — no code changes required. The server supports streaming, function calling, multiple model formats (HuggingFace, GPTQ, AWQ, GGUF), and tensor parallelism across multiple GPUs.</p>
+
+      <pre><code><span class="code-comment"># Install vLLM</span>
+pip install vllm
+
+<span class="code-comment"># Start serving Llama 3 8B with OpenAI-compatible API</span>
+vllm serve meta-llama/Meta-Llama-3-8B-Instruct \
+  --host <span class="code-num">0.0.0.0</span> \
+  --port <span class="code-num">8000</span> \
+  --dtype auto \
+  --max-model-len <span class="code-num">8192</span> \
+  --gpu-memory-utilization <span class="code-num">0.90</span> \
+  --enable-chunked-prefill \
+  --max-num-seqs <span class="code-num">256</span>
+
+<span class="code-comment"># Key flags explained:</span>
+<span class="code-comment"># --dtype auto            → Use FP16 or BF16 based on GPU capability</span>
+<span class="code-comment"># --max-model-len 8192    → Maximum context window per request</span>
+<span class="code-comment"># --gpu-memory-utilization → Fraction of GPU memory for KV cache (0.90 = 90%)</span>
+<span class="code-comment"># --enable-chunked-prefill → Process long prompts in chunks, reducing TTFT</span>
+<span class="code-comment"># --max-num-seqs 256      → Maximum concurrent requests in a batch</span></code></pre>
+
+      <p><strong>Tensor parallelism</strong> allows you to split a model across multiple GPUs when a single GPU doesn't have enough memory. For a 70B parameter model that requires roughly 140GB at FP16, you would need two A100-80GB GPUs. vLLM handles this transparently with the <code>--tensor-parallel-size</code> flag. The model's weight matrices are sharded across GPUs, and vLLM manages the cross-GPU communication during inference. Performance scales nearly linearly for up to 4 GPUs, with some overhead from inter-GPU communication beyond that.</p>
+
+      <pre><code><span class="code-comment"># Serve a 70B model across 2 GPUs</span>
+vllm serve meta-llama/Meta-Llama-3-70B-Instruct \
+  --tensor-parallel-size <span class="code-num">2</span> \
+  --max-model-len <span class="code-num">4096</span> \
+  --gpu-memory-utilization <span class="code-num">0.92</span>
+
+<span class="code-comment"># Serve a quantized 4-bit model (fits on single GPU)</span>
+vllm serve TheBloke/Llama-3-70B-Instruct-GPTQ \
+  --quantization gptq \
+  --max-model-len <span class="code-num">4096</span> \
+  --dtype float16</code></pre>
+
+      <p><strong>Text Generation Inference (TGI)</strong> by Hugging Face takes a different architectural approach. Written in Rust for the core server with a Python model layer, TGI achieves excellent performance through custom CUDA kernels, Flash Attention 2 integration, and an efficient Rust-based HTTP server. TGI's standout features include built-in support for speculative decoding (using a smaller draft model to speed up generation from a larger model), Paged Attention (adopted from vLLM's research), and tight integration with Hugging Face Hub for model downloading and caching.</p>
+
+      <pre><code><span class="code-comment"># Run TGI via Docker (recommended approach)</span>
+docker run --gpus all --shm-size 1g \
+  -p <span class="code-num">8080</span>:<span class="code-num">80</span> \
+  -v /data:/data \
+  ghcr.io/huggingface/text-generation-inference:latest \
+  --model-id meta-llama/Meta-Llama-3-8B-Instruct \
+  --max-input-tokens <span class="code-num">4096</span> \
+  --max-total-tokens <span class="code-num">8192</span> \
+  --max-batch-prefill-tokens <span class="code-num">4096</span>
+
+<span class="code-comment"># Call TGI endpoint</span>
+curl http://localhost:<span class="code-num">8080</span>/generate \
+  -H <span class="code-string">"Content-Type: application/json"</span> \
+  -d <span class="code-string">'{
+    "inputs": "What is the capital of France?",
+    "parameters": {"max_new_tokens": 100, "temperature": 0.7}
+  }'</span></code></pre>
+
+      <!-- Comparison Table -->
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>vLLM</th>
+            <th>TGI</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Language</td><td>Python + CUDA</td><td>Rust + Python + CUDA</td></tr>
+          <tr><td>API Format</td><td>OpenAI-compatible</td><td>Custom + OpenAI-compatible</td></tr>
+          <tr><td>PagedAttention</td><td>Native (invented here)</td><td>Adopted</td></tr>
+          <tr><td>Tensor Parallelism</td><td>Yes (simple flag)</td><td>Yes</td></tr>
+          <tr><td>Speculative Decoding</td><td>Yes</td><td>Yes (built-in)</td></tr>
+          <tr><td>Quantization</td><td>GPTQ, AWQ, FP8, GGUF</td><td>GPTQ, AWQ, EETQ, bitsandbytes</td></tr>
+          <tr><td>Deployment</td><td>pip install / Docker</td><td>Docker (primary)</td></tr>
+          <tr><td>Best For</td><td>Max throughput, OpenAI drop-in</td><td>HuggingFace ecosystem integration</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Recommendation</div>
+        <p>For most production deployments, start with vLLM — its OpenAI-compatible API makes it a drop-in replacement that requires zero code changes. Use TGI when you need tight Hugging Face Hub integration or specific features like built-in watermarking.</p>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- SECTION 3: OLLAMA                            -->
+    <!-- ============================================ -->
+    <div class="section" id="ollama">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Ollama for Local Development</h2>
+      </div>
+
+      <h3 id="ollama-plain">Plain Language</h3>
+
+      <p>Ollama is to local LLM development what Docker was to containerization — it packages the entire complexity of model downloading, quantization, and serving into a single command-line tool that just works. Instead of manually downloading model weights, configuring CUDA drivers, managing Python environments, and setting up serving infrastructure, you simply run <code>ollama run llama3</code> and start chatting. This radical simplicity makes Ollama the ideal tool for local development, prototyping, and testing workflows before deploying to production infrastructure with vLLM or TGI.</p>
+
+      <p>Under the hood, Ollama uses the llama.cpp inference engine, which is written in C++ and optimized for running on consumer hardware. It supports both GPU and CPU inference, meaning you can run smaller models even on a laptop without a dedicated GPU. On a MacBook with Apple Silicon (M1/M2/M3), Ollama leverages the Metal framework for GPU acceleration, achieving surprisingly fast inference — a 7B parameter model can generate 30-50 tokens per second on an M2 Pro, which is more than fast enough for interactive development.</p>
+
+      <p>Ollama's model library is curated and versioned, similar to Docker Hub for container images. Models are specified with names and tags like <code>llama3:8b</code>, <code>mistral:7b-instruct</code>, or <code>phi3:mini</code>. Each model is automatically quantized to a sensible default (usually Q4_K_M for a good balance of quality and speed), and Ollama handles all the weight file management, caching, and GPU memory allocation. You can also create custom "Modelfiles" — similar to Dockerfiles — that specify a base model, system prompt, temperature settings, and other parameters, creating a reproducible model configuration that can be shared across your team.</p>
+
+      <p>For development workflows, Ollama exposes an API on localhost:11434 that follows a similar pattern to the OpenAI API. Many LLM frameworks — including LangChain, LlamaIndex, and Haystack — have native Ollama integrations, meaning you can develop your entire RAG pipeline or agent system locally against Ollama and then switch to a production vLLM or API endpoint simply by changing a configuration variable. This local-first development pattern is invaluable because it eliminates API costs during the iterative development phase, provides faster iteration cycles with zero network latency, and allows you to work offline.</p>
+
+      <h3 id="ollama-deep">Deep Dive</h3>
+
+      <p><strong>Installation and basic usage</strong> demonstrates Ollama's design philosophy of minimal friction. On macOS, you install it via a simple download and install. On Linux, a one-line curl command handles everything. Once installed, the <code>ollama serve</code> command starts a background daemon that manages model loading, GPU allocation, and API serving. Models are pulled on demand — the first time you request a model, Ollama downloads and caches it; subsequent uses load directly from cache.</p>
+
+      <pre><code><span class="code-comment"># Install Ollama (Linux)</span>
+curl -fsSL https://ollama.com/install.sh | sh
+
+<span class="code-comment"># Pull and run a model interactively</span>
+ollama run llama3:8b
+
+<span class="code-comment"># Pull a model without running</span>
+ollama pull mistral:7b-instruct
+ollama pull phi3:mini
+ollama pull codellama:13b
+
+<span class="code-comment"># List downloaded models</span>
+ollama list
+
+<span class="code-comment"># Show model details (quantization, size, parameters)</span>
+ollama show llama3:8b</code></pre>
+
+      <p><strong>Modelfiles</strong> give you Dockerfile-like control over model configuration. You define a base model, system prompt, and parameter overrides in a simple text file, then build a custom model from it. This is powerful for creating purpose-specific models — for example, a "code reviewer" model that uses CodeLlama with a specialized system prompt and lower temperature for more deterministic output.</p>
+
+      <pre><code><span class="code-comment"># Create a Modelfile for a custom coding assistant</span>
+<span class="code-comment"># Save as "Modelfile.code-review"</span>
+
+FROM codellama:<span class="code-num">13</span>b
+
+SYSTEM <span class="code-string">"""You are an expert code reviewer. Analyze the provided code for:
+1. Bugs and potential runtime errors
+2. Security vulnerabilities
+3. Performance issues
+4. Code style and readability
+Provide specific, actionable feedback with corrected code examples."""</span>
+
+PARAMETER temperature <span class="code-num">0.2</span>
+PARAMETER top_p <span class="code-num">0.9</span>
+PARAMETER num_ctx <span class="code-num">8192</span>
+PARAMETER stop <span class="code-string">"&lt;/review&gt;"</span></code></pre>
+
+      <pre><code><span class="code-comment"># Build and run the custom model</span>
+ollama create code-reviewer -f Modelfile.code-review
+ollama run code-reviewer</code></pre>
+
+      <p><strong>Ollama's REST API</strong> on <code>localhost:11434</code> provides both chat and completion endpoints. The chat endpoint accepts a list of messages (just like the OpenAI API), while the generate endpoint accepts a raw prompt. Both support streaming via newline-delimited JSON. Here is how you interact with Ollama programmatically from Python:</p>
+
+      <pre><code><span class="code-keyword">import</span> requests
+<span class="code-keyword">import</span> json
+
+<span class="code-comment"># Chat completion (non-streaming)</span>
+response = requests.<span class="code-fn">post</span>(
+    <span class="code-string">"http://localhost:11434/api/chat"</span>,
+    json={
+        <span class="code-string">"model"</span>: <span class="code-string">"llama3:8b"</span>,
+        <span class="code-string">"messages"</span>: [
+            {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: <span class="code-string">"You are a helpful assistant."</span>},
+            {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: <span class="code-string">"Explain KV caching in transformers."</span>}
+        ],
+        <span class="code-string">"stream"</span>: <span class="code-keyword">False</span>
+    }
+)
+result = response.<span class="code-fn">json</span>()
+<span class="code-fn">print</span>(result[<span class="code-string">"message"</span>][<span class="code-string">"content"</span>])
+
+<span class="code-comment"># Streaming chat completion</span>
+response = requests.<span class="code-fn">post</span>(
+    <span class="code-string">"http://localhost:11434/api/chat"</span>,
+    json={
+        <span class="code-string">"model"</span>: <span class="code-string">"llama3:8b"</span>,
+        <span class="code-string">"messages"</span>: [{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: <span class="code-string">"Write a haiku about GPUs."</span>}],
+        <span class="code-string">"stream"</span>: <span class="code-keyword">True</span>
+    },
+    stream=<span class="code-keyword">True</span>
+)
+
+<span class="code-keyword">for</span> line <span class="code-keyword">in</span> response.<span class="code-fn">iter_lines</span>():
+    chunk = json.<span class="code-fn">loads</span>(line)
+    <span class="code-fn">print</span>(chunk[<span class="code-string">"message"</span>][<span class="code-string">"content"</span>], end=<span class="code-string">""</span>, flush=<span class="code-keyword">True</span>)</code></pre>
+
+      <p>The <strong>OpenAI-compatible endpoint</strong> is available at <code>/v1/chat/completions</code>, meaning you can use the official OpenAI Python SDK with Ollama by simply overriding the base URL. This is the recommended approach for development because it means your code is portable — switch from Ollama to OpenAI or vLLM by changing a single environment variable:</p>
+
+      <pre><code><span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+
+<span class="code-comment"># Point OpenAI SDK at local Ollama server</span>
+client = OpenAI(
+    base_url=<span class="code-string">"http://localhost:11434/v1"</span>,
+    api_key=<span class="code-string">"ollama"</span>   <span class="code-comment"># Ollama doesn't need a real key</span>
+)
+
+response = client.chat.completions.<span class="code-fn">create</span>(
+    model=<span class="code-string">"llama3:8b"</span>,
+    messages=[
+        {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: <span class="code-string">"You are a concise technical writer."</span>},
+        {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: <span class="code-string">"What is continuous batching?"</span>}
+    ],
+    temperature=<span class="code-num">0.7</span>,
+    max_tokens=<span class="code-num">500</span>
+)
+
+<span class="code-fn">print</span>(response.choices[<span class="code-num">0</span>].message.content)</code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Development Workflow</div>
+        <p>Use <code>OPENAI_BASE_URL=http://localhost:11434/v1</code> as an environment variable in your .env file during development. Your code uses the standard OpenAI SDK everywhere, and switching to production (OpenAI, vLLM, or any OpenAI-compatible endpoint) requires only changing this one variable.</p>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- SECTION 4: FASTAPI LLM SERVICES              -->
+    <!-- ============================================ -->
+    <div class="section" id="fastapi-wrapper">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Building FastAPI LLM Services</h2>
+      </div>
+
+      <h3 id="fastapi-plain">Plain Language</h3>
+
+      <p>While vLLM and TGI provide raw inference endpoints, production applications usually need additional functionality that sits between the user and the model: input validation, authentication, rate limiting, prompt templates, output parsing, logging, and business-specific logic. FastAPI is the Python web framework of choice for building these wrapper services because it provides automatic request validation through Pydantic models, native async support for handling many concurrent requests efficiently, and automatic OpenAPI documentation generation.</p>
+
+      <p>Think of the architecture as a three-layer sandwich. At the bottom is your inference engine (vLLM or Ollama) running the actual model. In the middle is your FastAPI service that handles all the application logic — checking user permissions, selecting the right prompt template, routing to different models based on the request type, logging interactions for evaluation, and formatting the response. At the top is your frontend or client application that talks to the FastAPI service through a clean, well-documented REST API. This separation of concerns is crucial because it lets you swap out the inference engine without touching application logic, update prompt templates without redeploying the model, and scale the API layer independently from the GPU-intensive inference layer.</p>
+
+      <p>Streaming is particularly important for LLM applications because language models generate tokens one at a time, and users expect to see text appearing progressively rather than waiting for the entire response. FastAPI supports Server-Sent Events (SSE) through its <code>StreamingResponse</code> class, which pairs perfectly with the streaming APIs provided by vLLM and Ollama. Your FastAPI service receives tokens from the inference engine as they are generated and immediately forwards them to the client, creating a smooth, ChatGPT-like streaming experience.</p>
+
+      <p>Error handling in LLM services requires special attention because inference can fail in ways that typical web services do not. The model might run out of GPU memory during a long generation, the inference engine might crash and need restarting, or a request might time out because the model is overloaded. Your FastAPI service should handle all of these gracefully — retrying against a backup model, returning partial responses when possible, and providing clear error messages that help clients recover. Circuit breaker patterns, where you temporarily stop sending requests to a failing backend, are particularly useful for maintaining service availability during inference engine issues.</p>
+
+      <h3 id="fastapi-deep">Deep Dive</h3>
+
+      <p>A production-grade FastAPI LLM service starts with well-defined <strong>Pydantic models</strong> for request and response validation. This ensures that malformed requests are rejected before they reach the inference engine, and that responses have a consistent structure that clients can rely on. The request model should validate the messages array, enforce limits on max_tokens to prevent runaway generation costs, and sanitize the temperature and other sampling parameters to valid ranges.</p>
+
+      <pre><code><span class="code-keyword">from</span> fastapi <span class="code-keyword">import</span> FastAPI, HTTPException
+<span class="code-keyword">from</span> fastapi.responses <span class="code-keyword">import</span> StreamingResponse
+<span class="code-keyword">from</span> pydantic <span class="code-keyword">import</span> BaseModel, Field
+<span class="code-keyword">from</span> openai <span class="code-keyword">import</span> AsyncOpenAI
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> AsyncGenerator
+<span class="code-keyword">import</span> json, time, logging
+
+logger = logging.<span class="code-fn">getLogger</span>(__name__)
+app = <span class="code-fn">FastAPI</span>(title=<span class="code-string">"LLM Service"</span>, version=<span class="code-string">"1.0.0"</span>)
+
+<span class="code-comment"># --- Pydantic Models ---</span>
+
+<span class="code-keyword">class</span> <span class="code-fn">Message</span>(BaseModel):
+    role: str = <span class="code-fn">Field</span>(..., pattern=<span class="code-string">"^(system|user|assistant)$"</span>)
+    content: str = <span class="code-fn">Field</span>(..., min_length=<span class="code-num">1</span>, max_length=<span class="code-num">100_000</span>)
+
+<span class="code-keyword">class</span> <span class="code-fn">ChatRequest</span>(BaseModel):
+    messages: list[Message] = <span class="code-fn">Field</span>(..., min_length=<span class="code-num">1</span>)
+    model: str = <span class="code-string">"llama3:8b"</span>
+    temperature: float = <span class="code-fn">Field</span>(default=<span class="code-num">0.7</span>, ge=<span class="code-num">0.0</span>, le=<span class="code-num">2.0</span>)
+    max_tokens: int = <span class="code-fn">Field</span>(default=<span class="code-num">1024</span>, ge=<span class="code-num">1</span>, le=<span class="code-num">4096</span>)
+    stream: bool = <span class="code-keyword">False</span>
+
+<span class="code-keyword">class</span> <span class="code-fn">ChatResponse</span>(BaseModel):
+    content: str
+    model: str
+    usage: dict
+    latency_ms: float
+
+<span class="code-comment"># --- Client Setup ---</span>
+
+<span class="code-comment"># Points to vLLM or Ollama backend</span>
+client = <span class="code-fn">AsyncOpenAI</span>(
+    base_url=<span class="code-string">"http://localhost:8000/v1"</span>,  <span class="code-comment"># vLLM</span>
+    api_key=<span class="code-string">"not-needed"</span>
+)</code></pre>
+
+      <p>The <strong>non-streaming endpoint</strong> wraps the OpenAI client call with error handling, timing, and structured logging. This is the simpler path and works well for backend-to-backend communication where the client does not need progressive updates:</p>
+
+      <pre><code><span class="code-keyword">@app</span>.<span class="code-fn">post</span>(<span class="code-string">"/v1/chat"</span>, response_model=ChatResponse)
+<span class="code-keyword">async def</span> <span class="code-fn">chat</span>(req: ChatRequest):
+    start = time.<span class="code-fn">perf_counter</span>()
+    <span class="code-keyword">try</span>:
+        response = <span class="code-keyword">await</span> client.chat.completions.<span class="code-fn">create</span>(
+            model=req.model,
+            messages=[m.<span class="code-fn">model_dump</span>() <span class="code-keyword">for</span> m <span class="code-keyword">in</span> req.messages],
+            temperature=req.temperature,
+            max_tokens=req.max_tokens,
+        )
+    <span class="code-keyword">except</span> Exception <span class="code-keyword">as</span> e:
+        logger.<span class="code-fn">error</span>(f<span class="code-string">"Inference failed: {e}"</span>)
+        <span class="code-keyword">raise</span> <span class="code-fn">HTTPException</span>(status_code=<span class="code-num">502</span>, detail=<span class="code-string">"Inference backend unavailable"</span>)
+
+    elapsed = (time.<span class="code-fn">perf_counter</span>() - start) * <span class="code-num">1000</span>
+    choice = response.choices[<span class="code-num">0</span>]
+
+    logger.<span class="code-fn">info</span>(f<span class="code-string">"model={req.model} tokens={response.usage.total_tokens} latency={elapsed:.0f}ms"</span>)
+
+    <span class="code-keyword">return</span> <span class="code-fn">ChatResponse</span>(
+        content=choice.message.content,
+        model=response.model,
+        usage={
+            <span class="code-string">"prompt_tokens"</span>: response.usage.prompt_tokens,
+            <span class="code-string">"completion_tokens"</span>: response.usage.completion_tokens,
+            <span class="code-string">"total_tokens"</span>: response.usage.total_tokens,
+        },
+        latency_ms=<span class="code-fn">round</span>(elapsed, <span class="code-num">2</span>)
+    )</code></pre>
+
+      <p>The <strong>streaming endpoint</strong> is where FastAPI's async capabilities truly shine. The pattern uses an async generator that yields Server-Sent Events (SSE) as tokens arrive from the inference engine. Each event is a JSON object containing the token delta, formatted according to the SSE protocol with <code>data:</code> prefix and double newline separator. The client receives these events in real time, displaying each token as it arrives:</p>
+
+      <pre><code><span class="code-keyword">async def</span> <span class="code-fn">stream_tokens</span>(req: ChatRequest) -> AsyncGenerator[str, <span class="code-keyword">None</span>]:
+    <span class="code-string">"""Async generator that yields SSE-formatted token chunks."""</span>
+    <span class="code-keyword">try</span>:
+        stream = <span class="code-keyword">await</span> client.chat.completions.<span class="code-fn">create</span>(
+            model=req.model,
+            messages=[m.<span class="code-fn">model_dump</span>() <span class="code-keyword">for</span> m <span class="code-keyword">in</span> req.messages],
+            temperature=req.temperature,
+            max_tokens=req.max_tokens,
+            stream=<span class="code-keyword">True</span>,
+        )
+        <span class="code-keyword">async for</span> chunk <span class="code-keyword">in</span> stream:
+            delta = chunk.choices[<span class="code-num">0</span>].delta.content
+            <span class="code-keyword">if</span> delta:
+                event = json.<span class="code-fn">dumps</span>({<span class="code-string">"content"</span>: delta})
+                <span class="code-keyword">yield</span> f<span class="code-string">"data: {event}\n\n"</span>
+        <span class="code-keyword">yield</span> <span class="code-string">"data: [DONE]\n\n"</span>
+    <span class="code-keyword">except</span> Exception <span class="code-keyword">as</span> e:
+        error = json.<span class="code-fn">dumps</span>({<span class="code-string">"error"</span>: str(e)})
+        <span class="code-keyword">yield</span> f<span class="code-string">"data: {error}\n\n"</span>
+
+<span class="code-keyword">@app</span>.<span class="code-fn">post</span>(<span class="code-string">"/v1/chat/stream"</span>)
+<span class="code-keyword">async def</span> <span class="code-fn">chat_stream</span>(req: ChatRequest):
+    <span class="code-keyword">return</span> <span class="code-fn">StreamingResponse</span>(
+        <span class="code-fn">stream_tokens</span>(req),
+        media_type=<span class="code-string">"text/event-stream"</span>,
+        headers={
+            <span class="code-string">"Cache-Control"</span>: <span class="code-string">"no-cache"</span>,
+            <span class="code-string">"X-Accel-Buffering"</span>: <span class="code-string">"no"</span>,  <span class="code-comment"># Disable Nginx buffering</span>
+        }
+    )</code></pre>
+
+      <p><strong>Health checks and readiness probes</strong> are essential for container orchestration. The health endpoint should verify that the inference backend is actually responding, not just that the FastAPI process is alive. A liveness probe checks if the process is healthy, while a readiness probe checks if it can serve traffic (the model is loaded and warm):</p>
+
+      <pre><code><span class="code-keyword">@app</span>.<span class="code-fn">get</span>(<span class="code-string">"/health"</span>)
+<span class="code-keyword">async def</span> <span class="code-fn">health</span>():
+    <span class="code-string">"""Readiness probe: verifies inference backend is responding."""</span>
+    <span class="code-keyword">try</span>:
+        models = <span class="code-keyword">await</span> client.models.<span class="code-fn">list</span>()
+        <span class="code-keyword">return</span> {<span class="code-string">"status"</span>: <span class="code-string">"healthy"</span>, <span class="code-string">"models"</span>: [m.id <span class="code-keyword">for</span> m <span class="code-keyword">in</span> models.data]}
+    <span class="code-keyword">except</span> Exception <span class="code-keyword">as</span> e:
+        <span class="code-keyword">raise</span> <span class="code-fn">HTTPException</span>(status_code=<span class="code-num">503</span>, detail=f<span class="code-string">"Backend unhealthy: {e}"</span>)
+
+<span class="code-keyword">@app</span>.<span class="code-fn">get</span>(<span class="code-string">"/live"</span>)
+<span class="code-keyword">async def</span> <span class="code-fn">liveness</span>():
+    <span class="code-string">"""Liveness probe: confirms process is alive."""</span>
+    <span class="code-keyword">return</span> {<span class="code-string">"status"</span>: <span class="code-string">"alive"</span>}</code></pre>
+
+      <div class="callout">
+        <div class="callout-label">Production Tip</div>
+        <p>Run your FastAPI service with <code>uvicorn app:app --workers 4 --loop uvloop</code> for maximum async performance. The uvloop event loop is significantly faster than the default asyncio loop for I/O-bound workloads like proxying to inference engines.</p>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- SECTION 5: SAGEMAKER                         -->
+    <!-- ============================================ -->
+    <div class="section" id="sagemaker">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>AWS SageMaker Endpoints</h2>
+      </div>
+
+      <h3 id="sagemaker-plain">Plain Language</h3>
+
+      <p>AWS SageMaker is Amazon's managed machine learning platform, and its real-time inference endpoints provide a fully managed way to deploy LLMs to production without managing any GPU infrastructure yourself. Think of SageMaker as a "valet parking" service for your model — you hand over your model weights and configuration, and AWS handles provisioning GPU instances, loading the model, setting up load balancing, configuring auto-scaling, managing health checks, and rotating instances during updates. You interact with your model through a simple API call, and AWS bills you per hour of instance uptime rather than per token.</p>
+
+      <p>The primary deployment path for LLMs on SageMaker uses the Hugging Face Deep Learning Container (DLC), which comes pre-installed with TGI or vLLM and all necessary CUDA drivers. You specify the model ID from Hugging Face Hub, the instance type (which determines the GPU), and SageMaker handles downloading the model, loading it into memory, and exposing it as an HTTPS endpoint. The entire setup takes about 10-15 minutes, and the endpoint automatically gets an AWS-managed TLS certificate, IAM authentication, and CloudWatch monitoring.</p>
+
+      <p>SageMaker's real power shows in production operations. Auto-scaling policies automatically add or remove GPU instances based on metrics like invocations per instance, GPU utilization, or custom CloudWatch metrics. Shadow deployments (called "production variants") let you route a percentage of traffic to a new model version, compare quality and performance, and gradually shift traffic — essentially A/B testing your model deployments. Blue/green deployments let you swap model versions with zero downtime. These operational features are extremely difficult to build yourself but come standard with SageMaker.</p>
+
+      <p>The main tradeoff is cost and flexibility. SageMaker instances are more expensive than equivalent bare EC2 instances — you pay a premium for the managed infrastructure. A p4d.24xlarge (8x A100-80GB) costs about $32.77 per hour on EC2 but roughly 30% more through SageMaker. You also have less control over the runtime environment and cannot customize the inference engine as deeply as a raw deployment. For many teams, this premium is well worth the operational simplicity, but cost-sensitive high-volume deployments may prefer direct EC2 or ECS deployment.</p>
+
+      <h3 id="sagemaker-deep">Deep Dive</h3>
+
+      <p>Deploying an LLM to SageMaker involves three core concepts: a <strong>Model</strong> (the artifacts and container), an <strong>EndpointConfig</strong> (the instance type and scaling settings), and an <strong>Endpoint</strong> (the live serving infrastructure). The Hugging Face DLC simplifies this by letting you specify just a model ID and container image — SageMaker handles downloading weights from Hugging Face Hub during deployment. Here is a complete deployment using the SageMaker Python SDK:</p>
+
+      <pre><code><span class="code-keyword">import</span> sagemaker
+<span class="code-keyword">from</span> sagemaker.huggingface <span class="code-keyword">import</span> HuggingFaceModel, get_huggingface_llm_image_uri
+
+role = sagemaker.<span class="code-fn">get_execution_role</span>()
+sess = sagemaker.<span class="code-fn">Session</span>()
+
+<span class="code-comment"># Get the latest TGI container image URI</span>
+image_uri = <span class="code-fn">get_huggingface_llm_image_uri</span>(
+    backend=<span class="code-string">"huggingface"</span>,   <span class="code-comment"># "huggingface" = TGI, or use "lmi" for vLLM</span>
+    region=sess.boto_region_name,
+    version=<span class="code-string">"2.3.1"</span>
+)
+
+<span class="code-comment"># Define the model</span>
+model = <span class="code-fn">HuggingFaceModel</span>(
+    role=role,
+    image_uri=image_uri,
+    env={
+        <span class="code-string">"HF_MODEL_ID"</span>: <span class="code-string">"meta-llama/Meta-Llama-3-8B-Instruct"</span>,
+        <span class="code-string">"HF_TOKEN"</span>: <span class="code-string">"hf_YOUR_TOKEN_HERE"</span>,  <span class="code-comment"># For gated models</span>
+        <span class="code-string">"SM_NUM_GPUS"</span>: <span class="code-string">"1"</span>,
+        <span class="code-string">"MAX_INPUT_TOKENS"</span>: <span class="code-string">"4096"</span>,
+        <span class="code-string">"MAX_TOTAL_TOKENS"</span>: <span class="code-string">"8192"</span>,
+        <span class="code-string">"MAX_BATCH_PREFILL_TOKENS"</span>: <span class="code-string">"4096"</span>,
+    }
+)
+
+<span class="code-comment"># Deploy to a real-time endpoint</span>
+predictor = model.<span class="code-fn">deploy</span>(
+    initial_instance_count=<span class="code-num">1</span>,
+    instance_type=<span class="code-string">"ml.g5.2xlarge"</span>,  <span class="code-comment"># 1x A10G 24GB — perfect for 8B models</span>
+    endpoint_name=<span class="code-string">"llama3-8b-endpoint"</span>,
+    container_startup_health_check_timeout=<span class="code-num">600</span>,  <span class="code-comment"># 10 min for model download</span>
+)
+
+<span class="code-fn">print</span>(f<span class="code-string">"Endpoint ready: {predictor.endpoint_name}"</span>)</code></pre>
+
+      <p>Once deployed, invoking the endpoint uses the SageMaker runtime client. The request format follows the TGI API specification. Here is both a direct invocation and a streaming invocation:</p>
+
+      <pre><code><span class="code-keyword">import</span> boto3, json
+
+runtime = boto3.<span class="code-fn">client</span>(<span class="code-string">"sagemaker-runtime"</span>)
+
+<span class="code-comment"># --- Non-streaming invocation ---</span>
+payload = {
+    <span class="code-string">"inputs"</span>: <span class="code-string">"What are the benefits of self-hosting LLMs?"</span>,
+    <span class="code-string">"parameters"</span>: {
+        <span class="code-string">"max_new_tokens"</span>: <span class="code-num">512</span>,
+        <span class="code-string">"temperature"</span>: <span class="code-num">0.7</span>,
+        <span class="code-string">"top_p"</span>: <span class="code-num">0.9</span>,
+        <span class="code-string">"do_sample"</span>: <span class="code-keyword">True</span>
+    }
+}
+
+response = runtime.<span class="code-fn">invoke_endpoint</span>(
+    EndpointName=<span class="code-string">"llama3-8b-endpoint"</span>,
+    ContentType=<span class="code-string">"application/json"</span>,
+    Body=json.<span class="code-fn">dumps</span>(payload)
+)
+
+result = json.<span class="code-fn">loads</span>(response[<span class="code-string">"Body"</span>].<span class="code-fn">read</span>().<span class="code-fn">decode</span>())
+<span class="code-fn">print</span>(result[<span class="code-num">0</span>][<span class="code-string">"generated_text"</span>])
+
+<span class="code-comment"># --- Streaming invocation ---</span>
+response = runtime.<span class="code-fn">invoke_endpoint_with_response_stream</span>(
+    EndpointName=<span class="code-string">"llama3-8b-endpoint"</span>,
+    ContentType=<span class="code-string">"application/json"</span>,
+    Body=json.<span class="code-fn">dumps</span>({**payload, <span class="code-string">"stream"</span>: <span class="code-keyword">True</span>})
+)
+
+<span class="code-keyword">for</span> event <span class="code-keyword">in</span> response[<span class="code-string">"Body"</span>]:
+    chunk = event[<span class="code-string">"PayloadPart"</span>][<span class="code-string">"Bytes"</span>].<span class="code-fn">decode</span>()
+    <span class="code-fn">print</span>(chunk, end=<span class="code-string">""</span>, flush=<span class="code-keyword">True</span>)</code></pre>
+
+      <p><strong>Auto-scaling</strong> is configured through Application Auto Scaling policies attached to the endpoint. The most common approach is target-tracking scaling based on invocations per instance, which automatically adds instances when traffic increases and removes them when it decreases. For cost optimization, you can scale to zero during off-hours using a scheduled scaling policy:</p>
+
+      <pre><code><span class="code-keyword">import</span> boto3
+
+aas = boto3.<span class="code-fn">client</span>(<span class="code-string">"application-autoscaling"</span>)
+
+<span class="code-comment"># Register the endpoint as a scalable target</span>
+aas.<span class="code-fn">register_scalable_target</span>(
+    ServiceNamespace=<span class="code-string">"sagemaker"</span>,
+    ResourceId=<span class="code-string">"endpoint/llama3-8b-endpoint/variant/AllTraffic"</span>,
+    ScalableDimension=<span class="code-string">"sagemaker:variant:DesiredInstanceCount"</span>,
+    MinCapacity=<span class="code-num">1</span>,
+    MaxCapacity=<span class="code-num">4</span>,
+)
+
+<span class="code-comment"># Create target-tracking scaling policy</span>
+aas.<span class="code-fn">put_scaling_policy</span>(
+    PolicyName=<span class="code-string">"llama3-scaling"</span>,
+    ServiceNamespace=<span class="code-string">"sagemaker"</span>,
+    ResourceId=<span class="code-string">"endpoint/llama3-8b-endpoint/variant/AllTraffic"</span>,
+    ScalableDimension=<span class="code-string">"sagemaker:variant:DesiredInstanceCount"</span>,
+    PolicyType=<span class="code-string">"TargetTrackingScaling"</span>,
+    TargetTrackingScalingPolicyConfiguration={
+        <span class="code-string">"TargetValue"</span>: <span class="code-num">50.0</span>,  <span class="code-comment"># Target: 50 invocations per instance per minute</span>
+        <span class="code-string">"PredefinedMetricSpecification"</span>: {
+            <span class="code-string">"PredefinedMetricType"</span>: <span class="code-string">"SageMakerVariantInvocationsPerInstance"</span>
+        },
+        <span class="code-string">"ScaleInCooldown"</span>: <span class="code-num">300</span>,   <span class="code-comment"># Wait 5 min before scaling in</span>
+        <span class="code-string">"ScaleOutCooldown"</span>: <span class="code-num">60</span>,   <span class="code-comment"># Scale out quickly (1 min)</span>
+    }
+)</code></pre>
+
+      <!-- GPU Instance Type Table -->
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>SageMaker Instance</th>
+            <th>GPU</th>
+            <th>VRAM</th>
+            <th>Best For</th>
+            <th>~Cost/hr</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>ml.g5.xlarge</td><td>1x A10G</td><td>24 GB</td><td>7B models (quantized)</td><td>$1.41</td></tr>
+          <tr><td>ml.g5.2xlarge</td><td>1x A10G</td><td>24 GB</td><td>7-8B models (FP16)</td><td>$1.52</td></tr>
+          <tr><td>ml.g5.12xlarge</td><td>4x A10G</td><td>96 GB</td><td>70B models (quantized)</td><td>$7.09</td></tr>
+          <tr><td>ml.p4d.24xlarge</td><td>8x A100</td><td>640 GB</td><td>70B+ models (FP16)</td><td>$42.60</td></tr>
+          <tr><td>ml.g6.xlarge</td><td>1x L4</td><td>24 GB</td><td>7B models (cost-optimized)</td><td>$0.98</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <div class="callout-label">Cost Warning</div>
+        <p>SageMaker endpoints bill by the hour even when idle. Always implement auto-scaling with a minimum of 0 or 1 instances, and use scheduled scaling to shut down dev/staging endpoints outside business hours. A single ml.g5.2xlarge running 24/7 costs ~$1,100/month.</p>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- SECTION 6: DOCKER & ECS                      -->
+    <!-- ============================================ -->
+    <div class="section" id="docker-ecs">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Docker &amp; ECS Deployment</h2>
+      </div>
+
+      <h3 id="docker-plain">Plain Language</h3>
+
+      <p>While SageMaker provides a fully managed deployment experience, many teams prefer the flexibility and cost control of deploying LLMs using Docker containers on AWS ECS (Elastic Container Service) or EKS (Elastic Kubernetes Service). Think of Docker as a shipping container for your software — it packages your inference engine, model configuration, FastAPI wrapper, and all dependencies into a single portable unit that runs identically on your laptop, in CI/CD, and in production. ECS is the AWS service that orchestrates these containers, handling scheduling, scaling, networking, and health management.</p>
+
+      <p>The typical architecture for a containerized LLM deployment consists of two containers running side-by-side in the same ECS task: the inference engine container (vLLM or TGI with the model loaded) and the API wrapper container (your FastAPI service). These containers communicate over localhost within the task, and only the API container is exposed to external traffic through an Application Load Balancer. This sidecar pattern gives you clean separation between the inference engine and your application logic, and lets you update either container independently.</p>
+
+      <p>The biggest challenge with containerized LLM deployment is the model loading time. Model weights for a 7B parameter model are roughly 14GB at FP16, and for a 70B model they can exceed 140GB. Downloading these weights from S3 or Hugging Face Hub every time a container starts would add 5-15 minutes to your startup time, which is unacceptable for auto-scaling scenarios where you need new capacity quickly. The solution is to bake the model weights into the Docker image itself, or more commonly, use an EFS (Elastic File System) volume mount that pre-caches the weights. When a new container starts, it mounts the EFS volume and loads weights directly from the shared filesystem, reducing startup time to 1-3 minutes.</p>
+
+      <p>GPU access in Docker requires the NVIDIA Container Toolkit, which allows containers to access the host's GPU hardware. On ECS, you specify GPU requirements in your task definition, and ECS automatically schedules the task on an instance that has available GPUs. The instance types for GPU workloads (p4d, g5, g6 families) come pre-configured with NVIDIA drivers, making the setup relatively straightforward. The key configuration step is requesting GPUs in your container definition using the <code>resourceRequirements</code> field.</p>
+
+      <h3 id="docker-deep">Deep Dive</h3>
+
+      <p>A production Dockerfile for a vLLM-based LLM service starts from the official vLLM image (which includes CUDA, PyTorch, and all inference dependencies) and adds your FastAPI wrapper on top. The multi-stage build pattern keeps the final image lean while including all necessary components:</p>
+
+      <pre><code><span class="code-comment"># Dockerfile for LLM inference service</span>
+<span class="code-keyword">FROM</span> vllm/vllm-openai:latest <span class="code-keyword">AS</span> base
+
+<span class="code-comment"># Install additional dependencies for the API wrapper</span>
+<span class="code-keyword">RUN</span> pip install fastapi uvicorn pydantic
+
+<span class="code-comment"># Copy application code</span>
+<span class="code-keyword">WORKDIR</span> /app
+<span class="code-keyword">COPY</span> app/ /app/
+
+<span class="code-comment"># Expose ports: 8000 for vLLM, 8080 for FastAPI wrapper</span>
+<span class="code-keyword">EXPOSE</span> <span class="code-num">8000</span> <span class="code-num">8080</span>
+
+<span class="code-comment"># Startup script that launches both vLLM and FastAPI</span>
+<span class="code-keyword">COPY</span> start.sh /app/start.sh
+<span class="code-keyword">RUN</span> chmod +x /app/start.sh
+
+<span class="code-keyword">ENTRYPOINT</span> [<span class="code-string">"/app/start.sh"</span>]</code></pre>
+
+      <pre><code><span class="code-comment">#!/bin/bash — start.sh</span>
+<span class="code-comment"># Launch vLLM server in the background</span>
+vllm serve ${MODEL_ID:-meta-llama/Meta-Llama-3-8B-Instruct} \
+  --host <span class="code-num">0.0.0.0</span> \
+  --port <span class="code-num">8000</span> \
+  --dtype auto \
+  --max-model-len ${MAX_MODEL_LEN:-<span class="code-num">8192</span>} \
+  --gpu-memory-utilization ${GPU_MEM_UTIL:-<span class="code-num">0.90</span>} &
+
+<span class="code-comment"># Wait for vLLM to be ready</span>
+echo <span class="code-string">"Waiting for vLLM to start..."</span>
+<span class="code-keyword">until</span> curl -s http://localhost:<span class="code-num">8000</span>/health > /dev/null <span class="code-num">2</span>&<span class="code-num">1</span>; <span class="code-keyword">do</span>
+  sleep <span class="code-num">2</span>
+<span class="code-keyword">done</span>
+echo <span class="code-string">"vLLM is ready!"</span>
+
+<span class="code-comment"># Launch FastAPI wrapper</span>
+uvicorn app.main:app --host <span class="code-num">0.0.0.0</span> --port <span class="code-num">8080</span> --workers <span class="code-num">2</span></code></pre>
+
+      <p>The <strong>ECS Task Definition</strong> specifies the container configuration, GPU requirements, and resource limits. Here is a CloudFormation-style task definition for a GPU-accelerated LLM service:</p>
+
+      <pre><code><span class="code-comment"># ecs-task-definition.json</span>
+{
+  <span class="code-string">"family"</span>: <span class="code-string">"llm-inference"</span>,
+  <span class="code-string">"requiresCompatibilities"</span>: [<span class="code-string">"EC2"</span>],
+  <span class="code-string">"networkMode"</span>: <span class="code-string">"awsvpc"</span>,
+  <span class="code-string">"cpu"</span>: <span class="code-string">"8192"</span>,
+  <span class="code-string">"memory"</span>: <span class="code-string">"30720"</span>,
+  <span class="code-string">"containerDefinitions"</span>: [
+    {
+      <span class="code-string">"name"</span>: <span class="code-string">"llm-server"</span>,
+      <span class="code-string">"image"</span>: <span class="code-string">"123456789.dkr.ecr.us-east-1.amazonaws.com/llm-service:latest"</span>,
+      <span class="code-string">"essential"</span>: <span class="code-keyword">true</span>,
+      <span class="code-string">"portMappings"</span>: [
+        {<span class="code-string">"containerPort"</span>: <span class="code-num">8080</span>, <span class="code-string">"protocol"</span>: <span class="code-string">"tcp"</span>}
+      ],
+      <span class="code-string">"resourceRequirements"</span>: [
+        {<span class="code-string">"type"</span>: <span class="code-string">"GPU"</span>, <span class="code-string">"value"</span>: <span class="code-string">"1"</span>}
+      ],
+      <span class="code-string">"environment"</span>: [
+        {<span class="code-string">"name"</span>: <span class="code-string">"MODEL_ID"</span>, <span class="code-string">"value"</span>: <span class="code-string">"meta-llama/Meta-Llama-3-8B-Instruct"</span>},
+        {<span class="code-string">"name"</span>: <span class="code-string">"MAX_MODEL_LEN"</span>, <span class="code-string">"value"</span>: <span class="code-string">"8192"</span>},
+        {<span class="code-string">"name"</span>: <span class="code-string">"GPU_MEM_UTIL"</span>, <span class="code-string">"value"</span>: <span class="code-string">"0.90"</span>}
+      ],
+      <span class="code-string">"mountPoints"</span>: [
+        {<span class="code-string">"sourceVolume"</span>: <span class="code-string">"model-cache"</span>, <span class="code-string">"containerPath"</span>: <span class="code-string">"/root/.cache/huggingface"</span>}
+      ],
+      <span class="code-string">"healthCheck"</span>: {
+        <span class="code-string">"command"</span>: [<span class="code-string">"CMD-SHELL"</span>, <span class="code-string">"curl -f http://localhost:8080/health || exit 1"</span>],
+        <span class="code-string">"interval"</span>: <span class="code-num">30</span>,
+        <span class="code-string">"timeout"</span>: <span class="code-num">10</span>,
+        <span class="code-string">"retries"</span>: <span class="code-num">3</span>,
+        <span class="code-string">"startPeriod"</span>: <span class="code-num">600</span>
+      },
+      <span class="code-string">"logConfiguration"</span>: {
+        <span class="code-string">"logDriver"</span>: <span class="code-string">"awslogs"</span>,
+        <span class="code-string">"options"</span>: {
+          <span class="code-string">"awslogs-group"</span>: <span class="code-string">"/ecs/llm-inference"</span>,
+          <span class="code-string">"awslogs-region"</span>: <span class="code-string">"us-east-1"</span>,
+          <span class="code-string">"awslogs-stream-prefix"</span>: <span class="code-string">"llm"</span>
+        }
+      }
+    }
+  ],
+  <span class="code-string">"volumes"</span>: [
+    {
+      <span class="code-string">"name"</span>: <span class="code-string">"model-cache"</span>,
+      <span class="code-string">"efsVolumeConfiguration"</span>: {
+        <span class="code-string">"fileSystemId"</span>: <span class="code-string">"fs-0123456789abcdef0"</span>,
+        <span class="code-string">"rootDirectory"</span>: <span class="code-string">"/models"</span>
+      }
+    }
+  ]
+}</code></pre>
+
+      <p>An <strong>API Gateway</strong> sits in front of the Application Load Balancer to provide rate limiting, API key authentication, and request throttling. This is particularly important for LLM services because a single malicious request with a high max_tokens value could occupy a GPU for minutes. The API Gateway enforces per-client rate limits and request size limits before traffic even reaches your ECS service:</p>
+
+      <!-- SVG: Full Deployment Architecture -->
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 920 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Client -->
+          <rect x="10" y="120" width="100" height="60" rx="8" fill="#171c2e" stroke="#8e94b5" stroke-width="1.5"/>
+          <text x="60" y="145" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk, sans-serif" font-size="12" font-weight="600">Client</text>
+          <text x="60" y="163" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono, monospace" font-size="10">HTTPS</text>
+
+          <!-- Arrow -->
+          <line x1="110" y1="150" x2="160" y2="150" stroke="#2e3554" stroke-width="1.5" marker-end="url(#arrC)"/>
+
+          <!-- API Gateway -->
+          <rect x="160" y="110" width="120" height="80" rx="10" fill="#171c2e" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="220" y="140" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="600">API Gateway</text>
+          <text x="220" y="158" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono, monospace" font-size="9">Rate Limiting</text>
+          <text x="220" y="172" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono, monospace" font-size="9">Auth / Throttle</text>
+
+          <!-- Arrow -->
+          <line x1="280" y1="150" x2="330" y2="150" stroke="#2e3554" stroke-width="1.5" marker-end="url(#arrC)"/>
+
+          <!-- ALB -->
+          <rect x="330" y="120" width="100" height="60" rx="10" fill="#171c2e" stroke="#f97316" stroke-width="1.5"/>
+          <text x="380" y="148" text-anchor="middle" fill="#f97316" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="600">ALB</text>
+          <text x="380" y="164" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono, monospace" font-size="9">Health Checks</text>
+
+          <!-- Arrow to ECS -->
+          <line x1="430" y1="150" x2="490" y2="150" stroke="#2e3554" stroke-width="1.5" marker-end="url(#arrC)"/>
+
+          <!-- ECS Cluster Box -->
+          <rect x="490" y="20" width="420" height="260" rx="14" fill="none" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="6"/>
+          <text x="700" y="44" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk, sans-serif" font-size="12" font-weight="700">ECS Cluster (GPU Instance)</text>
+
+          <!-- Task 1: FastAPI -->
+          <rect x="510" y="70" width="170" height="80" rx="8" fill="#171c2e" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="595" y="95" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="600">FastAPI Wrapper</text>
+          <text x="595" y="112" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono, monospace" font-size="9">:8080</text>
+          <text x="595" y="128" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono, monospace" font-size="9">Validation / Logging</text>
+
+          <!-- Arrow between containers -->
+          <line x1="595" y1="150" x2="595" y2="175" stroke="#2e3554" stroke-width="1.5" marker-end="url(#arrC)"/>
+          <text x="615" y="167" fill="#545a78" font-family="JetBrains Mono, monospace" font-size="8">localhost</text>
+
+          <!-- Task 2: vLLM -->
+          <rect x="510" y="175" width="170" height="80" rx="8" fill="#171c2e" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="595" y="200" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="600">vLLM Engine</text>
+          <text x="595" y="217" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono, monospace" font-size="9">:8000</text>
+          <text x="595" y="233" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono, monospace" font-size="9">GPU Inference</text>
+
+          <!-- EFS Volume -->
+          <rect x="720" y="100" width="170" height="70" rx="8" fill="#171c2e" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="805" y="125" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="600">EFS Volume</text>
+          <text x="805" y="148" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono, monospace" font-size="9">Model Weights Cache</text>
+
+          <!-- Arrow from vLLM to EFS -->
+          <line x1="680" y1="215" x2="720" y2="170" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4"/>
+
+          <!-- CloudWatch -->
+          <rect x="720" y="200" width="170" height="60" rx="8" fill="#171c2e" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="805" y="225" text-anchor="middle" fill="#ef4444" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="600">CloudWatch</text>
+          <text x="805" y="243" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono, monospace" font-size="9">Logs / Metrics / Alarms</text>
+
+          <defs>
+            <marker id="arrC" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#2e3554"/></marker>
+          </defs>
+        </svg>
+        <div class="diagram-caption">Figure 2 — Production deployment architecture: API Gateway → ALB → ECS with vLLM + FastAPI sidecar pattern</div>
+      </div>
+
+      <p>For teams that prefer <strong>Infrastructure as Code</strong>, here is a minimal AWS CDK deployment that creates the ECS service with GPU support:</p>
+
+      <pre><code><span class="code-comment"># cdk_stack.py — minimal ECS GPU deployment</span>
+<span class="code-keyword">from</span> aws_cdk <span class="code-keyword">import</span> (
+    Stack, Duration,
+    aws_ec2 <span class="code-keyword">as</span> ec2,
+    aws_ecs <span class="code-keyword">as</span> ecs,
+    aws_ecs_patterns <span class="code-keyword">as</span> ecs_patterns,
+)
+<span class="code-keyword">from</span> constructs <span class="code-keyword">import</span> Construct
+
+<span class="code-keyword">class</span> <span class="code-fn">LLMStack</span>(Stack):
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self, scope: Construct, id: str, **kwargs):
+        <span class="code-keyword">super</span>().<span class="code-fn">__init__</span>(scope, id, **kwargs)
+
+        vpc = ec2.Vpc(self, <span class="code-string">"LLMVpc"</span>, max_azs=<span class="code-num">2</span>)
+
+        cluster = ecs.<span class="code-fn">Cluster</span>(self, <span class="code-string">"LLMCluster"</span>, vpc=vpc)
+
+        <span class="code-comment"># Add GPU capacity (g5.2xlarge = 1x A10G 24GB)</span>
+        cluster.<span class="code-fn">add_capacity</span>(
+            <span class="code-string">"GPUCapacity"</span>,
+            instance_type=ec2.<span class="code-fn">InstanceType</span>(<span class="code-string">"g5.2xlarge"</span>),
+            machine_image=ecs.<span class="code-fn">EcsOptimizedImage</span>.<span class="code-fn">amazon_linux2</span>(
+                hardware_type=ecs.AmiHardwareType.GPU
+            ),
+            desired_capacity=<span class="code-num">1</span>,
+            min_capacity=<span class="code-num">1</span>,
+            max_capacity=<span class="code-num">3</span>,
+        )
+
+        task = ecs.<span class="code-fn">Ec2TaskDefinition</span>(self, <span class="code-string">"LLMTask"</span>,
+            network_mode=ecs.NetworkMode.AWS_VPC
+        )
+
+        container = task.<span class="code-fn">add_container</span>(<span class="code-string">"LLMContainer"</span>,
+            image=ecs.ContainerImage.<span class="code-fn">from_registry</span>(
+                <span class="code-string">"your-ecr-repo/llm-service:latest"</span>
+            ),
+            memory_limit_mib=<span class="code-num">28672</span>,
+            gpu_count=<span class="code-num">1</span>,
+            environment={
+                <span class="code-string">"MODEL_ID"</span>: <span class="code-string">"meta-llama/Meta-Llama-3-8B-Instruct"</span>,
+            },
+            logging=ecs.LogDrivers.<span class="code-fn">aws_logs</span>(stream_prefix=<span class="code-string">"llm"</span>),
+            health_check=ecs.<span class="code-fn">HealthCheck</span>(
+                command=[<span class="code-string">"CMD-SHELL"</span>, <span class="code-string">"curl -f http://localhost:8080/health"</span>],
+                interval=Duration.<span class="code-fn">seconds</span>(<span class="code-num">30</span>),
+                start_period=Duration.<span class="code-fn">seconds</span>(<span class="code-num">600</span>),
+            )
+        )
+        container.<span class="code-fn">add_port_mappings</span>(ecs.<span class="code-fn">PortMapping</span>(container_port=<span class="code-num">8080</span>))
+
+        <span class="code-comment"># Create ALB-fronted ECS service</span>
+        ecs_patterns.<span class="code-fn">ApplicationLoadBalancedEc2Service</span>(
+            self, <span class="code-string">"LLMService"</span>,
+            cluster=cluster,
+            task_definition=task,
+            desired_count=<span class="code-num">1</span>,
+            health_check_grace_period=Duration.<span class="code-fn">seconds</span>(<span class="code-num">600</span>),
+        )</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">EFS Pre-warming</div>
+        <p>Before your first deployment, pre-download model weights to EFS using a one-time EC2 instance or ECS task: <code>huggingface-cli download meta-llama/Meta-Llama-3-8B-Instruct --local-dir /mnt/efs/models/llama3-8b</code>. This ensures subsequent container starts load from cache instead of downloading 14+ GB over the network.</p>
+      </div>
+    </div>
+
+    <!-- NEXT / PREV -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">← Previous</div>
+        <a class="next-btn prev-btn" href="04-fine-tuning.html">
+          <span>04 · Fine-Tuning</span>
+        </a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next →</div>
+        <a class="next-btn" href="06-prompt-engineering.html">
+          <span>06 · Prompt Engineering</span>
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

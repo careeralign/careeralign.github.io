@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Systems — CareerAlign GenAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:#0b0d14;--bg-surface:#10131e;--bg-elevated:#171c2e;--bg-overlay:#1e2438;
+  --border-subtle:#1a1f34;--border-default:#232840;--border-strong:#2e3554;
+  --text-primary:#e6e8f4;--text-secondary:#8e94b5;--text-muted:#545a78;
+  --accent-indigo:#6366f1;--accent-cyan:#22d3ee;--accent-violet:#a855f7;
+  --glow-indigo:rgba(99,102,241,0.25);
+  --phase-prereq:#64748b;--phase-found:#3b82f6;--phase-api:#06b6d4;
+  --phase-rag:#f97316;--phase-agent:#a855f7;--phase-quality:#ef4444;
+  --phase-cloud:#22c55e;--phase-project:#f59e0b;
+  --font-display:'Space Grotesk',sans-serif;--font-body:'Nunito',sans-serif;--font-mono:'JetBrains Mono',monospace;
+  --radius:12px;--radius-sm:8px;--radius-lg:18px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg-base);color:var(--text-primary);font-family:var(--font-body);font-size:16px;line-height:1.7;min-height:100vh}
+a{color:inherit;text-decoration:none}img,svg{display:block}
+.nav{position:sticky;top:0;z-index:100;background:rgba(11,13,20,0.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border-subtle);padding:0 32px;display:flex;align-items:center;height:58px;gap:24px}
+.nav-logo{font-family:var(--font-display);font-weight:700;font-size:17px;color:var(--text-primary);display:flex;align-items:center;gap:9px;white-space:nowrap}
+.nav-logo span{color:var(--accent-indigo)}
+.nav-links{display:flex;gap:6px;flex:1;flex-wrap:wrap;overflow:hidden}
+.nav-links a{font-size:12px;font-weight:500;color:var(--text-muted);padding:4px 8px;border-radius:6px;transition:all .2s;white-space:nowrap}
+.nav-links a:hover{color:var(--text-primary);background:var(--bg-elevated)}
+.nav-links a.active{color:var(--phase-rag);background:rgba(249,115,22,0.15)}
+.nav-home{font-size:12.5px;font-weight:600;color:var(--accent-indigo);padding:6px 14px;border:1px solid rgba(99,102,241,0.3);border-radius:7px;transition:all .2s;white-space:nowrap;margin-left:auto}
+.nav-home:hover{background:rgba(99,102,241,0.1)}
+.hero{padding:70px 60px 50px;max-width:1400px;margin:0 auto;border-bottom:1px solid var(--border-subtle)}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(249,115,22,0.12);border:1px solid rgba(249,115,22,0.25);border-radius:20px;padding:5px 14px;margin-bottom:22px;font-size:12.5px;font-family:var(--font-display);font-weight:600;color:var(--phase-rag);letter-spacing:0.04em;text-transform:uppercase}
+.hero h1{font-family:var(--font-display);font-size:clamp(2.2rem,4vw,3.4rem);font-weight:700;line-height:1.15;color:var(--text-primary);max-width:820px;margin-bottom:20px}
+.hero h1 em{font-style:normal;color:var(--phase-rag)}
+.hero-desc{font-size:1.1rem;color:var(--text-secondary);max-width:760px;line-height:1.75;margin-bottom:36px}
+.hero-checklist{display:flex;gap:12px;flex-wrap:wrap}
+.hero-pill{display:flex;align-items:center;gap:7px;background:var(--bg-surface);border:1px solid var(--border-default);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--text-secondary)}
+.hero-pill svg{color:var(--phase-rag);flex-shrink:0}
+.content-grid{max-width:1400px;margin:0 auto;padding:0 60px 80px;display:grid;grid-template-columns:260px 1fr;gap:0;align-items:start}
+.toc{position:sticky;top:78px;padding:32px 0;border-right:1px solid var(--border-subtle);margin-right:48px}
+.toc-title{font-size:11px;font-family:var(--font-display);font-weight:700;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-subtle)}
+.toc a{display:block;font-size:13px;color:var(--text-secondary);padding:6px 0;transition:color .2s;border-left:2px solid transparent;padding-left:12px;margin-left:-2px}
+.toc a:hover{color:var(--text-primary);border-left-color:var(--phase-rag)}
+.toc a.section{font-weight:600;color:var(--text-primary);font-size:12.5px;margin-top:8px}
+.toc a.sub{padding-left:24px;font-size:12px}
+.main{padding:40px 0}
+.section{margin-bottom:60px}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border-subtle)}
+.section-num{width:36px;height:36px;border-radius:50%;background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.3);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--phase-rag);flex-shrink:0}
+.section h2{font-family:var(--font-display);font-size:1.55rem;font-weight:700;color:var(--text-primary)}
+.section h3{font-family:var(--font-display);font-size:1.15rem;font-weight:600;color:var(--text-primary);margin:28px 0 12px}
+.section p{color:var(--text-secondary);margin-bottom:16px;font-size:1rem;line-height:1.8}
+.section p strong{color:var(--text-primary);font-weight:600}
+.callout{border-left:3px solid var(--phase-rag);background:rgba(249,115,22,0.07);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:16px 20px;margin:20px 0}
+.callout.info{border-color:var(--accent-indigo);background:rgba(99,102,241,0.07)}
+.callout.tip{border-color:var(--phase-cloud);background:rgba(34,197,94,0.07)}
+.callout.warn{border-color:var(--phase-project);background:rgba(245,158,11,0.07)}
+.callout-label{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;color:var(--phase-rag)}
+.callout.info .callout-label{color:var(--accent-indigo)}
+.callout.tip .callout-label{color:var(--phase-cloud)}
+.callout.warn .callout-label{color:var(--phase-project)}
+.callout p{margin:0;color:var(--text-secondary);font-size:0.95rem}
+pre{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:20px 24px;overflow-x:auto;margin:20px 0}
+code{font-family:var(--font-mono);font-size:13.5px;color:var(--accent-cyan);line-height:1.65}
+:not(pre)>code{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:5px;padding:2px 7px;font-size:13px}
+.code-comment{color:var(--text-muted)}.code-keyword{color:#c084fc}.code-string{color:#86efac}.code-fn{color:#67e8f9}.code-num{color:#fca5a5}
+.diagram-wrap{background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--radius-lg);padding:32px;margin:32px 0}
+.diagram-caption{text-align:center;font-size:13px;color:var(--text-muted);margin-top:16px;font-style:italic}
+.comp-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px}
+.comp-table th,.comp-table td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--border-subtle)}
+.comp-table th{background:var(--bg-elevated);font-family:var(--font-display);font-weight:600;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em}
+.comp-table td{color:var(--text-secondary)}
+.comp-table tr:hover td{background:rgba(249,115,22,0.04)}
+.next-section{margin-top:70px;padding-top:40px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center}
+.next-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;font-family:var(--font-display)}
+.next-btn{display:inline-flex;align-items:center;gap:10px;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:var(--radius);padding:14px 22px;font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--text-primary);transition:all .2s}
+.next-btn:hover{border-color:var(--phase-rag);color:var(--phase-rag);transform:translateX(4px)}
+.prev-btn:hover{transform:translateX(-4px)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">⚡ <span>CareerAlign</span> GenAI</div>
+  <div class="nav-links">
+    <a href="00-prerequisites.html">00 · Prerequisites</a>
+    <a href="01-foundations-of-genai.html">01 · Foundations</a>
+    <a href="02-llms-slms-multimodal.html">02 · Models</a>
+    <a href="03-api-for-llms.html">03 · APIs</a>
+    <a href="04-fine-tuning.html">04 · Fine-Tuning</a>
+    <a href="05-llm-hosting.html">05 · Hosting</a>
+    <a href="06-prompt-engineering.html">06 · Prompting</a>
+    <a href="07-rag-systems.html" class="active">07 · RAG</a>
+    <a href="08-advanced-rag.html">08 · Adv RAG</a>
+    <a href="09-agents.html">09 · Agents</a>
+    <a href="10-evaluation.html">10 · Eval</a>
+    <a href="11-guardrails.html">11 · Guardrails</a>
+    <a href="12-mcp.html">12 · MCP</a>
+    <a href="13-aws-cloud.html">13 · AWS</a>
+    <a href="14-n8n-no-code.html">14 · n8n</a>
+    <a href="15-capstone-document-portal.html">15 · Capstone I</a>
+    <a href="16-capstone-report-agent.html">16 · Capstone II</a>
+  </div>
+  <a href="index.html" class="nav-home">← GenAI Hub</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Module 07 — RAG Phase
+  </div>
+  <h1>Retrieval-Augmented <em>Generation</em></h1>
+  <p class="hero-desc">
+    RAG is the most impactful pattern in production GenAI. Instead of relying solely on what the model memorized during training, RAG retrieves relevant documents from your own data and injects them into the prompt — giving the model up-to-date, domain-specific knowledge it never saw during training. This module covers every component of the RAG pipeline: document loading, text chunking, embedding generation, vector storage, retrieval strategies, and the synthesis step where the LLM generates answers grounded in retrieved context.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Document Loading</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Chunking Strategies</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Embeddings</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Vector Databases</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Retrieval &amp; Reranking</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>LLM Synthesis</div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/07-rag-systems.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</section>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#what-is-rag" class="section">1 · What Is RAG</a>
+    <a href="#rag-plain" class="sub">Plain Language</a>
+    <a href="#rag-deep" class="sub">Deep Dive</a>
+    <a href="#chunking" class="section">2 · Document Chunking</a>
+    <a href="#chunk-plain" class="sub">Plain Language</a>
+    <a href="#chunk-deep" class="sub">Deep Dive</a>
+    <a href="#embeddings" class="section">3 · Embeddings</a>
+    <a href="#embed-plain" class="sub">Plain Language</a>
+    <a href="#embed-deep" class="sub">Deep Dive</a>
+    <a href="#vector-stores" class="section">4 · Vector Databases</a>
+    <a href="#vector-plain" class="sub">Plain Language</a>
+    <a href="#vector-deep" class="sub">Deep Dive</a>
+    <a href="#retrieval" class="section">5 · Retrieval &amp; Reranking</a>
+    <a href="#retrieval-plain" class="sub">Plain Language</a>
+    <a href="#retrieval-deep" class="sub">Deep Dive</a>
+    <a href="#synthesis" class="section">6 · LLM Synthesis</a>
+    <a href="#synth-plain" class="sub">Plain Language</a>
+    <a href="#synth-deep" class="sub">Deep Dive</a>
+  </aside>
+
+  <main class="main">
+
+    <!-- SECTION 1: WHAT IS RAG -->
+    <div class="section" id="what-is-rag">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>What Is RAG</h2>
+      </div>
+
+      <h3 id="rag-plain">Plain Language</h3>
+
+      <p>Imagine you are taking an open-book exam. You can look up answers in your textbook, notes, and reference materials before writing your response. Retrieval-Augmented Generation works exactly this way — instead of asking the LLM to answer purely from memory (its training data), we first search through a collection of documents to find the most relevant passages, then hand those passages to the LLM along with the user's question. The LLM reads the retrieved context and writes an answer that is grounded in actual source material rather than potentially hallucinated information.</p>
+
+      <p>This pattern solves the three biggest problems with using LLMs for knowledge-intensive tasks. First, <strong>knowledge cutoff</strong>: a model trained in 2024 knows nothing about events, products, or documentation updated in 2025. RAG lets the model access current information by retrieving from an up-to-date document store. Second, <strong>hallucination</strong>: when an LLM does not know an answer, it often generates plausible-sounding but completely fabricated information. With RAG, the model has actual source text to reference, dramatically reducing hallucination. Third, <strong>domain specificity</strong>: a general-purpose LLM has limited knowledge about your company's internal processes, proprietary documentation, or niche domain topics. RAG injects this domain knowledge at query time without requiring any model training.</p>
+
+      <p>The RAG pipeline has two main phases. The <strong>indexing phase</strong> happens offline (before any user queries): you load documents, split them into smaller chunks, convert each chunk into a numerical vector (embedding), and store these vectors in a specialized database. The <strong>query phase</strong> happens in real time: when a user asks a question, you convert their question into a vector, search the database for the most similar document vectors, retrieve those document chunks, and pass them to the LLM as context for generating the answer. The beauty of this architecture is that the indexing phase only needs to happen once (or whenever documents are updated), while the query phase can serve thousands of users in real time.</p>
+
+      <p>RAG has become the default architecture for production GenAI applications because it offers a compelling combination of low cost, high quality, and operational simplicity. Unlike fine-tuning — which requires preparing training datasets, running expensive GPU training jobs, and managing model versions — RAG only requires an embedding model and a vector database. You can update the knowledge base by simply adding or modifying documents, without any model retraining. Most enterprise AI assistants, customer support bots, documentation search tools, and internal knowledge systems use RAG as their foundation.</p>
+
+      <h3 id="rag-deep">Deep Dive</h3>
+
+      <p>The theoretical foundation for RAG was established in the 2020 paper "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks" by Lewis et al. at Facebook AI Research. The key insight was that combining a parametric model (the LLM) with a non-parametric memory (the retrieved documents) produces answers that are both more factual and more controllable than either approach alone. The parametric model contributes language fluency and reasoning ability, while the non-parametric memory provides factual grounding and the ability to cite sources.</p>
+
+      <p>In mathematical terms, a standard LLM generates output token by token according to <strong>P(y|x)</strong> — the probability of the response y given only the input x. RAG modifies this to <strong>P(y|x, z)</strong> where z represents the retrieved context documents. This seemingly simple modification has profound implications: the model's output is now conditioned on actual evidence, which means it can be verified, attributed to specific sources, and updated by changing the document store rather than retraining the model.</p>
+
+      <p>The complete RAG pipeline consists of six stages, each with significant engineering decisions. <strong>Stage 1: Document Loading</strong> — extracting text from diverse formats (PDF, DOCX, HTML, Markdown, databases) and preserving structural information like headers, tables, and metadata. <strong>Stage 2: Chunking</strong> — splitting documents into semantically coherent segments that fit within embedding model context windows. <strong>Stage 3: Embedding</strong> — converting text chunks into high-dimensional vectors using an embedding model. <strong>Stage 4: Indexing</strong> — storing vectors in a database optimized for similarity search. <strong>Stage 5: Retrieval</strong> — finding the most relevant chunks for a given query using vector similarity, keyword matching, or hybrid approaches. <strong>Stage 6: Generation</strong> — synthesizing a response using the LLM with retrieved context injected into the prompt.</p>
+
+      <!-- SVG: RAG Pipeline -->
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 920 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Title -->
+          <text x="460" y="24" text-anchor="middle" fill="#f97316" font-family="Space Grotesk,sans-serif" font-size="14" font-weight="700">RAG Pipeline — Indexing &amp; Query Phases</text>
+
+          <!-- INDEXING PHASE -->
+          <rect x="20" y="45" width="880" height="140" rx="12" fill="none" stroke="#f97316" stroke-width="1" stroke-dasharray="6"/>
+          <text x="40" y="68" fill="#f97316" font-family="Space Grotesk,sans-serif" font-size="11" font-weight="700" letter-spacing="0.08em">INDEXING PHASE (OFFLINE)</text>
+
+          <!-- Documents -->
+          <rect x="40" y="85" width="130" height="80" rx="8" fill="#171c2e" stroke="#8e94b5" stroke-width="1.5"/>
+          <text x="105" y="115" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600">Documents</text>
+          <text x="105" y="135" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">PDF, DOCX, HTML</text>
+          <text x="105" y="150" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">Markdown, DB</text>
+
+          <line x1="170" y1="125" x2="210" y2="125" stroke="#2e3554" stroke-width="1.5" marker-end="url(#aR)"/>
+
+          <!-- Chunker -->
+          <rect x="210" y="85" width="130" height="80" rx="8" fill="#171c2e" stroke="#f97316" stroke-width="1.5"/>
+          <text x="275" y="115" text-anchor="middle" fill="#f97316" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600">Chunker</text>
+          <text x="275" y="135" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">Split into</text>
+          <text x="275" y="150" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">512-1024 tokens</text>
+
+          <line x1="340" y1="125" x2="380" y2="125" stroke="#2e3554" stroke-width="1.5" marker-end="url(#aR)"/>
+
+          <!-- Embedding Model -->
+          <rect x="380" y="85" width="150" height="80" rx="8" fill="#171c2e" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="455" y="115" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600">Embedding Model</text>
+          <text x="455" y="135" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">text → [0.12, -0.34,</text>
+          <text x="455" y="150" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">0.56, ...]  (1536d)</text>
+
+          <line x1="530" y1="125" x2="570" y2="125" stroke="#2e3554" stroke-width="1.5" marker-end="url(#aR)"/>
+
+          <!-- Vector DB -->
+          <rect x="570" y="85" width="150" height="80" rx="8" fill="#171c2e" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="645" y="115" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600">Vector Database</text>
+          <text x="645" y="135" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">ChromaDB, Pinecone</text>
+          <text x="645" y="150" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">pgvector, Qdrant</text>
+
+          <!-- QUERY PHASE -->
+          <rect x="20" y="210" width="880" height="155" rx="12" fill="none" stroke="#06b6d4" stroke-width="1" stroke-dasharray="6"/>
+          <text x="40" y="233" fill="#06b6d4" font-family="Space Grotesk,sans-serif" font-size="11" font-weight="700" letter-spacing="0.08em">QUERY PHASE (REAL-TIME)</text>
+
+          <!-- User Query -->
+          <rect x="40" y="250" width="130" height="80" rx="8" fill="#171c2e" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="105" y="280" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600">User Query</text>
+          <text x="105" y="300" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">"How does RAG</text>
+          <text x="105" y="315" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">reduce hallucination?"</text>
+
+          <line x1="170" y1="290" x2="210" y2="290" stroke="#2e3554" stroke-width="1.5" marker-end="url(#aR)"/>
+
+          <!-- Embed Query -->
+          <rect x="210" y="250" width="130" height="80" rx="8" fill="#171c2e" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="275" y="280" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600">Embed Query</text>
+          <text x="275" y="300" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">Same model as</text>
+          <text x="275" y="315" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">indexing phase</text>
+
+          <line x1="340" y1="290" x2="380" y2="290" stroke="#2e3554" stroke-width="1.5" marker-end="url(#aR)"/>
+
+          <!-- Similarity Search -->
+          <rect x="380" y="250" width="150" height="80" rx="8" fill="#171c2e" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="455" y="280" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600">Similarity Search</text>
+          <text x="455" y="300" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">Top-K nearest</text>
+          <text x="455" y="315" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">vectors (cosine)</text>
+
+          <!-- Arrow down from VectorDB to search -->
+          <line x1="645" y1="165" x2="645" y2="210" stroke="#22c55e" stroke-width="1" stroke-dasharray="4"/>
+          <line x1="645" y1="210" x2="530" y2="260" stroke="#22c55e" stroke-width="1" stroke-dasharray="4"/>
+
+          <line x1="530" y1="290" x2="570" y2="290" stroke="#2e3554" stroke-width="1.5" marker-end="url(#aR)"/>
+
+          <!-- LLM -->
+          <rect x="570" y="250" width="150" height="80" rx="8" fill="#171c2e" stroke="#f97316" stroke-width="1.5"/>
+          <text x="645" y="275" text-anchor="middle" fill="#f97316" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600">LLM Synthesis</text>
+          <text x="645" y="295" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">Query + Retrieved</text>
+          <text x="645" y="310" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">Context → Answer</text>
+
+          <line x1="720" y1="290" x2="760" y2="290" stroke="#2e3554" stroke-width="1.5" marker-end="url(#aR)"/>
+
+          <!-- Answer -->
+          <rect x="760" y="250" width="120" height="80" rx="8" fill="rgba(249,115,22,0.15)" stroke="#f97316" stroke-width="2"/>
+          <text x="820" y="280" text-anchor="middle" fill="#f97316" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="700">Answer</text>
+          <text x="820" y="300" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">Grounded in</text>
+          <text x="820" y="315" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">source docs</text>
+
+          <defs><marker id="aR" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#2e3554"/></marker></defs>
+        </svg>
+        <div class="diagram-caption">Figure 1 — Complete RAG pipeline: offline indexing phase and real-time query phase</div>
+      </div>
+
+      <p>The quality of a RAG system depends on every stage of this pipeline. Poor chunking produces fragments that lack context; a weak embedding model creates vectors that miss semantic relationships; an inefficient retriever returns irrelevant documents; and even a great LLM will produce poor answers if the retrieved context does not contain the information needed. This is why understanding each stage in depth — which we cover in the following sections — is essential for building production-quality RAG systems.</p>
+    </div>
+
+    <!-- SECTION 2: CHUNKING -->
+    <div class="section" id="chunking">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Document Chunking</h2>
+      </div>
+
+      <h3 id="chunk-plain">Plain Language</h3>
+
+      <p>Chunking is the process of breaking large documents into smaller, manageable pieces that can be individually embedded and retrieved. Think of it like cutting a long newspaper article into individual paragraphs that you can file in separate folders. The challenge is finding the right size and boundaries for these pieces — too small and you lose context (a sentence in isolation may not make sense), too large and you waste precious context window space by retrieving irrelevant text alongside the relevant parts. The goal is to create chunks where each piece is semantically self-contained — it makes sense on its own and contains a complete thought or piece of information.</p>
+
+      <p>The simplest approach is <strong>fixed-size chunking</strong>, where you split text every N characters or tokens regardless of content boundaries. This is fast and predictable, but often cuts sentences in half or separates a heading from its paragraph. A much better approach is <strong>recursive character splitting</strong>, which tries to split on natural boundaries — first on double newlines (paragraph breaks), then single newlines, then sentences, then words — only breaking at smaller units when a chunk would otherwise exceed the size limit. This preserves the natural structure of the document and keeps related sentences together.</p>
+
+      <p><strong>Overlap</strong> is a crucial concept in chunking. When you split a document into non-overlapping chunks, information that spans a chunk boundary is lost — if the answer to a question starts in the last sentence of chunk 5 and continues in the first sentence of chunk 6, neither chunk alone contains the complete answer. Adding overlap (typically 10-20% of the chunk size) means that each chunk includes some text from the neighboring chunks, ensuring that boundary-spanning information appears in at least one complete chunk. The tradeoff is that overlap increases storage requirements and can cause duplicate information in retrieval results.</p>
+
+      <p>The optimal chunk size depends on your use case. For question-answering over technical documentation, chunks of 512-1024 tokens work well — large enough to contain a complete explanation, small enough to fit multiple chunks in the LLM's context window. For conversational applications where precision matters more than coverage, smaller chunks (256-512 tokens) perform better. For summarization tasks where you need broader context, larger chunks (1024-2048 tokens) are preferable. The embedding model also constrains chunk size — most models have a maximum context length of 512 or 8192 tokens, and performance degrades for inputs near the maximum.</p>
+
+      <h3 id="chunk-deep">Deep Dive</h3>
+
+      <p>LangChain provides the most comprehensive set of text splitters in the Python ecosystem. The <code>RecursiveCharacterTextSplitter</code> is the recommended default for most use cases because its hierarchical splitting strategy naturally preserves document structure. Here is a complete document loading and chunking pipeline:</p>
+
+      <pre><code><span class="code-keyword">from</span> langchain_community.document_loaders <span class="code-keyword">import</span> (
+    PyPDFLoader, UnstructuredWordDocumentLoader,
+    UnstructuredHTMLLoader, TextLoader
+)
+<span class="code-keyword">from</span> langchain.text_splitter <span class="code-keyword">import</span> RecursiveCharacterTextSplitter
+<span class="code-keyword">from</span> pathlib <span class="code-keyword">import</span> Path
+
+<span class="code-comment"># --- Document Loading ---</span>
+<span class="code-keyword">def</span> <span class="code-fn">load_documents</span>(directory: str) -> list:
+    <span class="code-string">"""Load all documents from a directory, auto-detecting format."""</span>
+    loaders = {
+        <span class="code-string">".pdf"</span>: PyPDFLoader,
+        <span class="code-string">".docx"</span>: UnstructuredWordDocumentLoader,
+        <span class="code-string">".html"</span>: UnstructuredHTMLLoader,
+        <span class="code-string">".txt"</span>: TextLoader,
+        <span class="code-string">".md"</span>: TextLoader,
+    }
+    docs = []
+    <span class="code-keyword">for</span> path <span class="code-keyword">in</span> Path(directory).<span class="code-fn">rglob</span>(<span class="code-string">"*"</span>):
+        loader_cls = loaders.<span class="code-fn">get</span>(path.suffix.lower())
+        <span class="code-keyword">if</span> loader_cls:
+            loader = <span class="code-fn">loader_cls</span>(str(path))
+            docs.<span class="code-fn">extend</span>(loader.<span class="code-fn">load</span>())
+    <span class="code-keyword">return</span> docs
+
+<span class="code-comment"># --- Chunking ---</span>
+splitter = <span class="code-fn">RecursiveCharacterTextSplitter</span>(
+    chunk_size=<span class="code-num">1000</span>,       <span class="code-comment"># Target ~250 tokens (4 chars/token avg)</span>
+    chunk_overlap=<span class="code-num">200</span>,     <span class="code-comment"># 20% overlap for boundary coverage</span>
+    separators=[
+        <span class="code-string">"\n\n"</span>,   <span class="code-comment"># 1st: paragraph breaks</span>
+        <span class="code-string">"\n"</span>,     <span class="code-comment"># 2nd: line breaks</span>
+        <span class="code-string">". "</span>,     <span class="code-comment"># 3rd: sentence endings</span>
+        <span class="code-string">" "</span>,      <span class="code-comment"># 4th: word boundaries</span>
+        <span class="code-string">""</span>        <span class="code-comment"># 5th: character level (last resort)</span>
+    ],
+    length_function=<span class="code-fn">len</span>,
+    is_separator_regex=<span class="code-keyword">False</span>,
+)
+
+docs = <span class="code-fn">load_documents</span>(<span class="code-string">"./knowledge_base"</span>)
+chunks = splitter.<span class="code-fn">split_documents</span>(docs)
+
+<span class="code-fn">print</span>(f<span class="code-string">"Loaded {len(docs)} documents → {len(chunks)} chunks"</span>)
+<span class="code-fn">print</span>(f<span class="code-string">"Average chunk size: {sum(len(c.page_content) for c in chunks) / len(chunks):.0f} chars"</span>)</code></pre>
+
+      <p><strong>Semantic chunking</strong> is a more advanced approach that uses embedding similarity to determine chunk boundaries. Instead of splitting at fixed sizes or syntactic markers, you compute embeddings for each sentence and split where consecutive sentences have low similarity — indicating a topic change. This produces chunks that are semantically coherent regardless of formatting:</p>
+
+      <pre><code><span class="code-keyword">from</span> langchain_experimental.text_splitter <span class="code-keyword">import</span> SemanticChunker
+<span class="code-keyword">from</span> langchain_openai <span class="code-keyword">import</span> OpenAIEmbeddings
+
+<span class="code-comment"># Semantic chunker splits at topic boundaries</span>
+semantic_splitter = <span class="code-fn">SemanticChunker</span>(
+    embeddings=<span class="code-fn">OpenAIEmbeddings</span>(model=<span class="code-string">"text-embedding-3-small"</span>),
+    breakpoint_threshold_type=<span class="code-string">"percentile"</span>,  <span class="code-comment"># Split where similarity drops</span>
+    breakpoint_threshold_amount=<span class="code-num">70</span>,         <span class="code-comment"># Below 70th percentile = new chunk</span>
+)
+
+semantic_chunks = semantic_splitter.<span class="code-fn">split_documents</span>(docs)
+<span class="code-fn">print</span>(f<span class="code-string">"Semantic chunking: {len(semantic_chunks)} chunks"</span>)</code></pre>
+
+      <p><strong>Metadata enrichment</strong> is the often-overlooked step that dramatically improves retrieval quality. Each chunk should carry metadata from its source document — the filename, page number, section heading, document date, and any custom tags. This metadata enables filtered retrieval (e.g., "search only in documents from 2024") and provides attribution information in the generated answer:</p>
+
+      <pre><code><span class="code-keyword">def</span> <span class="code-fn">enrich_chunks</span>(chunks: list) -> list:
+    <span class="code-string">"""Add computed metadata to each chunk."""</span>
+    <span class="code-keyword">for</span> i, chunk <span class="code-keyword">in</span> <span class="code-fn">enumerate</span>(chunks):
+        chunk.metadata[<span class="code-string">"chunk_id"</span>] = i
+        chunk.metadata[<span class="code-string">"char_count"</span>] = <span class="code-fn">len</span>(chunk.page_content)
+        chunk.metadata[<span class="code-string">"word_count"</span>] = <span class="code-fn">len</span>(chunk.page_content.<span class="code-fn">split</span>())
+
+        <span class="code-comment"># Extract section heading if present</span>
+        lines = chunk.page_content.<span class="code-fn">split</span>(<span class="code-string">"\n"</span>)
+        <span class="code-keyword">if</span> lines <span class="code-keyword">and</span> <span class="code-fn">len</span>(lines[<span class="code-num">0</span>]) < <span class="code-num">100</span>:
+            chunk.metadata[<span class="code-string">"heading"</span>] = lines[<span class="code-num">0</span>].<span class="code-fn">strip</span>()
+
+    <span class="code-keyword">return</span> chunks</code></pre>
+
+      <div class="callout">
+        <div class="callout-label">Chunk Size Rule of Thumb</div>
+        <p>Start with 512 tokens (≈2000 characters) and 20% overlap. If retrieval quality is poor, experiment with smaller chunks (256 tokens) for higher precision or larger chunks (1024 tokens) for more context. Always evaluate with real queries against your specific document collection.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 3: EMBEDDINGS -->
+    <div class="section" id="embeddings">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Embeddings</h2>
+      </div>
+
+      <h3 id="embed-plain">Plain Language</h3>
+
+      <p>Embeddings are the mathematical heart of RAG. An embedding model takes a piece of text and converts it into a list of numbers — a vector — that captures the <strong>meaning</strong> of that text. Similar meanings produce similar vectors, and dissimilar meanings produce distant vectors. When you search for "how to deploy a web app," the embedding for this query will be mathematically close to embeddings of document chunks about deployment, Docker, hosting, and DevOps, even if those chunks use completely different words. This is the magic that makes semantic search work — it matches by meaning rather than by keyword.</p>
+
+      <p>Think of embeddings as coordinates in a high-dimensional space. Just as a GPS coordinate (latitude, longitude) represents a physical location, an embedding vector (1536 numbers for OpenAI's model) represents a semantic location. Paris and Lyon are geographically close because they are both in France; similarly, "machine learning" and "artificial intelligence" have nearby embeddings because they are semantically related. The distance between two embedding vectors (measured by cosine similarity) tells you how semantically similar the two texts are — a cosine similarity of 0.95 means they are very similar, while 0.3 means they are mostly unrelated.</p>
+
+      <p>The choice of embedding model has an enormous impact on RAG quality. A good embedding model understands that "The server is down" and "The production instance is experiencing an outage" mean the same thing, even though they share almost no words. Popular embedding models include OpenAI's <code>text-embedding-3-small</code> (fast, cheap, 1536 dimensions), Cohere's <code>embed-english-v3.0</code> (excellent for English, supports compression), and open-source models like <code>BAAI/bge-large-en-v1.5</code> (runs locally, no API costs). The MTEB (Massive Text Embedding Benchmark) leaderboard provides standardized comparisons across dozens of embedding models on retrieval tasks.</p>
+
+      <p>One critical rule: <strong>you must use the same embedding model for indexing and querying</strong>. Each model creates vectors in its own coordinate system — an embedding from OpenAI and an embedding from Cohere are not comparable, even for the same text. If you index your documents with one model and query with another, the similarity scores will be meaningless and retrieval will fail. This means choosing an embedding model is a relatively permanent decision that affects your entire vector database.</p>
+
+      <h3 id="embed-deep">Deep Dive</h3>
+
+      <p>Here is a practical comparison of embedding models for RAG and how to use them with the most common providers:</p>
+
+      <pre><code><span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+<span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np
+
+client = <span class="code-fn">OpenAI</span>()
+
+<span class="code-comment"># --- OpenAI Embeddings ---</span>
+<span class="code-keyword">def</span> <span class="code-fn">embed_openai</span>(texts: list[str], model: str = <span class="code-string">"text-embedding-3-small"</span>) -> np.ndarray:
+    <span class="code-string">"""Embed a batch of texts using OpenAI's embedding API."""</span>
+    response = client.embeddings.<span class="code-fn">create</span>(
+        input=texts,
+        model=model,
+    )
+    vectors = [item.embedding <span class="code-keyword">for</span> item <span class="code-keyword">in</span> response.data]
+    <span class="code-keyword">return</span> np.<span class="code-fn">array</span>(vectors)
+
+<span class="code-comment"># Generate embeddings</span>
+query_vec = <span class="code-fn">embed_openai</span>([<span class="code-string">"How does RAG reduce hallucination?"</span>])
+<span class="code-fn">print</span>(f<span class="code-string">"Shape: {query_vec.shape}"</span>)  <span class="code-comment"># (1, 1536)</span>
+
+<span class="code-comment"># Batch embedding for chunks</span>
+chunk_texts = [<span class="code-string">"RAG retrieves relevant documents..."</span>, <span class="code-string">"Fine-tuning modifies weights..."</span>]
+chunk_vecs = <span class="code-fn">embed_openai</span>(chunk_texts)
+<span class="code-fn">print</span>(f<span class="code-string">"Shape: {chunk_vecs.shape}"</span>)  <span class="code-comment"># (2, 1536)</span>
+
+<span class="code-comment"># --- Cosine Similarity ---</span>
+<span class="code-keyword">def</span> <span class="code-fn">cosine_similarity</span>(a: np.ndarray, b: np.ndarray) -> float:
+    <span class="code-keyword">return</span> np.<span class="code-fn">dot</span>(a, b) / (np.linalg.<span class="code-fn">norm</span>(a) * np.linalg.<span class="code-fn">norm</span>(b))
+
+sim = <span class="code-fn">cosine_similarity</span>(query_vec[<span class="code-num">0</span>], chunk_vecs[<span class="code-num">0</span>])
+<span class="code-fn">print</span>(f<span class="code-string">"Similarity (RAG chunk): {sim:.4f}"</span>)   <span class="code-comment"># ~0.85 (high)</span>
+sim2 = <span class="code-fn">cosine_similarity</span>(query_vec[<span class="code-num">0</span>], chunk_vecs[<span class="code-num">1</span>])
+<span class="code-fn">print</span>(f<span class="code-string">"Similarity (fine-tune chunk): {sim2:.4f}"</span>)  <span class="code-comment"># ~0.45 (low)</span></code></pre>
+
+      <p>For <strong>local embeddings</strong> (no API costs, full data privacy), Sentence Transformers is the standard library. The <code>BAAI/bge</code> family of models consistently ranks near the top of the MTEB leaderboard while being free to run locally:</p>
+
+      <pre><code><span class="code-keyword">from</span> sentence_transformers <span class="code-keyword">import</span> SentenceTransformer
+<span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np
+
+<span class="code-comment"># Load a local embedding model (downloads once, ~1.3GB)</span>
+model = <span class="code-fn">SentenceTransformer</span>(<span class="code-string">"BAAI/bge-large-en-v1.5"</span>)
+
+<span class="code-comment"># Embed texts locally — no API calls</span>
+texts = [
+    <span class="code-string">"Retrieval augmented generation grounds LLM outputs in source documents."</span>,
+    <span class="code-string">"The weather in Paris is mild in spring."</span>,
+    <span class="code-string">"RAG pipelines reduce hallucination by providing evidence."</span>,
+]
+
+vectors = model.<span class="code-fn">encode</span>(texts, normalize_embeddings=<span class="code-keyword">True</span>)
+<span class="code-fn">print</span>(f<span class="code-string">"Shape: {vectors.shape}"</span>)  <span class="code-comment"># (3, 1024)</span>
+
+<span class="code-comment"># Similarity matrix</span>
+sims = np.<span class="code-fn">inner</span>(vectors, vectors)  <span class="code-comment"># Cosine sim (normalized vectors)</span>
+<span class="code-fn">print</span>(f<span class="code-string">"Text 0 vs Text 2: {sims[0][2]:.4f}"</span>)  <span class="code-comment"># High (~0.88)</span>
+<span class="code-fn">print</span>(f<span class="code-string">"Text 0 vs Text 1: {sims[0][1]:.4f}"</span>)  <span class="code-comment"># Low (~0.25)</span></code></pre>
+
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Dimensions</th>
+            <th>MTEB Score</th>
+            <th>Cost</th>
+            <th>Best For</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>text-embedding-3-small</td><td>1536</td><td>62.3</td><td>$0.02/1M tokens</td><td>Cost-effective production</td></tr>
+          <tr><td>text-embedding-3-large</td><td>3072</td><td>64.6</td><td>$0.13/1M tokens</td><td>Max quality (OpenAI)</td></tr>
+          <tr><td>BAAI/bge-large-en-v1.5</td><td>1024</td><td>64.2</td><td>Free (local)</td><td>Privacy-first / on-prem</td></tr>
+          <tr><td>Cohere embed-v3</td><td>1024</td><td>64.5</td><td>$0.10/1M tokens</td><td>Multilingual + compression</td></tr>
+          <tr><td>nomic-embed-text-v1.5</td><td>768</td><td>62.3</td><td>Free (local)</td><td>Lightweight local</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Batch Processing</div>
+        <p>Always embed in batches, not one at a time. OpenAI's API accepts up to 2048 texts per call. For local models, <code>SentenceTransformer.encode()</code> automatically batches and uses GPU if available. Embedding 10,000 chunks individually takes 10,000 API calls; batching reduces this to 5 calls.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 4: VECTOR DATABASES -->
+    <div class="section" id="vector-stores">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Vector Databases</h2>
+      </div>
+
+      <h3 id="vector-plain">Plain Language</h3>
+
+      <p>A vector database is a specialized storage system designed to efficiently store and search through millions of embedding vectors. Traditional databases are optimized for exact matches — find the row where <code>id = 42</code>. Vector databases are optimized for <strong>approximate nearest neighbor (ANN) search</strong> — find the 10 vectors most similar to this query vector out of 10 million stored vectors. This is a fundamentally different computational problem that requires specialized data structures and algorithms.</p>
+
+      <p>Think of a vector database like a well-organized library. Instead of organizing books alphabetically by title, this library organizes them by meaning — books about cooking are physically near each other, books about astronomy are in another cluster, and books about culinary astronomy (if such a thing existed) would be between the two clusters. When you walk in with a question, the librarian does not need to check every single book — they can walk directly to the relevant section and pull the most relevant volumes. This is what ANN algorithms do: they organize vectors into structures that allow fast approximate search without comparing against every stored vector.</p>
+
+      <p>The most popular vector databases each target different use cases. <strong>ChromaDB</strong> is the simplest option — it is an in-process database that stores vectors in memory or on disk, requires no separate server, and can be set up in three lines of Python. It is perfect for prototyping, small datasets (under 1 million vectors), and applications where simplicity matters more than scale. <strong>Pinecone</strong> is a fully managed cloud service that handles all infrastructure, scaling, and operations — you just send vectors via API. It is ideal for production applications that need zero operational burden. <strong>pgvector</strong> is a PostgreSQL extension that adds vector search to your existing Postgres database, which is perfect when you want to keep your vectors alongside your relational data without adding another infrastructure component. <strong>Qdrant</strong> and <strong>Weaviate</strong> are purpose-built vector databases that offer advanced features like filtering, multi-tenancy, and hybrid search.</p>
+
+      <h3 id="vector-deep">Deep Dive</h3>
+
+      <p><strong>ChromaDB</strong> is the fastest way to get started with vector storage. Its API is clean and intuitive, and it handles embedding generation automatically if you provide an embedding function. Here is a complete example that indexes documents and performs similarity search:</p>
+
+      <pre><code><span class="code-keyword">import</span> chromadb
+<span class="code-keyword">from</span> chromadb.utils.embedding_functions <span class="code-keyword">import</span> OpenAIEmbeddingFunction
+
+<span class="code-comment"># Initialize ChromaDB (persistent storage)</span>
+client = chromadb.<span class="code-fn">PersistentClient</span>(path=<span class="code-string">"./chroma_db"</span>)
+
+<span class="code-comment"># Create collection with OpenAI embeddings</span>
+embed_fn = <span class="code-fn">OpenAIEmbeddingFunction</span>(
+    api_key=<span class="code-string">"sk-..."</span>,
+    model_name=<span class="code-string">"text-embedding-3-small"</span>
+)
+
+collection = client.<span class="code-fn">get_or_create_collection</span>(
+    name=<span class="code-string">"knowledge_base"</span>,
+    embedding_function=embed_fn,
+    metadata={<span class="code-string">"hnsw:space"</span>: <span class="code-string">"cosine"</span>}  <span class="code-comment"># Distance metric</span>
+)
+
+<span class="code-comment"># Add documents (embeddings generated automatically)</span>
+collection.<span class="code-fn">add</span>(
+    ids=[<span class="code-string">"doc1"</span>, <span class="code-string">"doc2"</span>, <span class="code-string">"doc3"</span>],
+    documents=[
+        <span class="code-string">"RAG retrieves relevant documents and injects them into the LLM prompt."</span>,
+        <span class="code-string">"Fine-tuning modifies model weights using domain-specific training data."</span>,
+        <span class="code-string">"Vector databases store embeddings for efficient similarity search."</span>,
+    ],
+    metadatas=[
+        {<span class="code-string">"source"</span>: <span class="code-string">"rag_guide.pdf"</span>, <span class="code-string">"page"</span>: <span class="code-num">1</span>},
+        {<span class="code-string">"source"</span>: <span class="code-string">"fine_tuning.pdf"</span>, <span class="code-string">"page"</span>: <span class="code-num">3</span>},
+        {<span class="code-string">"source"</span>: <span class="code-string">"vector_db.pdf"</span>, <span class="code-string">"page"</span>: <span class="code-num">1</span>},
+    ]
+)
+
+<span class="code-comment"># Query — returns most similar documents</span>
+results = collection.<span class="code-fn">query</span>(
+    query_texts=[<span class="code-string">"How does RAG improve LLM accuracy?"</span>],
+    n_results=<span class="code-num">2</span>,
+    include=[<span class="code-string">"documents"</span>, <span class="code-string">"metadatas"</span>, <span class="code-string">"distances"</span>]
+)
+
+<span class="code-keyword">for</span> doc, meta, dist <span class="code-keyword">in</span> <span class="code-fn">zip</span>(
+    results[<span class="code-string">"documents"</span>][<span class="code-num">0</span>],
+    results[<span class="code-string">"metadatas"</span>][<span class="code-num">0</span>],
+    results[<span class="code-string">"distances"</span>][<span class="code-num">0</span>]
+):
+    <span class="code-fn">print</span>(f<span class="code-string">"[{dist:.4f}] {meta['source']}: {doc[:80]}..."</span>)</code></pre>
+
+      <p><strong>pgvector</strong> integrates vector search into PostgreSQL, which is powerful for applications that already use Postgres. You get the full power of SQL — joins, filters, transactions — combined with vector similarity search:</p>
+
+      <pre><code><span class="code-comment">-- PostgreSQL with pgvector extension</span>
+<span class="code-keyword">CREATE EXTENSION</span> vector;
+
+<span class="code-comment">-- Create table with vector column</span>
+<span class="code-keyword">CREATE TABLE</span> documents (
+    id SERIAL PRIMARY KEY,
+    content TEXT <span class="code-keyword">NOT NULL</span>,
+    source VARCHAR(<span class="code-num">255</span>),
+    page_num INTEGER,
+    embedding vector(<span class="code-num">1536</span>),  <span class="code-comment">-- OpenAI text-embedding-3-small</span>
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+<span class="code-comment">-- Create HNSW index for fast similarity search</span>
+<span class="code-keyword">CREATE INDEX</span> ON documents
+<span class="code-keyword">USING</span> hnsw (embedding vector_cosine_ops)
+<span class="code-keyword">WITH</span> (m = <span class="code-num">16</span>, ef_construction = <span class="code-num">64</span>);
+
+<span class="code-comment">-- Similarity search with metadata filtering</span>
+<span class="code-keyword">SELECT</span> content, source, page_num,
+       <span class="code-num">1</span> - (embedding <=> <span class="code-string">'[0.12, -0.34, ...]'</span>::vector) <span class="code-keyword">AS</span> similarity
+<span class="code-keyword">FROM</span> documents
+<span class="code-keyword">WHERE</span> source = <span class="code-string">'rag_guide.pdf'</span>
+<span class="code-keyword">ORDER BY</span> embedding <=> <span class="code-string">'[0.12, -0.34, ...]'</span>::vector
+<span class="code-keyword">LIMIT</span> <span class="code-num">5</span>;</code></pre>
+
+      <p>Using pgvector from Python with the <code>psycopg2</code> or <code>asyncpg</code> libraries is straightforward:</p>
+
+      <pre><code><span class="code-keyword">import</span> psycopg2
+<span class="code-keyword">from</span> pgvector.psycopg2 <span class="code-keyword">import</span> register_vector
+
+conn = psycopg2.<span class="code-fn">connect</span>(<span class="code-string">"postgresql://user:pass@localhost/mydb"</span>)
+<span class="code-fn">register_vector</span>(conn)
+cur = conn.<span class="code-fn">cursor</span>()
+
+<span class="code-comment"># Insert a document with embedding</span>
+cur.<span class="code-fn">execute</span>(
+    <span class="code-string">"INSERT INTO documents (content, source, embedding) VALUES (%s, %s, %s)"</span>,
+    (<span class="code-string">"RAG reduces hallucination..."</span>, <span class="code-string">"guide.pdf"</span>, query_vec[<span class="code-num">0</span>].<span class="code-fn">tolist</span>())
+)
+
+<span class="code-comment"># Similarity search</span>
+cur.<span class="code-fn">execute</span>(
+    <span class="code-string">"""SELECT content, source, 1 - (embedding <=> %s::vector) AS similarity
+       FROM documents ORDER BY embedding <=> %s::vector LIMIT 5"""</span>,
+    (query_vec[<span class="code-num">0</span>].<span class="code-fn">tolist</span>(), query_vec[<span class="code-num">0</span>].<span class="code-fn">tolist</span>())
+)
+results = cur.<span class="code-fn">fetchall</span>()</code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Choosing a Vector Database</div>
+        <p><strong>Prototyping:</strong> ChromaDB (zero setup, in-process). <strong>Already using Postgres:</strong> pgvector (no new infrastructure). <strong>Managed production:</strong> Pinecone (zero ops). <strong>Self-hosted production:</strong> Qdrant or Weaviate (feature-rich, scalable). Start simple with ChromaDB and migrate when you hit scale limits.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 5: RETRIEVAL & RERANKING -->
+    <div class="section" id="retrieval">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Retrieval &amp; Reranking</h2>
+      </div>
+
+      <h3 id="retrieval-plain">Plain Language</h3>
+
+      <p>Retrieval is the step where you search through your indexed document chunks to find the ones most relevant to the user's query. The simplest approach — pure vector similarity search — works surprisingly well in most cases: embed the query, find the K nearest vectors, return the corresponding chunks. But real-world retrieval often needs more sophistication. What if the user searches for an exact product ID that should be matched literally, not semantically? What if the top vector matches are from the same document and you want diversity? What if the vector search returns 20 results but only 3 are truly relevant?</p>
+
+      <p><strong>Hybrid search</strong> combines vector similarity with traditional keyword matching (BM25) to get the best of both worlds. Semantic search excels at understanding meaning — it knows that "car" and "automobile" are the same concept — but can fail on exact terms like product codes, error messages, or proper nouns. Keyword search excels at exact matching but fails on paraphrased queries. Hybrid search runs both searches in parallel and combines the results using a technique called Reciprocal Rank Fusion (RRF), which gives a document high score if it appears near the top of either search result list.</p>
+
+      <p><strong>Reranking</strong> is a second-stage process that dramatically improves retrieval precision. The initial retrieval (either vector or hybrid) casts a wide net — returning perhaps 20 candidates that are roughly relevant. A reranker model then examines each candidate in the context of the original query and produces a much more accurate relevance score. Rerankers are typically cross-encoder models that process the query and document together (rather than independently like embedding models), giving them much better understanding of relevance. The cost is that cross-encoders are too slow to run against the entire document collection, which is why they are used as a second stage after initial retrieval narrows the candidates.</p>
+
+      <p>The difference between a basic and a well-tuned retrieval pipeline can be dramatic. A naive vector search might produce results where 3 out of 5 retrieved chunks are actually relevant (60% precision). Adding hybrid search might push this to 4 out of 5 (80%). Adding a reranker often achieves 5 out of 5 (100%) for well-indexed domains. Since the LLM's answer quality is directly proportional to the relevance of retrieved context, these improvements in retrieval precision translate directly into better final answers.</p>
+
+      <h3 id="retrieval-deep">Deep Dive</h3>
+
+      <p>Here is a complete retrieval pipeline implementing vector search, hybrid search with BM25, and cross-encoder reranking:</p>
+
+      <pre><code><span class="code-keyword">from</span> rank_bm25 <span class="code-keyword">import</span> BM25Okapi
+<span class="code-keyword">from</span> sentence_transformers <span class="code-keyword">import</span> CrossEncoder
+<span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np
+
+<span class="code-keyword">class</span> <span class="code-fn">HybridRetriever</span>:
+    <span class="code-string">"""Combines vector search + BM25 keyword search + cross-encoder reranking."""</span>
+
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self, collection, chunks: list[str]):
+        self.collection = collection
+        self.chunks = chunks
+
+        <span class="code-comment"># BM25 index for keyword search</span>
+        tokenized = [doc.<span class="code-fn">lower</span>().<span class="code-fn">split</span>() <span class="code-keyword">for</span> doc <span class="code-keyword">in</span> chunks]
+        self.bm25 = <span class="code-fn">BM25Okapi</span>(tokenized)
+
+        <span class="code-comment"># Cross-encoder reranker</span>
+        self.reranker = <span class="code-fn">CrossEncoder</span>(<span class="code-string">"cross-encoder/ms-marco-MiniLM-L-12-v2"</span>)
+
+    <span class="code-keyword">def</span> <span class="code-fn">search</span>(self, query: str, k: int = <span class="code-num">5</span>, use_rerank: bool = <span class="code-keyword">True</span>) -> list[dict]:
+        <span class="code-comment"># Step 1: Vector search (top 20 candidates)</span>
+        vector_results = self.collection.<span class="code-fn">query</span>(
+            query_texts=[query], n_results=<span class="code-num">20</span>,
+            include=[<span class="code-string">"documents"</span>, <span class="code-string">"metadatas"</span>, <span class="code-string">"distances"</span>]
+        )
+        vector_docs = vector_results[<span class="code-string">"documents"</span>][<span class="code-num">0</span>]
+
+        <span class="code-comment"># Step 2: BM25 keyword search (top 20 candidates)</span>
+        bm25_scores = self.bm25.<span class="code-fn">get_scores</span>(query.<span class="code-fn">lower</span>().<span class="code-fn">split</span>())
+        bm25_top = np.<span class="code-fn">argsort</span>(bm25_scores)[::-<span class="code-num">1</span>][:<span class="code-num">20</span>]
+        bm25_docs = [self.chunks[i] <span class="code-keyword">for</span> i <span class="code-keyword">in</span> bm25_top]
+
+        <span class="code-comment"># Step 3: Reciprocal Rank Fusion</span>
+        fused = self.<span class="code-fn">_rrf_merge</span>(vector_docs, bm25_docs)
+
+        <span class="code-comment"># Step 4: Rerank with cross-encoder</span>
+        <span class="code-keyword">if</span> use_rerank <span class="code-keyword">and</span> fused:
+            pairs = [[query, doc] <span class="code-keyword">for</span> doc <span class="code-keyword">in</span> fused]
+            scores = self.reranker.<span class="code-fn">predict</span>(pairs)
+            ranked = <span class="code-fn">sorted</span>(
+                <span class="code-fn">zip</span>(fused, scores), key=<span class="code-keyword">lambda</span> x: x[<span class="code-num">1</span>], reverse=<span class="code-keyword">True</span>
+            )
+            <span class="code-keyword">return</span> [{<span class="code-string">"text"</span>: doc, <span class="code-string">"score"</span>: float(s)} <span class="code-keyword">for</span> doc, s <span class="code-keyword">in</span> ranked[:k]]
+
+        <span class="code-keyword">return</span> [{<span class="code-string">"text"</span>: doc, <span class="code-string">"score"</span>: <span class="code-num">0.0</span>} <span class="code-keyword">for</span> doc <span class="code-keyword">in</span> fused[:k]]
+
+    <span class="code-keyword">def</span> <span class="code-fn">_rrf_merge</span>(self, list_a: list, list_b: list, k: int = <span class="code-num">60</span>) -> list:
+        <span class="code-string">"""Reciprocal Rank Fusion: merge two ranked lists."""</span>
+        scores = {}
+        <span class="code-keyword">for</span> rank, doc <span class="code-keyword">in</span> <span class="code-fn">enumerate</span>(list_a):
+            scores[doc] = scores.<span class="code-fn">get</span>(doc, <span class="code-num">0</span>) + <span class="code-num">1</span> / (k + rank + <span class="code-num">1</span>)
+        <span class="code-keyword">for</span> rank, doc <span class="code-keyword">in</span> <span class="code-fn">enumerate</span>(list_b):
+            scores[doc] = scores.<span class="code-fn">get</span>(doc, <span class="code-num">0</span>) + <span class="code-num">1</span> / (k + rank + <span class="code-num">1</span>)
+        <span class="code-keyword">return</span> <span class="code-fn">sorted</span>(scores, key=scores.<span class="code-fn">get</span>, reverse=<span class="code-keyword">True</span>)</code></pre>
+
+      <div class="callout">
+        <div class="callout-label">Reranker Impact</div>
+        <p>In benchmarks, adding a cross-encoder reranker improves retrieval precision (Precision@5) by 15-30% on average. The Cohere Rerank API and open-source <code>cross-encoder/ms-marco-MiniLM-L-12-v2</code> model are the most popular choices. The latency cost is typically 50-100ms for reranking 20 candidates.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 6: SYNTHESIS -->
+    <div class="section" id="synthesis">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>LLM Synthesis</h2>
+      </div>
+
+      <h3 id="synth-plain">Plain Language</h3>
+
+      <p>Synthesis is the final step where everything comes together: you have the user's question and the retrieved document chunks, and now you need the LLM to generate an answer that is grounded in that context. This is where prompt engineering meets retrieval — the way you structure the prompt determines whether the LLM faithfully uses the provided context, ignores it, or worse, mixes retrieved facts with hallucinated information. The synthesis prompt must clearly instruct the model to base its answer on the provided context and to say "I don't know" when the context does not contain the answer.</p>
+
+      <p>The standard synthesis pattern uses a system prompt that sets the behavioral rules and a user message that contains both the retrieved context and the question. The context chunks are typically formatted with clear delimiters — numbered sections, XML-like tags, or markdown headers — so the model can easily distinguish between different source documents. Including the source metadata (filename, page number, section title) in the context enables the model to provide citations in its answer, which is essential for enterprise applications where users need to verify information.</p>
+
+      <p>A well-designed synthesis prompt handles several edge cases. What if the retrieved context is contradictory? The prompt should instruct the model to acknowledge the contradiction and explain both perspectives. What if the context is partially relevant? The model should use what it can and explicitly state what information is missing. What if the user's question is completely outside the scope of the knowledge base? The model should clearly say it does not have information to answer rather than falling back on its training data, which might be outdated or incorrect for this specific domain.</p>
+
+      <p>Streaming the synthesis response is important for user experience. Since the LLM generates tokens one at a time, you can begin displaying the answer to the user while it is still being generated. This dramatically reduces perceived latency — instead of waiting 5 seconds for the complete response, the user sees the first word appear within 200 milliseconds and watches the answer flow in naturally. Combined with source citations at the end, this creates a polished, trustworthy experience.</p>
+
+      <h3 id="synth-deep">Deep Dive</h3>
+
+      <p>Here is a complete RAG synthesis implementation with structured prompting, source attribution, and streaming:</p>
+
+      <pre><code><span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+
+client = <span class="code-fn">OpenAI</span>()
+
+SYSTEM_PROMPT = <span class="code-string">"""You are an expert assistant that answers questions based ONLY on the provided context documents. Follow these rules strictly:
+
+1. Base your answer entirely on the provided context. Do not use information from your training data.
+2. If the context does not contain enough information to answer the question, say: "I don't have enough information in the available documents to answer this question."
+3. Cite your sources using [Source: filename, page N] format after each claim.
+4. If the context contains contradictory information, acknowledge both perspectives.
+5. Keep your answer clear, well-structured, and directly responsive to the question.
+6. Use the same terminology as the source documents."""</span>
+
+<span class="code-keyword">def</span> <span class="code-fn">format_context</span>(retrieved_chunks: list[dict]) -> str:
+    <span class="code-string">"""Format retrieved chunks into a structured context block."""</span>
+    sections = []
+    <span class="code-keyword">for</span> i, chunk <span class="code-keyword">in</span> <span class="code-fn">enumerate</span>(retrieved_chunks, <span class="code-num">1</span>):
+        source = chunk.<span class="code-fn">get</span>(<span class="code-string">"source"</span>, <span class="code-string">"unknown"</span>)
+        page = chunk.<span class="code-fn">get</span>(<span class="code-string">"page"</span>, <span class="code-string">"?"</span>)
+        text = chunk[<span class="code-string">"text"</span>]
+        sections.<span class="code-fn">append</span>(
+            f<span class="code-string">"--- Context Document {i} [Source: {source}, Page {page}] ---\n{text}"</span>
+        )
+    <span class="code-keyword">return</span> <span class="code-string">"\n\n"</span>.<span class="code-fn">join</span>(sections)
+
+<span class="code-keyword">def</span> <span class="code-fn">rag_query</span>(question: str, retriever, stream: bool = <span class="code-keyword">True</span>):
+    <span class="code-string">"""Complete RAG pipeline: retrieve → format → synthesize."""</span>
+
+    <span class="code-comment"># Step 1: Retrieve relevant chunks</span>
+    chunks = retriever.<span class="code-fn">search</span>(question, k=<span class="code-num">5</span>)
+
+    <span class="code-comment"># Step 2: Format context</span>
+    context = <span class="code-fn">format_context</span>(chunks)
+
+    <span class="code-comment"># Step 3: Synthesize with LLM</span>
+    messages = [
+        {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: SYSTEM_PROMPT},
+        {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: f<span class="code-string">"""Context Documents:
+{context}
+
+Question: {question}
+
+Provide a comprehensive answer based only on the context above."""</span>}
+    ]
+
+    <span class="code-keyword">if</span> stream:
+        response = client.chat.completions.<span class="code-fn">create</span>(
+            model=<span class="code-string">"gpt-4o"</span>,
+            messages=messages,
+            temperature=<span class="code-num">0.1</span>,   <span class="code-comment"># Low temp for factual grounding</span>
+            max_tokens=<span class="code-num">1024</span>,
+            stream=<span class="code-keyword">True</span>,
+        )
+        answer = <span class="code-string">""</span>
+        <span class="code-keyword">for</span> chunk <span class="code-keyword">in</span> response:
+            delta = chunk.choices[<span class="code-num">0</span>].delta.content <span class="code-keyword">or</span> <span class="code-string">""</span>
+            answer += delta
+            <span class="code-fn">print</span>(delta, end=<span class="code-string">""</span>, flush=<span class="code-keyword">True</span>)
+        <span class="code-fn">print</span>()
+        <span class="code-keyword">return</span> answer
+    <span class="code-keyword">else</span>:
+        response = client.chat.completions.<span class="code-fn">create</span>(
+            model=<span class="code-string">"gpt-4o"</span>,
+            messages=messages,
+            temperature=<span class="code-num">0.1</span>,
+            max_tokens=<span class="code-num">1024</span>,
+        )
+        <span class="code-keyword">return</span> response.choices[<span class="code-num">0</span>].message.content
+
+<span class="code-comment"># Usage</span>
+answer = <span class="code-fn">rag_query</span>(<span class="code-string">"How does RAG reduce hallucination?"</span>, retriever)</code></pre>
+
+      <p>For a <strong>complete end-to-end RAG application</strong> using LangChain, here is how all the pieces fit together:</p>
+
+      <pre><code><span class="code-keyword">from</span> langchain_openai <span class="code-keyword">import</span> ChatOpenAI, OpenAIEmbeddings
+<span class="code-keyword">from</span> langchain_community.vectorstores <span class="code-keyword">import</span> Chroma
+<span class="code-keyword">from</span> langchain.text_splitter <span class="code-keyword">import</span> RecursiveCharacterTextSplitter
+<span class="code-keyword">from</span> langchain_community.document_loaders <span class="code-keyword">import</span> DirectoryLoader, PyPDFLoader
+<span class="code-keyword">from</span> langchain.chains <span class="code-keyword">import</span> RetrievalQA
+<span class="code-keyword">from</span> langchain.prompts <span class="code-keyword">import</span> PromptTemplate
+
+<span class="code-comment"># 1. Load documents</span>
+loader = <span class="code-fn">DirectoryLoader</span>(<span class="code-string">"./docs"</span>, glob=<span class="code-string">"**/*.pdf"</span>, loader_cls=PyPDFLoader)
+docs = loader.<span class="code-fn">load</span>()
+
+<span class="code-comment"># 2. Chunk</span>
+splitter = <span class="code-fn">RecursiveCharacterTextSplitter</span>(chunk_size=<span class="code-num">1000</span>, chunk_overlap=<span class="code-num">200</span>)
+chunks = splitter.<span class="code-fn">split_documents</span>(docs)
+
+<span class="code-comment"># 3. Embed and store</span>
+vectorstore = Chroma.<span class="code-fn">from_documents</span>(
+    documents=chunks,
+    embedding=<span class="code-fn">OpenAIEmbeddings</span>(model=<span class="code-string">"text-embedding-3-small"</span>),
+    persist_directory=<span class="code-string">"./chroma_db"</span>
+)
+
+<span class="code-comment"># 4. Create retriever</span>
+retriever = vectorstore.<span class="code-fn">as_retriever</span>(
+    search_type=<span class="code-string">"similarity"</span>,
+    search_kwargs={<span class="code-string">"k"</span>: <span class="code-num">5</span>}
+)
+
+<span class="code-comment"># 5. Build RAG chain</span>
+prompt = <span class="code-fn">PromptTemplate</span>(
+    template=<span class="code-string">"""Use the following context to answer the question. If you cannot
+answer from the context, say "I don't have that information."
+
+Context: {context}
+
+Question: {question}
+
+Answer:"""</span>,
+    input_variables=[<span class="code-string">"context"</span>, <span class="code-string">"question"</span>]
+)
+
+rag_chain = <span class="code-fn">RetrievalQA</span>.<span class="code-fn">from_chain_type</span>(
+    llm=<span class="code-fn">ChatOpenAI</span>(model=<span class="code-string">"gpt-4o"</span>, temperature=<span class="code-num">0.1</span>),
+    chain_type=<span class="code-string">"stuff"</span>,  <span class="code-comment"># Stuff all retrieved docs into prompt</span>
+    retriever=retriever,
+    chain_type_kwargs={<span class="code-string">"prompt"</span>: prompt},
+    return_source_documents=<span class="code-keyword">True</span>,
+)
+
+<span class="code-comment"># 6. Query</span>
+result = rag_chain.<span class="code-fn">invoke</span>({<span class="code-string">"query"</span>: <span class="code-string">"What is retrieval-augmented generation?"</span>})
+<span class="code-fn">print</span>(result[<span class="code-string">"result"</span>])
+<span class="code-fn">print</span>(<span class="code-string">"Sources:"</span>, [d.metadata[<span class="code-string">"source"</span>] <span class="code-keyword">for</span> d <span class="code-keyword">in</span> result[<span class="code-string">"source_documents"</span>]])</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Temperature Matters</div>
+        <p>For RAG synthesis, use temperature 0.0–0.2. Higher temperatures encourage creative generation, which works against the goal of grounding answers in retrieved context. A low temperature makes the model stick closely to the provided evidence, reducing hallucination and improving factual accuracy.</p>
+      </div>
+    </div>
+
+    <!-- NEXT / PREV -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">← Previous</div>
+        <a class="next-btn prev-btn" href="06-prompt-engineering.html">
+          <span>06 · Prompt Engineering</span>
+        </a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next →</div>
+        <a class="next-btn" href="08-advanced-rag.html">
+          <span>08 · Advanced RAG</span>
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

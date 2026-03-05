@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareerAlign — Move from Chaos to Clarity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN SYSTEM
+   ============================================================ */
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* ── NAV ─────────────────────────────────────────────────── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  height: 58px;
+  gap: 32px;
+}
+.nav-logo {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  white-space: nowrap;
+}
+.nav-logo .accent { color: var(--accent-indigo); }
+.nav-links {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+}
+.nav-links a {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--text-primary); }
+
+/* ── HERO ─────────────────────────────────────────────────── */
+.hero {
+  padding: 100px 40px 80px;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(ellipse at center, rgba(99,102,241,0.12) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+.hero > * { position: relative; z-index: 1; }
+
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 5.5vw, 3.8rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 24px;
+  letter-spacing: -0.02em;
+}
+.hero h1 .highlight {
+  background: linear-gradient(135deg, var(--accent-indigo), var(--accent-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero .tagline {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  max-width: 640px;
+  margin: 0 auto 40px;
+  line-height: 1.75;
+}
+.hero .tagline strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all .2s;
+}
+.btn-primary {
+  background: var(--accent-indigo);
+  color: white;
+}
+.btn-primary:hover {
+  background: #5254d4;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px var(--glow-indigo);
+}
+
+/* Stats strip */
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 56px;
+  flex-wrap: wrap;
+}
+.stat {
+  text-align: center;
+}
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+/* ── SECTIONS ─────────────────────────────────────────────── */
+.section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 40px;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.section-subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  max-width: 600px;
+  margin-bottom: 40px;
+  line-height: 1.7;
+}
+
+/* ── PATH CARDS ───────────────────────────────────────────── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.path-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px;
+  transition: all .25s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.path-card.active:hover {
+  border-color: var(--accent-indigo);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(99,102,241,0.12);
+}
+.path-card.coming-soon {
+  opacity: 0.45;
+  border-style: dashed;
+  border-color: var(--border-subtle);
+  cursor: default;
+}
+.path-card .icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+.path-card h3 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.path-card p {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.7;
+  flex: 1;
+}
+.path-card .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--accent-cyan);
+  width: fit-content;
+}
+.path-card .badge.muted {
+  color: var(--text-muted);
+  border-color: var(--border-subtle);
+}
+.path-card .card-link {
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--accent-indigo);
+  transition: color .2s;
+}
+.path-card .card-link:hover { color: var(--accent-cyan); }
+
+/* ── USE CASES (empty state) ──────────────────────────────── */
+.empty-state {
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 60px 32px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* ── FOOTER ───────────────────────────────────────────────── */
+.footer {
+  border-top: 1px solid var(--border-subtle);
+  padding: 32px 40px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .nav { padding: 0 16px; gap: 16px; }
+  .hero { padding: 64px 20px 56px; }
+  .hero h1 { font-size: 2rem; }
+  .stats { gap: 24px; }
+  .section { padding: 56px 20px; }
+  .card-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .stats { flex-direction: column; gap: 16px; }
+  .nav-links { gap: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ──────────────────────────────────────────────── -->
+<nav class="nav">
+  <a href="/" class="nav-logo">&#127919; Career<span class="accent">Align</span></a>
+  <div class="nav-links">
+    <a href="#paths">Learning Paths</a>
+    <a href="#use-cases">Use Cases</a>
+  </div>
+</nav>
+
+<!-- ── HERO ─────────────────────────────────────────────── -->
+<section class="hero">
+  <h1>Move from Chaos<br>to <span class="highlight">Clarity</span></h1>
+  <p class="tagline"><strong>Clarity is power.</strong> Master in-demand skills through structured, practitioner-focused learning paths &mdash; organized so you can focus on learning, not searching.</p>
+  <a href="genai/index.html" class="btn btn-primary">Explore Generative AI &rarr;</a>
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-value">1</div>
+      <div class="stat-label">Learning Path</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">17</div>
+      <div class="stat-label">Modules</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">17</div>
+      <div class="stat-label">Notebooks</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">&lt;/&gt;</div>
+      <div class="stat-label">Open Source</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── LEARNING PATHS ──────────────────────────────────── -->
+<section class="section" id="paths">
+  <h2 class="section-title">Learning Paths</h2>
+  <p class="section-subtitle">Structured curricula built for practitioners. Each path takes you from foundations to production-grade skills.</p>
+  <div class="card-grid">
+
+    <!-- Generative AI — Active -->
+    <a href="genai/index.html" class="path-card active">
+      <div class="icon">&#129504;</div>
+      <h3>Generative AI</h3>
+      <p>From transformer internals to deploying autonomous multi-agent systems in production. 17 deep-dive modules with companion Jupyter notebooks.</p>
+      <span class="badge">17 Modules</span>
+      <span class="card-link">Start learning &rarr;</span>
+    </a>
+
+    <!-- Data Engineering — Coming Soon -->
+    <div class="path-card coming-soon">
+      <div class="icon">&#128202;</div>
+      <h3>Data Engineering</h3>
+      <p>Coming soon.</p>
+      <span class="badge muted">Coming Soon</span>
+    </div>
+
+    <!-- Cloud Architecture — Coming Soon -->
+    <div class="path-card coming-soon">
+      <div class="icon">&#9729;&#65039;</div>
+      <h3>Cloud Architecture</h3>
+      <p>Coming soon.</p>
+      <span class="badge muted">Coming Soon</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── USE CASES ───────────────────────────────────────── -->
+<section class="section" id="use-cases">
+  <h2 class="section-title">Real-World Use Cases</h2>
+  <p class="section-subtitle">Industry use cases demonstrating end-to-end solutions for specific domains. New cases published regularly.</p>
+  <div class="empty-state">Coming soon &mdash; stay tuned for production-ready case studies.</div>
+</section>
+
+<!-- ── FOOTER ──────────────────────────────────────────── -->
+<footer class="footer">
+  CareerAlign.com &middot; Move from Chaos to Clarity
+</footer>
+
+</body>
+</html>

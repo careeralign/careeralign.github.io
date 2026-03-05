@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capstone II: Autonomous Report Agent — CareerAlign GenAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg-base:#0b0d14;--bg-surface:#10131e;--bg-elevated:#171c2e;--bg-overlay:#1e2438;--border-subtle:#1a1f34;--border-default:#232840;--border-strong:#2e3554;--text-primary:#e6e8f4;--text-secondary:#8e94b5;--text-muted:#545a78;--accent-indigo:#6366f1;--accent-cyan:#22d3ee;--accent-violet:#a855f7;--glow-indigo:rgba(99,102,241,0.25);--phase-prereq:#64748b;--phase-found:#3b82f6;--phase-api:#06b6d4;--phase-rag:#f97316;--phase-agent:#a855f7;--phase-quality:#ef4444;--phase-cloud:#22c55e;--phase-project:#f59e0b;--font-display:'Space Grotesk',sans-serif;--font-body:'Nunito',sans-serif;--font-mono:'JetBrains Mono',monospace;--radius:12px;--radius-sm:8px;--radius-lg:18px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:var(--bg-base);color:var(--text-primary);font-family:var(--font-body);font-size:16px;line-height:1.7;min-height:100vh}a{color:inherit;text-decoration:none}img,svg{display:block}
+.nav{position:sticky;top:0;z-index:100;background:rgba(11,13,20,0.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border-subtle);padding:0 32px;display:flex;align-items:center;height:58px;gap:24px}
+.nav-logo{font-family:var(--font-display);font-weight:700;font-size:17px;color:var(--text-primary);display:flex;align-items:center;gap:9px;white-space:nowrap}.nav-logo span{color:var(--accent-indigo)}
+.nav-links{display:flex;gap:6px;flex:1;flex-wrap:wrap;overflow:hidden}.nav-links a{font-size:12px;font-weight:500;color:var(--text-muted);padding:4px 8px;border-radius:6px;transition:all .2s;white-space:nowrap}.nav-links a:hover{color:var(--text-primary);background:var(--bg-elevated)}.nav-links a.active{color:var(--phase-project);background:rgba(245,158,11,0.15)}
+.nav-home{font-size:12.5px;font-weight:600;color:var(--accent-indigo);padding:6px 14px;border:1px solid rgba(99,102,241,0.3);border-radius:7px;transition:all .2s;white-space:nowrap;margin-left:auto}.nav-home:hover{background:rgba(99,102,241,0.1)}
+.hero{padding:70px 60px 50px;max-width:1400px;margin:0 auto;border-bottom:1px solid var(--border-subtle)}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);border-radius:20px;padding:5px 14px;margin-bottom:22px;font-size:12.5px;font-family:var(--font-display);font-weight:600;color:var(--phase-project);letter-spacing:0.04em;text-transform:uppercase}
+.hero h1{font-family:var(--font-display);font-size:clamp(2.2rem,4vw,3.4rem);font-weight:700;line-height:1.15;color:var(--text-primary);max-width:820px;margin-bottom:20px}.hero h1 em{font-style:normal;color:var(--phase-project)}
+.hero-desc{font-size:1.1rem;color:var(--text-secondary);max-width:760px;line-height:1.75;margin-bottom:36px}
+.hero-checklist{display:flex;gap:12px;flex-wrap:wrap}
+.hero-pill{display:flex;align-items:center;gap:7px;background:var(--bg-surface);border:1px solid var(--border-default);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--text-secondary)}.hero-pill svg{color:var(--phase-project);flex-shrink:0}
+.content-grid{max-width:1400px;margin:0 auto;padding:0 60px 80px;display:grid;grid-template-columns:260px 1fr;gap:0;align-items:start}
+.toc{position:sticky;top:78px;padding:32px 0;border-right:1px solid var(--border-subtle);margin-right:48px}
+.toc-title{font-size:11px;font-family:var(--font-display);font-weight:700;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-subtle)}
+.toc a{display:block;font-size:13px;color:var(--text-secondary);padding:6px 0;transition:color .2s;border-left:2px solid transparent;padding-left:12px;margin-left:-2px}.toc a:hover{color:var(--text-primary);border-left-color:var(--phase-project)}.toc a.section{font-weight:600;color:var(--text-primary);font-size:12.5px;margin-top:8px}.toc a.sub{padding-left:24px;font-size:12px}
+.main{padding:40px 0}
+.section{margin-bottom:60px}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border-subtle)}
+.section-num{width:36px;height:36px;border-radius:50%;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--phase-project);flex-shrink:0}
+.section h2{font-family:var(--font-display);font-size:1.55rem;font-weight:700;color:var(--text-primary)}
+.section h3{font-family:var(--font-display);font-size:1.15rem;font-weight:600;color:var(--text-primary);margin:28px 0 12px}
+.section p{color:var(--text-secondary);margin-bottom:16px;font-size:1rem;line-height:1.8}
+.section p strong{color:var(--text-primary);font-weight:600}
+.callout{border-left:3px solid var(--phase-project);background:rgba(245,158,11,0.07);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:16px 20px;margin:20px 0}
+.callout.info{border-color:var(--accent-indigo);background:rgba(99,102,241,0.07)}.callout.tip{border-color:var(--phase-cloud);background:rgba(34,197,94,0.07)}.callout.warn{border-color:var(--phase-quality);background:rgba(239,68,68,0.07)}
+.callout-label{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;color:var(--phase-project)}
+.callout.info .callout-label{color:var(--accent-indigo)}.callout.tip .callout-label{color:var(--phase-cloud)}.callout.warn .callout-label{color:var(--phase-quality)}
+.callout p{margin:0;color:var(--text-secondary);font-size:0.95rem}
+pre{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:20px 24px;overflow-x:auto;margin:20px 0}
+code{font-family:var(--font-mono);font-size:13.5px;color:var(--accent-cyan);line-height:1.65}
+:not(pre)>code{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:5px;padding:2px 7px;font-size:13px}
+.code-comment{color:var(--text-muted)}.code-keyword{color:#c084fc}.code-string{color:#86efac}.code-fn{color:#67e8f9}.code-num{color:#fca5a5}
+.diagram-wrap{background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--radius-lg);padding:32px;margin:32px 0}
+.diagram-caption{text-align:center;font-size:13px;color:var(--text-muted);margin-top:16px;font-style:italic}
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:24px 0}
+.skill-card{background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--radius);padding:20px 22px;transition:border-color .2s}.skill-card:hover{border-color:var(--phase-project)}
+.skill-card-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.skill-icon{width:32px;height:32px;border-radius:8px;background:rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:center;font-size:15px}
+.skill-card h4{font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--text-primary)}
+.skill-card p{font-size:13px;color:var(--text-secondary);margin:0;line-height:1.6}
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}th,td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--border-subtle)}th{background:var(--bg-surface);font-family:var(--font-display);font-weight:600;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em}td{color:var(--text-secondary)}tr:hover td{background:var(--bg-surface)}
+.next-section{margin-top:70px;padding-top:40px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center}
+.next-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;font-family:var(--font-display)}
+.next-btn{display:inline-flex;align-items:center;gap:10px;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:var(--radius);padding:14px 22px;font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--text-primary);transition:all .2s}.next-btn:hover{border-color:var(--phase-project);color:var(--phase-project);transform:translateX(4px)}
+.next-phase{font-size:12px;color:var(--phase-project);font-weight:500}
+.prev-btn{display:inline-flex;align-items:center;gap:10px;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:var(--radius);padding:14px 22px;font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--text-primary);transition:all .2s}.prev-btn:hover{border-color:var(--phase-project);color:var(--phase-project);transform:translateX(-4px)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">⚡ <span>CareerAlign</span> GenAI</div>
+  <div class="nav-links">
+    <a href="00-prerequisites.html">00</a>
+    <a href="01-foundations-of-genai.html">01</a>
+    <a href="02-llms-slms-multimodal.html">02</a>
+    <a href="03-api-for-llms.html">03</a>
+    <a href="04-fine-tuning.html">04</a>
+    <a href="05-llm-hosting.html">05</a>
+    <a href="06-prompt-engineering.html">06</a>
+    <a href="07-rag-systems.html">07</a>
+    <a href="08-advanced-rag.html">08</a>
+    <a href="09-agents.html">09</a>
+    <a href="10-evaluation.html">10</a>
+    <a href="11-guardrails.html">11</a>
+    <a href="12-mcp.html">12</a>
+    <a href="13-aws-cloud.html">13</a>
+    <a href="14-n8n-no-code.html">14</a>
+    <a href="15-capstone-document-portal.html">15</a>
+    <a href="16-capstone-report-agent.html" class="active">16</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GenAI Hub</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v12M4 6l4-4 4 4"/></svg> Phase 7 · Capstone Projects</div>
+  <h1>Capstone II: <em>Autonomous Report Agent</em></h1>
+  <p class="hero-desc">Build an autonomous multi-agent system that researches a topic, gathers data from multiple sources, synthesizes findings, and produces a structured report — all with minimal human intervention. This capstone integrates LangGraph, tool use, multi-agent orchestration, guardrails, and human-in-the-loop approval into a production-grade agentic workflow.</p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v6M5 8h6"/></svg> LangGraph Workflows</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h10v10H3z"/></svg> Multi-Agent Design</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Tool Integration</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="10" height="10" rx="2"/></svg> Guardrails</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14V6l4-4 4 4v8"/></svg> Human-in-the-Loop</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l4-8 4 8"/></svg> Report Generation</div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/16-capstone-report-agent.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</section>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#s1" class="section">1 · Agent Architecture</a>
+    <a href="#s1-plain" class="sub">Plain Language</a>
+    <a href="#s1-deep" class="sub">Deep Dive</a>
+    <a href="#s2" class="section">2 · Research Agent &amp; Tools</a>
+    <a href="#s2-plain" class="sub">Plain Language</a>
+    <a href="#s2-deep" class="sub">Deep Dive</a>
+    <a href="#s3" class="section">3 · LangGraph Orchestration</a>
+    <a href="#s3-plain" class="sub">Plain Language</a>
+    <a href="#s3-deep" class="sub">Deep Dive</a>
+    <a href="#s4" class="section">4 · Report Generation</a>
+    <a href="#s4-plain" class="sub">Plain Language</a>
+    <a href="#s4-deep" class="sub">Deep Dive</a>
+    <a href="#s5" class="section">5 · Guardrails &amp; HITL</a>
+    <a href="#s5-plain" class="sub">Plain Language</a>
+    <a href="#s5-deep" class="sub">Deep Dive</a>
+    <a href="#s6" class="section">6 · Evaluation &amp; Deployment</a>
+    <a href="#s6-plain" class="sub">Plain Language</a>
+    <a href="#s6-deep" class="sub">Deep Dive</a>
+  </aside>
+
+  <main class="main">
+
+    <!-- SECTION 1 -->
+    <div class="section" id="s1">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Agent Architecture</h2>
+      </div>
+
+      <h3 id="s1-plain">Plain Language</h3>
+      <p>Imagine you hire a team of research analysts to write a report on a complex topic — say, "the impact of AI on healthcare in 2025." You wouldn't hand this to one person. Instead, you'd have a <strong>project manager</strong> who breaks down the topic into research questions, <strong>researchers</strong> who go out and gather information from different sources, an <strong>analyst</strong> who synthesizes the findings and identifies patterns, a <strong>writer</strong> who turns the analysis into a polished report, and an <strong>editor</strong> who reviews the final product for quality. Our autonomous report agent mirrors this exact team structure using multiple AI agents.</p>
+      <p>Each agent is a specialized LLM instance with a focused system prompt and a specific set of tools. The <strong>Planner agent</strong> takes the user's topic and breaks it into research sub-tasks. The <strong>Researcher agent</strong> has access to web search, document retrieval, and data APIs to gather raw information. The <strong>Synthesizer agent</strong> takes the collected research notes and produces structured analysis. The <strong>Writer agent</strong> transforms the analysis into a well-formatted report with sections, citations, and visualizations. And the <strong>Reviewer agent</strong> checks the report for factual consistency, proper citations, and quality.</p>
+      <p>These agents are orchestrated by a <strong>LangGraph state machine</strong> that defines the workflow: plan, research, synthesize, write, review. If the reviewer finds issues, the workflow loops back to the appropriate stage for corrections. A human-in-the-loop checkpoint lets the user review and approve the research plan before the system spends time and API credits executing it. The entire pipeline is wrapped with guardrails that prevent the agents from generating harmful content, exceeding budget limits, or going off-topic.</p>
+      <p>This capstone brings together nearly every concept from the course: LLM APIs for the agent brains, prompt engineering for the system prompts, tool use for external data access, RAG for document-grounded research, LangGraph for workflow orchestration, guardrails for safety, evaluation for quality checking, and deployment for making it all run reliably.</p>
+
+      <h3 id="s1-deep">Deep Dive</h3>
+      <p>The architecture uses a <strong>supervisor pattern</strong> where a central orchestrator (the LangGraph state machine) routes work between specialized agents. Each agent is a node in the graph with its own LLM configuration, system prompt, and tool set. The state flows through the graph as a typed dictionary that accumulates research findings, analysis, and the final report.</p>
+
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 820 420" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="ah" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#f59e0b"/></marker>
+            <marker id="ahg" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#22c55e"/></marker>
+            <marker id="ahr" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#ef4444"/></marker>
+          </defs>
+          <!-- START -->
+          <circle cx="60" cy="200" r="20" fill="#1e2438" stroke="#f59e0b" stroke-width="2"/>
+          <text x="60" y="204" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk" font-size="11" font-weight="600">START</text>
+          <!-- Planner -->
+          <rect x="120" y="170" width="130" height="60" rx="10" fill="#1e2438" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="185" y="195" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Planner</text>
+          <text x="185" y="215" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Break down topic</text>
+          <line x1="80" y1="200" x2="112" y2="200" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#ah)"/>
+          <!-- HITL -->
+          <rect x="120" y="280" width="130" height="50" rx="10" fill="#1e2438" stroke="#f59e0b" stroke-width="2" stroke-dasharray="6,3"/>
+          <text x="185" y="305" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk" font-size="12" font-weight="600">Human Review</text>
+          <text x="185" y="320" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Approve plan</text>
+          <line x1="185" y1="230" x2="185" y2="272" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#ah)"/>
+          <!-- Researcher -->
+          <rect x="300" y="170" width="130" height="60" rx="10" fill="#1e2438" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="365" y="195" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Researcher</text>
+          <text x="365" y="215" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Web + RAG + APIs</text>
+          <line x1="250" y1="200" x2="292" y2="200" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#ah)"/>
+          <!-- Tools box -->
+          <rect x="300" y="70" width="130" height="70" rx="8" fill="#10131e" stroke="#232840" stroke-width="1"/>
+          <text x="365" y="92" text-anchor="middle" fill="#545a78" font-family="Space Grotesk" font-size="10" font-weight="600">TOOLS</text>
+          <text x="365" y="108" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Web Search</text>
+          <text x="365" y="122" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">RAG Retrieval</text>
+          <text x="365" y="136" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Data APIs</text>
+          <line x1="365" y1="170" x2="365" y2="148" stroke="#232840" stroke-width="1" stroke-dasharray="4,3"/>
+          <!-- Synthesizer -->
+          <rect x="480" y="170" width="130" height="60" rx="10" fill="#1e2438" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="545" y="195" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Synthesizer</text>
+          <text x="545" y="215" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Analyze findings</text>
+          <line x1="430" y1="200" x2="472" y2="200" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#ah)"/>
+          <!-- Writer -->
+          <rect x="660" y="170" width="130" height="60" rx="10" fill="#1e2438" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="725" y="195" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Writer</text>
+          <text x="725" y="215" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Generate report</text>
+          <line x1="610" y1="200" x2="652" y2="200" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#ah)"/>
+          <!-- Reviewer -->
+          <rect x="660" y="300" width="130" height="60" rx="10" fill="#1e2438" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="725" y="325" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Reviewer</text>
+          <text x="725" y="345" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Quality check</text>
+          <line x1="725" y1="230" x2="725" y2="292" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#ah)"/>
+          <!-- Approve path -->
+          <line x1="790" y1="330" x2="810" y2="330" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="808" y="355" fill="#22c55e" font-family="Nunito" font-size="10">DONE</text>
+          <!-- Reject loop -->
+          <path d="M660,340 Q580,380 545,240" fill="none" stroke="#ef4444" stroke-width="1.5" marker-end="url(#ahr)"/>
+          <text x="570" y="360" fill="#ef4444" font-family="Nunito" font-size="10">revise</text>
+        </svg>
+        <div class="diagram-caption">Report Agent workflow — Planner → Human Approval → Researcher (with tools) → Synthesizer → Writer → Reviewer (loops back on issues)</div>
+      </div>
+
+      <p>The <strong>state</strong> is the central data structure that flows through every node. It uses a TypedDict to ensure type safety and includes all the accumulated data from each stage of the pipeline:</p>
+
+<pre><code><span class="code-keyword">from</span> typing <span class="code-keyword">import</span> TypedDict, Annotated, Sequence
+<span class="code-keyword">from</span> langgraph.graph <span class="code-keyword">import</span> add_messages
+
+<span class="code-keyword">class</span> <span class="code-fn">ReportState</span>(TypedDict):
+    topic: str                          <span class="code-comment"># User's report topic</span>
+    plan: dict                          <span class="code-comment"># Research plan from Planner</span>
+    plan_approved: bool                 <span class="code-comment"># Human approval flag</span>
+    research_notes: list[dict]          <span class="code-comment"># Raw findings from Researcher</span>
+    analysis: str                       <span class="code-comment"># Synthesized analysis</span>
+    report: str                         <span class="code-comment"># Final report (Markdown)</span>
+    review_feedback: str                <span class="code-comment"># Reviewer's feedback</span>
+    review_passed: bool                 <span class="code-comment"># Quality gate</span>
+    revision_count: int                 <span class="code-comment"># Track revision loops</span>
+    messages: Annotated[list, add_messages]  <span class="code-comment"># Agent messages</span>
+    budget_used: float                  <span class="code-comment"># Cost tracking ($)</span>
+    errors: list[str]                   <span class="code-comment"># Error log</span></code></pre>
+
+      <p>The state grows as each agent contributes its output. The Planner writes the <code>plan</code> field, the Researcher appends to <code>research_notes</code>, the Synthesizer writes <code>analysis</code>, the Writer produces the <code>report</code>, and the Reviewer sets <code>review_passed</code> with <code>review_feedback</code>. The <code>revision_count</code> field prevents infinite loops — after 3 revisions, the system accepts the report as-is and flags it for human review. The <code>budget_used</code> field tracks accumulated API costs to enforce spending limits.</p>
+
+      <div class="callout info">
+        <div class="callout-label">Design Decision</div>
+        <p>We use a supervisor pattern rather than a fully autonomous agent swarm because it provides predictability and debuggability. Each agent has a clear role, the workflow is deterministic (given the same state, it always routes to the same next node), and you can inspect the state at any point to understand what happened. This is critical for a capstone project where you need to demonstrate mastery of the concepts.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="section" id="s2">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Research Agent &amp; Tools</h2>
+      </div>
+
+      <h3 id="s2-plain">Plain Language</h3>
+      <p>The Research agent is the workhorse of our system — it goes out into the world and gathers information. Think of it as a dedicated research assistant who can search the web, query databases, read documents, and call APIs, all to answer the specific research questions outlined in the plan.</p>
+      <p>What makes this agent powerful is its <strong>tool belt</strong>. Each tool is a well-defined function that the agent can call: a web search tool that queries Google or Bing and returns summaries of relevant pages, a RAG retrieval tool that searches through previously uploaded documents (reusing the Document Portal from Capstone I), and data API tools that can fetch structured data like stock prices, weather data, or public datasets.</p>
+      <p>The agent uses the <strong>ReAct pattern</strong> — it reasons about what information it needs, selects a tool, observes the results, and then decides whether it has enough information or needs to search further. For each research question in the plan, the agent iterates through multiple tool calls until it has gathered sufficient evidence, then records its findings as structured notes with source citations.</p>
+      <p>Importantly, the Research agent is <strong>bounded</strong>. It has a maximum number of tool calls per question (to prevent runaway API costs), a timeout per research task (to keep total execution time reasonable), and content filters that flag potentially unreliable sources. These bounds are configurable and enforced by the guardrails system we'll build in Section 5.</p>
+
+      <h3 id="s2-deep">Deep Dive</h3>
+      <p>Let's build the tools and the Research agent that uses them:</p>
+
+<pre><code><span class="code-keyword">from</span> langchain_core.tools <span class="code-keyword">import</span> tool
+<span class="code-keyword">from</span> openai <span class="code-keyword">import</span> AsyncOpenAI
+<span class="code-keyword">import</span> httpx, json
+
+<span class="code-keyword">@tool</span>
+<span class="code-keyword">async def</span> <span class="code-fn">web_search</span>(query: str) -> str:
+    <span class="code-string">"""Search the web for information on a topic.
+    Returns summaries of the top 5 results."""</span>
+    async <span class="code-keyword">with</span> httpx.AsyncClient() <span class="code-keyword">as</span> client:
+        resp = <span class="code-keyword">await</span> client.<span class="code-fn">get</span>(
+            <span class="code-string">"https://api.tavily.com/search"</span>,
+            params={<span class="code-string">"query"</span>: query, <span class="code-string">"max_results"</span>: <span class="code-num">5</span>,
+                    <span class="code-string">"api_key"</span>: TAVILY_KEY}
+        )
+        results = resp.<span class="code-fn">json</span>()[<span class="code-string">"results"</span>]
+    <span class="code-keyword">return</span> <span class="code-string">"\n\n"</span>.join(
+        <span class="code-string">f"[{r['title']}]({r['url']})\n{r['content']}"</span>
+        <span class="code-keyword">for</span> r <span class="code-keyword">in</span> results
+    )
+
+<span class="code-keyword">@tool</span>
+<span class="code-keyword">async def</span> <span class="code-fn">rag_retrieve</span>(query: str, collection: str = <span class="code-string">"default"</span>) -> str:
+    <span class="code-string">"""Search uploaded documents using RAG.
+    Returns relevant passages with citations."""</span>
+    async <span class="code-keyword">with</span> httpx.AsyncClient() <span class="code-keyword">as</span> client:
+        resp = <span class="code-keyword">await</span> client.<span class="code-fn">post</span>(
+            <span class="code-string">"http://localhost:8000/query"</span>,
+            json={<span class="code-string">"question"</span>: query, <span class="code-string">"collection"</span>: collection}
+        )
+        data = resp.<span class="code-fn">json</span>()
+    sources = <span class="code-string">"\n"</span>.join(
+        <span class="code-string">f"- {s['filename']} p.{s['page']}"</span>
+        <span class="code-keyword">for</span> s <span class="code-keyword">in</span> data.get(<span class="code-string">"sources"</span>, [])
+    )
+    <span class="code-keyword">return</span> <span class="code-string">f"{data['answer']}\n\nSources:\n{sources}"</span>
+
+<span class="code-keyword">@tool</span>
+<span class="code-keyword">async def</span> <span class="code-fn">fetch_data</span>(url: str, description: str) -> str:
+    <span class="code-string">"""Fetch structured data from a public API endpoint.
+    Provide the URL and a description of what you expect."""</span>
+    async <span class="code-keyword">with</span> httpx.AsyncClient() <span class="code-keyword">as</span> client:
+        resp = <span class="code-keyword">await</span> client.<span class="code-fn">get</span>(url, timeout=<span class="code-num">15.0</span>)
+        resp.<span class="code-fn">raise_for_status</span>()
+    <span class="code-comment"># Truncate large responses</span>
+    text = resp.text[:<span class="code-num">5000</span>]
+    <span class="code-keyword">return</span> <span class="code-string">f"Data from {url}:\n{text}"</span>
+
+<span class="code-keyword">@tool</span>
+<span class="code-keyword">def</span> <span class="code-fn">save_note</span>(title: str, content: str, sources: list[str]) -> str:
+    <span class="code-string">"""Save a research finding as a structured note."""</span>
+    <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>({
+        <span class="code-string">"title"</span>: title,
+        <span class="code-string">"content"</span>: content,
+        <span class="code-string">"sources"</span>: sources
+    })
+
+RESEARCH_TOOLS = [web_search, rag_retrieve, fetch_data, save_note]</code></pre>
+
+      <p>Each tool is a decorated async function with a clear docstring that the LLM reads to understand when and how to use it. The <code>web_search</code> tool uses Tavily (a search API designed for LLM agents). The <code>rag_retrieve</code> tool calls back into the Document Portal's API from Capstone I, demonstrating how the two capstones connect. The <code>fetch_data</code> tool provides controlled access to public APIs with a size limit to prevent context overflow.</p>
+
+      <p>The Research agent wraps these tools in a ReAct loop with budget controls:</p>
+
+<pre><code><span class="code-keyword">class</span> <span class="code-fn">ResearchAgent</span>:
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self, tools, max_steps: int = <span class="code-num">10</span>):
+        self.client = AsyncOpenAI()
+        self.tools = {t.name: t <span class="code-keyword">for</span> t <span class="code-keyword">in</span> tools}
+        self.max_steps = max_steps
+        self.tool_schemas = [
+            {
+                <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+                <span class="code-string">"function"</span>: {
+                    <span class="code-string">"name"</span>: t.name,
+                    <span class="code-string">"description"</span>: t.description,
+                    <span class="code-string">"parameters"</span>: t.args_schema.schema()
+                }
+            }
+            <span class="code-keyword">for</span> t <span class="code-keyword">in</span> tools
+        ]
+
+    <span class="code-keyword">async def</span> <span class="code-fn">research_question</span>(
+        self, question: str, context: str = <span class="code-string">""</span>
+    ) -> list[dict]:
+        messages = [{
+            <span class="code-string">"role"</span>: <span class="code-string">"system"</span>,
+            <span class="code-string">"content"</span>: (
+                <span class="code-string">"You are a thorough research agent. For the "</span>
+                <span class="code-string">"given question, use the available tools to gather "</span>
+                <span class="code-string">"comprehensive information. Save each distinct "</span>
+                <span class="code-string">"finding as a note with proper source citations. "</span>
+                <span class="code-string">"Stop when you have sufficient evidence to answer "</span>
+                <span class="code-string">"the question thoroughly."</span>
+            )
+        }, {
+            <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+            <span class="code-string">"content"</span>: <span class="code-string">f"Context: {context}\n\nQuestion: {question}"</span>
+        }]
+
+        notes = []
+        <span class="code-keyword">for</span> step <span class="code-keyword">in</span> <span class="code-fn">range</span>(self.max_steps):
+            resp = <span class="code-keyword">await</span> self.client.chat.completions.<span class="code-fn">create</span>(
+                model=<span class="code-string">"gpt-4o"</span>, messages=messages,
+                tools=self.tool_schemas, tool_choice=<span class="code-string">"auto"</span>
+            )
+            msg = resp.choices[<span class="code-num">0</span>].message
+            messages.append(msg)
+
+            <span class="code-keyword">if not</span> msg.tool_calls:
+                <span class="code-keyword">break</span>  <span class="code-comment"># Agent decided it has enough info</span>
+
+            <span class="code-keyword">for</span> tc <span class="code-keyword">in</span> msg.tool_calls:
+                tool_fn = self.tools[tc.function.name]
+                args = json.<span class="code-fn">loads</span>(tc.function.arguments)
+                result = <span class="code-keyword">await</span> tool_fn.<span class="code-fn">ainvoke</span>(args)
+
+                messages.append({
+                    <span class="code-string">"role"</span>: <span class="code-string">"tool"</span>,
+                    <span class="code-string">"tool_call_id"</span>: tc.id,
+                    <span class="code-string">"content"</span>: <span class="code-fn">str</span>(result)
+                })
+
+                <span class="code-comment"># Capture saved notes</span>
+                <span class="code-keyword">if</span> tc.function.name == <span class="code-string">"save_note"</span>:
+                    notes.append(json.<span class="code-fn">loads</span>(result))
+
+        <span class="code-keyword">return</span> notes</code></pre>
+
+      <p>The research agent loops through a maximum of 10 steps, calling tools as needed. When it calls <code>save_note</code>, the structured finding is captured and returned. The agent autonomously decides which tools to call based on the question — it might search the web first, find a relevant API endpoint mentioned in the results, fetch data from that API, and then save a synthesized note. This is the ReAct pattern in action: Reason (what do I need?), Act (call a tool), Observe (process results), repeat.</p>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div class="section" id="s3">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>LangGraph Orchestration</h2>
+      </div>
+
+      <h3 id="s3-plain">Plain Language</h3>
+      <p>LangGraph is the conductor of our multi-agent orchestra. Just as a conductor doesn't play any instruments but ensures every musician plays at the right time and in the right order, LangGraph doesn't do any research or writing itself but ensures each agent runs at the right stage with the right inputs.</p>
+      <p>The orchestration defines a <strong>graph</strong> where each node is an agent and each edge is a transition. The graph starts at the Planner node, moves to a human approval checkpoint, then proceeds through Research, Synthesis, Writing, and Review. The review node has a <strong>conditional edge</strong> — if the review passes, the workflow ends; if it fails, it routes back to the Synthesizer for revision. This conditional routing is what makes the system self-correcting.</p>
+      <p>One of LangGraph's most powerful features is <strong>state persistence</strong>. The entire state can be saved to a database (or even just a JSON file) at any point, and the workflow can be resumed later. This is essential for the human-in-the-loop checkpoint — when the system pauses for human approval, it serializes its state, and when the human approves, it deserializes and continues exactly where it left off. It also enables debugging: if something goes wrong at the writing stage, you can inspect the state to see exactly what research was gathered and what analysis was produced.</p>
+
+      <h3 id="s3-deep">Deep Dive</h3>
+      <p>Here's the complete LangGraph workflow that orchestrates the five agents:</p>
+
+<pre><code><span class="code-keyword">from</span> langgraph.graph <span class="code-keyword">import</span> StateGraph, END
+<span class="code-keyword">from</span> langgraph.checkpoint.memory <span class="code-keyword">import</span> MemorySaver
+
+<span class="code-comment"># --- Node Functions ---</span>
+<span class="code-keyword">async def</span> <span class="code-fn">plan_node</span>(state: ReportState) -> dict:
+    <span class="code-string">"""Break topic into research questions."""</span>
+    client = AsyncOpenAI()
+    resp = <span class="code-keyword">await</span> client.chat.completions.<span class="code-fn">create</span>(
+        model=<span class="code-string">"gpt-4o"</span>,
+        messages=[{
+            <span class="code-string">"role"</span>: <span class="code-string">"system"</span>,
+            <span class="code-string">"content"</span>: (
+                <span class="code-string">"Create a research plan. Output JSON with keys: "</span>
+                <span class="code-string">"'title', 'sections' (list of section objects "</span>
+                <span class="code-string">"with 'heading' and 'questions' list), "</span>
+                <span class="code-string">"'estimated_sources' (int)."</span>
+            )
+        }, {
+            <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+            <span class="code-string">"content"</span>: <span class="code-string">f"Topic: {state['topic']}"</span>
+        }],
+        response_format={<span class="code-string">"type"</span>: <span class="code-string">"json_object"</span>}
+    )
+    plan = json.<span class="code-fn">loads</span>(resp.choices[<span class="code-num">0</span>].message.content)
+    <span class="code-keyword">return</span> {<span class="code-string">"plan"</span>: plan, <span class="code-string">"budget_used"</span>: state[<span class="code-string">"budget_used"</span>] + <span class="code-num">0.03</span>}
+
+<span class="code-keyword">async def</span> <span class="code-fn">research_node</span>(state: ReportState) -> dict:
+    <span class="code-string">"""Execute research for each planned question."""</span>
+    agent = ResearchAgent(RESEARCH_TOOLS, max_steps=<span class="code-num">8</span>)
+    all_notes = []
+
+    <span class="code-keyword">for</span> section <span class="code-keyword">in</span> state[<span class="code-string">"plan"</span>][<span class="code-string">"sections"</span>]:
+        <span class="code-keyword">for</span> question <span class="code-keyword">in</span> section[<span class="code-string">"questions"</span>]:
+            notes = <span class="code-keyword">await</span> agent.<span class="code-fn">research_question</span>(
+                question,
+                context=<span class="code-string">f"Report: {state['plan']['title']}, "</span>
+                        <span class="code-string">f"Section: {section['heading']}"</span>
+            )
+            all_notes.extend(notes)
+
+    <span class="code-keyword">return</span> {
+        <span class="code-string">"research_notes"</span>: all_notes,
+        <span class="code-string">"budget_used"</span>: state[<span class="code-string">"budget_used"</span>] + <span class="code-fn">len</span>(all_notes) * <span class="code-num">0.05</span>
+    }
+
+<span class="code-keyword">async def</span> <span class="code-fn">synthesize_node</span>(state: ReportState) -> dict:
+    <span class="code-string">"""Analyze research notes into structured findings."""</span>
+    client = AsyncOpenAI()
+    notes_text = <span class="code-string">"\n\n"</span>.join(
+        <span class="code-string">f"### {n['title']}\n{n['content']}\nSources: {', '.join(n['sources'])}"</span>
+        <span class="code-keyword">for</span> n <span class="code-keyword">in</span> state[<span class="code-string">"research_notes"</span>]
+    )
+
+    feedback = <span class="code-string">""</span>
+    <span class="code-keyword">if</span> state.get(<span class="code-string">"review_feedback"</span>):
+        feedback = <span class="code-string">f"\n\nPrevious review feedback to address:\n{state['review_feedback']}"</span>
+
+    resp = <span class="code-keyword">await</span> client.chat.completions.<span class="code-fn">create</span>(
+        model=<span class="code-string">"gpt-4o"</span>,
+        messages=[{
+            <span class="code-string">"role"</span>: <span class="code-string">"system"</span>,
+            <span class="code-string">"content"</span>: (
+                <span class="code-string">"Synthesize research notes into a structured "</span>
+                <span class="code-string">"analysis. Identify key themes, contradictions, "</span>
+                <span class="code-string">"and gaps. Organize by the report's planned "</span>
+                <span class="code-string">"sections. Include all source citations."</span>
+            )
+        }, {
+            <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+            <span class="code-string">"content"</span>: <span class="code-string">f"Plan: {json.dumps(state['plan'])}\n\n"</span>
+                      <span class="code-string">f"Research Notes:\n{notes_text}{feedback}"</span>
+        }],
+        max_tokens=<span class="code-num">4000</span>
+    )
+    <span class="code-keyword">return</span> {<span class="code-string">"analysis"</span>: resp.choices[<span class="code-num">0</span>].message.content}
+
+<span class="code-keyword">async def</span> <span class="code-fn">write_node</span>(state: ReportState) -> dict:
+    <span class="code-string">"""Generate the final Markdown report."""</span>
+    client = AsyncOpenAI()
+    resp = <span class="code-keyword">await</span> client.chat.completions.<span class="code-fn">create</span>(
+        model=<span class="code-string">"gpt-4o"</span>,
+        messages=[{
+            <span class="code-string">"role"</span>: <span class="code-string">"system"</span>,
+            <span class="code-string">"content"</span>: (
+                <span class="code-string">"Write a professional report in Markdown. Include: "</span>
+                <span class="code-string">"title, executive summary, table of contents, "</span>
+                <span class="code-string">"detailed sections with citations, and a conclusion. "</span>
+                <span class="code-string">"Use [1], [2], etc. for citations and include a "</span>
+                <span class="code-string">"references section at the end."</span>
+            )
+        }, {
+            <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+            <span class="code-string">"content"</span>: <span class="code-string">f"Report plan:\n{json.dumps(state['plan'])}\n\n"</span>
+                      <span class="code-string">f"Analysis:\n{state['analysis']}"</span>
+        }],
+        max_tokens=<span class="code-num">8000</span>
+    )
+    <span class="code-keyword">return</span> {<span class="code-string">"report"</span>: resp.choices[<span class="code-num">0</span>].message.content}
+
+<span class="code-keyword">async def</span> <span class="code-fn">review_node</span>(state: ReportState) -> dict:
+    <span class="code-string">"""Review the report for quality."""</span>
+    client = AsyncOpenAI()
+    resp = <span class="code-keyword">await</span> client.chat.completions.<span class="code-fn">create</span>(
+        model=<span class="code-string">"gpt-4o"</span>,
+        messages=[{
+            <span class="code-string">"role"</span>: <span class="code-string">"system"</span>,
+            <span class="code-string">"content"</span>: (
+                <span class="code-string">"Review this report for: factual accuracy, "</span>
+                <span class="code-string">"proper citations, logical flow, completeness, "</span>
+                <span class="code-string">"and professional quality. Output JSON with "</span>
+                <span class="code-string">"'passed' (bool), 'score' (1-10), and "</span>
+                <span class="code-string">"'feedback' (string with specific issues)."</span>
+            )
+        }, {
+            <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+            <span class="code-string">"content"</span>: state[<span class="code-string">"report"</span>]
+        }],
+        response_format={<span class="code-string">"type"</span>: <span class="code-string">"json_object"</span>}
+    )
+    review = json.<span class="code-fn">loads</span>(resp.choices[<span class="code-num">0</span>].message.content)
+    <span class="code-keyword">return</span> {
+        <span class="code-string">"review_passed"</span>: review[<span class="code-string">"passed"</span>],
+        <span class="code-string">"review_feedback"</span>: review[<span class="code-string">"feedback"</span>],
+        <span class="code-string">"revision_count"</span>: state[<span class="code-string">"revision_count"</span>] + <span class="code-num">1</span>
+    }
+
+<span class="code-comment"># --- Conditional Edge ---</span>
+<span class="code-keyword">def</span> <span class="code-fn">should_revise</span>(state: ReportState) -> str:
+    <span class="code-keyword">if</span> state[<span class="code-string">"review_passed"</span>]:
+        <span class="code-keyword">return</span> <span class="code-string">"end"</span>
+    <span class="code-keyword">if</span> state[<span class="code-string">"revision_count"</span>] >= <span class="code-num">3</span>:
+        <span class="code-keyword">return</span> <span class="code-string">"end"</span>  <span class="code-comment"># Max revisions reached</span>
+    <span class="code-keyword">return</span> <span class="code-string">"revise"</span>
+
+<span class="code-comment"># --- Build Graph ---</span>
+graph = StateGraph(ReportState)
+
+graph.<span class="code-fn">add_node</span>(<span class="code-string">"planner"</span>, plan_node)
+graph.<span class="code-fn">add_node</span>(<span class="code-string">"researcher"</span>, research_node)
+graph.<span class="code-fn">add_node</span>(<span class="code-string">"synthesizer"</span>, synthesize_node)
+graph.<span class="code-fn">add_node</span>(<span class="code-string">"writer"</span>, write_node)
+graph.<span class="code-fn">add_node</span>(<span class="code-string">"reviewer"</span>, review_node)
+
+graph.<span class="code-fn">set_entry_point</span>(<span class="code-string">"planner"</span>)
+graph.<span class="code-fn">add_edge</span>(<span class="code-string">"planner"</span>, <span class="code-string">"researcher"</span>)
+graph.<span class="code-fn">add_edge</span>(<span class="code-string">"researcher"</span>, <span class="code-string">"synthesizer"</span>)
+graph.<span class="code-fn">add_edge</span>(<span class="code-string">"synthesizer"</span>, <span class="code-string">"writer"</span>)
+graph.<span class="code-fn">add_edge</span>(<span class="code-string">"writer"</span>, <span class="code-string">"reviewer"</span>)
+graph.<span class="code-fn">add_conditional_edges</span>(<span class="code-string">"reviewer"</span>, should_revise, {
+    <span class="code-string">"revise"</span>: <span class="code-string">"synthesizer"</span>,
+    <span class="code-string">"end"</span>: END
+})
+
+checkpointer = MemorySaver()
+app = graph.<span class="code-fn">compile</span>(
+    checkpointer=checkpointer,
+    interrupt_before=[<span class="code-string">"researcher"</span>]  <span class="code-comment"># HITL: pause for plan approval</span>
+)</code></pre>
+
+      <p>The <code>interrupt_before=["researcher"]</code> is the key to human-in-the-loop. When the graph reaches the research node, it pauses execution and saves state. The controlling application can then display the research plan to the user, collect their approval (or edits), update the state, and resume execution. This prevents the system from spending API credits on research before the user has validated the approach.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Running the Graph</div>
+        <p>To execute: <code>result = await app.ainvoke({"topic": "AI in Healthcare 2025", "budget_used": 0, "revision_count": 0, "errors": [], "research_notes": []}, config={"configurable": {"thread_id": "report-1"}})</code>. The thread_id enables state persistence — you can resume the graph later with the same thread_id.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 4 -->
+    <div class="section" id="s4">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Report Generation</h2>
+      </div>
+
+      <h3 id="s4-plain">Plain Language</h3>
+      <p>The report generation stage transforms raw analysis into a polished, professional document. Think of the difference between a researcher's messy notes and the final published paper — the Writer agent bridges that gap. It takes the structured analysis from the Synthesizer, follows the outline from the Planner, and produces a Markdown document with proper formatting, citations, and logical flow.</p>
+      <p>The generated report follows a standard structure: an <strong>executive summary</strong> that gives busy readers the key findings in two paragraphs, a <strong>table of contents</strong> for navigation, <strong>detailed sections</strong> that present the analysis with evidence and citations, and a <strong>conclusion</strong> that ties everything together with actionable recommendations. Each claim in the report is backed by a numbered citation that traces back to the original source found during research.</p>
+      <p>Beyond text generation, the system can also produce supplementary outputs. A <strong>PDF export</strong> converts the Markdown to a formatted PDF using a library like WeasyPrint or markdown-pdf. A <strong>key metrics summary</strong> extracts quantitative findings into a structured format. And a <strong>source bibliography</strong> compiles all referenced sources into a properly formatted reference list.</p>
+
+      <h3 id="s4-deep">Deep Dive</h3>
+      <p>The Writer agent uses structured output to ensure report consistency, and we add post-processing to generate multiple output formats:</p>
+
+<pre><code><span class="code-keyword">from</span> pydantic <span class="code-keyword">import</span> BaseModel, Field
+<span class="code-keyword">import</span> markdown, weasyprint
+<span class="code-keyword">from</span> pathlib <span class="code-keyword">import</span> Path
+
+<span class="code-keyword">class</span> <span class="code-fn">ReportSection</span>(BaseModel):
+    heading: str
+    content: str  <span class="code-comment"># Markdown content</span>
+    key_findings: list[str]
+
+<span class="code-keyword">class</span> <span class="code-fn">StructuredReport</span>(BaseModel):
+    title: str
+    executive_summary: str
+    sections: list[ReportSection]
+    conclusion: str
+    references: list[str]
+    generated_at: str
+
+<span class="code-keyword">class</span> <span class="code-fn">ReportFormatter</span>:
+    <span class="code-keyword">def</span> <span class="code-fn">to_markdown</span>(self, report: StructuredReport) -> str:
+        parts = [
+            <span class="code-string">f"# {report.title}\n"</span>,
+            <span class="code-string">f"*Generated: {report.generated_at}*\n"</span>,
+            <span class="code-string">f"## Executive Summary\n\n{report.executive_summary}\n"</span>,
+            <span class="code-string">"## Table of Contents\n"</span>,
+        ]
+        <span class="code-keyword">for</span> i, sec <span class="code-keyword">in</span> <span class="code-fn">enumerate</span>(report.sections, <span class="code-num">1</span>):
+            parts.append(<span class="code-string">f"{i}. [{sec.heading}](#section-{i})"</span>)
+        parts.append(<span class="code-string">""</span>)
+
+        <span class="code-keyword">for</span> i, sec <span class="code-keyword">in</span> <span class="code-fn">enumerate</span>(report.sections, <span class="code-num">1</span>):
+            parts.append(<span class="code-string">f'## {i}. {sec.heading} {{#section-{i}}}\n'</span>)
+            parts.append(sec.content + <span class="code-string">"\n"</span>)
+            <span class="code-keyword">if</span> sec.key_findings:
+                parts.append(<span class="code-string">"**Key Findings:**"</span>)
+                <span class="code-keyword">for</span> f <span class="code-keyword">in</span> sec.key_findings:
+                    parts.append(<span class="code-string">f"- {f}"</span>)
+                parts.append(<span class="code-string">""</span>)
+
+        parts.append(<span class="code-string">f"## Conclusion\n\n{report.conclusion}\n"</span>)
+        parts.append(<span class="code-string">"## References\n"</span>)
+        <span class="code-keyword">for</span> i, ref <span class="code-keyword">in</span> <span class="code-fn">enumerate</span>(report.references, <span class="code-num">1</span>):
+            parts.append(<span class="code-string">f"[{i}] {ref}"</span>)
+
+        <span class="code-keyword">return</span> <span class="code-string">"\n"</span>.join(parts)
+
+    <span class="code-keyword">def</span> <span class="code-fn">to_html</span>(self, md_content: str) -> str:
+        html_body = markdown.<span class="code-fn">markdown</span>(md_content, extensions=[<span class="code-string">"tables"</span>, <span class="code-string">"toc"</span>])
+        <span class="code-keyword">return</span> <span class="code-string">f"""&lt;!DOCTYPE html&gt;
+&lt;html&gt;&lt;head&gt;
+&lt;style&gt;
+  body {{ font-family: Georgia, serif; max-width: 800px;
+         margin: 40px auto; padding: 0 20px; line-height: 1.8; }}
+  h1 {{ color: #1a1a2e; border-bottom: 2px solid #f59e0b; }}
+  h2 {{ color: #16213e; margin-top: 2em; }}
+  code {{ background: #f5f5f5; padding: 2px 6px; border-radius: 3px; }}
+  blockquote {{ border-left: 3px solid #f59e0b; padding-left: 1em;
+                color: #555; }}
+&lt;/style&gt;
+&lt;/head&gt;&lt;body&gt;{html_body}&lt;/body&gt;&lt;/html&gt;"""</span>
+
+    <span class="code-keyword">def</span> <span class="code-fn">to_pdf</span>(self, html_content: str, output_path: str):
+        weasyprint.<span class="code-fn">HTML</span>(string=html_content).<span class="code-fn">write_pdf</span>(output_path)
+
+<span class="code-comment"># Usage in the pipeline</span>
+formatter = ReportFormatter()
+md = formatter.<span class="code-fn">to_markdown</span>(structured_report)
+html = formatter.<span class="code-fn">to_html</span>(md)
+formatter.<span class="code-fn">to_pdf</span>(html, <span class="code-string">"report.pdf"</span>)
+
+Path(<span class="code-string">"report.md"</span>).<span class="code-fn">write_text</span>(md)
+Path(<span class="code-string">"report.html"</span>).<span class="code-fn">write_text</span>(html)</code></pre>
+
+      <p>The <code>StructuredReport</code> Pydantic model ensures the LLM output conforms to a strict schema — each section must have a heading, content, and key findings. The <code>ReportFormatter</code> then converts this structured data into multiple output formats: Markdown for version control and editing, HTML for web display, and PDF for sharing. WeasyPrint handles the HTML-to-PDF conversion with CSS styling, producing professional-looking documents without requiring LaTeX or external tools.</p>
+
+      <p>For the Writer agent to produce structured output, we use OpenAI's structured output mode:</p>
+
+<pre><code><span class="code-keyword">async def</span> <span class="code-fn">write_structured_report</span>(state: ReportState) -> dict:
+    client = AsyncOpenAI()
+    resp = <span class="code-keyword">await</span> client.beta.chat.completions.<span class="code-fn">parse</span>(
+        model=<span class="code-string">"gpt-4o"</span>,
+        messages=[{
+            <span class="code-string">"role"</span>: <span class="code-string">"system"</span>,
+            <span class="code-string">"content"</span>: (
+                <span class="code-string">"Write a comprehensive, professional report. "</span>
+                <span class="code-string">"Use numbered citations [1], [2] etc. Each "</span>
+                <span class="code-string">"section should be 3-5 paragraphs with data "</span>
+                <span class="code-string">"and evidence from the analysis."</span>
+            )
+        }, {
+            <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+            <span class="code-string">"content"</span>: <span class="code-string">f"Plan:\n{json.dumps(state['plan'])}\n\n"</span>
+                      <span class="code-string">f"Analysis:\n{state['analysis']}"</span>
+        }],
+        response_format=StructuredReport
+    )
+    report = resp.choices[<span class="code-num">0</span>].message.parsed
+    formatter = ReportFormatter()
+    <span class="code-keyword">return</span> {<span class="code-string">"report"</span>: formatter.<span class="code-fn">to_markdown</span>(report)}</code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Structured Output</div>
+        <p>Using <code>response_format=StructuredReport</code> guarantees the LLM output matches your Pydantic model exactly. This eliminates the need for JSON parsing error handling and ensures every report has the required sections, key findings, and references.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 5 -->
+    <div class="section" id="s5">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Guardrails &amp; Human-in-the-Loop</h2>
+      </div>
+
+      <h3 id="s5-plain">Plain Language</h3>
+      <p>Guardrails are the safety systems that keep our autonomous agent from going off the rails. Without guardrails, an agent asked to "research competitive pricing strategies" might accidentally generate content that's legally problematic, spend hundreds of dollars in API calls, or produce a report that hallucinates data and cites non-existent sources. Guardrails prevent all of these scenarios.</p>
+      <p>We implement three categories of guardrails. <strong>Budget guardrails</strong> track and limit API spending — the system has a maximum budget per report (say, $5.00), and if the accumulated cost approaches that limit, the agent skips optional research steps and moves directly to synthesis. <strong>Content guardrails</strong> scan agent outputs for prohibited content (legal advice, medical recommendations, personally identifiable information) and either redact it or flag it for human review. <strong>Quality guardrails</strong> check that citations are valid, that the report stays on-topic, and that the agent hasn't hallucinated statistics or quotes.</p>
+      <p><strong>Human-in-the-loop (HITL)</strong> is the ultimate guardrail — putting a human in the decision loop at critical points. In our system, the human reviews the research plan before the agent spends time and money executing it. They can modify the plan, add questions the agent missed, or reject it entirely. This single checkpoint prevents the most expensive category of errors: researching the wrong thing.</p>
+
+      <h3 id="s5-deep">Deep Dive</h3>
+      <p>Let's implement the guardrails system with budget tracking, content filtering, and the HITL checkpoint:</p>
+
+<pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">import</span> re
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-fn">BudgetGuard</span>:
+    max_budget: float = <span class="code-num">5.0</span>  <span class="code-comment"># dollars</span>
+    warn_threshold: float = <span class="code-num">0.8</span>  <span class="code-comment"># warn at 80%</span>
+
+    <span class="code-keyword">def</span> <span class="code-fn">check</span>(self, state: ReportState) -> dict:
+        used = state[<span class="code-string">"budget_used"</span>]
+        remaining = self.max_budget - used
+
+        <span class="code-keyword">if</span> used >= self.max_budget:
+            <span class="code-keyword">return</span> {<span class="code-string">"allowed"</span>: <span class="code-keyword">False</span>, <span class="code-string">"reason"</span>: <span class="code-string">"Budget exhausted"</span>,
+                    <span class="code-string">"action"</span>: <span class="code-string">"skip_to_synthesis"</span>}
+
+        <span class="code-keyword">if</span> used >= self.max_budget * self.warn_threshold:
+            <span class="code-keyword">return</span> {<span class="code-string">"allowed"</span>: <span class="code-keyword">True</span>, <span class="code-string">"warning"</span>:
+                    <span class="code-string">f"Budget ${remaining:.2f} remaining"</span>,
+                    <span class="code-string">"action"</span>: <span class="code-string">"reduce_scope"</span>}
+
+        <span class="code-keyword">return</span> {<span class="code-string">"allowed"</span>: <span class="code-keyword">True</span>}
+
+<span class="code-keyword">class</span> <span class="code-fn">ContentGuard</span>:
+    PROHIBITED = [
+        (<span class="code-string">r"(?i)this is not (legal|medical) advice"</span>, <span class="code-string">"disclaimer_needed"</span>),
+        (<span class="code-string">r"\b\d{3}-\d{2}-\d{4}\b"</span>, <span class="code-string">"ssn_detected"</span>),
+        (<span class="code-string">r"(?i)(guaranteed|certainly will|100% effective)"</span>, <span class="code-string">"overconfident_claim"</span>),
+    ]
+
+    <span class="code-keyword">def</span> <span class="code-fn">scan</span>(self, text: str) -> list[dict]:
+        issues = []
+        <span class="code-keyword">for</span> pattern, issue_type <span class="code-keyword">in</span> self.PROHIBITED:
+            matches = re.<span class="code-fn">findall</span>(pattern, text)
+            <span class="code-keyword">if</span> matches:
+                issues.append({
+                    <span class="code-string">"type"</span>: issue_type,
+                    <span class="code-string">"matches"</span>: matches[:<span class="code-num">3</span>],
+                    <span class="code-string">"severity"</span>: <span class="code-string">"high"</span> <span class="code-keyword">if</span> <span class="code-string">"ssn"</span> <span class="code-keyword">in</span> issue_type <span class="code-keyword">else</span> <span class="code-string">"medium"</span>
+                })
+        <span class="code-keyword">return</span> issues
+
+<span class="code-keyword">class</span> <span class="code-fn">CitationGuard</span>:
+    <span class="code-keyword">def</span> <span class="code-fn">verify</span>(self, report: str, sources: list[dict]) -> dict:
+        <span class="code-comment"># Find all [N] citations in the report</span>
+        cited = set(re.<span class="code-fn">findall</span>(<span class="code-string">r"\[(\d+)\]"</span>, report))
+        available = set(<span class="code-fn">str</span>(i) <span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-fn">range</span>(<span class="code-num">1</span>, <span class="code-fn">len</span>(sources) + <span class="code-num">1</span>))
+
+        invalid = cited - available
+        unused = available - cited
+
+        <span class="code-keyword">return</span> {
+            <span class="code-string">"valid"</span>: <span class="code-fn">len</span>(invalid) == <span class="code-num">0</span>,
+            <span class="code-string">"invalid_citations"</span>: <span class="code-fn">list</span>(invalid),
+            <span class="code-string">"unused_sources"</span>: <span class="code-fn">list</span>(unused),
+            <span class="code-string">"citation_coverage"</span>: <span class="code-fn">len</span>(cited) / <span class="code-fn">max</span>(<span class="code-fn">len</span>(available), <span class="code-num">1</span>)
+        }
+
+<span class="code-comment"># --- Guardrailed node wrapper ---</span>
+<span class="code-keyword">def</span> <span class="code-fn">with_guardrails</span>(node_fn, budget_guard, content_guard):
+    <span class="code-keyword">async def</span> <span class="code-fn">wrapped</span>(state):
+        <span class="code-comment"># Pre-check: budget</span>
+        budget = budget_guard.<span class="code-fn">check</span>(state)
+        <span class="code-keyword">if not</span> budget[<span class="code-string">"allowed"</span>]:
+            <span class="code-keyword">return</span> {<span class="code-string">"errors"</span>: state[<span class="code-string">"errors"</span>] + [budget[<span class="code-string">"reason"</span>]]}
+
+        <span class="code-comment"># Execute node</span>
+        result = <span class="code-keyword">await</span> <span class="code-fn">node_fn</span>(state)
+
+        <span class="code-comment"># Post-check: content</span>
+        <span class="code-keyword">for</span> key <span class="code-keyword">in</span> [<span class="code-string">"report"</span>, <span class="code-string">"analysis"</span>]:
+            <span class="code-keyword">if</span> key <span class="code-keyword">in</span> result:
+                issues = content_guard.<span class="code-fn">scan</span>(result[key])
+                <span class="code-keyword">if</span> <span class="code-fn">any</span>(i[<span class="code-string">"severity"</span>] == <span class="code-string">"high"</span> <span class="code-keyword">for</span> i <span class="code-keyword">in</span> issues):
+                    result[<span class="code-string">"errors"</span>] = state.get(<span class="code-string">"errors"</span>, []) + [
+                        <span class="code-string">f"Content issue: {i['type']}"</span> <span class="code-keyword">for</span> i <span class="code-keyword">in</span> issues
+                    ]
+        <span class="code-keyword">return</span> result
+    <span class="code-keyword">return</span> wrapped</code></pre>
+
+      <p>The <code>with_guardrails</code> wrapper can be applied to any node function, adding budget pre-checks and content post-checks transparently. The <code>BudgetGuard</code> has three states: allowed (proceed normally), warning (reduce scope), and blocked (skip to synthesis). The <code>ContentGuard</code> scans for PII patterns, overconfident claims, and other prohibited content. The <code>CitationGuard</code> verifies that every citation in the report references a real source and flags any "phantom citations."</p>
+
+      <p>For the human-in-the-loop checkpoint, here's how the controlling application manages the interruption:</p>
+
+<pre><code><span class="code-keyword">async def</span> <span class="code-fn">run_report_agent</span>(topic: str) -> str:
+    config = {<span class="code-string">"configurable"</span>: {<span class="code-string">"thread_id"</span>: <span class="code-string">"report-1"</span>}}
+    initial = {
+        <span class="code-string">"topic"</span>: topic, <span class="code-string">"budget_used"</span>: <span class="code-num">0.0</span>,
+        <span class="code-string">"revision_count"</span>: <span class="code-num">0</span>, <span class="code-string">"errors"</span>: [],
+        <span class="code-string">"research_notes"</span>: [], <span class="code-string">"plan_approved"</span>: <span class="code-keyword">False</span>
+    }
+
+    <span class="code-comment"># Phase 1: Run until HITL interrupt (after planner)</span>
+    state = <span class="code-keyword">await</span> app.<span class="code-fn">ainvoke</span>(initial, config)
+
+    <span class="code-comment"># Display plan to user</span>
+    <span class="code-fn">print</span>(<span class="code-string">"=== Research Plan ==="</span>)
+    <span class="code-fn">print</span>(json.<span class="code-fn">dumps</span>(state[<span class="code-string">"plan"</span>], indent=<span class="code-num">2</span>))
+
+    <span class="code-comment"># Get human approval</span>
+    approval = <span class="code-fn">input</span>(<span class="code-string">"Approve plan? (yes/no/edit): "</span>)
+    <span class="code-keyword">if</span> approval.lower() == <span class="code-string">"no"</span>:
+        <span class="code-keyword">return</span> <span class="code-string">"Plan rejected by user."</span>
+
+    <span class="code-keyword">if</span> approval.lower() == <span class="code-string">"edit"</span>:
+        edits = <span class="code-fn">input</span>(<span class="code-string">"Enter modifications: "</span>)
+        <span class="code-comment"># Re-plan with user edits</span>
+        state[<span class="code-string">"topic"</span>] = state[<span class="code-string">"topic"</span>] + <span class="code-string">f"\n\nUser modifications: {edits}"</span>
+        <span class="code-keyword">await</span> app.<span class="code-fn">aupdate_state</span>(config, {<span class="code-string">"plan_approved"</span>: <span class="code-keyword">True</span>})
+
+    <span class="code-comment"># Phase 2: Resume execution (research → synthesis → write → review)</span>
+    final_state = <span class="code-keyword">await</span> app.<span class="code-fn">ainvoke</span>(<span class="code-keyword">None</span>, config)
+    <span class="code-keyword">return</span> final_state[<span class="code-string">"report"</span>]</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Safety First</div>
+        <p>Never deploy an autonomous agent without budget limits and human checkpoints. A research agent with access to paid APIs (web search, LLM calls) can easily spend $50+ on a single report if left unchecked. The budget guard and HITL approval gate are not optional — they're essential production safeguards.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 6 -->
+    <div class="section" id="s6">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Evaluation &amp; Deployment</h2>
+      </div>
+
+      <h3 id="s6-plain">Plain Language</h3>
+      <p>Before deploying our report agent, we need to know if it actually produces good reports. Evaluation for an agentic system is more complex than evaluating a single LLM call because we need to assess quality at multiple levels: Did the planner create a good research plan? Did the researcher find relevant sources? Did the synthesizer correctly interpret the findings? Did the writer produce a well-structured report? Did the reviewer catch actual quality issues?</p>
+      <p>We evaluate using a combination of <strong>automated metrics</strong> and <strong>LLM-as-judge</strong> assessments. Automated metrics include citation coverage (what percentage of claims have citations), factual consistency (do the report's claims match the research notes), and structural completeness (does the report have all required sections). LLM-as-judge uses a separate LLM instance to score the report on dimensions like clarity, depth, accuracy, and actionability.</p>
+      <p>For deployment, we wrap the entire agent pipeline in a FastAPI service with a WebSocket endpoint for real-time progress updates. Users submit a topic, receive live updates as the agent progresses through each stage (planning, researching, synthesizing, writing, reviewing), and get the final report delivered as a downloadable file. The system is containerized with Docker and deployed alongside the Document Portal on ECS, sharing the same vector store for document-grounded research.</p>
+
+      <h3 id="s6-deep">Deep Dive</h3>
+      <p>The evaluation framework scores reports across multiple dimensions:</p>
+
+<pre><code><span class="code-keyword">class</span> <span class="code-fn">ReportEvaluator</span>:
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self):
+        self.client = AsyncOpenAI()
+
+    <span class="code-keyword">async def</span> <span class="code-fn">evaluate</span>(self, state: ReportState) -> dict:
+        scores = {}
+
+        <span class="code-comment"># 1. Structural completeness</span>
+        report = state[<span class="code-string">"report"</span>]
+        scores[<span class="code-string">"has_executive_summary"</span>] = <span class="code-string">"executive summary"</span> <span class="code-keyword">in</span> report.lower()
+        scores[<span class="code-string">"has_conclusion"</span>] = <span class="code-string">"conclusion"</span> <span class="code-keyword">in</span> report.lower()
+        scores[<span class="code-string">"has_references"</span>] = <span class="code-string">"references"</span> <span class="code-keyword">in</span> report.lower()
+        scores[<span class="code-string">"word_count"</span>] = <span class="code-fn">len</span>(report.split())
+
+        <span class="code-comment"># 2. Citation coverage</span>
+        citations = re.<span class="code-fn">findall</span>(<span class="code-string">r"\[\d+\]"</span>, report)
+        paragraphs = [p <span class="code-keyword">for</span> p <span class="code-keyword">in</span> report.split(<span class="code-string">"\n\n"</span>) <span class="code-keyword">if</span> <span class="code-fn">len</span>(p) > <span class="code-num">100</span>]
+        cited_paras = [p <span class="code-keyword">for</span> p <span class="code-keyword">in</span> paragraphs <span class="code-keyword">if</span> re.<span class="code-fn">search</span>(<span class="code-string">r"\[\d+\]"</span>, p)]
+        scores[<span class="code-string">"citation_density"</span>] = <span class="code-fn">len</span>(citations) / <span class="code-fn">max</span>(<span class="code-fn">len</span>(paragraphs), <span class="code-num">1</span>)
+        scores[<span class="code-string">"cited_para_ratio"</span>] = <span class="code-fn">len</span>(cited_paras) / <span class="code-fn">max</span>(<span class="code-fn">len</span>(paragraphs), <span class="code-num">1</span>)
+
+        <span class="code-comment"># 3. LLM-as-judge (multi-dimension scoring)</span>
+        resp = <span class="code-keyword">await</span> self.client.chat.completions.<span class="code-fn">create</span>(
+            model=<span class="code-string">"gpt-4o"</span>,
+            messages=[{
+                <span class="code-string">"role"</span>: <span class="code-string">"system"</span>,
+                <span class="code-string">"content"</span>: (
+                    <span class="code-string">"Score this report 1-10 on each dimension. "</span>
+                    <span class="code-string">"Output JSON: {clarity, depth, accuracy, "</span>
+                    <span class="code-string">"actionability, citations, overall, feedback}"</span>
+                )
+            }, {
+                <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+                <span class="code-string">"content"</span>: <span class="code-string">f"Topic: {state['topic']}\n\n{report}"</span>
+            }],
+            response_format={<span class="code-string">"type"</span>: <span class="code-string">"json_object"</span>}
+        )
+        llm_scores = json.<span class="code-fn">loads</span>(resp.choices[<span class="code-num">0</span>].message.content)
+        scores[<span class="code-string">"llm_eval"</span>] = llm_scores
+
+        <span class="code-comment"># 4. Budget efficiency</span>
+        scores[<span class="code-string">"cost"</span>] = state[<span class="code-string">"budget_used"</span>]
+        scores[<span class="code-string">"cost_per_word"</span>] = state[<span class="code-string">"budget_used"</span>] / <span class="code-fn">max</span>(scores[<span class="code-string">"word_count"</span>], <span class="code-num">1</span>)
+        scores[<span class="code-string">"revisions"</span>] = state[<span class="code-string">"revision_count"</span>]
+
+        <span class="code-keyword">return</span> scores</code></pre>
+
+      <p>The evaluator combines structural checks (does the report have required sections?), statistical metrics (citation density, word count), LLM-based quality scoring (clarity, depth, accuracy), and efficiency metrics (cost per word, revision count). This multi-faceted evaluation gives you a comprehensive view of agent performance and helps you identify which stages need improvement.</p>
+
+      <p>Finally, the deployment wraps everything in a FastAPI service with real-time progress via WebSockets:</p>
+
+<pre><code><span class="code-keyword">from</span> fastapi <span class="code-keyword">import</span> FastAPI, WebSocket
+<span class="code-keyword">import</span> asyncio, json
+
+report_app = FastAPI(title=<span class="code-string">"Report Agent API"</span>)
+
+<span class="code-keyword">@report_app</span>.<span class="code-fn">websocket</span>(<span class="code-string">"/ws/generate"</span>)
+<span class="code-keyword">async def</span> <span class="code-fn">generate_report</span>(ws: WebSocket):
+    <span class="code-keyword">await</span> ws.<span class="code-fn">accept</span>()
+    data = <span class="code-keyword">await</span> ws.<span class="code-fn">receive_json</span>()
+    topic = data[<span class="code-string">"topic"</span>]
+    config = {<span class="code-string">"configurable"</span>: {<span class="code-string">"thread_id"</span>: data.get(<span class="code-string">"id"</span>, <span class="code-string">"ws-1"</span>)}}
+
+    <span class="code-keyword">async def</span> <span class="code-fn">send_status</span>(stage, detail=<span class="code-string">""</span>):
+        <span class="code-keyword">await</span> ws.<span class="code-fn">send_json</span>({
+            <span class="code-string">"type"</span>: <span class="code-string">"status"</span>, <span class="code-string">"stage"</span>: stage,
+            <span class="code-string">"detail"</span>: detail
+        })
+
+    <span class="code-keyword">await</span> <span class="code-fn">send_status</span>(<span class="code-string">"planning"</span>, <span class="code-string">"Creating research plan..."</span>)
+
+    <span class="code-comment"># Run to HITL interrupt</span>
+    state = <span class="code-keyword">await</span> app.<span class="code-fn">ainvoke</span>(
+        {<span class="code-string">"topic"</span>: topic, <span class="code-string">"budget_used"</span>: <span class="code-num">0</span>,
+         <span class="code-string">"revision_count"</span>: <span class="code-num">0</span>, <span class="code-string">"errors"</span>: [],
+         <span class="code-string">"research_notes"</span>: []},
+        config
+    )
+
+    <span class="code-comment"># Send plan for approval</span>
+    <span class="code-keyword">await</span> ws.<span class="code-fn">send_json</span>({
+        <span class="code-string">"type"</span>: <span class="code-string">"approval_needed"</span>,
+        <span class="code-string">"plan"</span>: state[<span class="code-string">"plan"</span>]
+    })
+
+    <span class="code-comment"># Wait for approval</span>
+    approval = <span class="code-keyword">await</span> ws.<span class="code-fn">receive_json</span>()
+    <span class="code-keyword">if not</span> approval.get(<span class="code-string">"approved"</span>):
+        <span class="code-keyword">await</span> ws.<span class="code-fn">send_json</span>({<span class="code-string">"type"</span>: <span class="code-string">"cancelled"</span>})
+        <span class="code-keyword">return</span>
+
+    <span class="code-comment"># Resume with progress updates</span>
+    <span class="code-keyword">await</span> <span class="code-fn">send_status</span>(<span class="code-string">"researching"</span>, <span class="code-string">"Gathering information..."</span>)
+    <span class="code-keyword">await</span> app.<span class="code-fn">aupdate_state</span>(config, {<span class="code-string">"plan_approved"</span>: <span class="code-keyword">True</span>})
+    final = <span class="code-keyword">await</span> app.<span class="code-fn">ainvoke</span>(<span class="code-keyword">None</span>, config)
+
+    <span class="code-comment"># Evaluate and send results</span>
+    evaluator = ReportEvaluator()
+    scores = <span class="code-keyword">await</span> evaluator.<span class="code-fn">evaluate</span>(final)
+
+    <span class="code-keyword">await</span> ws.<span class="code-fn">send_json</span>({
+        <span class="code-string">"type"</span>: <span class="code-string">"complete"</span>,
+        <span class="code-string">"report"</span>: final[<span class="code-string">"report"</span>],
+        <span class="code-string">"scores"</span>: scores,
+        <span class="code-string">"cost"</span>: final[<span class="code-string">"budget_used"</span>]
+    })
+    <span class="code-keyword">await</span> ws.<span class="code-fn">close</span>()</code></pre>
+
+      <table>
+        <thead><tr><th>Evaluation Dimension</th><th>Target Score</th><th>How to Improve</th></tr></thead>
+        <tbody>
+          <tr><td>Clarity</td><td>8+</td><td>Better writer system prompt, add examples</td></tr>
+          <tr><td>Depth</td><td>7+</td><td>More research steps, broader tool set</td></tr>
+          <tr><td>Accuracy</td><td>9+</td><td>Stronger citation guardrails, fact-checking</td></tr>
+          <tr><td>Actionability</td><td>7+</td><td>Add "recommendations" section to prompt</td></tr>
+          <tr><td>Citation Coverage</td><td>>80%</td><td>Enforce citations in writer prompt</td></tr>
+          <tr><td>Cost Efficiency</td><td><$3/report</td><td>Use GPT-4o-mini for planning, cache searches</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Capstone Success</div>
+        <p>A strong capstone submission demonstrates mastery of the full stack: LLM API calls (planning, synthesis, writing, review), tool use (web search, RAG, data APIs), LangGraph orchestration (state machine, conditional edges, interrupts), guardrails (budget, content, citations), evaluation (multi-dimensional scoring), and deployment (FastAPI, Docker, WebSockets). Focus on making each component work reliably rather than adding extra features.</p>
+      </div>
+    </div>
+
+    <!-- PREV NAV -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous</div>
+        <a href="15-capstone-document-portal.html" class="prev-btn">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9H4m0 0l4-4m-4 4l4 4"/></svg>
+          15 · Capstone I: Document Portal
+        </a>
+      </div>
+      <div style="text-align:right">
+        <div class="next-label">Complete</div>
+        <a href="index.html" class="next-btn">
+          Back to Home
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h10m0 0l-4-4m4 4l-4 4"/></svg>
+        </a>
+        <div class="next-phase">All Modules Complete</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const toc = document.querySelectorAll('.toc a');
+  const sections = document.querySelectorAll('.section[id], h3[id]');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        toc.forEach(a => a.classList.remove('active'));
+        const match = document.querySelector(`.toc a[href="#${e.target.id}"]`);
+        if (match) match.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -60% 0px' });
+  sections.forEach(s => obs.observe(s));
+});
+</script>
+</body>
+</html>

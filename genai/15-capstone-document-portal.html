@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capstone I: Document Portal — CareerAlign GenAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg-base:#0b0d14;--bg-surface:#10131e;--bg-elevated:#171c2e;--bg-overlay:#1e2438;--border-subtle:#1a1f34;--border-default:#232840;--border-strong:#2e3554;--text-primary:#e6e8f4;--text-secondary:#8e94b5;--text-muted:#545a78;--accent-indigo:#6366f1;--accent-cyan:#22d3ee;--accent-violet:#a855f7;--glow-indigo:rgba(99,102,241,0.25);--phase-prereq:#64748b;--phase-found:#3b82f6;--phase-api:#06b6d4;--phase-rag:#f97316;--phase-agent:#a855f7;--phase-quality:#ef4444;--phase-cloud:#22c55e;--phase-project:#f59e0b;--font-display:'Space Grotesk',sans-serif;--font-body:'Nunito',sans-serif;--font-mono:'JetBrains Mono',monospace;--radius:12px;--radius-sm:8px;--radius-lg:18px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:var(--bg-base);color:var(--text-primary);font-family:var(--font-body);font-size:16px;line-height:1.7;min-height:100vh}a{color:inherit;text-decoration:none}img,svg{display:block}
+.nav{position:sticky;top:0;z-index:100;background:rgba(11,13,20,0.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border-subtle);padding:0 32px;display:flex;align-items:center;height:58px;gap:24px}
+.nav-logo{font-family:var(--font-display);font-weight:700;font-size:17px;color:var(--text-primary);display:flex;align-items:center;gap:9px;white-space:nowrap}.nav-logo span{color:var(--accent-indigo)}
+.nav-links{display:flex;gap:6px;flex:1;flex-wrap:wrap;overflow:hidden}.nav-links a{font-size:12px;font-weight:500;color:var(--text-muted);padding:4px 8px;border-radius:6px;transition:all .2s;white-space:nowrap}.nav-links a:hover{color:var(--text-primary);background:var(--bg-elevated)}.nav-links a.active{color:var(--phase-project);background:rgba(245,158,11,0.15)}
+.nav-home{font-size:12.5px;font-weight:600;color:var(--accent-indigo);padding:6px 14px;border:1px solid rgba(99,102,241,0.3);border-radius:7px;transition:all .2s;white-space:nowrap;margin-left:auto}.nav-home:hover{background:rgba(99,102,241,0.1)}
+.hero{padding:70px 60px 50px;max-width:1400px;margin:0 auto;border-bottom:1px solid var(--border-subtle)}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);border-radius:20px;padding:5px 14px;margin-bottom:22px;font-size:12.5px;font-family:var(--font-display);font-weight:600;color:var(--phase-project);letter-spacing:0.04em;text-transform:uppercase}
+.hero h1{font-family:var(--font-display);font-size:clamp(2.2rem,4vw,3.4rem);font-weight:700;line-height:1.15;color:var(--text-primary);max-width:820px;margin-bottom:20px}.hero h1 em{font-style:normal;color:var(--phase-project)}
+.hero-desc{font-size:1.1rem;color:var(--text-secondary);max-width:760px;line-height:1.75;margin-bottom:36px}
+.hero-checklist{display:flex;gap:12px;flex-wrap:wrap}
+.hero-pill{display:flex;align-items:center;gap:7px;background:var(--bg-surface);border:1px solid var(--border-default);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--text-secondary)}.hero-pill svg{color:var(--phase-project);flex-shrink:0}
+.content-grid{max-width:1400px;margin:0 auto;padding:0 60px 80px;display:grid;grid-template-columns:260px 1fr;gap:0;align-items:start}
+.toc{position:sticky;top:78px;padding:32px 0;border-right:1px solid var(--border-subtle);margin-right:48px}
+.toc-title{font-size:11px;font-family:var(--font-display);font-weight:700;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-subtle)}
+.toc a{display:block;font-size:13px;color:var(--text-secondary);padding:6px 0;transition:color .2s;border-left:2px solid transparent;padding-left:12px;margin-left:-2px}.toc a:hover{color:var(--text-primary);border-left-color:var(--phase-project)}.toc a.section{font-weight:600;color:var(--text-primary);font-size:12.5px;margin-top:8px}.toc a.sub{padding-left:24px;font-size:12px}
+.main{padding:40px 0}
+.section{margin-bottom:60px}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border-subtle)}
+.section-num{width:36px;height:36px;border-radius:50%;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--phase-project);flex-shrink:0}
+.section h2{font-family:var(--font-display);font-size:1.55rem;font-weight:700;color:var(--text-primary)}
+.section h3{font-family:var(--font-display);font-size:1.15rem;font-weight:600;color:var(--text-primary);margin:28px 0 12px}
+.section p{color:var(--text-secondary);margin-bottom:16px;font-size:1rem;line-height:1.8}
+.section p strong{color:var(--text-primary);font-weight:600}
+.callout{border-left:3px solid var(--phase-project);background:rgba(245,158,11,0.07);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:16px 20px;margin:20px 0}
+.callout.info{border-color:var(--accent-indigo);background:rgba(99,102,241,0.07)}.callout.tip{border-color:var(--phase-cloud);background:rgba(34,197,94,0.07)}.callout.warn{border-color:var(--phase-quality);background:rgba(239,68,68,0.07)}
+.callout-label{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;color:var(--phase-project)}
+.callout.info .callout-label{color:var(--accent-indigo)}.callout.tip .callout-label{color:var(--phase-cloud)}.callout.warn .callout-label{color:var(--phase-quality)}
+.callout p{margin:0;color:var(--text-secondary);font-size:0.95rem}
+pre{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:20px 24px;overflow-x:auto;margin:20px 0}
+code{font-family:var(--font-mono);font-size:13.5px;color:var(--accent-cyan);line-height:1.65}
+:not(pre)>code{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:5px;padding:2px 7px;font-size:13px}
+.code-comment{color:var(--text-muted)}.code-keyword{color:#c084fc}.code-string{color:#86efac}.code-fn{color:#67e8f9}.code-num{color:#fca5a5}
+.diagram-wrap{background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--radius-lg);padding:32px;margin:32px 0}
+.diagram-caption{text-align:center;font-size:13px;color:var(--text-muted);margin-top:16px;font-style:italic}
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:24px 0}
+.skill-card{background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--radius);padding:20px 22px;transition:border-color .2s}.skill-card:hover{border-color:var(--phase-project)}
+.skill-card-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.skill-icon{width:32px;height:32px;border-radius:8px;background:rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:center;font-size:15px}
+.skill-card h4{font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--text-primary)}
+.skill-card p{font-size:13px;color:var(--text-secondary);margin:0;line-height:1.6}
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}th,td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--border-subtle)}th{background:var(--bg-surface);font-family:var(--font-display);font-weight:600;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em}td{color:var(--text-secondary)}tr:hover td{background:var(--bg-surface)}
+.next-section{margin-top:70px;padding-top:40px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center}
+.next-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;font-family:var(--font-display)}
+.next-btn{display:inline-flex;align-items:center;gap:10px;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:var(--radius);padding:14px 22px;font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--text-primary);transition:all .2s}.next-btn:hover{border-color:var(--phase-project);color:var(--phase-project);transform:translateX(4px)}
+.next-phase{font-size:12px;color:var(--phase-project);font-weight:500}
+.prev-btn{display:inline-flex;align-items:center;gap:10px;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:var(--radius);padding:14px 22px;font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--text-primary);transition:all .2s}.prev-btn:hover{border-color:var(--phase-project);color:var(--phase-project);transform:translateX(-4px)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">⚡ <span>CareerAlign</span> GenAI</div>
+  <div class="nav-links">
+    <a href="00-prerequisites.html">00</a>
+    <a href="01-foundations-of-genai.html">01</a>
+    <a href="02-llms-slms-multimodal.html">02</a>
+    <a href="03-api-for-llms.html">03</a>
+    <a href="04-fine-tuning.html">04</a>
+    <a href="05-llm-hosting.html">05</a>
+    <a href="06-prompt-engineering.html">06</a>
+    <a href="07-rag-systems.html">07</a>
+    <a href="08-advanced-rag.html">08</a>
+    <a href="09-agents.html">09</a>
+    <a href="10-evaluation.html">10</a>
+    <a href="11-guardrails.html">11</a>
+    <a href="12-mcp.html">12</a>
+    <a href="13-aws-cloud.html">13</a>
+    <a href="14-n8n-no-code.html">14</a>
+    <a href="15-capstone-document-portal.html" class="active">15</a>
+    <a href="16-capstone-report-agent.html">16</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GenAI Hub</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M6 6h4M6 10h4"/></svg> Phase 7 · Capstone Projects</div>
+  <h1>Capstone I: <em>Document Portal</em></h1>
+  <p class="hero-desc">Build a production-grade document Q&A portal from scratch. This capstone integrates document ingestion, chunking, embeddings, vector storage, RAG retrieval, a FastAPI backend, and a chat-based frontend into a single deployable application that lets users upload documents and ask natural-language questions.</p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Document Ingestion</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/></svg> Vector Store</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l4-8 4 8"/></svg> RAG Pipeline</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="10" height="10" rx="2"/></svg> FastAPI Backend</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h10v10H3z"/><path d="M3 7h10"/></svg> Chat Interface</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14V6l4-4 4 4v8"/></svg> Deployment</div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/15-capstone-document-portal.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</section>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#s1" class="section">1 · Project Architecture</a>
+    <a href="#s1-plain" class="sub">Plain Language</a>
+    <a href="#s1-deep" class="sub">Deep Dive</a>
+    <a href="#s2" class="section">2 · Document Ingestion Pipeline</a>
+    <a href="#s2-plain" class="sub">Plain Language</a>
+    <a href="#s2-deep" class="sub">Deep Dive</a>
+    <a href="#s3" class="section">3 · Embeddings &amp; Vector Store</a>
+    <a href="#s3-plain" class="sub">Plain Language</a>
+    <a href="#s3-deep" class="sub">Deep Dive</a>
+    <a href="#s4" class="section">4 · RAG Retrieval Pipeline</a>
+    <a href="#s4-plain" class="sub">Plain Language</a>
+    <a href="#s4-deep" class="sub">Deep Dive</a>
+    <a href="#s5" class="section">5 · FastAPI Backend</a>
+    <a href="#s5-plain" class="sub">Plain Language</a>
+    <a href="#s5-deep" class="sub">Deep Dive</a>
+    <a href="#s6" class="section">6 · Frontend &amp; Deployment</a>
+    <a href="#s6-plain" class="sub">Plain Language</a>
+    <a href="#s6-deep" class="sub">Deep Dive</a>
+  </aside>
+
+  <main class="main">
+
+    <!-- SECTION 1 -->
+    <div class="section" id="s1">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Project Architecture</h2>
+      </div>
+
+      <h3 id="s1-plain">Plain Language</h3>
+      <p>Think of this capstone project like building a smart librarian for a private document collection. When someone walks into a traditional library and asks a question, the librarian knows where each book is shelved, which chapters are relevant, and how to synthesize information from multiple sources into a coherent answer. Our document portal does exactly the same thing, but with digital documents and an LLM acting as the librarian's brain.</p>
+      <p>The system has three major layers. The first layer is the <strong>ingestion pipeline</strong>, which is responsible for accepting uploaded documents (PDFs, Word files, text files), breaking them into smaller chunks, converting those chunks into numerical vectors (embeddings), and storing everything in a vector database. Think of this as the librarian carefully reading each new book, writing detailed index cards for every section, and filing those cards in a well-organized catalog system.</p>
+      <p>The second layer is the <strong>retrieval pipeline</strong>, which handles incoming user questions. When a user asks "What does our company policy say about remote work?", the system converts that question into a vector, searches the vector database for the most similar document chunks, and ranks the results by relevance. This is like the librarian taking your question, mentally mapping it to relevant catalog entries, and pulling the most useful books off the shelves.</p>
+      <p>The third layer is the <strong>synthesis layer</strong>, where the LLM takes the retrieved document chunks and the user's question, then generates a coherent, grounded answer with citations back to the source documents. The librarian doesn't just hand you a stack of books — they read the relevant passages and give you a clear, well-organized answer while pointing you to where they found the information.</p>
+      <p>All three layers are tied together by a <strong>FastAPI backend</strong> that exposes REST endpoints for document upload, querying, and conversation management, plus a simple <strong>chat frontend</strong> that gives users a familiar conversational interface. The entire system is containerized with Docker for easy deployment to cloud environments like AWS ECS or a simple VPS.</p>
+
+      <h3 id="s1-deep">Deep Dive</h3>
+      <p>The architecture follows a clean separation of concerns that mirrors real-world production RAG systems. At the highest level, we have four distinct services: an <strong>API server</strong> (FastAPI), a <strong>worker service</strong> (for async document processing), a <strong>vector database</strong> (ChromaDB or pgvector), and a <strong>frontend</strong> (static HTML/JS or Streamlit). These communicate over well-defined interfaces, making each component independently testable and replaceable.</p>
+
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="ah" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#f59e0b"/></marker>
+          </defs>
+          <!-- Frontend -->
+          <rect x="20" y="40" width="160" height="70" rx="10" fill="#1e2438" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="100" y="68" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Chat Frontend</text>
+          <text x="100" y="90" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">HTML / JS / Streamlit</text>
+          <!-- API -->
+          <rect x="260" y="20" width="180" height="100" rx="10" fill="#1e2438" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="350" y="50" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">FastAPI Backend</text>
+          <text x="350" y="72" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">/upload  /query  /chat</text>
+          <text x="350" y="92" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">/documents  /health</text>
+          <!-- Arrow Frontend->API -->
+          <line x1="180" y1="75" x2="252" y2="70" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#ah)"/>
+          <!-- Worker -->
+          <rect x="260" y="170" width="180" height="80" rx="10" fill="#1e2438" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="350" y="200" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Ingestion Worker</text>
+          <text x="350" y="222" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">Parse → Chunk → Embed → Store</text>
+          <!-- Arrow API->Worker -->
+          <line x1="350" y1="120" x2="350" y2="162" stroke="#a855f7" stroke-width="1.5" marker-end="url(#ah)"/>
+          <text x="370" y="148" fill="#545a78" font-family="Nunito" font-size="10">async task</text>
+          <!-- Vector DB -->
+          <rect x="540" y="170" width="160" height="80" rx="10" fill="#1e2438" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="620" y="200" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Vector Store</text>
+          <text x="620" y="222" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">ChromaDB / pgvector</text>
+          <!-- Arrow Worker->VectorDB -->
+          <line x1="440" y1="210" x2="532" y2="210" stroke="#22c55e" stroke-width="1.5" marker-end="url(#ah)"/>
+          <!-- LLM -->
+          <rect x="540" y="40" width="160" height="70" rx="10" fill="#1e2438" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="620" y="68" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">LLM Provider</text>
+          <text x="620" y="90" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">OpenAI / Bedrock</text>
+          <!-- Arrow API->LLM -->
+          <line x1="440" y1="60" x2="532" y2="68" stroke="#06b6d4" stroke-width="1.5" marker-end="url(#ah)"/>
+          <!-- Arrow API->VectorDB -->
+          <line x1="440" y1="100" x2="540" y2="180" stroke="#22c55e" stroke-width="1.5" marker-end="url(#ah)"/>
+          <text x="500" y="135" fill="#545a78" font-family="Nunito" font-size="10">retrieve</text>
+          <!-- File Storage -->
+          <rect x="50" y="180" width="140" height="60" rx="10" fill="#1e2438" stroke="#64748b" stroke-width="1.5"/>
+          <text x="120" y="205" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">File Storage</text>
+          <text x="120" y="225" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">S3 / Local Disk</text>
+          <!-- Arrow API->FileStorage -->
+          <line x1="280" y1="120" x2="170" y2="175" stroke="#64748b" stroke-width="1.5" marker-end="url(#ah)"/>
+          <!-- Metadata DB -->
+          <rect x="50" y="300" width="140" height="60" rx="10" fill="#1e2438" stroke="#64748b" stroke-width="1.5"/>
+          <text x="120" y="325" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Metadata DB</text>
+          <text x="120" y="345" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">PostgreSQL / SQLite</text>
+          <!-- Arrow Worker->MetadataDB -->
+          <line x1="280" y1="250" x2="170" y2="300" stroke="#64748b" stroke-width="1.5" marker-end="url(#ah)"/>
+        </svg>
+        <div class="diagram-caption">Document Portal architecture — Frontend communicates with FastAPI; ingestion is handled asynchronously; retrieval queries both vector store and LLM</div>
+      </div>
+
+      <p>The <strong>API server</strong> is the central coordinator. It exposes endpoints for document upload (accepting multipart file uploads), document listing and management, chat/query endpoints that trigger the RAG pipeline, and health checks for monitoring. FastAPI was chosen for its async support, automatic OpenAPI documentation, Pydantic validation, and excellent performance characteristics. Every endpoint returns structured JSON responses with consistent error handling.</p>
+      <p>The <strong>ingestion worker</strong> runs asynchronously to avoid blocking the API server during document processing. When a user uploads a 200-page PDF, the API immediately returns a job ID and status URL, then queues the document for background processing. The worker parses the document, splits it into chunks, generates embeddings, and writes everything to the vector store. For simplicity in this capstone, we use Python's <code>asyncio</code> with background tasks, but in production you would use Celery or AWS SQS for distributed job processing.</p>
+      <p>The <strong>vector store</strong> holds the embedded document chunks and supports similarity search. We use ChromaDB for local development because it requires zero infrastructure setup, but the architecture is designed so you can swap in pgvector (PostgreSQL extension) or a managed service like Amazon OpenSearch Serverless for production. The vector store is accessed by both the ingestion worker (writes) and the API server (reads during retrieval).</p>
+      <p>The <strong>metadata database</strong> (PostgreSQL or SQLite for development) tracks document-level metadata: upload timestamps, processing status, file names, page counts, user ownership, and collection assignments. This is separate from the vector store because relational queries (list all documents, filter by date, check processing status) are better served by a traditional database than a vector index.</p>
+      <p>The <strong>file storage</strong> layer persists the original uploaded documents. In local development, this is simply a directory on disk. In production, it maps to an S3 bucket with appropriate lifecycle policies. Keeping the originals allows reprocessing if you change your chunking strategy, embedding model, or need to debug retrieval quality issues.</p>
+      <p>This architecture makes the system horizontally scalable. You can run multiple API server instances behind a load balancer, scale ingestion workers independently based on upload volume, and the vector store and metadata database are shared services that can be scaled with their native clustering mechanisms.</p>
+
+      <div class="callout info">
+        <div class="callout-label">Architecture Tip</div>
+        <p>Start with the simplest possible setup: a single process running FastAPI with background tasks, SQLite for metadata, ChromaDB in-process, and local file storage. Only split into separate services when you have a specific scaling need. Premature distribution adds complexity without benefit.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="section" id="s2">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Document Ingestion Pipeline</h2>
+      </div>
+
+      <h3 id="s2-plain">Plain Language</h3>
+      <p>Document ingestion is the process of taking a raw file — a PDF, a Word document, a plain text file — and converting it into a format that our RAG system can search through. This is like a librarian receiving a new book and creating detailed catalog cards for every chapter, section, and important passage before shelving it.</p>
+      <p>The pipeline has four stages. First, <strong>parsing</strong>: extracting the raw text content from whatever file format the user uploaded. PDFs are particularly tricky because they're designed for visual layout, not text extraction. A two-column academic paper, a scanned invoice, and a text-heavy report all require different parsing strategies. We use libraries like PyMuPDF (fitz) for native-text PDFs and can optionally integrate OCR for scanned documents.</p>
+      <p>Second, <strong>cleaning</strong>: the extracted text often contains artifacts like repeated headers and footers, page numbers scattered through the content, excessive whitespace, or encoding issues. We normalize this text to ensure clean, consistent input for the chunking stage. Think of it as the librarian tidying up photocopied pages before filing them — removing smudges and straightening text so the catalog cards are readable.</p>
+      <p>Third, <strong>chunking</strong>: splitting the cleaned text into smaller pieces (typically 500-1500 tokens each) that are the right size for embedding and retrieval. The art of chunking is finding pieces that are large enough to contain meaningful context but small enough to be precise when retrieved. We use recursive character text splitting with awareness of natural boundaries like paragraphs and section headings, so chunks don't cut mid-sentence or separate a heading from its content.</p>
+      <p>Fourth, <strong>metadata enrichment</strong>: each chunk gets tagged with information about where it came from — which document, which page, which section, when it was processed. This metadata is crucial for citations (telling the user "this answer came from page 14 of the Q3 report") and for filtering (searching only within documents from a specific collection or date range).</p>
+
+      <h3 id="s2-deep">Deep Dive</h3>
+      <p>Let's build the ingestion pipeline step by step, starting with the document parser that handles multiple file formats.</p>
+
+<pre><code><span class="code-keyword">import</span> fitz  <span class="code-comment"># PyMuPDF</span>
+<span class="code-keyword">from</span> pathlib <span class="code-keyword">import</span> Path
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass, field
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Optional
+<span class="code-keyword">import</span> re, hashlib, uuid
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-fn">ParsedPage</span>:
+    page_number: int
+    text: str
+    char_count: int
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-fn">ParsedDocument</span>:
+    doc_id: str
+    filename: str
+    pages: list[ParsedPage]
+    total_pages: int
+    content_hash: str
+
+<span class="code-keyword">class</span> <span class="code-fn">DocumentParser</span>:
+    <span class="code-string">"""Multi-format document parser."""</span>
+
+    SUPPORTED = {<span class="code-string">".pdf"</span>, <span class="code-string">".txt"</span>, <span class="code-string">".md"</span>, <span class="code-string">".docx"</span>}
+
+    <span class="code-keyword">def</span> <span class="code-fn">parse</span>(self, file_path: Path) -> ParsedDocument:
+        suffix = file_path.suffix.lower()
+        <span class="code-keyword">if</span> suffix == <span class="code-string">".pdf"</span>:
+            pages = self.<span class="code-fn">_parse_pdf</span>(file_path)
+        <span class="code-keyword">elif</span> suffix <span class="code-keyword">in</span> {<span class="code-string">".txt"</span>, <span class="code-string">".md"</span>}:
+            pages = self.<span class="code-fn">_parse_text</span>(file_path)
+        <span class="code-keyword">else</span>:
+            <span class="code-keyword">raise</span> ValueError(<span class="code-string">f"Unsupported: {suffix}"</span>)
+
+        full_text = <span class="code-string">"\n"</span>.join(p.text <span class="code-keyword">for</span> p <span class="code-keyword">in</span> pages)
+        <span class="code-keyword">return</span> ParsedDocument(
+            doc_id=<span class="code-fn">str</span>(uuid.uuid4()),
+            filename=file_path.name,
+            pages=pages,
+            total_pages=<span class="code-fn">len</span>(pages),
+            content_hash=hashlib.<span class="code-fn">sha256</span>(full_text.encode()).hexdigest()[:16]
+        )
+
+    <span class="code-keyword">def</span> <span class="code-fn">_parse_pdf</span>(self, path: Path) -> list[ParsedPage]:
+        doc = fitz.<span class="code-fn">open</span>(path)
+        pages = []
+        <span class="code-keyword">for</span> i, page <span class="code-keyword">in</span> <span class="code-fn">enumerate</span>(doc):
+            text = page.<span class="code-fn">get_text</span>(<span class="code-string">"text"</span>)
+            text = self.<span class="code-fn">_clean</span>(text)
+            <span class="code-keyword">if</span> text.strip():
+                pages.append(ParsedPage(i + <span class="code-num">1</span>, text, <span class="code-fn">len</span>(text)))
+        <span class="code-keyword">return</span> pages
+
+    <span class="code-keyword">def</span> <span class="code-fn">_parse_text</span>(self, path: Path) -> list[ParsedPage]:
+        text = path.<span class="code-fn">read_text</span>(encoding=<span class="code-string">"utf-8"</span>)
+        text = self.<span class="code-fn">_clean</span>(text)
+        <span class="code-keyword">return</span> [ParsedPage(<span class="code-num">1</span>, text, <span class="code-fn">len</span>(text))]
+
+    <span class="code-keyword">def</span> <span class="code-fn">_clean</span>(self, text: str) -> str:
+        text = re.<span class="code-fn">sub</span>(<span class="code-string">r'\n{3,}'</span>, <span class="code-string">'\n\n'</span>, text)
+        text = re.<span class="code-fn">sub</span>(<span class="code-string">r'[ \t]+'</span>, <span class="code-string">' '</span>, text)
+        <span class="code-keyword">return</span> text.strip()</code></pre>
+
+      <p>The parser produces a <code>ParsedDocument</code> containing individual pages with their text content. The content hash allows deduplication — if a user uploads the same document twice, we can detect it and skip reprocessing. The cleaning step normalizes whitespace, which prevents downstream chunking from producing chunks that are mostly empty space.</p>
+
+      <p>Next, the chunker splits parsed pages into retrieval-sized pieces with proper overlap:</p>
+
+<pre><code><span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-fn">Chunk</span>:
+    chunk_id: str
+    doc_id: str
+    text: str
+    metadata: dict
+
+<span class="code-keyword">class</span> <span class="code-fn">RecursiveChunker</span>:
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self, chunk_size: int = <span class="code-num">800</span>, overlap: int = <span class="code-num">200</span>):
+        self.chunk_size = chunk_size
+        self.overlap = overlap
+        self.separators = [<span class="code-string">"\n\n"</span>, <span class="code-string">"\n"</span>, <span class="code-string">". "</span>, <span class="code-string">" "</span>]
+
+    <span class="code-keyword">def</span> <span class="code-fn">chunk_document</span>(self, doc: ParsedDocument) -> list[Chunk]:
+        chunks = []
+        <span class="code-keyword">for</span> page <span class="code-keyword">in</span> doc.pages:
+            page_chunks = self.<span class="code-fn">_split_recursive</span>(page.text, self.separators)
+            <span class="code-keyword">for</span> i, text <span class="code-keyword">in</span> <span class="code-fn">enumerate</span>(page_chunks):
+                chunks.append(Chunk(
+                    chunk_id=<span class="code-string">f"<span class="code-fn">{doc.doc_id}</span>_p<span class="code-fn">{page.page_number}</span>_c<span class="code-fn">{i}</span>"</span>,
+                    doc_id=doc.doc_id,
+                    text=text,
+                    metadata={
+                        <span class="code-string">"filename"</span>: doc.filename,
+                        <span class="code-string">"page"</span>: page.page_number,
+                        <span class="code-string">"chunk_index"</span>: i,
+                        <span class="code-string">"char_count"</span>: <span class="code-fn">len</span>(text),
+                    }
+                ))
+        <span class="code-keyword">return</span> chunks
+
+    <span class="code-keyword">def</span> <span class="code-fn">_split_recursive</span>(self, text: str, seps: list[str]) -> list[str]:
+        <span class="code-keyword">if</span> <span class="code-fn">len</span>(text) <= self.chunk_size:
+            <span class="code-keyword">return</span> [text] <span class="code-keyword">if</span> text.strip() <span class="code-keyword">else</span> []
+        sep = seps[<span class="code-num">0</span>] <span class="code-keyword">if</span> seps <span class="code-keyword">else</span> <span class="code-string">""</span>
+        parts = text.split(sep) <span class="code-keyword">if</span> sep <span class="code-keyword">else</span> [text[i:i+self.chunk_size] <span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-fn">range</span>(<span class="code-num">0</span>, <span class="code-fn">len</span>(text), self.chunk_size)]
+        chunks, current = [], <span class="code-string">""</span>
+        <span class="code-keyword">for</span> part <span class="code-keyword">in</span> parts:
+            candidate = (current + sep + part).strip() <span class="code-keyword">if</span> current <span class="code-keyword">else</span> part.strip()
+            <span class="code-keyword">if</span> <span class="code-fn">len</span>(candidate) <= self.chunk_size:
+                current = candidate
+            <span class="code-keyword">else</span>:
+                <span class="code-keyword">if</span> current:
+                    chunks.append(current)
+                <span class="code-keyword">if</span> <span class="code-fn">len</span>(part) > self.chunk_size <span class="code-keyword">and</span> <span class="code-fn">len</span>(seps) > <span class="code-num">1</span>:
+                    chunks.extend(self.<span class="code-fn">_split_recursive</span>(part, seps[<span class="code-num">1</span>:]))
+                    current = <span class="code-string">""</span>
+                <span class="code-keyword">else</span>:
+                    current = part
+        <span class="code-keyword">if</span> current:
+            chunks.append(current)
+        <span class="code-comment"># Add overlap between consecutive chunks</span>
+        <span class="code-keyword">return</span> self.<span class="code-fn">_add_overlap</span>(chunks)
+
+    <span class="code-keyword">def</span> <span class="code-fn">_add_overlap</span>(self, chunks: list[str]) -> list[str]:
+        <span class="code-keyword">if</span> <span class="code-fn">len</span>(chunks) <= <span class="code-num">1</span>:
+            <span class="code-keyword">return</span> chunks
+        result = [chunks[<span class="code-num">0</span>]]
+        <span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-fn">range</span>(<span class="code-num">1</span>, <span class="code-fn">len</span>(chunks)):
+            overlap_text = chunks[i - <span class="code-num">1</span>][-self.overlap:]
+            result.append(overlap_text + <span class="code-string">" "</span> + chunks[i])
+        <span class="code-keyword">return</span> result</code></pre>
+
+      <p>The recursive chunking strategy tries to split on paragraph boundaries first (<code>\n\n</code>), then line breaks, then sentences, and finally words. This preserves semantic coherence — a chunk about "revenue projections" won't be split mid-sentence across two retrieval results. The 200-character overlap ensures that information at chunk boundaries isn't lost; both the end of one chunk and the beginning of the next contain the boundary text.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Chunking Tip</div>
+        <p>Start with 800-character chunks and 200-character overlap. These values work well for most business documents. If retrieval quality is poor, experiment with larger chunks (1200-1500 characters) for documents with long, interconnected arguments, or smaller chunks (400-600) for FAQ-style content with discrete answers.</p>
+      </div>
+
+      <p>The full ingestion orchestrator ties parsing and chunking together with metadata tracking:</p>
+
+<pre><code><span class="code-keyword">import</span> asyncio
+<span class="code-keyword">from</span> datetime <span class="code-keyword">import</span> datetime
+
+<span class="code-keyword">class</span> <span class="code-fn">IngestionService</span>:
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self, parser, chunker, embedder, vector_store, metadata_db):
+        self.parser = parser
+        self.chunker = chunker
+        self.embedder = embedder
+        self.vector_store = vector_store
+        self.db = metadata_db
+
+    <span class="code-keyword">async def</span> <span class="code-fn">ingest</span>(self, file_path: Path, collection: str = <span class="code-string">"default"</span>) -> str:
+        <span class="code-comment"># 1. Parse the document</span>
+        doc = self.parser.<span class="code-fn">parse</span>(file_path)
+
+        <span class="code-comment"># 2. Check for duplicates</span>
+        <span class="code-keyword">if</span> <span class="code-keyword">await</span> self.db.<span class="code-fn">hash_exists</span>(doc.content_hash):
+            <span class="code-keyword">return</span> <span class="code-string">f"Duplicate detected: {doc.content_hash}"</span>
+
+        <span class="code-comment"># 3. Record in metadata DB</span>
+        <span class="code-keyword">await</span> self.db.<span class="code-fn">insert_document</span>({
+            <span class="code-string">"doc_id"</span>: doc.doc_id,
+            <span class="code-string">"filename"</span>: doc.filename,
+            <span class="code-string">"pages"</span>: doc.total_pages,
+            <span class="code-string">"hash"</span>: doc.content_hash,
+            <span class="code-string">"collection"</span>: collection,
+            <span class="code-string">"status"</span>: <span class="code-string">"processing"</span>,
+            <span class="code-string">"created_at"</span>: datetime.<span class="code-fn">utcnow</span>().isoformat()
+        })
+
+        <span class="code-comment"># 4. Chunk the document</span>
+        chunks = self.chunker.<span class="code-fn">chunk_document</span>(doc)
+
+        <span class="code-comment"># 5. Generate embeddings in batches</span>
+        texts = [c.text <span class="code-keyword">for</span> c <span class="code-keyword">in</span> chunks]
+        embeddings = <span class="code-keyword">await</span> self.embedder.<span class="code-fn">embed_batch</span>(texts, batch_size=<span class="code-num">64</span>)
+
+        <span class="code-comment"># 6. Store in vector database</span>
+        self.vector_store.<span class="code-fn">add</span>(
+            ids=[c.chunk_id <span class="code-keyword">for</span> c <span class="code-keyword">in</span> chunks],
+            documents=texts,
+            embeddings=embeddings,
+            metadatas=[c.metadata <span class="code-keyword">for</span> c <span class="code-keyword">in</span> chunks]
+        )
+
+        <span class="code-comment"># 7. Update status</span>
+        <span class="code-keyword">await</span> self.db.<span class="code-fn">update_status</span>(doc.doc_id, <span class="code-string">"ready"</span>, chunk_count=<span class="code-fn">len</span>(chunks))
+        <span class="code-keyword">return</span> doc.doc_id</code></pre>
+
+      <p>The ingestion service follows a clear pipeline: parse, deduplicate, record metadata, chunk, embed, store, and update status. Each step is idempotent — if the process crashes after chunking but before embedding, the metadata DB still shows "processing" status, and a retry will start fresh. The batch embedding call (step 5) is critical for performance: embedding 200 chunks one at a time would take 200 API calls, but batching them sends far fewer requests and often takes advantage of GPU parallelism on the embedding service side.</p>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div class="section" id="s3">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Embeddings &amp; Vector Store</h2>
+      </div>
+
+      <h3 id="s3-plain">Plain Language</h3>
+      <p>Embeddings are the magic that lets our system understand meaning rather than just matching keywords. When you embed a piece of text, you convert it into a list of numbers (a vector) that captures the semantic meaning of that text. Two pieces of text that discuss similar topics will have similar vectors, even if they use completely different words. This is what makes RAG so much more powerful than traditional keyword search.</p>
+      <p>Imagine you have a document chunk that says "The company's quarterly earnings exceeded analyst expectations by 15%." If a user asks "How did the business perform financially?", a keyword search would fail — there's no word overlap. But the embedding vectors for both texts would be very close in the vector space, because they're both about financial performance. The embedding model has learned, from training on billions of text examples, that "quarterly earnings exceeded expectations" and "business performed financially" refer to related concepts.</p>
+      <p>The <strong>vector store</strong> is a specialized database optimized for storing these vectors and performing similarity searches. When a query comes in, we embed the query text into a vector, then ask the vector store "find me the 10 stored vectors most similar to this query vector." The store uses mathematical distance metrics (cosine similarity or L2 distance) and indexing algorithms (like HNSW — Hierarchical Navigable Small World graphs) to do this search efficiently, even across millions of vectors.</p>
+      <p>For this capstone, we use <strong>ChromaDB</strong> because it's the simplest to set up — it runs in-process with your Python application, requires no external services, and persists data to disk. For production deployments with millions of documents, you'd graduate to pgvector (if you already use PostgreSQL), Pinecone, Weaviate, or Amazon OpenSearch Serverless.</p>
+
+      <h3 id="s3-deep">Deep Dive</h3>
+      <p>Let's implement the embedding service with batching, caching, and provider abstraction:</p>
+
+<pre><code><span class="code-keyword">from</span> openai <span class="code-keyword">import</span> AsyncOpenAI
+<span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np
+
+<span class="code-keyword">class</span> <span class="code-fn">EmbeddingService</span>:
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self, model: str = <span class="code-string">"text-embedding-3-small"</span>):
+        self.client = AsyncOpenAI()
+        self.model = model
+        self._cache: dict[str, list[float]] = {}
+
+    <span class="code-keyword">async def</span> <span class="code-fn">embed_batch</span>(
+        self, texts: list[str], batch_size: int = <span class="code-num">64</span>
+    ) -> list[list[float]]:
+        all_embeddings = [<span class="code-keyword">None</span>] * <span class="code-fn">len</span>(texts)
+        uncached_indices = []
+
+        <span class="code-comment"># Check cache first</span>
+        <span class="code-keyword">for</span> i, text <span class="code-keyword">in</span> <span class="code-fn">enumerate</span>(texts):
+            key = hashlib.<span class="code-fn">md5</span>(text.encode()).hexdigest()
+            <span class="code-keyword">if</span> key <span class="code-keyword">in</span> self._cache:
+                all_embeddings[i] = self._cache[key]
+            <span class="code-keyword">else</span>:
+                uncached_indices.append(i)
+
+        <span class="code-comment"># Batch embed uncached texts</span>
+        <span class="code-keyword">for</span> start <span class="code-keyword">in</span> <span class="code-fn">range</span>(<span class="code-num">0</span>, <span class="code-fn">len</span>(uncached_indices), batch_size):
+            batch_idx = uncached_indices[start:start + batch_size]
+            batch_texts = [texts[i] <span class="code-keyword">for</span> i <span class="code-keyword">in</span> batch_idx]
+
+            response = <span class="code-keyword">await</span> self.client.embeddings.<span class="code-fn">create</span>(
+                model=self.model,
+                input=batch_texts
+            )
+
+            <span class="code-keyword">for</span> j, item <span class="code-keyword">in</span> <span class="code-fn">enumerate</span>(response.data):
+                idx = batch_idx[j]
+                all_embeddings[idx] = item.embedding
+                key = hashlib.<span class="code-fn">md5</span>(texts[idx].encode()).hexdigest()
+                self._cache[key] = item.embedding
+
+        <span class="code-keyword">return</span> all_embeddings
+
+    <span class="code-keyword">async def</span> <span class="code-fn">embed_query</span>(self, text: str) -> list[float]:
+        result = <span class="code-keyword">await</span> self.<span class="code-fn">embed_batch</span>([text])
+        <span class="code-keyword">return</span> result[<span class="code-num">0</span>]</code></pre>
+
+      <p>The embedding service uses <code>text-embedding-3-small</code> from OpenAI, which produces 1536-dimensional vectors at very low cost ($0.02 per million tokens). The in-memory cache prevents re-embedding identical text, which matters when you're iterating on chunking strategies and reprocessing the same documents. For production, you'd replace this cache with Redis or a persistent store.</p>
+
+      <p>Now let's set up ChromaDB as our vector store with a clean wrapper:</p>
+
+<pre><code><span class="code-keyword">import</span> chromadb
+<span class="code-keyword">from</span> chromadb.config <span class="code-keyword">import</span> Settings
+
+<span class="code-keyword">class</span> <span class="code-fn">VectorStore</span>:
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self, persist_dir: str = <span class="code-string">"./chroma_data"</span>):
+        self.client = chromadb.<span class="code-fn">PersistentClient</span>(path=persist_dir)
+
+    <span class="code-keyword">def</span> <span class="code-fn">get_collection</span>(self, name: str = <span class="code-string">"documents"</span>):
+        <span class="code-keyword">return</span> self.client.<span class="code-fn">get_or_create_collection</span>(
+            name=name,
+            metadata={<span class="code-string">"hnsw:space"</span>: <span class="code-string">"cosine"</span>}
+        )
+
+    <span class="code-keyword">def</span> <span class="code-fn">add</span>(self, ids, documents, embeddings, metadatas,
+            collection_name=<span class="code-string">"documents"</span>):
+        col = self.<span class="code-fn">get_collection</span>(collection_name)
+        col.<span class="code-fn">add</span>(
+            ids=ids,
+            documents=documents,
+            embeddings=embeddings,
+            metadatas=metadatas
+        )
+
+    <span class="code-keyword">def</span> <span class="code-fn">query</span>(self, query_embedding, n_results=<span class="code-num">5</span>,
+             where=<span class="code-keyword">None</span>, collection_name=<span class="code-string">"documents"</span>):
+        col = self.<span class="code-fn">get_collection</span>(collection_name)
+        results = col.<span class="code-fn">query</span>(
+            query_embeddings=[query_embedding],
+            n_results=n_results,
+            where=where,
+            include=[<span class="code-string">"documents"</span>, <span class="code-string">"metadatas"</span>, <span class="code-string">"distances"</span>]
+        )
+        <span class="code-keyword">return</span> [
+            {
+                <span class="code-string">"text"</span>: results[<span class="code-string">"documents"</span>][<span class="code-num">0</span>][i],
+                <span class="code-string">"metadata"</span>: results[<span class="code-string">"metadatas"</span>][<span class="code-num">0</span>][i],
+                <span class="code-string">"score"</span>: <span class="code-num">1.0</span> - results[<span class="code-string">"distances"</span>][<span class="code-num">0</span>][i],
+            }
+            <span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-fn">range</span>(<span class="code-fn">len</span>(results[<span class="code-string">"documents"</span>][<span class="code-num">0</span>]))
+        ]
+
+    <span class="code-keyword">def</span> <span class="code-fn">delete_document</span>(self, doc_id: str, collection_name=<span class="code-string">"documents"</span>):
+        col = self.<span class="code-fn">get_collection</span>(collection_name)
+        col.<span class="code-fn">delete</span>(where={<span class="code-string">"doc_id"</span>: doc_id})</code></pre>
+
+      <p>The vector store wrapper provides a clean interface with just four operations: create a collection, add vectors, query for similar vectors, and delete by document ID. ChromaDB's <code>PersistentClient</code> saves data to disk, so vectors survive application restarts. The HNSW (Hierarchical Navigable Small World) index with cosine similarity is the industry standard for approximate nearest neighbor search — it provides sub-millisecond query times even for collections with hundreds of thousands of vectors.</p>
+
+      <table>
+        <thead><tr><th>Embedding Model</th><th>Dimensions</th><th>MTEB Score</th><th>Cost (per 1M tokens)</th><th>Best For</th></tr></thead>
+        <tbody>
+          <tr><td>text-embedding-3-small</td><td>1536</td><td>62.3</td><td>$0.02</td><td>Cost-sensitive, general use</td></tr>
+          <tr><td>text-embedding-3-large</td><td>3072</td><td>64.6</td><td>$0.13</td><td>High accuracy requirements</td></tr>
+          <tr><td>Cohere embed-v3</td><td>1024</td><td>64.5</td><td>$0.10</td><td>Multilingual documents</td></tr>
+          <tr><td>all-MiniLM-L6-v2 (local)</td><td>384</td><td>56.3</td><td>Free</td><td>Offline / privacy-sensitive</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">Production Note</div>
+        <p>For production with pgvector, the setup is: <code>CREATE EXTENSION vector;</code> then create a table with a <code>vector(1536)</code> column. pgvector supports both exact and approximate (IVFFlat, HNSW) indexing. The advantage is that your vectors live alongside your relational metadata in the same PostgreSQL database, simplifying operations and enabling hybrid queries that combine vector similarity with SQL filters.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 4 -->
+    <div class="section" id="s4">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>RAG Retrieval Pipeline</h2>
+      </div>
+
+      <h3 id="s4-plain">Plain Language</h3>
+      <p>The retrieval pipeline is the heart of our document portal — it takes a user's question and finds the most relevant pieces of information from all the documents in our system. Think of it as the moment a library patron approaches the reference desk with a question, and the librarian's expertise kicks in to find exactly the right sources.</p>
+      <p>The retrieval process is more sophisticated than a simple vector search. First, we <strong>embed the query</strong> using the same embedding model we used for documents. Then we perform a <strong>similarity search</strong> in the vector store to get candidate chunks. But raw similarity scores aren't always reliable — sometimes a chunk scores highly because it shares vocabulary with the query but isn't actually answering the question. So we add a <strong>reranking step</strong> that uses a cross-encoder model to more accurately score each candidate's relevance to the specific question.</p>
+      <p>After reranking, we have our top-K most relevant chunks. We then <strong>assemble context</strong> by formatting these chunks with their source metadata (filename, page number) into a prompt that the LLM can use. The LLM receives the user's question plus these context chunks and generates an answer that's grounded in the actual document content, complete with citations pointing back to the specific sources.</p>
+      <p>We also implement <strong>conversation memory</strong> so users can ask follow-up questions. If a user asks "What's the return policy?" and then follows up with "How long do I have?", the system needs to understand that "how long" refers to the return policy from the previous question. We do this by maintaining a conversation history and reformulating follow-up questions to be self-contained before running retrieval.</p>
+
+      <h3 id="s4-deep">Deep Dive</h3>
+      <p>The retrieval pipeline combines vector search, optional reranking, and context assembly into a single cohesive service:</p>
+
+<pre><code><span class="code-keyword">from</span> openai <span class="code-keyword">import</span> AsyncOpenAI
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-fn">RetrievalResult</span>:
+    text: str
+    score: float
+    metadata: dict
+
+<span class="code-keyword">class</span> <span class="code-fn">RAGPipeline</span>:
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self, embedder, vector_store, llm_client=<span class="code-keyword">None</span>):
+        self.embedder = embedder
+        self.vector_store = vector_store
+        self.llm = llm_client <span class="code-keyword">or</span> AsyncOpenAI()
+
+    <span class="code-keyword">async def</span> <span class="code-fn">reformulate_query</span>(
+        self, query: str, history: list[dict]
+    ) -> str:
+        <span class="code-string">"""Rewrite follow-up questions to be self-contained."""</span>
+        <span class="code-keyword">if not</span> history:
+            <span class="code-keyword">return</span> query
+        messages = [
+            {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: (
+                <span class="code-string">"Rewrite the user's follow-up question to be "</span>
+                <span class="code-string">"self-contained, incorporating context from the "</span>
+                <span class="code-string">"conversation history. Return ONLY the rewritten "</span>
+                <span class="code-string">"question, nothing else."</span>
+            )},
+            *history[-<span class="code-num">4</span>:],  <span class="code-comment"># Last 4 turns</span>
+            {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: query}
+        ]
+        resp = <span class="code-keyword">await</span> self.llm.chat.completions.<span class="code-fn">create</span>(
+            model=<span class="code-string">"gpt-4o-mini"</span>, messages=messages,
+            temperature=<span class="code-num">0</span>, max_tokens=<span class="code-num">200</span>
+        )
+        <span class="code-keyword">return</span> resp.choices[<span class="code-num">0</span>].message.content.strip()
+
+    <span class="code-keyword">async def</span> <span class="code-fn">retrieve</span>(
+        self, query: str, top_k: int = <span class="code-num">5</span>,
+        filters: dict = <span class="code-keyword">None</span>, history: list[dict] = <span class="code-keyword">None</span>
+    ) -> list[RetrievalResult]:
+        <span class="code-comment"># Step 1: Reformulate if there's conversation history</span>
+        search_query = <span class="code-keyword">await</span> self.<span class="code-fn">reformulate_query</span>(
+            query, history <span class="code-keyword">or</span> []
+        )
+
+        <span class="code-comment"># Step 2: Embed the query</span>
+        query_vec = <span class="code-keyword">await</span> self.embedder.<span class="code-fn">embed_query</span>(search_query)
+
+        <span class="code-comment"># Step 3: Vector search (retrieve more than needed for reranking)</span>
+        raw = self.vector_store.<span class="code-fn">query</span>(
+            query_embedding=query_vec,
+            n_results=top_k * <span class="code-num">3</span>,
+            where=filters
+        )
+
+        <span class="code-comment"># Step 4: Score-based filtering (remove low quality)</span>
+        candidates = [
+            r <span class="code-keyword">for</span> r <span class="code-keyword">in</span> raw <span class="code-keyword">if</span> r[<span class="code-string">"score"</span>] > <span class="code-num">0.3</span>
+        ]
+
+        <span class="code-comment"># Step 5: LLM-based reranking for top precision</span>
+        reranked = <span class="code-keyword">await</span> self.<span class="code-fn">_rerank</span>(search_query, candidates, top_k)
+
+        <span class="code-keyword">return</span> reranked
+
+    <span class="code-keyword">async def</span> <span class="code-fn">_rerank</span>(self, query, candidates, top_k):
+        <span class="code-keyword">if</span> <span class="code-fn">len</span>(candidates) <= top_k:
+            <span class="code-keyword">return</span> [
+                RetrievalResult(c[<span class="code-string">"text"</span>], c[<span class="code-string">"score"</span>], c[<span class="code-string">"metadata"</span>])
+                <span class="code-keyword">for</span> c <span class="code-keyword">in</span> candidates
+            ]
+        <span class="code-comment"># Use LLM to score relevance (lightweight reranker)</span>
+        scored = []
+        <span class="code-keyword">for</span> c <span class="code-keyword">in</span> candidates[:top_k * <span class="code-num">2</span>]:
+            resp = <span class="code-keyword">await</span> self.llm.chat.completions.<span class="code-fn">create</span>(
+                model=<span class="code-string">"gpt-4o-mini"</span>,
+                messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>:
+                    <span class="code-string">f"Rate 0-10 how relevant this passage is to "</span>
+                    <span class="code-string">f"the query.\nQuery: {query}\n"</span>
+                    <span class="code-string">f"Passage: {c['text'][:500]}\n"</span>
+                    <span class="code-string">f"Score (just the number):"</span>
+                }],
+                temperature=<span class="code-num">0</span>, max_tokens=<span class="code-num">5</span>
+            )
+            <span class="code-keyword">try</span>:
+                score = <span class="code-fn">float</span>(resp.choices[<span class="code-num">0</span>].message.content.strip())
+            <span class="code-keyword">except</span>:
+                score = c[<span class="code-string">"score"</span>] * <span class="code-num">10</span>
+            scored.append((c, score))
+
+        scored.sort(key=<span class="code-keyword">lambda</span> x: x[<span class="code-num">1</span>], reverse=<span class="code-keyword">True</span>)
+        <span class="code-keyword">return</span> [
+            RetrievalResult(c[<span class="code-string">"text"</span>], s / <span class="code-num">10</span>, c[<span class="code-string">"metadata"</span>])
+            <span class="code-keyword">for</span> c, s <span class="code-keyword">in</span> scored[:top_k]
+        ]</code></pre>
+
+      <p>The retrieval pipeline follows a multi-stage funnel: we retrieve 3x the desired results from the vector store (cast a wide net), filter out low-confidence matches (score below 0.3), then rerank the remaining candidates using the LLM as a judge. The LLM-based reranker is a lightweight alternative to a dedicated cross-encoder model — it costs a few cents per query but significantly improves precision. For higher throughput, you'd replace this with a local cross-encoder like <code>cross-encoder/ms-marco-MiniLM-L-6-v2</code> from sentence-transformers.</p>
+
+      <p>The synthesis step generates the final answer with citations:</p>
+
+<pre><code><span class="code-keyword">class</span> <span class="code-fn">RAGSynthesizer</span>:
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self, llm_client=<span class="code-keyword">None</span>):
+        self.llm = llm_client <span class="code-keyword">or</span> AsyncOpenAI()
+
+    <span class="code-keyword">def</span> <span class="code-fn">build_context</span>(self, results: list[RetrievalResult]) -> str:
+        parts = []
+        <span class="code-keyword">for</span> i, r <span class="code-keyword">in</span> <span class="code-fn">enumerate</span>(results, <span class="code-num">1</span>):
+            source = (
+                <span class="code-string">f"{r.metadata['filename']}, "</span>
+                <span class="code-string">f"page {r.metadata.get('page', '?')}"</span>
+            )
+            parts.append(
+                <span class="code-string">f"[Source {i}] ({source}):\n{r.text}\n"</span>
+            )
+        <span class="code-keyword">return</span> <span class="code-string">"\n"</span>.join(parts)
+
+    <span class="code-keyword">async def</span> <span class="code-fn">generate</span>(
+        self, query: str, results: list[RetrievalResult],
+        history: list[dict] = <span class="code-keyword">None</span>, stream: bool = <span class="code-keyword">False</span>
+    ):
+        context = self.<span class="code-fn">build_context</span>(results)
+        system_prompt = (
+            <span class="code-string">"You are a document assistant. Answer the user's "</span>
+            <span class="code-string">"question based ONLY on the provided sources. "</span>
+            <span class="code-string">"Cite sources using [Source N] notation. If the "</span>
+            <span class="code-string">"sources don't contain the answer, say so clearly. "</span>
+            <span class="code-string">"Never make up information."</span>
+        )
+        messages = [
+            {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: system_prompt},
+            *(history <span class="code-keyword">or</span> []),
+            {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>:
+                <span class="code-string">f"Sources:\n{context}\n\nQuestion: {query}"</span>
+            }
+        ]
+
+        <span class="code-keyword">if</span> stream:
+            <span class="code-keyword">return</span> <span class="code-keyword">await</span> self.llm.chat.completions.<span class="code-fn">create</span>(
+                model=<span class="code-string">"gpt-4o"</span>, messages=messages,
+                temperature=<span class="code-num">0.1</span>, max_tokens=<span class="code-num">1500</span>, stream=<span class="code-keyword">True</span>
+            )
+
+        resp = <span class="code-keyword">await</span> self.llm.chat.completions.<span class="code-fn">create</span>(
+            model=<span class="code-string">"gpt-4o"</span>, messages=messages,
+            temperature=<span class="code-num">0.1</span>, max_tokens=<span class="code-num">1500</span>
+        )
+        <span class="code-keyword">return</span> {
+            <span class="code-string">"answer"</span>: resp.choices[<span class="code-num">0</span>].message.content,
+            <span class="code-string">"sources"</span>: [
+                {<span class="code-string">"filename"</span>: r.metadata[<span class="code-string">"filename"</span>],
+                 <span class="code-string">"page"</span>: r.metadata.get(<span class="code-string">"page"</span>),
+                 <span class="code-string">"score"</span>: <span class="code-fn">round</span>(r.score, <span class="code-num">3</span>)}
+                <span class="code-keyword">for</span> r <span class="code-keyword">in</span> results
+            ],
+            <span class="code-string">"model"</span>: <span class="code-string">"gpt-4o"</span>
+        }</code></pre>
+
+      <p>The synthesizer constructs a carefully structured prompt that includes numbered source citations, which the LLM can reference in its answer. Setting <code>temperature=0.1</code> keeps the output factual and closely grounded in the sources. The system prompt explicitly instructs the model to say "I don't know" rather than hallucinate — this is critical for a document Q&A system where users expect accurate, verifiable answers. The streaming option enables real-time response display in the chat interface, improving perceived latency.</p>
+
+      <div class="callout warn">
+        <div class="callout-label">Common Pitfall</div>
+        <p>Don't skip the "answer only from sources" instruction in your system prompt. Without it, the LLM will happily blend its pre-training knowledge with your document content, making it impossible for users to distinguish between verified document information and the model's general knowledge. This is the number one source of trust issues in RAG applications.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 5 -->
+    <div class="section" id="s5">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>FastAPI Backend</h2>
+      </div>
+
+      <h3 id="s5-plain">Plain Language</h3>
+      <p>The FastAPI backend is the central nervous system of our document portal. It's the web server that accepts HTTP requests from the frontend (or any client), routes them to the appropriate service (ingestion, retrieval, or synthesis), and returns structured responses. Think of it as the receptionist at our smart library — it greets visitors, directs them to the right department, and makes sure everyone's requests are handled properly.</p>
+      <p>FastAPI was chosen for several reasons. It's <strong>async-native</strong>, meaning it can handle many simultaneous requests without blocking — while one user's document is being processed, another user's query is being answered, and a third user is uploading a new file. It has <strong>automatic API documentation</strong> — just by defining your endpoints with type hints, you get a beautiful interactive Swagger UI at <code>/docs</code> that lets developers (and the course instructors!) explore and test every endpoint. And it uses <strong>Pydantic models</strong> for request/response validation, ensuring that malformed requests are rejected with clear error messages before they reach your business logic.</p>
+      <p>Our API exposes five core endpoints: <code>POST /upload</code> for document ingestion, <code>GET /documents</code> for listing uploaded documents, <code>POST /query</code> for single-shot RAG questions, <code>POST /chat</code> for conversational RAG with history, and <code>GET /health</code> for monitoring. Each endpoint is designed to be stateless (all state lives in the databases), making horizontal scaling straightforward — just run more instances behind a load balancer.</p>
+
+      <h3 id="s5-deep">Deep Dive</h3>
+      <p>Here's the complete FastAPI application with all endpoints, dependency injection, and error handling:</p>
+
+<pre><code><span class="code-keyword">from</span> fastapi <span class="code-keyword">import</span> FastAPI, UploadFile, File, HTTPException, BackgroundTasks
+<span class="code-keyword">from</span> fastapi.middleware.cors <span class="code-keyword">import</span> CORSMiddleware
+<span class="code-keyword">from</span> fastapi.responses <span class="code-keyword">import</span> StreamingResponse
+<span class="code-keyword">from</span> pydantic <span class="code-keyword">import</span> BaseModel, Field
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Optional
+<span class="code-keyword">import</span> tempfile, shutil, json, asyncio
+<span class="code-keyword">from</span> pathlib <span class="code-keyword">import</span> Path
+
+app = FastAPI(title=<span class="code-string">"Document Portal API"</span>, version=<span class="code-string">"1.0"</span>)
+app.<span class="code-fn">add_middleware</span>(
+    CORSMiddleware, allow_origins=[<span class="code-string">"*"</span>],
+    allow_methods=[<span class="code-string">"*"</span>], allow_headers=[<span class="code-string">"*"</span>]
+)
+
+<span class="code-comment"># --- Services (initialized at startup) ---</span>
+parser = DocumentParser()
+chunker = RecursiveChunker()
+embedder = EmbeddingService()
+store = VectorStore()
+pipeline = RAGPipeline(embedder, store)
+synthesizer = RAGSynthesizer()
+
+<span class="code-comment"># --- Pydantic Models ---</span>
+<span class="code-keyword">class</span> <span class="code-fn">QueryRequest</span>(BaseModel):
+    question: str = Field(..., min_length=<span class="code-num">1</span>, max_length=<span class="code-num">2000</span>)
+    collection: str = <span class="code-string">"default"</span>
+    top_k: int = Field(default=<span class="code-num">5</span>, ge=<span class="code-num">1</span>, le=<span class="code-num">20</span>)
+
+<span class="code-keyword">class</span> <span class="code-fn">ChatRequest</span>(BaseModel):
+    message: str = Field(..., min_length=<span class="code-num">1</span>, max_length=<span class="code-num">2000</span>)
+    conversation_id: Optional[str] = <span class="code-keyword">None</span>
+    collection: str = <span class="code-string">"default"</span>
+    stream: bool = <span class="code-keyword">False</span>
+
+<span class="code-keyword">class</span> <span class="code-fn">SourceInfo</span>(BaseModel):
+    filename: str
+    page: Optional[int]
+    score: float
+
+<span class="code-keyword">class</span> <span class="code-fn">QueryResponse</span>(BaseModel):
+    answer: str
+    sources: list[SourceInfo]
+    model: str
+
+<span class="code-comment"># --- Conversation store (in-memory; use Redis in prod) ---</span>
+conversations: dict[str, list[dict]] = {}
+
+<span class="code-comment"># --- Endpoints ---</span>
+<span class="code-keyword">@app</span>.<span class="code-fn">get</span>(<span class="code-string">"/health"</span>)
+<span class="code-keyword">async def</span> <span class="code-fn">health</span>():
+    <span class="code-keyword">return</span> {<span class="code-string">"status"</span>: <span class="code-string">"ok"</span>, <span class="code-string">"version"</span>: <span class="code-string">"1.0"</span>}
+
+<span class="code-keyword">@app</span>.<span class="code-fn">post</span>(<span class="code-string">"/upload"</span>)
+<span class="code-keyword">async def</span> <span class="code-fn">upload_document</span>(
+    file: UploadFile = File(...),
+    background_tasks: BackgroundTasks = <span class="code-keyword">None</span>,
+    collection: str = <span class="code-string">"default"</span>
+):
+    <span class="code-comment"># Validate file type</span>
+    suffix = Path(file.filename).suffix.lower()
+    <span class="code-keyword">if</span> suffix <span class="code-keyword">not in</span> DocumentParser.SUPPORTED:
+        <span class="code-keyword">raise</span> HTTPException(<span class="code-num">400</span>, <span class="code-string">f"Unsupported: {suffix}"</span>)
+
+    <span class="code-comment"># Save to temp file</span>
+    tmp = tempfile.<span class="code-fn">NamedTemporaryFile</span>(delete=<span class="code-keyword">False</span>, suffix=suffix)
+    shutil.<span class="code-fn">copyfileobj</span>(file.file, tmp)
+    tmp_path = Path(tmp.name)
+    tmp.close()
+
+    <span class="code-comment"># Process in background</span>
+    ingestion = IngestionService(parser, chunker, embedder, store, db)
+    background_tasks.<span class="code-fn">add_task</span>(ingestion.ingest, tmp_path, collection)
+
+    <span class="code-keyword">return</span> {<span class="code-string">"status"</span>: <span class="code-string">"processing"</span>, <span class="code-string">"filename"</span>: file.filename}
+
+<span class="code-keyword">@app</span>.<span class="code-fn">post</span>(<span class="code-string">"/query"</span>, response_model=QueryResponse)
+<span class="code-keyword">async def</span> <span class="code-fn">query_documents</span>(req: QueryRequest):
+    results = <span class="code-keyword">await</span> pipeline.<span class="code-fn">retrieve</span>(
+        req.question, top_k=req.top_k,
+        filters={<span class="code-string">"collection"</span>: req.collection} <span class="code-keyword">if</span> req.collection != <span class="code-string">"default"</span> <span class="code-keyword">else</span> <span class="code-keyword">None</span>
+    )
+    <span class="code-keyword">if not</span> results:
+        <span class="code-keyword">return</span> QueryResponse(
+            answer=<span class="code-string">"No relevant documents found."</span>,
+            sources=[], model=<span class="code-string">"none"</span>
+        )
+    response = <span class="code-keyword">await</span> synthesizer.<span class="code-fn">generate</span>(req.question, results)
+    <span class="code-keyword">return</span> QueryResponse(**response)
+
+<span class="code-keyword">@app</span>.<span class="code-fn">post</span>(<span class="code-string">"/chat"</span>)
+<span class="code-keyword">async def</span> <span class="code-fn">chat</span>(req: ChatRequest):
+    conv_id = req.conversation_id <span class="code-keyword">or</span> <span class="code-fn">str</span>(uuid.uuid4())
+    history = conversations.get(conv_id, [])
+
+    results = <span class="code-keyword">await</span> pipeline.<span class="code-fn">retrieve</span>(
+        req.message, history=history
+    )
+    response = <span class="code-keyword">await</span> synthesizer.<span class="code-fn">generate</span>(
+        req.message, results, history=history, stream=req.stream
+    )
+
+    <span class="code-keyword">if</span> req.stream:
+        <span class="code-keyword">async def</span> <span class="code-fn">event_stream</span>():
+            full = <span class="code-string">""</span>
+            <span class="code-keyword">async for</span> chunk <span class="code-keyword">in</span> response:
+                delta = chunk.choices[<span class="code-num">0</span>].delta.content <span class="code-keyword">or</span> <span class="code-string">""</span>
+                full += delta
+                <span class="code-keyword">yield</span> <span class="code-string">f"data: {json.dumps({'text': delta})}\n\n"</span>
+            history.append({<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: req.message})
+            history.append({<span class="code-string">"role"</span>: <span class="code-string">"assistant"</span>, <span class="code-string">"content"</span>: full})
+            conversations[conv_id] = history
+        <span class="code-keyword">return</span> StreamingResponse(
+            <span class="code-fn">event_stream</span>(), media_type=<span class="code-string">"text/event-stream"</span>,
+            headers={<span class="code-string">"X-Conversation-Id"</span>: conv_id}
+        )
+
+    <span class="code-comment"># Non-streaming response</span>
+    history.append({<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: req.message})
+    history.append({<span class="code-string">"role"</span>: <span class="code-string">"assistant"</span>, <span class="code-string">"content"</span>: response[<span class="code-string">"answer"</span>]})
+    conversations[conv_id] = history
+
+    <span class="code-keyword">return</span> {
+        <span class="code-string">"conversation_id"</span>: conv_id,
+        <span class="code-string">"answer"</span>: response[<span class="code-string">"answer"</span>],
+        <span class="code-string">"sources"</span>: response[<span class="code-string">"sources"</span>]
+    }</code></pre>
+
+      <p>The application uses FastAPI's <code>BackgroundTasks</code> for document processing — when a user uploads a file, the API immediately returns a "processing" status while ingestion happens asynchronously. This prevents the upload endpoint from timing out on large documents. The <code>/chat</code> endpoint supports both streaming (Server-Sent Events) and non-streaming responses, giving the frontend flexibility in how it renders answers.</p>
+      <p>The conversation store is in-memory here for simplicity, but in production you'd use Redis with TTL-based expiration (conversations expire after 24 hours of inactivity) or store them in PostgreSQL for persistence. The conversation ID is returned to the client so it can maintain context across multiple requests.</p>
+      <p>CORS middleware is configured to allow all origins during development. For production, you'd restrict this to your frontend's domain. The Pydantic models provide automatic validation — if someone sends a question longer than 2000 characters or requests more than 20 results, FastAPI returns a 422 error with a clear description of the validation failure.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Testing Tip</div>
+        <p>FastAPI automatically generates interactive API docs at <code>/docs</code> (Swagger UI) and <code>/redoc</code> (ReDoc). Use these to test your endpoints during development without writing any frontend code. You can upload files, send queries, and inspect responses directly in the browser.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 6 -->
+    <div class="section" id="s6">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Frontend &amp; Deployment</h2>
+      </div>
+
+      <h3 id="s6-plain">Plain Language</h3>
+      <p>The frontend is the face of our document portal — the interface users interact with to upload documents and ask questions. We build a simple but effective chat-based interface that feels familiar to anyone who has used ChatGPT or similar tools. Users can drag-and-drop documents to upload them, type questions in a chat input, see answers stream in real-time, and click on source citations to see which document and page the answer came from.</p>
+      <p>For deployment, we containerize the entire application with Docker so it can run anywhere — on a developer's laptop, on a cloud VM, or on AWS ECS. Docker ensures that "it works on my machine" translates to "it works everywhere" by bundling the application code, Python dependencies, and system libraries into a single portable image. We use Docker Compose to orchestrate the multiple services (API server, ChromaDB, PostgreSQL) and define how they connect to each other.</p>
+      <p>The deployment section also covers essential production concerns: environment variable management for API keys, health check endpoints for load balancers, logging for debugging, and basic monitoring to know when something goes wrong. These aren't glamorous features, but they're the difference between a demo that works once and a service that runs reliably for months.</p>
+
+      <h3 id="s6-deep">Deep Dive</h3>
+      <p>Let's start with a minimal but functional Streamlit frontend for rapid prototyping:</p>
+
+<pre><code><span class="code-keyword">import</span> streamlit <span class="code-keyword">as</span> st
+<span class="code-keyword">import</span> requests
+
+API_URL = <span class="code-string">"http://localhost:8000"</span>
+
+st.<span class="code-fn">set_page_config</span>(page_title=<span class="code-string">"Document Portal"</span>, layout=<span class="code-string">"wide"</span>)
+st.<span class="code-fn">title</span>(<span class="code-string">"📄 Document Q&A Portal"</span>)
+
+<span class="code-comment"># --- Sidebar: Document Upload ---</span>
+<span class="code-keyword">with</span> st.sidebar:
+    st.<span class="code-fn">header</span>(<span class="code-string">"Upload Documents"</span>)
+    uploaded = st.<span class="code-fn">file_uploader</span>(
+        <span class="code-string">"Drop PDF, TXT, or MD files"</span>,
+        type=[<span class="code-string">"pdf"</span>, <span class="code-string">"txt"</span>, <span class="code-string">"md"</span>],
+        accept_multiple_files=<span class="code-keyword">True</span>
+    )
+    <span class="code-keyword">if</span> uploaded:
+        <span class="code-keyword">for</span> f <span class="code-keyword">in</span> uploaded:
+            resp = requests.<span class="code-fn">post</span>(
+                <span class="code-string">f"{API_URL}/upload"</span>,
+                files={<span class="code-string">"file"</span>: (f.name, f, f.type)}
+            )
+            <span class="code-keyword">if</span> resp.status_code == <span class="code-num">200</span>:
+                st.<span class="code-fn">success</span>(<span class="code-string">f"Uploaded: {f.name}"</span>)
+            <span class="code-keyword">else</span>:
+                st.<span class="code-fn">error</span>(<span class="code-string">f"Failed: {f.name}"</span>)
+
+<span class="code-comment"># --- Chat Interface ---</span>
+<span class="code-keyword">if</span> <span class="code-string">"messages"</span> <span class="code-keyword">not in</span> st.session_state:
+    st.session_state.messages = []
+<span class="code-keyword">if</span> <span class="code-string">"conv_id"</span> <span class="code-keyword">not in</span> st.session_state:
+    st.session_state.conv_id = <span class="code-keyword">None</span>
+
+<span class="code-keyword">for</span> msg <span class="code-keyword">in</span> st.session_state.messages:
+    <span class="code-keyword">with</span> st.<span class="code-fn">chat_message</span>(msg[<span class="code-string">"role"</span>]):
+        st.<span class="code-fn">markdown</span>(msg[<span class="code-string">"content"</span>])
+        <span class="code-keyword">if</span> <span class="code-string">"sources"</span> <span class="code-keyword">in</span> msg:
+            <span class="code-keyword">with</span> st.<span class="code-fn">expander</span>(<span class="code-string">"📚 Sources"</span>):
+                <span class="code-keyword">for</span> s <span class="code-keyword">in</span> msg[<span class="code-string">"sources"</span>]:
+                    st.<span class="code-fn">caption</span>(<span class="code-string">f"{s['filename']} p.{s['page']} "
+                             f"(score: {s['score']:.2f})"</span>)
+
+<span class="code-keyword">if</span> prompt := st.<span class="code-fn">chat_input</span>(<span class="code-string">"Ask about your documents..."</span>):
+    st.session_state.messages.append({<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: prompt})
+    <span class="code-keyword">with</span> st.<span class="code-fn">chat_message</span>(<span class="code-string">"user"</span>):
+        st.<span class="code-fn">markdown</span>(prompt)
+
+    <span class="code-keyword">with</span> st.<span class="code-fn">chat_message</span>(<span class="code-string">"assistant"</span>):
+        <span class="code-keyword">with</span> st.<span class="code-fn">spinner</span>(<span class="code-string">"Searching documents..."</span>):
+            resp = requests.<span class="code-fn">post</span>(<span class="code-string">f"{API_URL}/chat"</span>, json={
+                <span class="code-string">"message"</span>: prompt,
+                <span class="code-string">"conversation_id"</span>: st.session_state.conv_id
+            })
+            data = resp.<span class="code-fn">json</span>()
+
+        st.<span class="code-fn">markdown</span>(data[<span class="code-string">"answer"</span>])
+        st.session_state.conv_id = data[<span class="code-string">"conversation_id"</span>]
+        st.session_state.messages.append({
+            <span class="code-string">"role"</span>: <span class="code-string">"assistant"</span>,
+            <span class="code-string">"content"</span>: data[<span class="code-string">"answer"</span>],
+            <span class="code-string">"sources"</span>: data.get(<span class="code-string">"sources"</span>, [])
+        })</code></pre>
+
+      <p>Streamlit provides a rapid prototyping framework — this entire chat UI is about 50 lines of Python. The sidebar handles document uploads, the main area shows the conversation, and sources are displayed in expandable sections beneath each answer. For a production frontend, you'd build a React or Next.js application with proper state management, but Streamlit is perfect for the capstone because it lets you focus on the RAG pipeline rather than frontend engineering.</p>
+
+      <p>Now let's containerize everything with Docker Compose:</p>
+
+<pre><code><span class="code-comment"># docker-compose.yml</span>
+<span class="code-keyword">version</span>: <span class="code-string">"3.9"</span>
+
+<span class="code-keyword">services</span>:
+  <span class="code-fn">api</span>:
+    <span class="code-keyword">build</span>: .
+    <span class="code-keyword">ports</span>:
+      - <span class="code-string">"8000:8000"</span>
+    <span class="code-keyword">environment</span>:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - CHROMA_PERSIST_DIR=/data/chroma
+      - DATABASE_URL=postgresql://portal:secret@db:5432/portal
+    <span class="code-keyword">volumes</span>:
+      - chroma_data:/data/chroma
+      - uploads:/data/uploads
+    <span class="code-keyword">depends_on</span>:
+      db:
+        <span class="code-keyword">condition</span>: service_healthy
+    <span class="code-keyword">healthcheck</span>:
+      <span class="code-keyword">test</span>: [<span class="code-string">"CMD"</span>, <span class="code-string">"curl"</span>, <span class="code-string">"-f"</span>, <span class="code-string">"http://localhost:8000/health"</span>]
+      <span class="code-keyword">interval</span>: <span class="code-num">30</span>s
+      <span class="code-keyword">timeout</span>: <span class="code-num">10</span>s
+      <span class="code-keyword">retries</span>: <span class="code-num">3</span>
+
+  <span class="code-fn">frontend</span>:
+    <span class="code-keyword">build</span>:
+      <span class="code-keyword">context</span>: .
+      <span class="code-keyword">dockerfile</span>: Dockerfile.frontend
+    <span class="code-keyword">ports</span>:
+      - <span class="code-string">"8501:8501"</span>
+    <span class="code-keyword">environment</span>:
+      - API_URL=http://api:8000
+    <span class="code-keyword">depends_on</span>:
+      - api
+
+  <span class="code-fn">db</span>:
+    <span class="code-keyword">image</span>: postgres:16-alpine
+    <span class="code-keyword">environment</span>:
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: portal
+    <span class="code-keyword">volumes</span>:
+      - pg_data:/var/lib/postgresql/data
+    <span class="code-keyword">healthcheck</span>:
+      <span class="code-keyword">test</span>: [<span class="code-string">"CMD-SHELL"</span>, <span class="code-string">"pg_isready -U portal"</span>]
+      <span class="code-keyword">interval</span>: <span class="code-num">5</span>s
+      <span class="code-keyword">timeout</span>: <span class="code-num">5</span>s
+      <span class="code-keyword">retries</span>: <span class="code-num">5</span>
+
+<span class="code-keyword">volumes</span>:
+  chroma_data:
+  pg_data:
+  uploads:</code></pre>
+
+<pre><code><span class="code-comment"># Dockerfile</span>
+<span class="code-keyword">FROM</span> python:3.11-slim
+
+<span class="code-keyword">WORKDIR</span> /app
+
+<span class="code-comment"># Install system deps</span>
+<span class="code-keyword">RUN</span> apt-get update && apt-get install -y --no-install-recommends \
+    curl build-essential && rm -rf /var/lib/apt/lists/*
+
+<span class="code-comment"># Install Python deps</span>
+<span class="code-keyword">COPY</span> requirements.txt .
+<span class="code-keyword">RUN</span> pip install --no-cache-dir -r requirements.txt
+
+<span class="code-comment"># Copy application code</span>
+<span class="code-keyword">COPY</span> app/ ./app/
+
+<span class="code-keyword">EXPOSE</span> 8000
+
+<span class="code-keyword">CMD</span> [<span class="code-string">"uvicorn"</span>, <span class="code-string">"app.main:app"</span>, <span class="code-string">"--host"</span>, <span class="code-string">"0.0.0.0"</span>, \
+     <span class="code-string">"--port"</span>, <span class="code-string">"8000"</span>, <span class="code-string">"--workers"</span>, <span class="code-string">"2"</span>]</code></pre>
+
+      <p>The Docker Compose setup orchestrates three services: the FastAPI backend, the Streamlit frontend, and a PostgreSQL database for metadata. ChromaDB runs embedded within the API process and persists to a Docker volume. Health checks ensure services start in the right order — the API waits for PostgreSQL to be ready before starting, and the frontend waits for the API.</p>
+
+      <p>For production deployment on AWS, you'd push the Docker images to ECR and run them on ECS Fargate:</p>
+
+<pre><code><span class="code-comment"># Deploy to AWS ECS (simplified)</span>
+
+<span class="code-comment"># 1. Build and push to ECR</span>
+aws ecr get-login-password | docker login --username AWS \
+  --password-stdin <span class="code-num">123456789</span>.dkr.ecr.us-east-1.amazonaws.com
+
+docker build -t doc-portal .
+docker tag doc-portal:latest <span class="code-num">123456789</span>.dkr.ecr.us-east-1.amazonaws.com/doc-portal:latest
+docker push <span class="code-num">123456789</span>.dkr.ecr.us-east-1.amazonaws.com/doc-portal:latest
+
+<span class="code-comment"># 2. Create ECS service with Fargate</span>
+aws ecs create-service \
+  --cluster genai-cluster \
+  --service-name doc-portal \
+  --task-definition doc-portal:1 \
+  --desired-count <span class="code-num">2</span> \
+  --launch-type FARGATE \
+  --network-configuration <span class="code-string">"awsvpcConfiguration={subnets=[subnet-xxx],securityGroups=[sg-xxx],assignPublicIp=ENABLED}"</span></code></pre>
+
+      <div class="callout">
+        <div class="callout-label">Deployment Checklist</div>
+        <p>Before deploying to production: (1) Store API keys in AWS Secrets Manager, not environment variables, (2) Set up CloudWatch alarms for error rates and latency, (3) Enable HTTPS via an ALB with ACM certificate, (4) Restrict CORS to your frontend domain, (5) Add rate limiting to prevent abuse, (6) Set up log aggregation with CloudWatch Logs or similar.</p>
+      </div>
+
+      <table>
+        <thead><tr><th>Component</th><th>Dev Setup</th><th>Production Setup</th></tr></thead>
+        <tbody>
+          <tr><td>API Server</td><td>uvicorn, 1 worker</td><td>ECS Fargate, 2+ tasks, ALB</td></tr>
+          <tr><td>Vector Store</td><td>ChromaDB (in-process)</td><td>pgvector on RDS or OpenSearch</td></tr>
+          <tr><td>Metadata DB</td><td>SQLite</td><td>PostgreSQL on RDS</td></tr>
+          <tr><td>File Storage</td><td>Local disk</td><td>S3 with lifecycle policies</td></tr>
+          <tr><td>Frontend</td><td>Streamlit</td><td>React/Next.js on CloudFront</td></tr>
+          <tr><td>Secrets</td><td>.env file</td><td>AWS Secrets Manager</td></tr>
+          <tr><td>Monitoring</td><td>Console logs</td><td>CloudWatch + X-Ray</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- NEXT/PREV NAV -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous</div>
+        <a href="14-n8n-no-code.html" class="prev-btn">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9H4m0 0l4-4m-4 4l4 4"/></svg>
+          14 · No-Code Agents
+        </a>
+      </div>
+      <div style="text-align:right">
+        <div class="next-label">Next</div>
+        <a href="16-capstone-report-agent.html" class="next-btn">
+          16 · Capstone II: Report Agent
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h10m0 0l-4-4m4 4l-4 4"/></svg>
+        </a>
+        <div class="next-phase">Phase 7 · Projects</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const toc = document.querySelectorAll('.toc a');
+  const sections = document.querySelectorAll('.section[id], h3[id]');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        toc.forEach(a => a.classList.remove('active'));
+        const match = document.querySelector(`.toc a[href="#${e.target.id}"]`);
+        if (match) match.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -60% 0px' });
+  sections.forEach(s => obs.observe(s));
+});
+</script>
+</body>
+</html>

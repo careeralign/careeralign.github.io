@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 02 · LLMs, SLMs &amp; Multimodal Models — CareerAlign GenAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--phase-found); background: rgba(59,130,246,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-indigo);
+  padding: 6px 14px; border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(99,102,241,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--phase-found); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--phase-found); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--phase-found); flex-shrink: 0; }
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--phase-found); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--phase-found); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--phase-found);
+  background: rgba(59,130,246,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--phase-cloud); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--phase-project); background: rgba(245,158,11,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--phase-found);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--phase-cloud); }
+.callout.warn .callout-label { color: var(--phase-project); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* SVG DIAGRAM */
+.diagram-wrap {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg); padding: 32px;
+  margin: 32px 0;
+}
+.diagram-caption {
+  text-align: center; font-size: 13px; color: var(--text-muted);
+  margin-top: 16px; font-style: italic;
+}
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--phase-found); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(59,130,246,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* CHECKLIST */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px; color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 2px solid var(--phase-found);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.check-box.done { background: var(--phase-found); border-color: var(--phase-found); }
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--phase-found); color: var(--phase-found); transform: translateX(4px); }
+.prev-btn:hover { transform: translateX(-4px) !important; }
+.next-phase { font-size: 12px; color: var(--phase-found); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9889; <span>CareerAlign</span> GenAI</div>
+  <div class="nav-links">
+    <a href="00-prerequisites.html">00 &middot; Prerequisites</a>
+    <a href="01-foundations-of-genai.html">01 &middot; Foundations</a>
+    <a href="02-llms-slms-multimodal.html" class="active">02 &middot; Models</a>
+    <a href="03-api-for-llms.html">03 &middot; APIs</a>
+    <a href="04-fine-tuning.html">04 &middot; Fine-Tuning</a>
+    <a href="05-llm-hosting.html">05 &middot; Hosting</a>
+    <a href="06-prompt-engineering.html">06 &middot; Prompting</a>
+    <a href="07-rag-systems.html">07 &middot; RAG</a>
+    <a href="08-advanced-rag.html">08 &middot; Adv RAG</a>
+    <a href="09-agents.html">09 &middot; Agents</a>
+    <a href="10-evaluation.html">10 &middot; Eval</a>
+    <a href="11-guardrails.html">11 &middot; Guardrails</a>
+    <a href="12-mcp.html">12 &middot; MCP</a>
+    <a href="13-aws-cloud.html">13 &middot; AWS</a>
+    <a href="14-n8n-no-code.html">14 &middot; n8n</a>
+    <a href="15-capstone-document-portal.html">15 &middot; Cap I</a>
+    <a href="16-capstone-report-agent.html">16 &middot; Cap II</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GenAI Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    Module 02 &middot; Foundations Phase
+  </div>
+  <h1>LLMs, SLMs &amp; <em>Multimodal Models</em></h1>
+  <p class="hero-desc">
+    A comprehensive guide to the model landscape you will work with throughout this course.
+    Understand the difference between large and small models, closed-weight and open-weight families,
+    multimodal capabilities, and how to make intelligent decisions about which model to use for which task.
+    This module gives you the vocabulary, mental models, and practical frameworks to navigate a landscape
+    that changes faster than any other area of software engineering.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Model Landscape
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Key Models &amp; Families
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Small Language Models
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Multimodal Capabilities
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Selection Framework
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/02-llms-slms-multimodal.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#landscape" class="section">1 &middot; The LLM Landscape</a>
+    <a href="#landscape-plain" class="sub">Plain Language</a>
+    <a href="#landscape-deep" class="sub">Deep Dive</a>
+    <a href="#landscape-params" class="sub">Parameter Counts</a>
+    <a href="#landscape-moe" class="sub">Mixture-of-Experts</a>
+    <a href="#key-models" class="section">2 &middot; Key Models</a>
+    <a href="#key-models-plain" class="sub">Plain Language</a>
+    <a href="#key-models-families" class="sub">Model Families Deep Dive</a>
+    <a href="#key-models-reasoning" class="sub">Reasoning Models (o1/o3)</a>
+    <a href="#slms" class="section">3 &middot; Small Language Models</a>
+    <a href="#slms-plain" class="sub">Plain Language</a>
+    <a href="#slms-phi" class="sub">Phi &amp; Gemma</a>
+    <a href="#slms-quantization" class="sub">Quantization &amp; Ollama</a>
+    <a href="#multimodal" class="section">4 &middot; Multimodal Models</a>
+    <a href="#multimodal-plain" class="sub">Plain Language</a>
+    <a href="#multimodal-vit" class="sub">Vision Transformers</a>
+    <a href="#multimodal-audio" class="sub">Audio &amp; Document</a>
+    <a href="#selection" class="section">5 &middot; Selection Framework</a>
+    <a href="#selection-plain" class="sub">Plain Language</a>
+    <a href="#selection-decision" class="sub">Decision Tree</a>
+    <a href="#selection-pricing" class="sub">Pricing &amp; Benchmarks</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TOPIC 1: LLM LANDSCAPE -->
+    <section class="section" id="landscape">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>The LLM Landscape</h2>
+      </div>
+
+      <h3 id="landscape-plain">Plain Language: What Is Going On Out There</h3>
+
+      <p>
+        When people say a model is "large," they are almost always referring to its <strong>parameter count</strong> —
+        the number of learned numerical weights that encode the model's knowledge and behavior. A 7-billion-parameter
+        model has 7 billion of these values; a 70-billion-parameter model has ten times as many. But parameter count
+        is really just the headline number. What actually determines a model's capability is the combination of
+        how many parameters it has, how much data it was trained on, and how much compute (measured in GPU-hours
+        or floating-point operations) was used during training. A model with fewer parameters trained on better,
+        more carefully curated data can outperform a larger model trained sloppily. This is why some of the most
+        surprising benchmarks in recent years have been small models punching far above their weight.
+      </p>
+      <p>
+        The major providers in the current landscape break down roughly into two camps. On the <strong>closed-weight</strong>
+        side you have OpenAI (GPT-4o, o1, o3), Anthropic (Claude 3 and 3.5 and 3.7), Google DeepMind (Gemini Flash,
+        Pro, Ultra), Cohere (Command R+), and xAI (Grok). These companies train their models, keep the weights
+        proprietary, and give you access through a paid API. You can call their models, but you cannot download
+        them, inspect their internals, or run them on your own hardware. On the <strong>open-weight</strong> side
+        you have Meta AI (Llama 3.x), Mistral AI (Mistral 7B, Mixtral 8x7B), Alibaba (Qwen 2.5),
+        Microsoft (Phi-3, Phi-4), Google (Gemma 2), and DeepSeek (V3, R1). These labs release their model
+        weights publicly, which means you can download them, run them locally, fine-tune them on your own data,
+        and deploy them on your own infrastructure.
+      </p>
+      <p>
+        The <strong>closed-weight advantage</strong> is that frontier models from OpenAI and Anthropic consistently
+        sit at the top of most benchmarks, they are continuously updated without you needing to do anything,
+        they handle the infrastructure, and they provide safety features and content policies. The
+        <strong>open-weight advantage</strong> is that once you have the weights, your cost is just the hardware
+        you run them on, your data never leaves your premises, you can fine-tune the model for your specific
+        domain, and you are not subject to a third party's API availability or pricing changes. The choice
+        between them is not philosophical — it is a practical engineering decision based on your use case,
+        your budget, and your data sensitivity requirements.
+      </p>
+      <p>
+        The landscape is unusual in how quickly it changes. In most fields of engineering, the set of
+        available tools is relatively stable over a year or two. In LLMs, major capability improvements
+        arrive every three to six months. Models that were considered state-of-the-art in early 2024 were
+        soundly beaten by mid-2024, which were themselves beaten by end of year. This is not just incremental
+        improvement — it is capability doublings, where models that could not reliably complete a complex
+        multi-step coding task in one generation can do it fluently in the next. For a practitioner this means
+        the specific model names you memorize today will be outdated within months, but the underlying
+        frameworks for evaluating and selecting models will stay relevant.
+      </p>
+      <p>
+        What is driving this speed is a convergence of factors: a clear scaling recipe that still yields
+        improvements (more data, more compute, more parameters), billions of dollars of investment creating
+        infrastructure for rapid experimentation, a growing pool of researchers who have internalized the
+        transformer architecture, and the network effect of open-weight models allowing the research community
+        to build on each other's work. The word "commoditization" gets used a lot in this space — the idea
+        that models which were premium products in 2023 are effectively free or near-free by 2025. GPT-3.5-level
+        capability, which cost meaningful money to access in 2022, can now be run locally for free on a
+        mid-range laptop. This trajectory is continuing.
+      </p>
+
+      <h3 id="landscape-deep">Deep Dive: Parameters, Compute, and Context</h3>
+
+      <p id="landscape-params">
+        The parameter count of a model determines several practical properties simultaneously. It sets a
+        floor on the memory required to run the model (roughly 2 bytes per parameter in 16-bit precision,
+        so a 7B model needs about 14GB of VRAM before you account for activations and KV cache). It also
+        largely determines the inference speed, since the forward pass through the network must multiply
+        activations through all those weight matrices. And it has a strong correlation (though not a
+        perfect one) with the model's knowledge and reasoning ceiling. The commonly used size classes
+        in the open-weight world are: <strong>7B</strong> (fast, cheap, runs on consumer GPUs, capable enough
+        for many production tasks), <strong>13B</strong> (a sweet spot that was popular before larger context
+        windows made 7B models more compelling), <strong>34B</strong> (often used for domain-specific fine-tuning
+        where quality matters more than speed), <strong>70B</strong> (the current gold standard for open-weight
+        quality — requires A100-class hardware but competitive with frontier models on many tasks), <strong>405B</strong>
+        (Llama 3.1 405B, Meta's most capable open release, requires multiple A100s), and beyond that,
+        models like GPT-4 which are speculated to be in the 1T+ parameter range using Mixture-of-Experts
+        architectures.
+      </p>
+      <p>
+        To put compute costs in context: training a 70B model from scratch on quality data requires
+        roughly <strong>one million GPU-hours on A100 80GB GPUs</strong>. At cloud spot prices around $1-2
+        per GPU-hour, that is $1-2M in compute for a single training run, before you account for
+        experimentation, hyperparameter tuning, and the fact that the first training run almost never
+        produces the best model. Frontier labs run dozens of ablations and intermediate checkpoints.
+        The compute budgets for models like GPT-4 and Gemini Ultra are estimated in the $50-100M range.
+        This is why hardware and compute access are genuine moats for frontier model development, and why
+        the open-weight ecosystem — which benefits from Meta spending the training cost and releasing the
+        weights — is so valuable to the broader community.
+      </p>
+      <p>
+        Context window evolution tells a story of one of the most impactful improvements in LLM usability.
+        <strong>GPT-2</strong> (2019) had a context window of 1,024 tokens. <strong>GPT-3</strong> (2020)
+        expanded to 2,048. <strong>GPT-4</strong> launched with 8,192 tokens, later expanded to 32,768.
+        <strong>Claude 2</strong> (2023) was a landmark moment with 100,000 tokens, enabling full books
+        or large codebases in a single context. <strong>Gemini 1.5 Pro</strong> pushed this to
+        1,000,000 tokens — one million — which means you can theoretically fit an entire software
+        codebase, an hour of audio, or thousands of documents. <strong>Claude 3.7 Sonnet</strong> has
+        a 200,000 token context window. The practical implication is that "long context" techniques
+        that required complex retrieval systems in 2023 can sometimes be replaced by simply fitting
+        everything into the prompt in 2025 — though retrieval is still necessary for truly large corpora
+        and for cost-effectiveness.
+      </p>
+      <p>
+        The <strong>MMLU benchmark</strong> (Massive Multitask Language Understanding) became the
+        dominant academic benchmark for measuring LLM intelligence from 2021 onward. It tests a model
+        across 57 subjects — from elementary mathematics to professional law and medicine — with
+        multiple-choice questions. Human expert performance is approximately 89%. Representative
+        scores: GPT-4 scored 86.4%, Claude 3 Opus scored 86.8%, Llama 3 70B scored 82.0%, and
+        Phi-3-medium (14B) reached 78.2%. These numbers are useful for rough comparisons but should
+        be interpreted cautiously: MMLU tests factual knowledge retrieval, not the kind of reasoning,
+        planning, and instruction following that matters most in production systems.
+      </p>
+      <p id="landscape-moe">
+        <strong>Mixture-of-Experts (MoE)</strong> is an architectural innovation that decouples a model's
+        total parameter count from its inference compute cost. The classic transformer has a single
+        feed-forward network (FFN) block that every token passes through. An MoE model instead has
+        multiple FFN blocks called "experts" — in Mixtral 8x7B there are 8 such experts — and a
+        routing network that selects a small number of them (typically 2) for each token. The result
+        is that Mixtral 8x7B has 46B total parameters but only activates about 12B during any given
+        inference step, giving it quality closer to a 40B+ dense model but speed closer to a 12B model.
+        GPT-4 is widely speculated (though never confirmed) to be a very large MoE model. The
+        architecture allows labs to train larger effective models without proportionally increasing
+        inference costs, which is why MoE is central to the frontier model scaling strategy.
+      </p>
+      <p>
+        <strong>Benchmark gaming</strong> is a genuine problem in the LLM evaluation space. When labs
+        optimize heavily for benchmark performance — sometimes by including benchmark-adjacent data in
+        their training sets — benchmark scores become an increasingly unreliable signal of real-world
+        capability. The community has responded by developing harder, contamination-resistant benchmarks.
+        <strong>GPQA</strong> (Graduate-level Professional Questions in STEM) contains questions so
+        difficult that PhD-level domain experts only score around 65% on questions outside their specialty.
+        <strong>LiveBench</strong> generates new questions monthly from current events and mathematical
+        competitions so that contamination is impossible. <strong>ARC-AGI</strong> tests abstract
+        visual pattern completion in ways that current memorization strategies cannot solve.
+        When evaluating claims about model performance, check which benchmark is being cited and
+        whether that benchmark might be contaminated.
+      </p>
+      <p>
+        <strong>Reading a HuggingFace model card</strong> is a practical skill you will use constantly
+        in this course. The model card is the documentation page for any model on HuggingFace Hub.
+        Key sections to read: <em>Model Architecture</em> (what type of transformer, number of layers,
+        attention heads, hidden dimension — tells you about compatibility and memory requirements);
+        <em>Training Data</em> (what datasets, what language distribution, what cutoff date — tells you
+        about knowledge freshness and potential biases); <em>Evaluation Results</em> (benchmark scores
+        on standardized tests — useful for rough comparisons); <em>Intended Uses and Limitations</em>
+        (what the model is designed for and what it explicitly is not tested on); and <em>License</em>
+        (Apache 2.0 means commercial use is permitted, while some models have non-commercial-only licenses
+        that would block production deployment).
+      </p>
+      <p>
+        The concept of <strong>inference throughput</strong> matters enormously for production systems.
+        Tokens per second (tok/s) determines the user experience and the cost of serving. A model
+        generating 20 tok/s feels sluggish to a user expecting chat-like responses. A model generating
+        100 tok/s can stream text faster than most people read. The factors that determine throughput
+        are: model size (smaller is faster), hardware (H100s are roughly 3x faster than A100s), batch
+        size (batching multiple requests together improves GPU utilization), and quantization (reducing
+        weight precision from float32 to int8 or int4 can double speed with modest quality loss).
+      </p>
+
+      <!-- DIAGRAM 1: Model Landscape -->
+      <div class="diagram-wrap" id="landscape-diagram">
+        <svg viewBox="0 0 860 460" width="100%" xmlns="http://www.w3.org/2000/svg" aria-label="Model landscape: capability vs cost-per-token">
+          <defs>
+            <marker id="axarr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#545a78"/>
+            </marker>
+          </defs>
+
+          <!-- Background grid -->
+          <line x1="80" y1="60" x2="80" y2="390" stroke="#1a1f34" stroke-width="1"/>
+          <line x1="80" y1="390" x2="800" y2="390" stroke="#1a1f34" stroke-width="1"/>
+          <!-- Grid lines horizontal -->
+          <line x1="80" y1="150" x2="800" y2="150" stroke="#1a1f34" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="80" y1="250" x2="800" y2="250" stroke="#1a1f34" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="80" y1="330" x2="800" y2="330" stroke="#1a1f34" stroke-width="1" stroke-dasharray="4,4"/>
+          <!-- Grid lines vertical -->
+          <line x1="220" y1="60" x2="220" y2="390" stroke="#1a1f34" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="400" y1="60" x2="400" y2="390" stroke="#1a1f34" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="580" y1="60" x2="580" y2="390" stroke="#1a1f34" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="720" y1="60" x2="720" y2="390" stroke="#1a1f34" stroke-width="1" stroke-dasharray="4,4"/>
+
+          <!-- Axes -->
+          <line x1="80" y1="60" x2="80" y2="400" stroke="#545a78" stroke-width="2" marker-end="url(#axarr)"/>
+          <line x1="70" y1="390" x2="810" y2="390" stroke="#545a78" stroke-width="2" marker-end="url(#axarr)"/>
+
+          <!-- Axis labels -->
+          <text x="30" y="230" fill="#8e94b5" font-family="'Space Grotesk',sans-serif" font-size="12" font-weight="600" transform="rotate(-90,30,230)">CAPABILITY</text>
+          <text x="420" y="435" fill="#8e94b5" font-family="'Space Grotesk',sans-serif" font-size="12" font-weight="600" text-anchor="middle">COST PER TOKEN (low to high)</text>
+
+          <!-- Axis tick labels -->
+          <text x="75" y="155" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10" text-anchor="end">High</text>
+          <text x="75" y="255" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10" text-anchor="end">Mid</text>
+          <text x="75" y="335" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10" text-anchor="end">Low</text>
+
+          <text x="145" y="408" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10" text-anchor="middle">Free / Local</text>
+          <text x="310" y="408" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10" text-anchor="middle">Very Low</text>
+          <text x="490" y="408" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10" text-anchor="middle">Low-Mid</text>
+          <text x="650" y="408" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10" text-anchor="middle">Mid</text>
+          <text x="760" y="408" fill="#545a78" font-family="'Nunito',sans-serif" font-size="10" text-anchor="middle">High</text>
+
+          <!-- ===== MODEL DOTS ===== -->
+
+          <!-- Phi-4 (local, mid-low capability) -->
+          <circle cx="135" cy="270" r="18" fill="rgba(34,197,94,0.15)" stroke="#22c55e" stroke-width="2"/>
+          <text x="135" y="268" text-anchor="middle" fill="#22c55e" font-family="'Space Grotesk',sans-serif" font-size="10" font-weight="700">Phi-4</text>
+          <text x="135" y="279" text-anchor="middle" fill="#22c55e" font-family="'Nunito',sans-serif" font-size="9">14B local</text>
+
+          <!-- Llama 8B (local, low-mid capability) -->
+          <circle cx="160" cy="308" r="18" fill="rgba(245,158,11,0.12)" stroke="#f59e0b" stroke-width="2"/>
+          <text x="160" y="306" text-anchor="middle" fill="#f59e0b" font-family="'Space Grotesk',sans-serif" font-size="10" font-weight="700">Llama</text>
+          <text x="160" y="317" text-anchor="middle" fill="#f59e0b" font-family="'Nunito',sans-serif" font-size="9">8B local</text>
+
+          <!-- Llama 70B (low cost API/local, high-mid capability) -->
+          <circle cx="270" cy="175" r="20" fill="rgba(245,158,11,0.15)" stroke="#f59e0b" stroke-width="2"/>
+          <text x="270" y="172" text-anchor="middle" fill="#f59e0b" font-family="'Space Grotesk',sans-serif" font-size="10" font-weight="700">Llama</text>
+          <text x="270" y="183" text-anchor="middle" fill="#f59e0b" font-family="'Nunito',sans-serif" font-size="9">70B local</text>
+
+          <!-- Gemini Flash (very low cost, good capability) -->
+          <circle cx="350" cy="210" r="22" fill="rgba(6,182,212,0.15)" stroke="#06b6d4" stroke-width="2"/>
+          <text x="350" y="207" text-anchor="middle" fill="#06b6d4" font-family="'Space Grotesk',sans-serif" font-size="10" font-weight="700">Gemini</text>
+          <text x="350" y="218" text-anchor="middle" fill="#06b6d4" font-family="'Nunito',sans-serif" font-size="9">2.0 Flash</text>
+
+          <!-- GPT-4o-mini (low cost, mid capability) -->
+          <circle cx="430" cy="255" r="20" fill="rgba(99,102,241,0.15)" stroke="#6366f1" stroke-width="2"/>
+          <text x="430" y="252" text-anchor="middle" fill="#6366f1" font-family="'Space Grotesk',sans-serif" font-size="10" font-weight="700">GPT-4o</text>
+          <text x="430" y="263" text-anchor="middle" fill="#6366f1" font-family="'Nunito',sans-serif" font-size="9">mini</text>
+
+          <!-- Claude Sonnet (mid cost, very high capability) -->
+          <circle cx="640" cy="110" r="26" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="2.5"/>
+          <text x="640" y="106" text-anchor="middle" fill="#a855f7" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="700">Claude</text>
+          <text x="640" y="118" text-anchor="middle" fill="#a855f7" font-family="'Nunito',sans-serif" font-size="9">Sonnet 4.6</text>
+
+          <!-- GPT-4o (high cost, very high capability) -->
+          <circle cx="740" cy="100" r="26" fill="rgba(99,102,241,0.15)" stroke="#6366f1" stroke-width="2.5"/>
+          <text x="740" y="96" text-anchor="middle" fill="#6366f1" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="700">GPT-4o</text>
+          <text x="740" y="108" text-anchor="middle" fill="#6366f1" font-family="'Nunito',sans-serif" font-size="9">flagship</text>
+
+          <!-- Value frontier curve -->
+          <path d="M 145,310 Q 260,210 350,195 Q 450,180 580,130 Q 680,105 760,98" fill="none" stroke="rgba(59,130,246,0.3)" stroke-width="2" stroke-dasharray="6,4"/>
+          <text x="490" y="168" fill="rgba(59,130,246,0.5)" font-family="'Space Grotesk',sans-serif" font-size="10" font-style="italic">value frontier</text>
+
+          <!-- Legend -->
+          <rect x="82" y="65" width="200" height="58" rx="6" fill="#10131e" stroke="#232840"/>
+          <text x="94" y="82" fill="#e6e8f4" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600">Legend</text>
+          <circle cx="94" cy="94" r="5" fill="none" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="105" y="97" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Meta / Open-weight</text>
+          <circle cx="94" cy="108" r="5" fill="none" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="105" y="111" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">OpenAI / Closed</text>
+          <circle cx="200" cy="94" r="5" fill="none" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="211" y="97" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Anthropic</text>
+          <circle cx="200" cy="108" r="5" fill="none" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="211" y="111" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Google</text>
+          <circle cx="200" cy="121" r="5" fill="none" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="211" y="124" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Microsoft</text>
+        </svg>
+        <p class="diagram-caption">Model landscape positioned by capability (vertical) versus cost-per-token (horizontal). The dashed curve represents the value frontier — models on it deliver optimal capability for their price point.</p>
+      </div>
+    </section>
+
+    <!-- TOPIC 2: KEY MODELS -->
+    <section class="section" id="key-models">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Key Models — What You Need to Know</h2>
+      </div>
+
+      <h3 id="key-models-plain">Plain Language: The Models You Will Actually Use</h3>
+
+      <p>
+        <strong>GPT-4o</strong> is OpenAI's flagship model as of 2025 and the one you will reach for when you need
+        maximum capability from the OpenAI ecosystem. The "o" stands for "omni" — it is natively multimodal,
+        meaning it can accept and produce text, images, and audio within a single model architecture rather
+        than having separate specialized sub-models bolted together. In practice this means you can send GPT-4o
+        a photo of a whiteboard, a voice recording, and a text question in the same API call, and it processes
+        all three modalities coherently. It is also significantly faster than GPT-4 Turbo while achieving
+        comparable or better performance, which matters for user-facing applications where latency is visible.
+      </p>
+      <p>
+        <strong>Claude 3.5 and 3.7 Sonnet</strong> from Anthropic represent the best balance of speed,
+        intelligence, and cost in the Claude family. Anthropic's positioning has always emphasized safety
+        and instruction-following — Claude models are particularly strong at following complex, nuanced
+        instructions without going off-script, which makes them popular for production systems where
+        reliability is paramount. Claude 3.7 Sonnet introduced "extended thinking," a hybrid mode where
+        the model can spend additional tokens on an internal chain-of-thought before producing its final
+        answer. This dramatically improves performance on mathematical reasoning and multi-step problems
+        at the cost of higher latency.
+      </p>
+      <p>
+        <strong>Gemini 2.0 Flash and Pro</strong> are Google DeepMind's current generation, and they are
+        notable for two reasons beyond raw benchmark performance. First, they were designed as natively
+        multimodal models from the ground up — not text models with vision tacked on — which gives them
+        a structural advantage at tasks requiring deep integration of visual and textual reasoning. Second,
+        Gemini 2.0 adds native tool use and real-time capabilities that make it well suited for agentic
+        applications where a model must use APIs and search within a conversation. The Flash variant is
+        among the most cost-effective capable models available, making it a default choice for
+        high-volume applications.
+      </p>
+      <p>
+        <strong>Llama 3.x</strong> from Meta AI is the most important open-weight model family in 2025.
+        The 8B variant can be fine-tuned on consumer hardware with 24GB of VRAM, making it accessible
+        for experimentation. The 70B variant requires A100-class GPUs but achieves quality genuinely
+        competitive with GPT-3.5-Turbo and below-frontier Claude models. The 405B variant is a
+        research-grade model that approaches frontier quality. All variants are released under Apache 2.0,
+        which is a permissive license that allows commercial use, modification, and redistribution
+        without restrictions beyond attribution.
+      </p>
+      <p>
+        <strong>Mistral and Mixtral</strong> are the flagship products from Mistral AI, a Paris-based
+        startup founded by former Google DeepMind and Meta AI researchers. They have consistently
+        pushed the envelope on open-weight efficiency — their 7B model outperformed the much larger
+        Llama 2 13B when it was released, establishing that careful architecture choices and better
+        training data can compensate for raw size. The Mixtral 8x7B model demonstrated that
+        Mixture-of-Experts applied to open-weight models can achieve GPT-3.5-level quality. Mistral models
+        are a common choice for self-hosted deployments in European enterprises where data sovereignty
+        requirements make cloud API usage problematic.
+      </p>
+
+      <h3 id="key-models-families">Model Family Deep Dives</h3>
+
+      <p>
+        The <strong>OpenAI family tree</strong> is instructive for understanding how the field evolved.
+        GPT-3 (2020) was trained purely on next-token prediction with no explicit guidance about what
+        constituted a helpful response. It was powerful but erratic — it would continue a question
+        rather than answer it, produce harmful content without resistance, and frequently hallucinate
+        with high confidence. <strong>InstructGPT</strong> (2022) applied Reinforcement Learning from
+        Human Feedback (RLHF) to teach the model to follow instructions, producing a qualitatively
+        different user experience. <strong>ChatGPT</strong> was essentially InstructGPT with a chat
+        interface, and its release in November 2022 triggered the public awareness explosion around
+        LLMs. <strong>GPT-4</strong> (2023) was a landmark capability jump, reliably passing bar exams
+        and medical licensing tests. <strong>GPT-4o</strong> (2024) unified text, image, and audio into
+        a single model. The <strong>o1 and o3</strong> series represents a different architecture
+        philosophy that will be covered below.
+      </p>
+      <p id="key-models-reasoning">
+        <strong>o1 and o3</strong> are OpenAI's "reasoning models" and they represent a significant
+        departure from standard LLM architecture. Rather than generating a response token by token from
+        a single forward pass, o1-class models use an extended internal chain-of-thought — sometimes
+        thousands of tokens of intermediate "thinking" — before producing their final visible output.
+        This hidden reasoning phase is similar to how a human might work through a problem on scratch
+        paper before writing the final answer. The result is dramatic improvements on tasks that require
+        multi-step planning: mathematical olympiad problems, competitive programming, complex scientific
+        reasoning. The tradeoff is latency and cost — o1 calls are typically 3-10x more expensive than
+        GPT-4o calls and take longer because of the extended reasoning chain. The right time to use
+        o1/o3 is when you have a genuinely hard reasoning task, not for routine text generation.
+      </p>
+      <p>
+        The <strong>Anthropic Claude family</strong> has undergone three major generations. Claude 1
+        established the Constitutional AI approach — training the model to be helpful, harmless, and
+        honest using a set of principles rather than purely from human preference labels. Claude 2 was
+        notable for its 100,000-token context window, which was far ahead of competitors at the time
+        and enabled entirely new applications like summarizing entire books or codebases. Claude 3 in
+        early 2024 introduced the three-tier product structure: <strong>Haiku</strong> (fast, cheap,
+        for high-volume lightweight tasks), <strong>Sonnet</strong> (balanced intelligence and speed,
+        the workhorse model), and <strong>Opus</strong> (most capable, slower and more expensive, for
+        complex tasks). Claude 3.5 Sonnet exceeded Claude 3 Opus on most benchmarks while being faster
+        and cheaper. Claude 3.7 Sonnet added hybrid reasoning mode.
+      </p>
+      <p>
+        <strong>Google's Gemini</strong> is organized similarly to Claude: Flash (fast and cheap),
+        Pro (balanced), and Ultra (most capable). Gemini 1.5 Pro's headline feature was the 1M-token
+        context window, which was unprecedented and allowed tasks like analyzing an entire film, a
+        full software codebase, or thousands of documents in a single context. Gemini 2.0 extended
+        this and added native tool use — the ability to call external APIs, run code, and search the
+        web as first-class capabilities rather than as post-hoc function-calling. The Flash variant of
+        Gemini is one of the most cost-effective options on the market ($0.075 per million input tokens
+        as of early 2025) and is often the right choice for high-volume production workloads where the
+        task complexity does not justify a premium model.
+      </p>
+      <p>
+        <strong>Llama 3</strong> represents Meta's third generation of open releases and is
+        significantly more capable than its predecessors. The 3.1 release added a 128,000-token context
+        window across the 8B and 70B variants. The 3.2 release added vision capabilities, enabling
+        image understanding without needing a separate vision model. Fine-tuning the 8B variant on
+        domain-specific data with LoRA (Low-Rank Adaptation) is a common and practical technique —
+        you can adapt the model to specialized vocabulary and reasoning patterns with a relatively
+        modest compute budget and a few thousand training examples.
+      </p>
+      <p>
+        <strong>Mistral 7B</strong> demonstrated when it launched in September 2023 that sliding window
+        attention — which limits each token to attending to only a fixed window of previous tokens rather
+        than the full context — could dramatically reduce memory requirements while preserving quality
+        on most tasks. <strong>Mixtral 8x7B</strong> applied the Mixture-of-Experts architecture to
+        an open-weight model for the first time at significant scale, achieving GPT-3.5-comparable quality.
+        Mistral models use a relatively permissive Apache 2.0 license for their base models, though
+        some of the newer instruction-tuned variants have slightly more restrictive terms.
+      </p>
+      <p>
+        <strong>Qwen 2.5</strong> from Alibaba Cloud is a model family that deserves more attention
+        from Western practitioners than it typically receives. The Qwen series has consistently ranked
+        near the top of open-weight benchmarks, with particular strength in multilingual tasks (Qwen
+        was trained on significantly more Chinese-language data than most Western models) and coding.
+        The 7B through 72B range gives good coverage of deployment scenarios, and the model weights
+        are freely available. For organizations building applications for Asian markets or needing
+        strong multilingual performance, Qwen is a serious consideration.
+      </p>
+      <p>
+        <strong>DeepSeek-V3 and DeepSeek-R1</strong> from the Chinese lab DeepSeek caused significant
+        attention when they were released in early 2025. DeepSeek-V3 is a dense chat model that
+        benchmarks competitively with GPT-4o and Claude 3.5 Sonnet. More notably, <strong>DeepSeek-R1</strong>
+        is an open-weight reasoning model — released with full weights downloadable — that achieves
+        performance competitive with OpenAI's o1 on mathematical and coding benchmarks. This was
+        remarkable because it suggested that the reasoning model capability, previously the exclusive
+        domain of closed API providers, could be replicated and released openly. R1 also released
+        distilled variants (smaller models trained to mimic R1's reasoning process) at the 7B and
+        14B scale.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Practical Guidance</div>
+        <p>For course projects you will default to Claude Sonnet or GPT-4o for complex tasks, Gemini Flash or GPT-4o-mini for cost-sensitive pipelines, and Llama 3 8B/70B when you want to experiment with self-hosted models. This covers 95% of real-world use cases.</p>
+      </div>
+    </section>
+
+    <!-- TOPIC 3: SMALL LANGUAGE MODELS -->
+    <section class="section" id="slms">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Small Language Models (SLMs)</h2>
+      </div>
+
+      <h3 id="slms-plain">Plain Language: When Smaller Is Better</h3>
+
+      <p>
+        The excitement around GPT-4-scale models can create a false impression that bigger is always
+        better. In many production scenarios, the opposite is true. A <strong>small language model</strong>
+        — typically defined as anything under 10 billion parameters — can run on a single consumer laptop,
+        respond in near-real-time, operate entirely offline, and cost essentially nothing per query
+        once you own the hardware. For the right class of tasks, these are not compromises; they are
+        genuine advantages that make previously impossible applications possible.
+      </p>
+      <p>
+        <strong>Microsoft's Phi series</strong> is the best demonstration of what carefully chosen
+        training data can accomplish. The Phi-1 model (2023) was a 1.3B parameter model trained on
+        a custom dataset of high-quality code and "textbook-quality" synthetic examples of mathematical
+        reasoning. It outperformed much larger models on coding benchmarks, establishing the
+        "textbooks are all you need" thesis. Phi-3-mini at 3.8 billion parameters fits in 4GB of
+        VRAM (accessible to any modern GPU), has a 128,000-token context window, and matches or beats
+        Llama 3 8B on many reasoning benchmarks. Phi-4 at 14 billion parameters is a stronger
+        reasoning model trained in part by distillation from GPT-4.
+      </p>
+      <p>
+        <strong>Gemma 2</strong> from Google is a family of small open models at 2B, 9B, and 27B
+        parameters, specifically designed and optimized for on-device inference. Google applied
+        knowledge distillation from larger Gemini models during Gemma training and used specific
+        architectural improvements — like alternating attention mechanisms — to improve efficiency.
+        The 2B variant can run on a Raspberry Pi 5 or a modern smartphone. The 9B variant achieves
+        quality competitive with Llama 3 8B while being faster at inference.
+      </p>
+      <p>
+        The scenarios where you should <strong>choose an SLM over a frontier API</strong> fall into
+        four clear categories. First, <strong>privacy-critical applications</strong>: medical records
+        processing, legal document analysis, financial data review — any context where sending data
+        to an external API is either legally prohibited or would require expensive compliance overhead.
+        Second, <strong>edge deployment</strong>: mobile apps, IoT devices, in-car systems, or any
+        environment where internet connectivity cannot be assumed. Third, <strong>cost-sensitive
+        high-volume tasks</strong>: if your application performs 10 million simple classifications
+        per day, even a $0.15 per million token price becomes significant; a local SLM brings that
+        to near zero. Fourth, <strong>offline applications</strong>: tools that need to work without
+        internet access, such as field research tools or secure facility applications.
+      </p>
+
+      <h3 id="slms-phi">Phi, Gemma, and SLM Benchmarks in Detail</h3>
+
+      <p>
+        <strong>Phi-3-mini (3.8B)</strong> is the flagship demonstration of parameter efficiency.
+        It fits comfortably in 4GB of VRAM in 16-bit precision, making it compatible with consumer
+        GPUs going back to the NVIDIA GTX 1080. In 4-bit quantized form, it requires about 2GB —
+        runnable on an Apple M1 MacBook with 8GB of unified memory. Its 128,000-token context window
+        is remarkable for a model this size; most models at this scale have 8,192 or 32,768 token
+        windows. On MMLU, Phi-3-mini scores approximately 68-70%, which is lower than frontier models
+        but sufficient for many real-world classification, extraction, and summarization tasks.
+      </p>
+      <p>
+        <strong>Phi-4 (14B)</strong> represents a step up in reasoning capability while remaining
+        deployable on a single consumer GPU. It was trained using a combination of original data,
+        synthetic datasets generated by GPT-4, and distillation from GPT-4's outputs. Its math
+        performance is notably strong relative to its size — it scores higher than Llama 3 70B on
+        several mathematical benchmarks while being five times smaller. This makes it a compelling
+        choice for technical assistants or coding helpers that need to run in resource-constrained
+        environments.
+      </p>
+      <p id="slms-quantization">
+        <strong>Quantization</strong> is the technique of representing model weights in lower numerical
+        precision than the standard 32-bit or 16-bit floating point. A float32 weight takes 4 bytes;
+        an int8 weight takes 1 byte; an int4 weight takes 0.5 bytes. This means a model quantized
+        from float32 to int4 uses 8x less memory, which allows models that previously required a
+        $10,000 A100 to run on a $500 consumer GPU. The quality penalty from careful quantization
+        is typically 1-3% on standard benchmarks for int8, and 3-7% for int4 — often acceptable
+        for production tasks. The dominant format for quantized local models is <strong>GGUF</strong>,
+        which is the format used by the llama.cpp inference engine and Ollama.
+      </p>
+      <p>
+        <strong>Ollama</strong> is the most practical tool for running local language models. A single
+        command — <code>ollama run llama3.2</code> — downloads the model, sets it up with the
+        appropriate quantization, and opens an interactive chat session. Ollama also exposes a REST
+        API on <code>localhost:11434</code> that is intentionally compatible with the OpenAI API format,
+        which means any code you write for the OpenAI SDK can be redirected to a local model by
+        changing the base URL and model name. This is a powerful capability for development and
+        testing: you can build and test locally for free, then switch to a cloud API for production
+        without changing your application logic.
+      </p>
+      <p>
+        <strong>llama.cpp</strong> is the inference engine that powers Ollama and many other local
+        model tools. It is written in C++ with no mandatory dependencies (it can run on a plain CPU
+        without any GPU framework installed), supports CUDA and Metal GPU acceleration when available,
+        and implements a wide range of quantization schemes. Its GGUF file format is the standard for
+        distributing quantized model weights. Understanding llama.cpp is not strictly necessary for
+        using Ollama, but it gives you visibility into what is happening under the hood and lets you
+        tune inference parameters like context size, batch size, and thread count.
+      </p>
+      <p>
+        <strong>Knowledge distillation</strong> is a training technique where a smaller "student" model
+        is trained to mimic the output distribution of a larger "teacher" model, rather than being
+        trained solely on raw data. Instead of just learning to predict the next correct token, the
+        student learns to match the teacher's probability distribution over all possible next tokens —
+        including the "soft" signal in the near-miss predictions. This transfers not just the answers
+        but the reasoning patterns and uncertainty calibration of the teacher model. The Phi series
+        uses distillation from GPT-4; the DeepSeek-R1 distilled variants use DeepSeek-R1 as teacher.
+        Distillation is why small models trained this way can punch above their weight compared to
+        models of equivalent size trained on raw data.
+      </p>
+      <p>
+        The business case for SLMs is most compelling when you do the unit economics. A frontier API
+        model at $3 per million input tokens with 1 million daily queries at 500 tokens average
+        costs $1,500 per day — $547,500 per year. A 7B model running on a $3,000 A100 instance
+        at $2.50/hour, serving those same queries with a 50ms latency budget, would cost roughly
+        $60/day in cloud compute — $21,900 per year. That is a 25x cost reduction. The tradeoff
+        is the quality difference on your specific task, the engineering cost of managing the
+        self-hosted infrastructure, and the operational burden of monitoring and updating the model.
+        For high-volume, well-defined tasks where quality is measurable and the task is bounded,
+        the SLM economics are often compelling.
+      </p>
+
+      <pre><code><span class="code-comment"># Ollama local call — REST API compatible with OpenAI SDK</span>
+<span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+
+<span class="code-comment"># Redirect to local Ollama instance</span>
+client = <span class="code-fn">OpenAI</span>(
+    base_url=<span class="code-string">"http://localhost:11434/v1"</span>,
+    api_key=<span class="code-string">"ollama"</span>,  <span class="code-comment"># required but ignored by Ollama</span>
+)
+
+response = client.chat.completions.<span class="code-fn">create</span>(
+    model=<span class="code-string">"llama3.2"</span>,  <span class="code-comment"># or phi4, mistral, gemma2, etc.</span>
+    messages=[
+        {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: <span class="code-string">"Explain quantization in two sentences."</span>}
+    ],
+    temperature=<span class="code-num">0.7</span>,
+)
+
+<span class="code-fn">print</span>(response.choices[<span class="code-num">0</span>].message.content)
+
+<span class="code-comment"># The same code works for cloud APIs — just change base_url and api_key:</span>
+<span class="code-comment"># base_url="https://api.openai.com/v1" for OpenAI</span>
+<span class="code-comment"># This is the key advantage of OpenAI-compatible REST APIs</span></code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Local Dev Tip</div>
+        <p>Use <code>ollama pull llama3.2</code> and <code>ollama pull phi4</code> before the self-hosting module. Having models cached locally means you can experiment without any API costs and test your code offline. The 3.2 variant (3B) is the fastest; pull the 8B variant for better quality.</p>
+      </div>
+    </section>
+
+    <!-- TOPIC 4: MULTIMODAL MODELS -->
+    <section class="section" id="multimodal">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Multimodal Models</h2>
+      </div>
+
+      <h3 id="multimodal-plain">Plain Language: Beyond Text</h3>
+
+      <p>
+        A multimodal model is one that can process and reason over multiple types of data — most
+        commonly text and images, but increasingly also audio, video, and structured data like tables
+        and code. For the first four years of the transformer era, large language models were strictly
+        text-in, text-out. Multimodality changed the surface area of what an AI system can do as
+        dramatically as the original LLM capability jump changed what was possible with text.
+      </p>
+      <p>
+        The most immediately practical multimodal capability for developers is <strong>vision</strong>:
+        the ability to send an image alongside a text prompt and have the model reason about both together.
+        In practice this means you can paste a screenshot of an error message and ask the model to debug
+        it, send a photo of a whiteboard diagram and ask for an explanation, upload a chart from a
+        PDF and ask for an analysis, or send an image of a handwritten form and ask for the data
+        extracted in JSON. These are not toy capabilities — they represent genuine elimination of
+        entire categories of pre-processing pipelines that developers previously had to build.
+      </p>
+      <p>
+        The impact on <strong>document understanding</strong> is particularly significant. Traditional
+        approaches to extracting information from PDFs involved a brittle pipeline: convert PDF to
+        text (lossy, breaks tables and figures), run OCR on scanned pages (error-prone), then process
+        the text with an NLP model. With multimodal models, you can send a page screenshot directly —
+        the model reads the text, understands the layout, interprets the figures, and reasons about
+        everything together. Systems like ColPali take this further, embedding full page screenshots
+        into a vector index, bypassing the entire text extraction step entirely.
+      </p>
+      <p>
+        <strong>Audio</strong> adds another dimension. OpenAI's Whisper is a speech recognition model
+        (text-only output) that achieves near-human accuracy on a wide range of accents, languages,
+        and audio quality conditions. GPT-4o goes further with a real-time audio API that can accept
+        audio input and produce audio output natively — enabling voice assistants that are not just
+        speech-to-text followed by an LLM followed by text-to-speech, but a model that processes
+        the acoustic features of speech (tone, speed, emotional content) and can respond with
+        natural prosody. This is a qualitatively different capability from chaining separate models.
+      </p>
+
+      <h3 id="multimodal-vit">Vision Transformers and How Image Inputs Work</h3>
+
+      <p>
+        The <strong>Vision Transformer (ViT)</strong> architecture, introduced by Google in 2020,
+        is the foundation for how modern LLMs process images. The key insight is that the transformer
+        architecture — which processes sequences of vectors — can be applied to images by treating
+        image patches as the sequence elements. Concretely: an image is divided into a grid of
+        non-overlapping patches, typically 16x16 pixels each. A 224x224 pixel image yields 196 patches.
+        Each patch is flattened into a vector of pixel values and then projected through a learned
+        linear layer to the transformer's embedding dimension (typically 768 or 1024 dimensions).
+        The resulting sequence of patch embeddings is fed to a standard transformer encoder, which
+        applies self-attention across patches to build a representation of the entire image.
+        The remarkable finding was that transformers, given enough data, learn to attend to semantically
+        meaningful image regions — edges, objects, faces — without any explicit spatial inductive bias.
+      </p>
+      <p>
+        <strong>GPT-4V and GPT-4o</strong> use a CLIP-style vision encoder — CLIP (Contrastive
+        Language-Image Pre-training) is a model trained to produce aligned embeddings for images
+        and text, such that the embedding of "a photo of a dog" is close to the embedding of an
+        actual dog photo. The CLIP visual encoder processes the input image and produces a sequence
+        of visual embeddings. A learned projection layer then maps these visual embeddings into the
+        same vector space as the language model's token embeddings. The resulting combined sequence
+        — visual patch embeddings followed by text token embeddings — is fed to the language model
+        decoder as a single unified context. From the decoder's perspective, the image is just a
+        prefix of "visual tokens" before the text begins.
+      </p>
+      <p>
+        <strong>Claude 3's vision</strong> capabilities are particularly strong at document
+        understanding tasks that require reading complex layouts. It can reliably extract data from
+        tables that span multiple columns, read mathematical notation, understand hand-drawn diagrams,
+        interpret code screenshots (including running code to verify understanding), and handle
+        low-quality or rotated document scans. Anthropic has published benchmarks showing Claude 3
+        Opus achieving near-perfect scores on chart question-answering and document extraction tasks
+        that earlier multimodal models struggled with.
+      </p>
+      <p>
+        <strong>Gemini's native multimodality</strong> is architecturally different from the
+        "vision encoder + projection layer" approach. Gemini was trained from the start on interleaved
+        sequences of text, images, audio, and video — not text first with vision added later. This
+        means the model has a unified internal representation space where visual, textual, and acoustic
+        information are all encoded in a compatible way from the ground up. The practical benefit is
+        on tasks requiring tight integration of modalities — for example, answering questions about a
+        video where the answer requires matching audio content with visual events at the same timestamp.
+      </p>
+      <p id="multimodal-audio">
+        <strong>Whisper</strong> is OpenAI's open-source speech recognition model, released in 2022.
+        It was trained on 680,000 hours of multilingual audio transcribed from the internet, giving
+        it strong performance across dozens of languages and a wide range of recording conditions.
+        For practical purposes, Whisper is the standard choice for speech-to-text preprocessing
+        — it can be run locally (the "medium" model fits in 5GB of VRAM) or called via the OpenAI
+        Transcription API. <strong>GPT-4o's real-time audio API</strong> enables a different use
+        case: streaming audio in and audio out with low latency, suitable for conversational voice
+        interfaces. It processes audio directly rather than transcribing first, which preserves
+        emotional content and prosodic information that transcription discards.
+      </p>
+      <p>
+        <strong>Sending images via the API</strong> requires encoding the image as base64 and including
+        it in the message content as an image_url type. The OpenAI and Anthropic APIs both follow a
+        similar pattern: the message content is not a simple string but a list of content blocks,
+        where each block has a type ("text" or "image_url") and the relevant content. For the OpenAI
+        API, you include a block with <code>"type": "image_url"</code> and the image data as a
+        data URL. For the Anthropic API, you include a block with <code>"type": "image"</code>,
+        the media type, and the base64-encoded data. The size limits are generous — GPT-4o accepts
+        images up to 20MB; Claude accepts up to 5MB per image — but the token cost of images is
+        non-trivial: a 512x512 image consumes approximately 170 tokens in the OpenAI pricing model.
+      </p>
+      <p>
+        <strong>ColPali</strong> is a recent technique for multimodal document retrieval that
+        bypasses traditional PDF text extraction entirely. Instead of extracting text from a PDF
+        and embedding it, ColPali takes a screenshot of each PDF page and embeds the full-page
+        image using a Vision Language Model. At query time, the query text is encoded and matched
+        against the page image embeddings. The advantage is that it correctly handles pages where
+        text and figures are tightly integrated — like a chart with an inline caption — where
+        text-only extraction would produce a degraded representation. This is relevant for the
+        course's RAG module, where document understanding quality directly impacts answer quality.
+      </p>
+
+      <!-- DIAGRAM 2: Multimodal Processing -->
+      <div class="diagram-wrap" id="multimodal-diagram">
+        <svg viewBox="0 0 860 420" width="100%" xmlns="http://www.w3.org/2000/svg" aria-label="Multimodal input processing pipeline">
+          <defs>
+            <marker id="arr2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#545a78"/>
+            </marker>
+            <marker id="arr2b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+            </marker>
+          </defs>
+
+          <!-- === IMAGE INPUT PATH === -->
+          <!-- Image icon -->
+          <rect x="30" y="50" width="110" height="90" rx="8" fill="#171c2e" stroke="#2e3554"/>
+          <text x="85" y="75" text-anchor="middle" fill="#8e94b5" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600">IMAGE INPUT</text>
+          <!-- Simple image icon -->
+          <rect x="48" y="82" width="74" height="48" rx="4" fill="#1e2438" stroke="#545a78"/>
+          <circle cx="63" cy="95" r="7" fill="none" stroke="#f59e0b" stroke-width="1.5"/>
+          <polyline points="48,118 70,100 85,112 100,96 122,118" fill="none" stroke="#22c55e" stroke-width="1.5"/>
+
+          <!-- Patch grid -->
+          <rect x="180" y="50" width="110" height="90" rx="8" fill="#171c2e" stroke="#2e3554"/>
+          <text x="235" y="72" text-anchor="middle" fill="#8e94b5" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600">PATCH SPLIT</text>
+          <text x="235" y="84" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="9">16×16 px patches</text>
+          <!-- Mini patch grid -->
+          <line x1="198" y1="92" x2="270" y2="92" stroke="#545a78" stroke-width="0.5"/>
+          <line x1="198" y1="107" x2="270" y2="107" stroke="#545a78" stroke-width="0.5"/>
+          <line x1="198" y1="122" x2="270" y2="122" stroke="#545a78" stroke-width="0.5"/>
+          <line x1="216" y1="90" x2="216" y2="130" stroke="#545a78" stroke-width="0.5"/>
+          <line x1="234" y1="90" x2="234" y2="130" stroke="#545a78" stroke-width="0.5"/>
+          <line x1="252" y1="90" x2="252" y2="130" stroke="#545a78" stroke-width="0.5"/>
+          <rect x="216" y="92" width="18" height="15" rx="1" fill="rgba(59,130,246,0.25)" stroke="#3b82f6" stroke-width="1"/>
+
+          <!-- ViT Encoder -->
+          <rect x="340" y="50" width="120" height="90" rx="8" fill="#1e2438" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="400" y="72" text-anchor="middle" fill="#3b82f6" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="700">ViT ENCODER</text>
+          <text x="400" y="84" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="9">CLIP / vision model</text>
+          <!-- Attention dots -->
+          <circle cx="370" cy="100" r="5" fill="rgba(59,130,246,0.4)"/>
+          <circle cx="385" cy="100" r="5" fill="rgba(59,130,246,0.5)"/>
+          <circle cx="400" cy="100" r="5" fill="rgba(59,130,246,0.6)"/>
+          <circle cx="415" cy="100" r="5" fill="rgba(59,130,246,0.5)"/>
+          <circle cx="430" cy="100" r="5" fill="rgba(59,130,246,0.4)"/>
+          <text x="400" y="120" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="9">patch embeddings</text>
+          <text x="400" y="131" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="9">d=768 each</text>
+
+          <!-- Projection -->
+          <rect x="510" y="50" width="100" height="90" rx="8" fill="#171c2e" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="560" y="72" text-anchor="middle" fill="#a855f7" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600">PROJECTION</text>
+          <text x="560" y="84" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="9">linear layer</text>
+          <line x1="530" y1="100" x2="590" y2="100" stroke="#a855f7" stroke-width="2"/>
+          <line x1="530" y1="108" x2="590" y2="108" stroke="#a855f7" stroke-width="1.5" stroke-opacity="0.6"/>
+          <line x1="530" y1="116" x2="590" y2="116" stroke="#a855f7" stroke-width="1" stroke-opacity="0.4"/>
+          <text x="560" y="131" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="9">→ LLM dim</text>
+
+          <!-- Arrows top path -->
+          <line x1="140" y1="95" x2="178" y2="95" stroke="#545a78" stroke-width="1.5" marker-end="url(#arr2)"/>
+          <line x1="290" y1="95" x2="338" y2="95" stroke="#545a78" stroke-width="1.5" marker-end="url(#arr2)"/>
+          <line x1="460" y1="95" x2="508" y2="95" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arr2b)"/>
+
+          <!-- === TEXT INPUT PATH === -->
+          <rect x="30" y="200" width="110" height="70" rx="8" fill="#171c2e" stroke="#2e3554"/>
+          <text x="85" y="225" text-anchor="middle" fill="#8e94b5" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600">TEXT INPUT</text>
+          <text x="85" y="244" text-anchor="middle" fill="#22d3ee" font-family="'JetBrains Mono',monospace" font-size="10">"Describe this"</text>
+
+          <!-- Tokenizer -->
+          <rect x="180" y="200" width="110" height="70" rx="8" fill="#171c2e" stroke="#2e3554"/>
+          <text x="235" y="222" text-anchor="middle" fill="#8e94b5" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600">TOKENIZER</text>
+          <text x="235" y="238" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="9">BPE / SentencePiece</text>
+          <text x="235" y="256" text-anchor="middle" fill="#22d3ee" font-family="'JetBrains Mono',monospace" font-size="9">[1432][477][23]</text>
+
+          <!-- Token Embeddings -->
+          <rect x="340" y="200" width="120" height="70" rx="8" fill="#1e2438" stroke="#22d3ee" stroke-width="1.5"/>
+          <text x="400" y="222" text-anchor="middle" fill="#22d3ee" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600">EMBEDDINGS</text>
+          <text x="400" y="238" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="9">token → vector</text>
+          <text x="400" y="254" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="9">d=4096 each</text>
+
+          <!-- Arrows bottom path -->
+          <line x1="140" y1="235" x2="178" y2="235" stroke="#545a78" stroke-width="1.5" marker-end="url(#arr2)"/>
+          <line x1="290" y1="235" x2="338" y2="235" stroke="#545a78" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+          <!-- === MERGE → TRANSFORMER === -->
+          <!-- Concat block -->
+          <rect x="490" y="175" width="80" height="110" rx="8" fill="#1e2438" stroke="#22d3ee" stroke-width="1"/>
+          <text x="530" y="200" text-anchor="middle" fill="#22d3ee" font-family="'Space Grotesk',sans-serif" font-size="10" font-weight="700">CONCAT</text>
+          <!-- Visual tokens -->
+          <rect x="500" y="208" width="60" height="20" rx="3" fill="rgba(59,130,246,0.2)" stroke="#3b82f6" stroke-width="1"/>
+          <text x="530" y="222" text-anchor="middle" fill="#3b82f6" font-family="'Nunito',sans-serif" font-size="9">visual tokens</text>
+          <!-- Text tokens -->
+          <rect x="500" y="232" width="60" height="20" rx="3" fill="rgba(34,211,238,0.15)" stroke="#22d3ee" stroke-width="1"/>
+          <text x="530" y="246" text-anchor="middle" fill="#22d3ee" font-family="'Nunito',sans-serif" font-size="9">text tokens</text>
+          <text x="530" y="266" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="8">unified sequence</text>
+
+          <!-- Arrow from projection to concat -->
+          <path d="M 610,95 Q 640,95 640,175 Q 640,218 572,218" fill="none" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arr2b)"/>
+          <!-- Arrow from text embed to concat -->
+          <line x1="460" y1="235" x2="488" y2="235" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+          <!-- LLM Decoder -->
+          <rect x="620" y="155" width="190" height="150" rx="12" fill="#1e2438" stroke="#a855f7" stroke-width="2"/>
+          <text x="715" y="182" text-anchor="middle" fill="#a855f7" font-family="'Space Grotesk',sans-serif" font-size="13" font-weight="700">LLM DECODER</text>
+          <text x="715" y="198" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Transformer blocks</text>
+          <!-- Attention layers -->
+          <rect x="635" y="208" width="160" height="18" rx="3" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="0.8"/>
+          <text x="715" y="221" text-anchor="middle" fill="#a855f7" font-family="'Nunito',sans-serif" font-size="9">Self-Attention Layer</text>
+          <rect x="635" y="230" width="160" height="18" rx="3" fill="rgba(168,85,247,0.12)" stroke="#a855f7" stroke-width="0.8"/>
+          <text x="715" y="243" text-anchor="middle" fill="#a855f7" font-family="'Nunito',sans-serif" font-size="9">Feed-Forward Network</text>
+          <rect x="635" y="252" width="160" height="18" rx="3" fill="rgba(168,85,247,0.10)" stroke="#a855f7" stroke-width="0.8"/>
+          <text x="715" y="265" text-anchor="middle" fill="#a855f7" font-family="'Nunito',sans-serif" font-size="9">× N layers</text>
+          <text x="715" y="292" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="9">unified image+text representation</text>
+
+          <!-- Arrow concat → LLM -->
+          <line x1="572" y1="228" x2="618" y2="228" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+          <!-- Output -->
+          <rect x="660" y="335" width="110" height="52" rx="8" fill="#171c2e" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="715" y="358" text-anchor="middle" fill="#22c55e" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600">TEXT OUTPUT</text>
+          <text x="715" y="374" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="9">token-by-token generation</text>
+
+          <!-- Arrow LLM → output -->
+          <line x1="715" y1="305" x2="715" y2="333" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+          <!-- Labels -->
+          <text x="30" y="300" fill="#545a78" font-family="'Space Grotesk',sans-serif" font-size="10" font-weight="600">IMAGE PATH</text>
+          <line x1="30" y1="165" x2="610" y2="165" stroke="#3b82f6" stroke-width="0.5" stroke-dasharray="3,3" stroke-opacity="0.4"/>
+          <text x="30" y="365" fill="#545a78" font-family="'Space Grotesk',sans-serif" font-size="10" font-weight="600">TEXT PATH</text>
+          <line x1="30" y1="295" x2="490" y2="295" stroke="#22d3ee" stroke-width="0.5" stroke-dasharray="3,3" stroke-opacity="0.4"/>
+        </svg>
+        <p class="diagram-caption">Multimodal input processing: images are split into 16x16 patches, encoded by a Vision Transformer, and projected into the LLM's embedding space. Text is tokenized and embedded separately. Both are concatenated into a single unified sequence before entering the language model decoder.</p>
+      </div>
+
+      <pre><code><span class="code-comment"># Sending an image to Claude's API using base64 encoding</span>
+<span class="code-keyword">import</span> anthropic
+<span class="code-keyword">import</span> base64
+<span class="code-keyword">from</span> pathlib <span class="code-keyword">import</span> Path
+
+client = anthropic.<span class="code-fn">Anthropic</span>()
+
+<span class="code-comment"># Load and encode the image</span>
+image_path = Path(<span class="code-string">"chart.png"</span>)
+image_data = base64.<span class="code-fn">standard_b64encode</span>(image_path.<span class="code-fn">read_bytes</span>()).<span class="code-fn">decode</span>(<span class="code-string">"utf-8"</span>)
+
+message = client.messages.<span class="code-fn">create</span>(
+    model=<span class="code-string">"claude-sonnet-4-6"</span>,
+    max_tokens=<span class="code-num">1024</span>,
+    messages=[
+        {
+            <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+            <span class="code-string">"content"</span>: [
+                {
+                    <span class="code-string">"type"</span>: <span class="code-string">"image"</span>,
+                    <span class="code-string">"source"</span>: {
+                        <span class="code-string">"type"</span>: <span class="code-string">"base64"</span>,
+                        <span class="code-string">"media_type"</span>: <span class="code-string">"image/png"</span>,
+                        <span class="code-string">"data"</span>: image_data,
+                    },
+                },
+                {
+                    <span class="code-string">"type"</span>: <span class="code-string">"text"</span>,
+                    <span class="code-string">"text"</span>: <span class="code-string">"Extract all data from this chart as JSON."</span>
+                }
+            ],
+        }
+    ],
+)
+
+<span class="code-fn">print</span>(message.content[<span class="code-num">0</span>].text)</code></pre>
+    </section>
+
+    <!-- TOPIC 5: SELECTION FRAMEWORK -->
+    <section class="section" id="selection">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Model Selection Framework</h2>
+      </div>
+
+      <h3 id="selection-plain">Plain Language: There Is No Single Best Model</h3>
+
+      <p>
+        One of the most common mistakes developers new to the LLM ecosystem make is optimizing for the
+        "best" model on general benchmarks. Benchmark performance measures performance on academic test
+        sets — which may have essentially no correlation with performance on your specific task. A model
+        that scores highest on MMLU may be outperformed on your particular use case by a model that
+        scores 5 points lower, simply because the lower-scoring model was fine-tuned on similar data
+        or has better instruction following for the specific prompt patterns you use.
+      </p>
+      <p>
+        The first set of questions to ask about your task is practical: What is the acceptable latency?
+        What is the token budget per request? Does the task require understanding images, documents, or
+        audio? Does the output need to be structured JSON, or is natural text sufficient? Does the data
+        contain sensitive information that cannot leave your premises? Each of these questions rules out
+        or rules in different model choices before you ever look at a benchmark.
+      </p>
+      <p>
+        The <strong>"good enough" principle</strong> is one of the most commercially important ideas
+        in applied AI. A model that achieves 90% of the quality of the best model at 20% of the cost
+        and 300% of the speed is almost always the right production choice, provided you can measure
+        that quality gap. The caveat is the measurement: you need to define what "90% of quality" means
+        for your specific task and build a golden evaluation set to verify it. Without that measurement,
+        you are guessing — and the cost difference between guessing wrong in either direction is
+        substantial.
+      </p>
+      <p>
+        The practical implication is that model selection is not a one-time decision made at the start
+        of a project. It is an ongoing process: start with the best model to establish a quality
+        ceiling, measure that quality on your task, then systematically test cheaper/faster alternatives
+        to find the knee of the tradeoff curve. This approach — build a golden eval set, run all
+        candidate models, pick the winner — is the professional standard for production LLM systems.
+      </p>
+
+      <h3 id="selection-decision">Decision Tree and Use-Case Matching</h3>
+
+      <p>
+        A practical <strong>decision tree for model selection</strong> starts with the latency
+        requirement. If you need a response in under 500 milliseconds — for an interactive UI, a
+        real-time assistant, or a high-throughput pipeline — you immediately restrict yourself to
+        models with fast inference: Gemini Flash, GPT-4o-mini, Claude Haiku, or a locally hosted
+        small model. These are not compromised models; they are models specifically designed for
+        throughput-sensitive applications, and they are genuinely capable for the tasks they were
+        designed for.
+      </p>
+      <p>
+        If latency is less critical and the task is <strong>complex reasoning</strong> — multi-step
+        mathematical problems, complex code generation, nuanced instruction following, document
+        analysis requiring synthesis across many pages — you move up to Claude Sonnet 4.6, GPT-4o,
+        or Gemini 1.5 Pro. If the task is at the frontier of difficulty — graduate-level mathematics,
+        novel research synthesis, code generation for complex systems — you consider o1/o3 for the
+        extra reasoning budget, accepting the higher latency and cost.
+      </p>
+      <p>
+        If the task involves <strong>vision</strong>, your options narrow: GPT-4V/GPT-4o, Claude 3+,
+        Gemini 1.5+, or Llama 3.2 (open-weight vision). For vision tasks requiring high accuracy
+        on document understanding specifically, Claude is often the first choice based on published
+        benchmarks. For tasks requiring integration of visual and audio information (like video
+        analysis), Gemini's native multimodality gives it a structural advantage.
+      </p>
+      <p>
+        For <strong>private data or on-premises requirements</strong>, you have no choice but
+        self-hosted open-weight models: Llama 3 (8B, 70B, 405B), Mistral, Mixtral, Qwen, Phi-4,
+        or Gemma 2. The hardware requirements range from a gaming PC (7-8B quantized) to a
+        multi-GPU server (70B at full precision). For teams new to self-hosting, Ollama provides
+        the lowest-friction entry point.
+      </p>
+
+      <h3 id="selection-pricing">Pricing, Benchmarks, and Testing Methodology</h3>
+
+      <p>
+        <strong>Pricing comparison</strong> as of early 2025 (per million tokens, input / output):
+        GPT-4o costs $2.50 / $10.00. Claude Sonnet 4.6 costs $3.00 / $15.00. GPT-4o-mini costs
+        $0.15 / $0.60. Gemini 2.0 Flash costs $0.075 / $0.30. These numbers change frequently —
+        frontier model prices have dropped by roughly 10x every 18 months as scale and competition
+        drive costs down. For context on the magnitude: a typical conversational turn with a 200-token
+        prompt and 300-token response costs $0.0005 at GPT-4o pricing. A million such turns costs
+        $500. At Gemini Flash pricing, it costs $1.125. At that volume, the difference is substantial.
+      </p>
+      <p>
+        <strong>Inference speed</strong> (tokens per second for typical use cases): GPT-4o-mini
+        achieves approximately 100 tokens/second at the API level under normal load. Claude Haiku
+        achieves approximately 120 tokens/second. GPT-4o achieves approximately 50-70 tokens/second.
+        Claude Sonnet achieves 50-80 tokens/second. These numbers vary significantly with load and
+        can be improved with streaming (which makes time-to-first-token the relevant metric rather
+        than total latency). For streaming, the first token from a fast model arrives in 200-400ms;
+        for a large reasoning model, it might arrive after 5-10 seconds of internal computation.
+      </p>
+      <p>
+        The most important public benchmarks for comparing production models are: <strong>LMSYS
+        Chatbot Arena</strong> (human preference voting by thousands of users on side-by-side
+        comparisons — the gold standard for measuring user-perceived quality because it reflects
+        actual human preferences rather than academic test answers); <strong>SEAL Leaderboard</strong>
+        (third-party evaluations with contamination controls); and <strong>LiveBench</strong>
+        (dynamically updated with new questions to prevent contamination). For coding specifically,
+        HumanEval and SWE-bench are widely used. For reasoning, GPQA-Diamond and MATH are
+        contamination-resistant.
+      </p>
+      <p>
+        The <strong>latency vs. cost vs. quality triangle</strong> is the canonical tradeoff in
+        model selection: you can optimize for two of the three properties, but not all three
+        simultaneously. A model that is fast and cheap (GPT-4o-mini, Gemini Flash) trades on quality.
+        A model that is fast and high quality (Claude Sonnet, GPT-4o) trades on cost. A model that
+        is high quality and cheap (self-hosted Llama 70B) trades on latency and operational complexity.
+        Understanding where your application sits on this triangle determines your decision before
+        you ever run a single benchmark.
+      </p>
+      <p>
+        The professional <strong>testing methodology</strong> for model selection is: (1) Define
+        your task precisely and collect 50-200 representative examples. (2) Label these examples
+        with correct outputs, either human-annotated or from a trusted high-quality model. This is
+        your <em>golden eval set</em>. (3) Run each candidate model on all examples with your
+        production prompt. (4) Score the outputs against the golden labels, using an automated
+        metric where possible (exact match for structured extraction, ROUGE/BERTScore for summaries,
+        LLM-as-judge for open-ended quality). (5) Sort models by quality-per-dollar on your specific
+        task. (6) Pick the model at the knee of the curve — the one after which additional quality
+        gains cost disproportionately more. This methodology, done rigorously, produces decisions
+        that are defensible, reproducible, and often surprising in which model wins.
+      </p>
+
+      <!-- Code: Token counting -->
+      <h3>Code: Token Counting with tiktoken</h3>
+      <pre><code><span class="code-comment"># Token counting with tiktoken — useful for cost estimation before sending requests</span>
+<span class="code-keyword">import</span> tiktoken
+
+<span class="code-keyword">def</span> <span class="code-fn">count_tokens</span>(text: str, model: str = <span class="code-string">"gpt-4o"</span>) -> int:
+    <span class="code-comment">"""Count tokens for OpenAI-family models using tiktoken."""</span>
+    <span class="code-comment"># cl100k_base is used by GPT-4o, GPT-4, GPT-3.5-turbo</span>
+    <span class="code-comment"># o200k_base is used by GPT-4o and newer models</span>
+    <span class="code-keyword">try</span>:
+        encoding = tiktoken.<span class="code-fn">encoding_for_model</span>(model)
+    <span class="code-keyword">except</span> KeyError:
+        encoding = tiktoken.<span class="code-fn">get_encoding</span>(<span class="code-string">"cl100k_base"</span>)
+    <span class="code-keyword">return</span> <span class="code-fn">len</span>(encoding.<span class="code-fn">encode</span>(text))
+
+<span class="code-comment"># Estimate cost before sending a request</span>
+<span class="code-keyword">def</span> <span class="code-fn">estimate_cost</span>(prompt: str, model: str = <span class="code-string">"gpt-4o"</span>) -> <span class="code-fn">dict</span>:
+    <span class="code-comment"># Prices per million tokens (input / output)</span>
+    PRICING = {
+        <span class="code-string">"gpt-4o"</span>:       (<span class="code-num">2.50</span>, <span class="code-num">10.00</span>),
+        <span class="code-string">"gpt-4o-mini"</span>:  (<span class="code-num">0.15</span>,  <span class="code-num">0.60</span>),
+        <span class="code-string">"claude-sonnet-4-6"</span>: (<span class="code-num">3.00</span>, <span class="code-num">15.00</span>),
+        <span class="code-string">"gemini-2.0-flash"</span>: (<span class="code-num">0.075</span>, <span class="code-num">0.30</span>),
+    }
+
+    input_tokens = <span class="code-fn">count_tokens</span>(prompt, model)
+    price_in, price_out = PRICING.<span class="code-fn">get</span>(model, (<span class="code-num">3.0</span>, <span class="code-num">15.0</span>))
+
+    <span class="code-comment"># Assume typical output is ~300 tokens</span>
+    estimated_output = <span class="code-num">300</span>
+    input_cost  = (input_tokens / <span class="code-num">1_000_000</span>) * price_in
+    output_cost = (estimated_output / <span class="code-num">1_000_000</span>) * price_out
+
+    <span class="code-keyword">return</span> {
+        <span class="code-string">"input_tokens"</span>:  input_tokens,
+        <span class="code-string">"input_cost_usd"</span>: <span class="code-fn">round</span>(input_cost, <span class="code-num">6</span>),
+        <span class="code-string">"output_cost_est"</span>: <span class="code-fn">round</span>(output_cost, <span class="code-num">6</span>),
+        <span class="code-string">"total_est_usd"</span>: <span class="code-fn">round</span>(input_cost + output_cost, <span class="code-num">6</span>),
+    }
+
+<span class="code-comment"># Example usage</span>
+long_prompt = <span class="code-string">"Summarize the following research paper... "</span> + <span class="code-string">"x"</span> * <span class="code-num">5000</span>
+result = <span class="code-fn">estimate_cost</span>(long_prompt, <span class="code-string">"gpt-4o"</span>)
+<span class="code-fn">print</span>(f<span class="code-string">"Input tokens: {result['input_tokens']:,}"</span>)
+<span class="code-fn">print</span>(f<span class="code-string">"Estimated cost: ${result['total_est_usd']:.4f}"</span>)</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Important Note on Pricing</div>
+        <p>API prices change frequently and vary by region, tier, and volume. Always check the current pricing page for each provider before building cost estimates into business cases. The numbers here are illustrative of relative relationships, not guaranteed current prices.</p>
+      </div>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128640;</div>
+            <h4>Speed-First Tasks</h4>
+          </div>
+          <p>Autocomplete, real-time suggestions, high-volume classification, simple Q&amp;A. Use GPT-4o-mini, Gemini Flash, or Claude Haiku. Target &lt;500ms response.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#129504;</div>
+            <h4>Reasoning Tasks</h4>
+          </div>
+          <p>Complex code generation, multi-step analysis, research synthesis. Use Claude Sonnet, GPT-4o, or o1 for genuinely hard problems. Accept higher latency.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128247;</div>
+            <h4>Vision Tasks</h4>
+          </div>
+          <p>Document extraction, diagram analysis, screenshot debugging, chart reading. Use GPT-4V, Claude 3+, Gemini 1.5+, or Llama 3.2 (open-weight).</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128274;</div>
+            <h4>Private Data</h4>
+          </div>
+          <p>Medical, legal, financial data that cannot leave your premises. Self-host Llama 3 70B, Mistral, Qwen, or Phi-4 via Ollama or vLLM on your own infrastructure.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127759;</div>
+            <h4>Multilingual</h4>
+          </div>
+          <p>Non-English tasks, especially Asian languages. Qwen 2.5 (strong on CJK), Claude (strong on European languages), or GPT-4o (broad multilingual coverage).</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128200;</div>
+            <h4>High Volume / Cost</h4>
+          </div>
+          <p>More than 1M daily queries. Build a golden eval set, verify a cheaper model hits your quality bar, then self-host or use Gemini Flash / GPT-4o-mini at scale.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- NAVIGATION FOOTER -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Module</div>
+        <a href="01-foundations-of-genai.html" class="next-btn prev-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          01 &middot; Foundations of GenAI
+        </a>
+      </div>
+      <div style="text-align:right">
+        <div class="next-label">Next Module</div>
+        <a href="03-api-for-llms.html" class="next-btn">
+          03 &middot; APIs for LLMs
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <div class="next-phase">Phase: Foundations &rarr; API Access</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

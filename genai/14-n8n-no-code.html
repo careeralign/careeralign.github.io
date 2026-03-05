@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>No-Code Agents with n8n — CareerAlign GenAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg-base:#0b0d14;--bg-surface:#10131e;--bg-elevated:#171c2e;--bg-overlay:#1e2438;--border-subtle:#1a1f34;--border-default:#232840;--border-strong:#2e3554;--text-primary:#e6e8f4;--text-secondary:#8e94b5;--text-muted:#545a78;--accent-indigo:#6366f1;--accent-cyan:#22d3ee;--accent-violet:#a855f7;--glow-indigo:rgba(99,102,241,0.25);--phase-prereq:#64748b;--phase-found:#3b82f6;--phase-api:#06b6d4;--phase-rag:#f97316;--phase-agent:#a855f7;--phase-quality:#ef4444;--phase-cloud:#22c55e;--phase-project:#f59e0b;--font-display:'Space Grotesk',sans-serif;--font-body:'Nunito',sans-serif;--font-mono:'JetBrains Mono',monospace;--radius:12px;--radius-sm:8px;--radius-lg:18px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:var(--bg-base);color:var(--text-primary);font-family:var(--font-body);font-size:16px;line-height:1.7;min-height:100vh}a{color:inherit;text-decoration:none}img,svg{display:block}
+.nav{position:sticky;top:0;z-index:100;background:rgba(11,13,20,0.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border-subtle);padding:0 32px;display:flex;align-items:center;height:58px;gap:24px}.nav-logo{font-family:var(--font-display);font-weight:700;font-size:17px;color:var(--text-primary);display:flex;align-items:center;gap:9px;white-space:nowrap}.nav-logo span{color:var(--accent-indigo)}.nav-links{display:flex;gap:6px;flex:1;flex-wrap:wrap;overflow:hidden}.nav-links a{font-size:12px;font-weight:500;color:var(--text-muted);padding:4px 8px;border-radius:6px;transition:all .2s;white-space:nowrap}.nav-links a:hover{color:var(--text-primary);background:var(--bg-elevated)}.nav-links a.active{color:var(--phase-cloud);background:rgba(34,197,94,0.15)}.nav-home{font-size:12.5px;font-weight:600;color:var(--accent-indigo);padding:6px 14px;border:1px solid rgba(99,102,241,0.3);border-radius:7px;transition:all .2s;white-space:nowrap;margin-left:auto}.nav-home:hover{background:rgba(99,102,241,0.1)}
+.hero{padding:70px 60px 50px;max-width:1400px;margin:0 auto;border-bottom:1px solid var(--border-subtle)}.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.25);border-radius:20px;padding:5px 14px;margin-bottom:22px;font-size:12.5px;font-family:var(--font-display);font-weight:600;color:var(--phase-cloud);letter-spacing:0.04em;text-transform:uppercase}.hero h1{font-family:var(--font-display);font-size:clamp(2.2rem,4vw,3.4rem);font-weight:700;line-height:1.15;color:var(--text-primary);max-width:820px;margin-bottom:20px}.hero h1 em{font-style:normal;color:var(--phase-cloud)}.hero-desc{font-size:1.1rem;color:var(--text-secondary);max-width:760px;line-height:1.75;margin-bottom:36px}.hero-checklist{display:flex;gap:12px;flex-wrap:wrap}.hero-pill{display:flex;align-items:center;gap:7px;background:var(--bg-surface);border:1px solid var(--border-default);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--text-secondary)}.hero-pill svg{color:var(--phase-cloud);flex-shrink:0}
+.content-grid{max-width:1400px;margin:0 auto;padding:0 60px 80px;display:grid;grid-template-columns:260px 1fr;gap:0;align-items:start}.toc{position:sticky;top:78px;padding:32px 0;border-right:1px solid var(--border-subtle);margin-right:48px}.toc-title{font-size:11px;font-family:var(--font-display);font-weight:700;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-subtle)}.toc a{display:block;font-size:13px;color:var(--text-secondary);padding:6px 0;transition:color .2s;border-left:2px solid transparent;padding-left:12px;margin-left:-2px}.toc a:hover{color:var(--text-primary);border-left-color:var(--phase-cloud)}.toc a.section{font-weight:600;color:var(--text-primary);font-size:12.5px;margin-top:8px}.toc a.sub{padding-left:24px;font-size:12px}
+.main{padding:40px 0}.section{margin-bottom:60px}.section-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border-subtle)}.section-num{width:36px;height:36px;border-radius:50%;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--phase-cloud);flex-shrink:0}.section h2{font-family:var(--font-display);font-size:1.55rem;font-weight:700;color:var(--text-primary)}.section h3{font-family:var(--font-display);font-size:1.15rem;font-weight:600;color:var(--text-primary);margin:28px 0 12px}.section p{color:var(--text-secondary);margin-bottom:16px;font-size:1rem;line-height:1.8}.section p strong{color:var(--text-primary);font-weight:600}
+.callout{border-left:3px solid var(--phase-cloud);background:rgba(34,197,94,0.07);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:16px 20px;margin:20px 0}.callout.info{border-color:var(--accent-indigo);background:rgba(99,102,241,0.07)}.callout.warn{border-color:var(--phase-project);background:rgba(245,158,11,0.07)}.callout-label{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;color:var(--phase-cloud)}.callout.info .callout-label{color:var(--accent-indigo)}.callout.warn .callout-label{color:var(--phase-project)}.callout p{margin:0;color:var(--text-secondary);font-size:0.95rem}
+pre{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:20px 24px;overflow-x:auto;margin:20px 0}code{font-family:var(--font-mono);font-size:13.5px;color:var(--accent-cyan);line-height:1.65}:not(pre)>code{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:5px;padding:2px 7px;font-size:13px}.code-comment{color:var(--text-muted)}.code-keyword{color:#c084fc}.code-string{color:#86efac}.code-fn{color:#67e8f9}.code-num{color:#fca5a5}
+.diagram-wrap{background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--radius-lg);padding:32px;margin:32px 0}.diagram-caption{text-align:center;font-size:13px;color:var(--text-muted);margin-top:16px;font-style:italic}
+.comp-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px}.comp-table th,.comp-table td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--border-subtle)}.comp-table th{background:var(--bg-elevated);font-family:var(--font-display);font-weight:600;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em}.comp-table td{color:var(--text-secondary)}.comp-table tr:hover td{background:rgba(34,197,94,0.04)}
+.next-section{margin-top:70px;padding-top:40px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center}.next-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;font-family:var(--font-display)}.next-btn{display:inline-flex;align-items:center;gap:10px;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:var(--radius);padding:14px 22px;font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--text-primary);transition:all .2s}.next-btn:hover{border-color:var(--phase-cloud);color:var(--phase-cloud);transform:translateX(4px)}.prev-btn:hover{transform:translateX(-4px)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">⚡ <span>CareerAlign</span> GenAI</div>
+  <div class="nav-links">
+    <a href="00-prerequisites.html">00 · Prerequisites</a><a href="01-foundations-of-genai.html">01 · Foundations</a><a href="02-llms-slms-multimodal.html">02 · Models</a><a href="03-api-for-llms.html">03 · APIs</a><a href="04-fine-tuning.html">04 · Fine-Tuning</a><a href="05-llm-hosting.html">05 · Hosting</a><a href="06-prompt-engineering.html">06 · Prompting</a><a href="07-rag-systems.html">07 · RAG</a><a href="08-advanced-rag.html">08 · Adv RAG</a><a href="09-agents.html">09 · Agents</a><a href="10-evaluation.html">10 · Eval</a><a href="11-guardrails.html">11 · Guardrails</a><a href="12-mcp.html">12 · MCP</a><a href="13-aws-cloud.html">13 · AWS</a><a href="14-n8n-no-code.html" class="active">14 · n8n</a><a href="15-capstone-document-portal.html">15 · Capstone I</a><a href="16-capstone-report-agent.html">16 · Capstone II</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GenAI Hub</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag"><svg width="16" height="16" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="2"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Module 14 — Cloud Phase</div>
+  <h1>No-Code Agents with <em>n8n</em></h1>
+  <p class="hero-desc">n8n is an open-source workflow automation platform that lets you build sophisticated AI agents and automation pipelines through a visual drag-and-drop interface — no coding required. With 400+ integrations (Slack, Gmail, Google Sheets, databases, APIs) and native AI nodes for OpenAI, Anthropic, and local models, n8n bridges the gap between business users who need AI automation and the technical infrastructure that powers it. This module covers n8n architecture, building AI workflows, creating tool-using agents, RAG pipelines, and deploying n8n for production use.</p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>n8n Architecture</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>AI Agent Nodes</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Visual RAG Pipelines</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Webhook Triggers</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>400+ Integrations</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Self-Hosted Deploy</div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/14-n8n-no-code.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</section>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#what-is-n8n" class="section">1 · What Is n8n</a><a href="#n8n-plain" class="sub">Plain Language</a><a href="#n8n-deep" class="sub">Deep Dive</a>
+    <a href="#ai-nodes" class="section">2 · AI &amp; LLM Nodes</a><a href="#ai-plain" class="sub">Plain Language</a><a href="#ai-deep" class="sub">Deep Dive</a>
+    <a href="#agents" class="section">3 · Building AI Agents</a><a href="#agent-plain" class="sub">Plain Language</a><a href="#agent-deep" class="sub">Deep Dive</a>
+    <a href="#rag-workflow" class="section">4 · RAG Workflows</a><a href="#rag-plain" class="sub">Plain Language</a><a href="#rag-deep" class="sub">Deep Dive</a>
+    <a href="#triggers" class="section">5 · Triggers &amp; Integrations</a><a href="#trig-plain" class="sub">Plain Language</a><a href="#trig-deep" class="sub">Deep Dive</a>
+    <a href="#deploy" class="section">6 · Production Deployment</a><a href="#dep-plain" class="sub">Plain Language</a><a href="#dep-deep" class="sub">Deep Dive</a>
+  </aside>
+
+  <main class="main">
+
+    <div class="section" id="what-is-n8n">
+      <div class="section-header"><div class="section-num">01</div><h2>What Is n8n</h2></div>
+      <h3 id="n8n-plain">Plain Language</h3>
+      <p>n8n (pronounced "n-eight-n" or "nodemation") is an open-source workflow automation tool similar to Zapier or Make, but with three crucial differences: it is <strong>self-hostable</strong> (your data never leaves your infrastructure), it has a <strong>code node</strong> that lets you write arbitrary JavaScript/Python when the visual interface is not enough, and it has <strong>native AI capabilities</strong> with dedicated nodes for LLM chat, embeddings, vector stores, and autonomous agents. This combination of no-code simplicity and code-when-needed flexibility makes n8n uniquely powerful for building AI-powered workflows.</p>
+      <p>The core concept is a <strong>workflow</strong> — a visual graph of connected nodes where each node performs one action: receive a webhook, call an API, transform data, send an email, query a database, or invoke an LLM. Data flows through the connections between nodes, with each node receiving input from its predecessor and passing output to its successor. Workflows can be triggered by schedules (cron), webhooks (HTTP requests), events (new email, new Slack message), or manual execution. The visual editor makes it easy to build, test, and debug workflows without writing code.</p>
+      <p>For GenAI applications, n8n's value is in <strong>orchestration and integration</strong>. While Python code excels at building the core AI logic (RAG pipelines, agent loops, prompt engineering), n8n excels at connecting that AI logic to the rest of your business systems. Need to trigger a RAG query when a customer emails support, send the answer to Slack, log it in a Google Sheet, and create a Jira ticket if the confidence is low? In n8n, this is 10 minutes of drag-and-drop rather than hours of API integration code. The AI does the thinking; n8n does the plumbing.</p>
+      <p>n8n is particularly popular with teams that need to prototype AI workflows quickly and iterate based on business feedback. A product manager can modify the workflow — changing which Slack channel receives notifications, adjusting the LLM prompt, adding a new approval step — without waiting for an engineering sprint. This rapid iteration cycle is invaluable in the early stages of AI adoption, when requirements change frequently as the team learns what works and what does not.</p>
+
+      <h3 id="n8n-deep">Deep Dive</h3>
+      <pre><code><span class="code-comment"># Install n8n locally with Docker</span>
+docker run -it --rm \
+  --name n8n \
+  -p <span class="code-num">5678</span>:<span class="code-num">5678</span> \
+  -v n8n_data:/home/node/.n8n \
+  -e GENERIC_TIMEZONE=<span class="code-string">"America/Chicago"</span> \
+  n8nio/n8n
+
+<span class="code-comment"># Access the UI at http://localhost:5678</span>
+
+<span class="code-comment"># Or install via npm for development</span>
+npm install n8n -g
+n8n start</code></pre>
+
+      <p>n8n workflows are stored as JSON and can be version-controlled. Here is the structure of a minimal workflow that receives a webhook, calls an LLM, and returns the response:</p>
+
+      <pre><code><span class="code-comment">// Workflow JSON structure (simplified)</span>
+{
+  <span class="code-string">"name"</span>: <span class="code-string">"AI Chat Endpoint"</span>,
+  <span class="code-string">"nodes"</span>: [
+    {
+      <span class="code-string">"type"</span>: <span class="code-string">"n8n-nodes-base.webhook"</span>,
+      <span class="code-string">"parameters"</span>: {
+        <span class="code-string">"httpMethod"</span>: <span class="code-string">"POST"</span>,
+        <span class="code-string">"path"</span>: <span class="code-string">"chat"</span>,
+        <span class="code-string">"responseMode"</span>: <span class="code-string">"responseNode"</span>
+      }
+    },
+    {
+      <span class="code-string">"type"</span>: <span class="code-string">"@n8n/n8n-nodes-langchain.openAi"</span>,
+      <span class="code-string">"parameters"</span>: {
+        <span class="code-string">"model"</span>: <span class="code-string">"gpt-4o"</span>,
+        <span class="code-string">"prompt"</span>: <span class="code-string">"={{ $json.body.message }}"</span>,
+        <span class="code-string">"systemMessage"</span>: <span class="code-string">"You are a helpful assistant."</span>
+      }
+    },
+    {
+      <span class="code-string">"type"</span>: <span class="code-string">"n8n-nodes-base.respondToWebhook"</span>,
+      <span class="code-string">"parameters"</span>: {
+        <span class="code-string">"respondWith"</span>: <span class="code-string">"json"</span>,
+        <span class="code-string">"responseBody"</span>: <span class="code-string">"={{ { response: $json.text } }}"</span>
+      }
+    }
+  ],
+  <span class="code-string">"connections"</span>: { <span class="code-comment">/* node connections */</span> }
+}</code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Self-Hosted Advantage</div>
+        <p>Unlike Zapier or Make, n8n can run entirely on your infrastructure. API keys, customer data, and LLM interactions never leave your network. This is critical for enterprise compliance (HIPAA, SOC 2, GDPR) and for connecting to internal services that are not exposed to the internet.</p>
+      </div>
+    </div>
+
+    <div class="section" id="ai-nodes">
+      <div class="section-header"><div class="section-num">02</div><h2>AI &amp; LLM Nodes</h2></div>
+      <h3 id="ai-plain">Plain Language</h3>
+      <p>n8n provides a comprehensive set of AI-specific nodes that cover the entire GenAI stack. The <strong>Chat Model</strong> nodes connect to OpenAI, Anthropic, Google, Ollama, or any OpenAI-compatible endpoint (including your vLLM or self-hosted models). The <strong>Embedding</strong> nodes generate vector embeddings. The <strong>Vector Store</strong> nodes connect to Pinecone, Qdrant, Supabase, or in-memory stores. The <strong>Text Splitter</strong> nodes handle document chunking. And the <strong>Agent</strong> node orchestrates a complete ReAct agent with tools — all configurable through the visual interface.</p>
+      <p>The AI nodes use LangChain under the hood, which means they support the same patterns and configurations that the LangChain Python library offers: chat memory for multi-turn conversations, output parsers for structured responses, chain-of-thought prompting, and tool-using agents. The difference is that instead of writing Python code, you configure these components through dropdown menus and text fields in the n8n UI. When the visual interface is not flexible enough, the Code node lets you write custom JavaScript or Python that runs inline within the workflow.</p>
+      <p>A particularly powerful pattern is using n8n's <strong>sub-workflow</strong> feature to create reusable AI components. You can build a "RAG query" sub-workflow (with retrieval, reranking, and synthesis), a "document ingestion" sub-workflow (with loading, chunking, and embedding), and a "content moderation" sub-workflow (with PII detection and toxicity filtering). These sub-workflows become building blocks that you compose into larger applications, just like functions in traditional programming.</p>
+
+      <h3 id="ai-deep">Deep Dive</h3>
+      <p>The key AI nodes available in n8n and their purpose:</p>
+
+      <table class="comp-table">
+        <thead><tr><th>Node</th><th>Category</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>OpenAI Chat Model</td><td>LLM</td><td>GPT-4o, GPT-4o-mini chat completions</td></tr>
+          <tr><td>Anthropic Chat Model</td><td>LLM</td><td>Claude 3.5 Sonnet, Haiku</td></tr>
+          <tr><td>Ollama Chat Model</td><td>LLM</td><td>Local models via Ollama</td></tr>
+          <tr><td>AI Agent</td><td>Agent</td><td>ReAct agent with configurable tools</td></tr>
+          <tr><td>Vector Store (Pinecone, Qdrant)</td><td>RAG</td><td>Store and query embeddings</td></tr>
+          <tr><td>Embeddings (OpenAI, Cohere)</td><td>RAG</td><td>Generate text embeddings</td></tr>
+          <tr><td>Text Splitter</td><td>RAG</td><td>Chunk documents for indexing</td></tr>
+          <tr><td>Document Loader</td><td>RAG</td><td>Load PDF, CSV, JSON, web pages</td></tr>
+          <tr><td>Output Parser</td><td>Utility</td><td>Parse structured output (JSON, lists)</td></tr>
+          <tr><td>Memory (Buffer, Summary)</td><td>Utility</td><td>Conversation history management</td></tr>
+          <tr><td>Code (JS/Python)</td><td>Custom</td><td>Run arbitrary code in workflow</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section" id="agents">
+      <div class="section-header"><div class="section-num">03</div><h2>Building AI Agents in n8n</h2></div>
+      <h3 id="agent-plain">Plain Language</h3>
+      <p>The n8n AI Agent node creates a complete ReAct agent through the visual interface. You configure the LLM (which model to use), attach tools (other n8n nodes that the agent can invoke), set the system prompt, and configure memory for multi-turn conversations. The agent then operates in the same Reason → Act → Observe loop described in Module 09, but without writing any code. When a user sends a message, the agent reasons about which tools to use, calls them through the n8n workflow, observes the results, and generates a response.</p>
+      <p>Tools in n8n agents are incredibly flexible because any n8n node can be a tool. This means your agent can: query a database (PostgreSQL, MySQL, MongoDB nodes), search the web (HTTP Request node), read Google Sheets, send Slack messages, create Jira tickets, query your RAG pipeline (Vector Store Retriever node), execute calculations (Code node), or call any REST API. Each tool is described to the agent with a name and description, and the agent decides when to use each tool based on the user's request — exactly like function calling in the code-based approach, but configured visually.</p>
+      <p>A common production pattern is a <strong>customer support agent</strong> built entirely in n8n. The workflow starts with a webhook that receives chat messages from your frontend. The AI Agent node uses Claude or GPT-4o as the reasoning engine and has tools attached for: querying the customer database (PostgreSQL node), searching the knowledge base (Vector Store Retriever), checking order status (HTTP Request to your API), and escalating to a human (Slack message node). The agent handles 80% of queries autonomously and escalates the remaining 20% to human support with full context.</p>
+
+      <h3 id="agent-deep">Deep Dive</h3>
+      <p>Building an agent in n8n involves connecting five types of nodes to the central AI Agent node:</p>
+      <p><strong>1. Chat Model</strong> — The LLM brain. Connect an OpenAI, Anthropic, or Ollama node to the agent's "model" input. Configure model selection, temperature, and max tokens.</p>
+      <p><strong>2. Tools</strong> — Actions the agent can take. Each tool is a sub-workflow or node connected to the agent's "tools" input with a name and description. The agent sees these descriptions and decides when to invoke each tool.</p>
+      <p><strong>3. Memory</strong> — Conversation history. Connect a Buffer Memory (stores last N messages) or Summary Memory (LLM-summarized history) node to maintain context across turns.</p>
+      <p><strong>4. Output Parser</strong> — Optional structured output. Connect an Output Parser to force the agent's final response into a specific JSON schema.</p>
+      <p><strong>5. Trigger</strong> — How the agent receives input. Typically a Webhook node (for API access), a Chat Trigger node (for the built-in chat widget), or a Schedule Trigger (for periodic tasks).</p>
+
+      <!-- SVG: n8n Agent Architecture -->
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 800 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Trigger -->
+          <rect x="30" y="120" width="120" height="60" rx="8" fill="#171c2e" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="90" y="148" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600">Webhook</text>
+          <text x="90" y="166" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">POST /chat</text>
+
+          <line x1="150" y1="150" x2="230" y2="150" stroke="#2e3554" stroke-width="1.5" marker-end="url(#aN)"/>
+
+          <!-- Agent -->
+          <rect x="230" y="90" width="180" height="120" rx="12" fill="rgba(168,85,247,0.12)" stroke="#a855f7" stroke-width="2"/>
+          <text x="320" y="120" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk,sans-serif" font-size="14" font-weight="700">AI Agent</text>
+          <text x="320" y="140" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">ReAct Loop</text>
+          <text x="320" y="158" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">Reason → Act → Observe</text>
+          <text x="320" y="176" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="9">Max 10 iterations</text>
+          <text x="320" y="195" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono,monospace" font-size="8">Claude 3.5 Sonnet</text>
+
+          <!-- Memory -->
+          <rect x="230" y="20" width="180" height="45" rx="8" fill="#171c2e" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="320" y="47" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk,sans-serif" font-size="11" font-weight="600">Buffer Memory (20 msgs)</text>
+          <line x1="320" y1="65" x2="320" y2="90" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4"/>
+
+          <!-- Tools -->
+          <rect x="480" y="20" width="140" height="50" rx="8" fill="#171c2e" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="550" y="42" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk,sans-serif" font-size="11" font-weight="600">RAG Retriever</text>
+          <text x="550" y="58" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="8">Vector Store + Rerank</text>
+
+          <rect x="480" y="85" width="140" height="50" rx="8" fill="#171c2e" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="550" y="107" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk,sans-serif" font-size="11" font-weight="600">DB Query</text>
+          <text x="550" y="123" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="8">PostgreSQL read-only</text>
+
+          <rect x="480" y="150" width="140" height="50" rx="8" fill="#171c2e" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="550" y="172" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk,sans-serif" font-size="11" font-weight="600">Send Slack</text>
+          <text x="550" y="188" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="8">Escalation channel</text>
+
+          <rect x="480" y="215" width="140" height="50" rx="8" fill="#171c2e" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="550" y="237" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk,sans-serif" font-size="11" font-weight="600">HTTP Request</text>
+          <text x="550" y="253" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono,monospace" font-size="8">Order status API</text>
+
+          <!-- Tool connections -->
+          <line x1="410" y1="130" x2="480" y2="45" stroke="#22c55e" stroke-width="1" stroke-dasharray="4"/>
+          <line x1="410" y1="140" x2="480" y2="110" stroke="#22c55e" stroke-width="1" stroke-dasharray="4"/>
+          <line x1="410" y1="160" x2="480" y2="175" stroke="#22c55e" stroke-width="1" stroke-dasharray="4"/>
+          <line x1="410" y1="170" x2="480" y2="240" stroke="#22c55e" stroke-width="1" stroke-dasharray="4"/>
+
+          <text x="660" y="140" fill="#22c55e" font-family="Space Grotesk,sans-serif" font-size="11" font-weight="600">Tools</text>
+
+          <!-- Response -->
+          <line x1="320" y1="210" x2="320" y2="260" stroke="#2e3554" stroke-width="1.5" marker-end="url(#aN)"/>
+          <rect x="250" y="260" width="140" height="35" rx="8" fill="rgba(34,197,94,0.15)" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="320" y="282" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk,sans-serif" font-size="11" font-weight="600">Respond to Webhook</text>
+
+          <defs><marker id="aN" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#2e3554"/></marker></defs>
+        </svg>
+        <div class="diagram-caption">Figure 1 — n8n AI Agent workflow: Webhook trigger → Agent with tools → Response</div>
+      </div>
+    </div>
+
+    <div class="section" id="rag-workflow">
+      <div class="section-header"><div class="section-num">04</div><h2>RAG Workflows</h2></div>
+      <h3 id="rag-plain">Plain Language</h3>
+      <p>Building a complete RAG pipeline in n8n requires two workflows: an <strong>ingestion workflow</strong> that processes documents and stores embeddings, and a <strong>query workflow</strong> that retrieves context and generates answers. The ingestion workflow uses: a trigger (manual, schedule, or file upload webhook), a Document Loader node (reads PDFs, CSVs, web pages), a Text Splitter node (chunks the content), an Embeddings node (generates vectors), and a Vector Store Insert node (stores in Pinecone/Qdrant/Supabase). The query workflow uses: a Webhook trigger, a Vector Store Retriever node (similarity search), and an LLM node (synthesis with retrieved context).</p>
+      <p>n8n's RAG implementation is particularly effective for automating document processing pipelines. You can set up a workflow that watches a Google Drive folder for new PDFs, automatically ingests them into the vector store, and notifies a Slack channel when the knowledge base is updated. Users then query the knowledge base through a chatbot interface, and the answers include citations pointing back to the original documents. This entire system — from document upload to answered query — is built without writing a single line of code.</p>
+
+      <h3 id="rag-deep">Deep Dive</h3>
+      <p>The ingestion workflow node chain looks like: <strong>Google Drive Trigger</strong> (new file detected) → <strong>Google Drive Download</strong> (get file) → <strong>Document Loader</strong> (extract text from PDF) → <strong>Recursive Text Splitter</strong> (chunk at 1000 chars, 200 overlap) → <strong>OpenAI Embeddings</strong> (text-embedding-3-small) → <strong>Pinecone Vector Store Insert</strong> → <strong>Slack</strong> (notify: "New document indexed: filename.pdf").</p>
+      <p>The query workflow: <strong>Webhook</strong> (POST /query) → <strong>Pinecone Vector Store Retriever</strong> (top 5 results) → <strong>OpenAI Chat</strong> (system prompt: "Answer based on context...") → <strong>Respond to Webhook</strong> (JSON with answer + sources).</p>
+
+      <div class="callout">
+        <div class="callout-label">n8n + Custom Code</div>
+        <p>When the visual RAG nodes are not flexible enough — for example, implementing reranking or hybrid search — use the Code node to call your own FastAPI endpoint that implements the advanced logic. n8n handles the workflow orchestration (triggers, integrations, error handling), and your custom code handles the AI-specific complexity. Best of both worlds.</p>
+      </div>
+    </div>
+
+    <div class="section" id="triggers">
+      <div class="section-header"><div class="section-num">05</div><h2>Triggers &amp; Integrations</h2></div>
+      <h3 id="trig-plain">Plain Language</h3>
+      <p>The real power of n8n for GenAI is in its 400+ pre-built integrations. Every integration is both a <strong>trigger</strong> (start a workflow when something happens) and an <strong>action</strong> (do something as part of a workflow). This means your AI agent can be triggered by virtually any business event and can take action in virtually any business system. New email in Gmail? Trigger an AI classification workflow. New row in Google Sheets? Trigger document processing. New message in Slack? Trigger a RAG query and post the answer.</p>
+      <p>Some of the most powerful AI workflow patterns: <strong>Email triage</strong> — classify incoming emails by urgency and topic, draft responses for routine queries, and escalate complex ones to the right team. <strong>Document summarization</strong> — watch a SharePoint folder, summarize new documents, and post summaries to Teams. <strong>Data enrichment</strong> — new CRM lead triggers an AI agent that researches the company, summarizes findings, and updates the CRM record. <strong>Content creation</strong> — schedule triggers a workflow that generates social media posts based on recent blog content. <strong>Monitoring</strong> — poll an API for metrics, use an LLM to analyze trends, and alert on anomalies via PagerDuty.</p>
+
+      <h3 id="trig-deep">Deep Dive</h3>
+      <table class="comp-table">
+        <thead><tr><th>Trigger Type</th><th>n8n Nodes</th><th>AI Use Case</th></tr></thead>
+        <tbody>
+          <tr><td>Webhook</td><td>Webhook, Chat Trigger</td><td>Chatbot API, form submission AI</td></tr>
+          <tr><td>Schedule</td><td>Schedule Trigger, Cron</td><td>Daily report generation, batch processing</td></tr>
+          <tr><td>Email</td><td>Gmail, Outlook Trigger</td><td>Email classification, auto-response</td></tr>
+          <tr><td>Messaging</td><td>Slack, Teams, Discord</td><td>Slash command bots, channel assistants</td></tr>
+          <tr><td>File</td><td>Google Drive, S3, FTP</td><td>Document ingestion, media processing</td></tr>
+          <tr><td>Database</td><td>PostgreSQL, MySQL Trigger</td><td>New record enrichment, change analysis</td></tr>
+          <tr><td>CRM</td><td>HubSpot, Salesforce</td><td>Lead scoring, account research</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section" id="deploy">
+      <div class="section-header"><div class="section-num">06</div><h2>Production Deployment</h2></div>
+      <h3 id="dep-plain">Plain Language</h3>
+      <p>For production, n8n should be deployed with persistent storage, proper authentication, and monitoring. The recommended approach is Docker Compose with PostgreSQL for workflow storage (instead of the default SQLite), Redis for queue-based execution (so webhook workflows do not block each other), and a reverse proxy (Nginx, Traefik, or Caddy) for HTTPS termination. On AWS, this maps to an ECS or EC2 deployment with RDS PostgreSQL and ElastiCache Redis.</p>
+      <p>Key production configurations: enable <strong>queue mode</strong> so workflows execute asynchronously via Redis queues (prevents webhook timeouts), set <strong>execution data pruning</strong> to avoid database bloat (keep 30 days of execution history), configure <strong>webhook authentication</strong> (basic auth, header tokens, or OAuth) to prevent unauthorized triggering, and set up <strong>environment variables</strong> for API keys rather than storing them in workflow JSON. Also important: configure n8n's built-in error workflow that triggers when any workflow fails, sending alerts to your monitoring system.</p>
+
+      <h3 id="dep-deep">Deep Dive</h3>
+      <pre><code><span class="code-comment"># docker-compose.yml for production n8n</span>
+<span class="code-keyword">version</span>: <span class="code-string">"3.8"</span>
+<span class="code-keyword">services</span>:
+  n8n:
+    image: n8nio/n8n:latest
+    restart: always
+    ports:
+      - <span class="code-string">"5678:5678"</span>
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD=${DB_PASSWORD}
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=redis
+      - N8N_ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - WEBHOOK_URL=https://n8n.yourdomain.com/
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD}
+      - EXECUTIONS_DATA_MAX_AGE=720  <span class="code-comment"># 30 days in hours</span>
+      - GENERIC_TIMEZONE=America/Chicago
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: n8n
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+
+  <span class="code-comment"># n8n worker for queue mode (scale horizontally)</span>
+  n8n-worker:
+    image: n8nio/n8n:latest
+    command: worker
+    restart: always
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD=${DB_PASSWORD}
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=redis
+      - N8N_ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    depends_on:
+      - postgres
+      - redis
+
+<span class="code-keyword">volumes</span>:
+  n8n_data:
+  postgres_data:</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Security: API Keys</div>
+        <p>Never store API keys (OpenAI, Anthropic) in workflow JSON files. Use n8n's credential system, which encrypts keys at rest using the <code>N8N_ENCRYPTION_KEY</code>. If you export workflows for version control, credentials are excluded by default. Set the encryption key once and never change it — changing it invalidates all stored credentials.</p>
+      </div>
+    </div>
+
+    <div class="next-section">
+      <div><div class="next-label">← Previous</div><a class="next-btn prev-btn" href="13-aws-cloud.html"><span>13 · AWS Cloud</span></a></div>
+      <div style="text-align:right;"><div class="next-label">Next →</div><a class="next-btn" href="15-capstone-document-portal.html"><span>15 · Capstone I</span><svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></a></div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

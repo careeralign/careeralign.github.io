@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evaluation Strategies — CareerAlign GenAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--phase-quality); background: rgba(239,68,68,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-indigo);
+  padding: 6px 14px; border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(99,102,241,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--phase-quality); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--phase-quality); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--phase-quality); flex-shrink: 0; }
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--phase-quality); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--phase-quality); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--phase-quality);
+  background: rgba(239,68,68,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--phase-cloud); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--phase-project); background: rgba(245,158,11,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--phase-quality);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--phase-cloud); }
+.callout.warn .callout-label { color: var(--phase-project); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* SVG DIAGRAM */
+.diagram-wrap {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg); padding: 32px;
+  margin: 32px 0;
+}
+.diagram-caption {
+  text-align: center; font-size: 13px; color: var(--text-muted);
+  margin-top: 16px; font-style: italic;
+}
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--phase-quality); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(239,68,68,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* CHECKLIST */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px; color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 2px solid var(--phase-quality);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.check-box.done { background: var(--phase-quality); border-color: var(--phase-quality); }
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--phase-quality); color: var(--phase-quality); transform: translateX(4px); }
+.prev-btn:hover { border-color: var(--phase-quality); color: var(--phase-quality); transform: translateX(-4px); }
+.next-phase { font-size: 12px; color: var(--phase-quality); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9889; <span>CareerAlign</span> GenAI</div>
+  <div class="nav-links">
+    <a href="00-prerequisites.html">00 &middot; Prerequisites</a>
+    <a href="01-foundations-of-genai.html">01 &middot; Foundations</a>
+    <a href="02-llms-slms-multimodal.html">02 &middot; Models</a>
+    <a href="03-api-for-llms.html">03 &middot; APIs</a>
+    <a href="04-fine-tuning.html">04 &middot; Fine-Tuning</a>
+    <a href="05-llm-hosting.html">05 &middot; Hosting</a>
+    <a href="06-prompt-engineering.html">06 &middot; Prompting</a>
+    <a href="07-rag-systems.html">07 &middot; RAG</a>
+    <a href="08-advanced-rag.html">08 &middot; Adv RAG</a>
+    <a href="09-agents.html">09 &middot; Agents</a>
+    <a href="10-evaluation.html" class="active">10 &middot; Eval</a>
+    <a href="11-guardrails.html">11 &middot; Guardrails</a>
+    <a href="12-mcp.html">12 &middot; MCP</a>
+    <a href="13-aws-cloud.html">13 &middot; AWS</a>
+    <a href="14-n8n-no-code.html">14 &middot; n8n</a>
+    <a href="15-capstone-document-portal.html">15 &middot; Cap I</a>
+    <a href="16-capstone-report-agent.html">16 &middot; Cap II</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GenAI Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Module 10 &middot; Quality Phase
+  </div>
+  <h1>Evaluation Strategies for <em>LLM Systems</em></h1>
+  <p class="hero-desc">
+    Building an LLM application that works in your demo is the easy part. Building one that works
+    reliably in production — and that you can measure, improve, and trust — requires a principled
+    approach to evaluation. This module covers every layer of the eval stack: from automated metrics
+    and LLM-as-judge to RAGAS for RAG pipelines, benchmark suites, evaluation-driven development
+    workflows, and the human evaluation processes that anchor everything else.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      LLM-as-Judge
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      RAGAS Framework
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Benchmarks &amp; Metrics
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Eval-Driven Dev
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Human Evaluation
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/CareerAlign/genai-course/blob/main/notebooks/10-evaluation.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#why-hard" class="section">1 &middot; Why Eval Is Hard</a>
+    <a href="#ground-truth" class="sub">Ground Truth Challenges</a>
+    <a href="#metrics-taxonomy" class="sub">Metrics Taxonomy</a>
+    <a href="#llm-judge" class="section">2 &middot; LLM-as-Judge</a>
+    <a href="#judge-pipeline" class="sub">Judge Pipeline</a>
+    <a href="#judge-bias" class="sub">Bias &amp; Mitigation</a>
+    <a href="#judge-code" class="sub">Implementation</a>
+    <a href="#ragas" class="section">3 &middot; RAGAS</a>
+    <a href="#ragas-metrics" class="sub">Four Metrics</a>
+    <a href="#ragas-code" class="sub">End-to-End Pipeline</a>
+    <a href="#benchmarks" class="section">4 &middot; Benchmarks</a>
+    <a href="#standard-benchmarks" class="sub">Standard Suites</a>
+    <a href="#task-metrics" class="sub">Task-Specific Metrics</a>
+    <a href="#edd" class="section">5 &middot; Eval-Driven Dev</a>
+    <a href="#eval-loop" class="sub">The Eval Loop</a>
+    <a href="#ci-eval" class="sub">CI/CD Integration</a>
+    <a href="#human-eval" class="section">6 &middot; Human Evaluation</a>
+    <a href="#annotation" class="sub">Annotation Guidelines</a>
+    <a href="#agreement" class="sub">Inter-Annotator Agreement</a>
+    <a href="#red-team" class="sub">Red-Teaming</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- SECTION 1: WHY EVAL IS HARD -->
+    <section class="section" id="why-hard">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Why Evaluation Is Hard for LLMs</h2>
+      </div>
+
+      <p>
+        In traditional machine learning, evaluation is conceptually simple. You have a test set with
+        known labels. Your model makes predictions. You count how often it is right. Whether you are
+        classifying spam, detecting fraud, or predicting house prices, the evaluation question is always
+        the same: <strong>does the output match the ground truth?</strong> The answer is a number, the
+        number can be tracked over time, and improvements are unambiguous.
+      </p>
+      <p>
+        LLMs break every part of this model. When you ask an LLM to "summarize this document" or
+        "explain quantum entanglement to a ten-year-old" or "help me debug this Python function," there
+        is no single correct answer. There are dozens of equally valid answers, varying in length, style,
+        focus, and vocabulary. Two expert humans shown the same response would disagree about whether
+        it is excellent or merely adequate. This is not a solvable problem — it is a fundamental property
+        of open-ended text generation. Any evaluation framework for LLMs has to grapple with this
+        irreducible ambiguity from the start.
+      </p>
+      <p>
+        The practical consequence is that many teams in their early stages of building LLM products
+        fall back on what practitioners call the <strong>"vibe check"</strong>: a developer tries the
+        system a few times, it seems to work, they ship it. This approach has a seductive simplicity.
+        It requires no infrastructure, no datasets, and no methodology. The problem is that it does not
+        scale — neither to the volume of outputs a production system generates, nor to the diversity of
+        inputs real users bring, nor to the detection of subtle regressions when you change a prompt or
+        swap a model version. The vibe check is how teams end up shipping changes that hurt 20% of their
+        users while improving the 5 examples the developer happened to test.
+      </p>
+      <p>
+        Even when teams attempt more systematic evaluation, they quickly discover the <strong>distribution
+        shift</strong> problem. Your handcrafted test cases reflect the queries you thought to write.
+        Real users ask things you never anticipated. They phrase questions in unexpected ways, use domain
+        vocabulary you did not cover, combine tasks in unusual sequences, and push against edge cases
+        that seemed unlikely. A system that scores 95% on your internal test set may perform dramatically
+        worse on actual production traffic — not because the model is bad, but because the eval set was
+        not representative.
+      </p>
+      <p>
+        Compounding this is <strong>prompt sensitivity</strong>: LLMs are not deterministic functions
+        with stable, predictable behavior. Adding a single word to a system prompt, changing the
+        temperature by 0.1, or switching from one model version to another can produce noticeably
+        different outputs on the same input. This means every change to your system — and in a production
+        LLM app, changes happen constantly — is potentially a regression you cannot see without a
+        rigorous eval harness. Evaluation is not a one-time activity; it is the continuous measurement
+        infrastructure that makes your entire development process trustworthy.
+      </p>
+
+      <h3 id="ground-truth">Ground Truth Challenges and the Multiple-Correct-Answers Problem</h3>
+      <p>
+        For tasks like question answering over a document, you might imagine that ground truth is
+        achievable: there is a specific passage that answers the question, and you can check whether
+        the model found it. But even here, the problem is messier than it looks. A model might answer
+        correctly using different words than the reference answer. It might give a correct answer at a
+        different level of specificity. It might synthesize information from two passages rather than
+        one. Exact-match metrics will penalize all of these correct answers. Token-overlap metrics like
+        BLEU and ROUGE will give partial credit, but the scores are difficult to interpret and correlate
+        poorly with actual quality for long-form responses.
+      </p>
+      <p>
+        For generative tasks — writing, brainstorming, explanation, code generation — the ground truth
+        problem is even more severe. There is no canonical correct email response, no single correct
+        explanation of a concept, no uniquely correct implementation of a function. Human annotators
+        asked to produce reference answers for these tasks will disagree with each other nearly as much
+        as they disagree with the model. This means that reference-based evaluation — checking the model's
+        output against a gold standard — is only viable for a subset of LLM tasks, and requires careful
+        methodology even in those cases.
+      </p>
+      <p>
+        The alternative approaches each come with their own trade-offs. <strong>Reference-free evaluation</strong>
+        judges quality without a ground truth — typically by having a strong model evaluate the output
+        directly. This is flexible and scalable, but it introduces the biases and reliability concerns
+        of the judge model itself. <strong>Human evaluation</strong> is the gold standard for quality
+        but is slow, expensive, and hard to reproduce. <strong>Behavioral testing</strong> — checking
+        that outputs satisfy logical constraints, safety rules, or format requirements — is the most
+        reliable automated method, but it only covers the properties you explicitly specify. A complete
+        evaluation strategy combines multiple methods because no single approach is sufficient.
+      </p>
+
+      <h3 id="metrics-taxonomy">The Evaluation Metrics Taxonomy</h3>
+      <p>
+        It helps to organize the evaluation landscape into a clear taxonomy before diving into specific
+        frameworks. At the highest level, evaluation methods divide into three families based on what
+        they require to operate.
+      </p>
+      <p>
+        <strong>Reference-based metrics</strong> compare model output to a human-written reference answer.
+        They include exact match (binary: does the output equal the reference?), token-overlap metrics
+        like BLEU (used for translation) and ROUGE (used for summarization), and embedding-based
+        similarity metrics like BERTScore that compare semantic meaning rather than surface text.
+        Reference-based metrics are cheap to compute but require the expensive work of building a
+        ground-truth dataset, and they systematically penalize valid outputs that differ from the
+        reference.
+      </p>
+      <p>
+        <strong>Reference-free metrics</strong> assess quality without requiring a human-written reference.
+        They include perplexity (how surprised is the model by its own output — not a quality metric,
+        but a coherence proxy), factual consistency checkers that use an NLI model to verify claims,
+        readability metrics, and the increasingly dominant LLM-as-judge approach where a powerful model
+        scores the output on a rubric. Reference-free metrics are scalable and flexible, but they require
+        careful calibration against human judgments to be trusted.
+      </p>
+      <p>
+        <strong>Human evaluation</strong> is the ultimate arbiter but is expensive and slow. The key
+        design choices in human eval are: the rating scale (Likert scale, pairwise preference, or
+        categorical), the annotation guidelines (how precisely you define what evaluators should measure),
+        the annotator pool (domain experts vs. crowd workers vs. end users), and the inter-annotator
+        agreement methodology (how you verify that annotators are applying criteria consistently). Every
+        automated metric is ultimately valuable only to the extent that it correlates with human
+        judgment — which is why running human eval periodically to calibrate your automated metrics is
+        a fundamental practice, not an optional one.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Key Insight</div>
+        <p>The cost vs. accuracy trade-off runs through every evaluation decision. Human eval is the most accurate but costs $5–50 per sample. LLM-as-judge costs $0.01–0.10 per sample but has systematic biases. Automated metrics cost fractions of a cent but correlate poorly with quality. Build your eval stack in layers: cheap automated metrics for every run, LLM-as-judge for detailed analysis, human eval for periodic calibration.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 2: LLM-AS-JUDGE -->
+    <section class="section" id="llm-judge">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>LLM-as-Judge</h2>
+      </div>
+
+      <p>
+        The LLM-as-judge pattern is exactly what it sounds like: you use a powerful language model —
+        typically GPT-4o, Claude Opus, or a specialized judge model — to evaluate the output of another
+        language model. This might sound circular, but it works surprisingly well in practice, and
+        understanding why helps you use it correctly. A strong judge model has internalized an enormous
+        amount of human judgment about writing quality, factual accuracy, helpfulness, and reasoning
+        coherence. When you give it a clear rubric and a structured evaluation task, it can apply that
+        judgment consistently across thousands of examples at a fraction of the cost of human annotators.
+      </p>
+      <p>
+        The key insight is that <strong>evaluating a response is a much easier task than generating it</strong>.
+        A human editor can reliably spot errors in an essay they could not have written themselves. A
+        student who could not solve a calculus problem correctly can still verify that a given solution
+        is wrong once they see it. LLMs exhibit the same asymmetry: a model that sometimes makes
+        mistakes when generating answers can nonetheless be quite reliable at identifying problems in
+        a generated answer when given a structured evaluation prompt. This is why GPT-4 as a judge
+        achieves approximately 80% agreement with human raters on many benchmarks — comparable to
+        the level of agreement between two human annotators.
+      </p>
+      <p>
+        The practical value of LLM-as-judge is that it enables evaluation at production scale. If your
+        application handles 10,000 queries per day, you cannot have a human review each response. But
+        you can run an automated judge on a representative sample of 500 queries and get a reliable
+        signal about overall quality. You can run the judge on every response in your regression test
+        suite every time you change a prompt. You can run it on adversarial examples before deployment.
+        This transforms evaluation from a periodic manual process into a continuous automated signal
+        integrated into your development workflow.
+      </p>
+
+      <h3 id="judge-pipeline">The LLM-as-Judge Pipeline</h3>
+      <p>
+        A well-designed judge pipeline has four components. The <strong>system prompt</strong> describes
+        the judge's role, the evaluation task, and the scoring rubric with enough precision that the
+        judge applies criteria consistently. The <strong>input</strong> includes the original question
+        or task, the model's answer, and optionally a reference answer and/or the source context (for
+        RAG systems). The <strong>output</strong> is a structured JSON object containing the numeric
+        score and, critically, a written reasoning trace explaining why that score was assigned. The
+        reasoning trace is not just for human review — it also forces the judge model to reason carefully
+        before assigning a score, which improves accuracy.
+      </p>
+      <p>
+        There are two fundamental evaluation modes: <strong>pointwise</strong> and <strong>pairwise</strong>.
+        In pointwise evaluation, the judge scores a single response on an absolute scale (typically 1-5
+        or 1-10) against a rubric. This is more scalable and works well when you have a clear definition
+        of quality. In pairwise evaluation, the judge is shown two responses to the same question and
+        must decide which is better (or whether they are equivalent). Pairwise evaluation is more reliable
+        — humans and models find it easier to compare two options than to assign absolute scores — but
+        it requires N-squared evaluations to rank N candidates and produces relative rather than absolute
+        quality signals. The two approaches are complementary: use pairwise evaluation to calibrate
+        your pointwise rubric, then use pointwise evaluation at scale.
+      </p>
+
+      <h3 id="judge-bias">Bias in LLM-as-Judge and Mitigation Strategies</h3>
+      <p>
+        LLM judges have well-documented systematic biases that you must actively mitigate. The three
+        most important are: <strong>position bias</strong> (when comparing two answers, models tend to
+        prefer the first one they see, regardless of quality — studies show this effect can be as large
+        as 15-25 percentage points), <strong>verbosity bias</strong> (models tend to rate longer, more
+        detailed answers higher even when the added length does not add value — this can be a 10-20%
+        score inflation for verbose responses), and <strong>self-enhancement bias</strong> (models tend
+        to rate responses that match their own stylistic tendencies higher, meaning GPT-4 may
+        systematically favor GPT-4 style outputs when judging a competition between GPT-4 and Claude).
+      </p>
+      <p>
+        The standard mitigation for position bias is <strong>position swapping with averaging</strong>:
+        run each pairwise evaluation twice, once with answer A first and once with answer B first, then
+        average the results. This roughly doubles your evaluation cost but essentially eliminates position
+        bias from the aggregate signal. For verbosity bias, the most effective approach is an explicit
+        rubric that penalizes unnecessary verbosity: instruct the judge to score concise correct answers
+        as highly as verbose correct answers, and to score padded responses lower than equivalently
+        correct concise responses. For self-enhancement bias, the most reliable solution is to use a
+        different model as your judge than the model you are evaluating.
+      </p>
+      <p>
+        Beyond the big three biases, LLM judges are also susceptible to <strong>sycophancy</strong>
+        (preferring responses that agree with claims in the prompt), <strong>format bias</strong>
+        (preferring responses with lists, headers, or other structured formatting even when plain prose
+        is more appropriate), and <strong>anchoring</strong> (being influenced by a reference answer
+        shown before the response to evaluate). Mitigation requires careful prompt engineering, rubric
+        design, and — whenever your evaluation budget allows — comparison against human ratings to catch
+        systematic errors before they become embedded in your evaluation infrastructure.
+      </p>
+      <p>
+        Specialized open-source judge models have emerged to address some of these problems. <strong>Prometheus</strong>
+        is a Llama-based model trained specifically to follow evaluation rubrics and produce human-aligned
+        scores with explicit reasoning. It is designed to be more transparent and controllable than
+        using a general-purpose proprietary model as a judge. The <strong>Llama-3-based judge</strong>
+        family (including models like Meta-Llama-3-70B fine-tuned on preference data) offers strong
+        judging capability that can run locally, avoiding the cost and latency of API calls and allowing
+        evaluation of sensitive data without sending it to a third-party service.
+      </p>
+
+      <h3 id="judge-code">LLM-as-Judge: Full Implementation</h3>
+
+      <pre><code><span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+<span class="code-keyword">from</span> pydantic <span class="code-keyword">import</span> BaseModel, Field
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Literal
+<span class="code-keyword">import</span> json
+
+client = OpenAI()
+
+<span class="code-comment"># ── Structured output schema for the judge ──────────────────────────────────</span>
+<span class="code-keyword">class</span> <span class="code-fn">JudgeVerdict</span>(BaseModel):
+    score: int = Field(..., ge=<span class="code-num">1</span>, le=<span class="code-num">5</span>,
+                       description=<span class="code-string">"Quality score from 1 (very poor) to 5 (excellent)"</span>)
+    reasoning: str = Field(...,
+                           description=<span class="code-string">"Step-by-step explanation justifying the score"</span>)
+    strengths: list[str] = Field(default_factory=list)
+    weaknesses: list[str] = Field(default_factory=list)
+    verdict: Literal[<span class="code-string">"pass"</span>, <span class="code-string">"fail"</span>] = Field(
+        ..., description=<span class="code-string">"Pass if score >= 3, fail otherwise"</span>)
+
+<span class="code-comment"># ── Pointwise judge ──────────────────────────────────────────────────────────</span>
+JUDGE_SYSTEM_PROMPT = <span class="code-string">"""You are an expert evaluator of AI assistant responses.
+Your task is to score the quality of the provided answer on a 5-point scale.
+
+RUBRIC:
+5 - Excellent: Fully correct, appropriately detailed, well-organized, no errors
+4 - Good: Mostly correct with minor gaps or slightly verbose/terse
+3 - Adequate: Correct core answer but missing important nuance or context
+2 - Poor: Partially correct but contains significant errors or omissions
+1 - Very poor: Incorrect, harmful, or completely fails to address the question
+
+IMPORTANT RULES:
+- Score based on accuracy and helpfulness, NOT length
+- A short but complete answer should score the same as a long but equally complete answer
+- Provide specific evidence from the response to justify your score
+- Always write your reasoning BEFORE assigning the score
+"""</span>
+
+<span class="code-keyword">def</span> <span class="code-fn">judge_pointwise</span>(
+    question: str,
+    answer: str,
+    reference: str | None = None,
+    context: str | None = None,
+    judge_model: str = <span class="code-string">"gpt-4o"</span>
+) -> JudgeVerdict:
+    <span class="code-string">"""Score a single answer on a 1-5 scale using an LLM judge."""</span>
+
+    user_content = f<span class="code-string">"""QUESTION: {question}
+
+ANSWER TO EVALUATE:
+{answer}"""</span>
+
+    <span class="code-keyword">if</span> reference:
+        user_content += f<span class="code-string">"\n\nREFERENCE ANSWER (for guidance, not required match):\n{reference}"</span>
+    <span class="code-keyword">if</span> context:
+        user_content += f<span class="code-string">"\n\nSOURCE CONTEXT:\n{context}"</span>
+
+    response = client.beta.chat.completions.parse(
+        model=judge_model,
+        messages=[
+            {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: JUDGE_SYSTEM_PROMPT},
+            {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: user_content}
+        ],
+        response_format=JudgeVerdict,
+        temperature=<span class="code-num">0.0</span>  <span class="code-comment"># deterministic scoring</span>
+    )
+    <span class="code-keyword">return</span> response.choices[<span class="code-num">0</span>].message.parsed
+
+<span class="code-comment"># ── Pairwise judge with position-swap debiasing ──────────────────────────────</span>
+<span class="code-keyword">class</span> <span class="code-fn">PairwiseVerdict</span>(BaseModel):
+    winner: Literal[<span class="code-string">"A"</span>, <span class="code-string">"B"</span>, <span class="code-string">"tie"</span>]
+    reasoning: str
+    confidence: Literal[<span class="code-string">"low"</span>, <span class="code-string">"medium"</span>, <span class="code-string">"high"</span>]
+
+PAIRWISE_PROMPT = <span class="code-string">"""Compare two answers to the same question. Decide which is better.
+Answer A or Answer B may be better, or they may be equally good (tie).
+Judge on: accuracy, completeness, clarity. NOT on length alone."""</span>
+
+<span class="code-keyword">def</span> <span class="code-fn">judge_pairwise</span>(
+    question: str,
+    answer_a: str,
+    answer_b: str,
+    judge_model: str = <span class="code-string">"gpt-4o"</span>
+) -> dict:
+    <span class="code-string">"""Pairwise comparison with automatic position-swap debiasing."""</span>
+
+    <span class="code-keyword">def</span> <span class="code-fn">_compare</span>(first: str, second: str, first_label: str) -> PairwiseVerdict:
+        content = f<span class="code-string">"""QUESTION: {question}
+
+ANSWER {first_label}: {first}
+
+ANSWER {"B" if first_label == "A" else "A"}: {second}"""</span>
+        resp = client.beta.chat.completions.parse(
+            model=judge_model,
+            messages=[
+                {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: PAIRWISE_PROMPT},
+                {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: content}
+            ],
+            response_format=PairwiseVerdict,
+            temperature=<span class="code-num">0.0</span>
+        )
+        <span class="code-keyword">return</span> resp.choices[<span class="code-num">0</span>].message.parsed
+
+    <span class="code-comment"># Run twice with swapped positions to cancel position bias</span>
+    result_ab = _compare(answer_a, answer_b, <span class="code-string">"A"</span>)  <span class="code-comment"># A first</span>
+    result_ba = _compare(answer_b, answer_a, <span class="code-string">"B"</span>)  <span class="code-comment"># B first (labels swapped)</span>
+
+    <span class="code-comment"># Aggregate: both must agree for a confident winner</span>
+    votes = {<span class="code-string">"A"</span>: <span class="code-num">0</span>, <span class="code-string">"B"</span>: <span class="code-num">0</span>, <span class="code-string">"tie"</span>: <span class="code-num">0</span>}
+    votes[result_ab.winner] += <span class="code-num">1</span>
+    votes[result_ba.winner] += <span class="code-num">1</span>
+
+    <span class="code-keyword">if</span> votes[<span class="code-string">"A"</span>] == <span class="code-num">2</span>:   final = <span class="code-string">"A"</span>
+    <span class="code-keyword">elif</span> votes[<span class="code-string">"B"</span>] == <span class="code-num">2</span>: final = <span class="code-string">"B"</span>
+    <span class="code-keyword">else</span>:               final = <span class="code-string">"tie"</span>  <span class="code-comment"># disagreement → tie</span>
+
+    <span class="code-keyword">return</span> {
+        <span class="code-string">"winner"</span>: final,
+        <span class="code-string">"run_ab"</span>: result_ab.model_dump(),
+        <span class="code-string">"run_ba"</span>: result_ba.model_dump(),
+        <span class="code-string">"position_bias_detected"</span>: result_ab.winner != result_ba.winner
+    }
+
+<span class="code-comment"># ── Batch evaluation ─────────────────────────────────────────────────────────</span>
+<span class="code-keyword">def</span> <span class="code-fn">batch_evaluate</span>(test_cases: list[dict], judge_model: str = <span class="code-string">"gpt-4o"</span>) -> dict:
+    <span class="code-string">"""Run pointwise judge on a list of {question, answer, reference?} dicts."""</span>
+    results = []
+    <span class="code-keyword">for</span> case <span class="code-keyword">in</span> test_cases:
+        verdict = judge_pointwise(
+            question=case[<span class="code-string">"question"</span>],
+            answer=case[<span class="code-string">"answer"</span>],
+            reference=case.get(<span class="code-string">"reference"</span>),
+            context=case.get(<span class="code-string">"context"</span>),
+            judge_model=judge_model
+        )
+        results.append({**case, <span class="code-string">"verdict"</span>: verdict.model_dump()})
+
+    scores = [r[<span class="code-string">"verdict"</span>][<span class="code-string">"score"</span>] <span class="code-keyword">for</span> r <span class="code-keyword">in</span> results]
+    pass_rate = sum(<span class="code-num">1</span> <span class="code-keyword">for</span> r <span class="code-keyword">in</span> results <span class="code-keyword">if</span> r[<span class="code-string">"verdict"</span>][<span class="code-string">"verdict"</span>] == <span class="code-string">"pass"</span>) / len(results)
+
+    <span class="code-keyword">return</span> {
+        <span class="code-string">"results"</span>: results,
+        <span class="code-string">"summary"</span>: {
+            <span class="code-string">"mean_score"</span>: sum(scores) / len(scores),
+            <span class="code-string">"pass_rate"</span>: pass_rate,
+            <span class="code-string">"score_distribution"</span>: {i: scores.count(i) <span class="code-keyword">for</span> i <span class="code-keyword">in</span> range(<span class="code-num">1</span>, <span class="code-num">6</span>)}
+        }
+    }
+
+<span class="code-comment"># Usage:</span>
+<span class="code-comment"># verdict = judge_pointwise("What is RAG?", "RAG stands for...")</span>
+<span class="code-comment"># print(verdict.score, verdict.reasoning)</span></code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Production Tip</div>
+        <p>Always log the judge's full reasoning trace, not just the score. When evaluating why your system is failing, the reasoning traces are far more informative than the numeric scores. They let you identify systematic failure patterns — "the judge always penalizes responses that don't start with a direct answer" — that you can then address in your system prompt or judge prompt.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 3: RAGAS -->
+    <section class="section" id="ragas">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>RAGAS for RAG Evaluation</h2>
+      </div>
+
+      <p>
+        Retrieval-Augmented Generation systems have a unique evaluation challenge compared to simple
+        chatbots: there are multiple points of failure that are largely independent. The retrieval
+        step might find the wrong documents. The retrieved documents might be correct but not cover
+        everything needed. The generation step might produce a response that contradicts the retrieved
+        context. Or the response might answer a related-but-different question instead of the one
+        actually asked. A single overall quality score cannot diagnose which of these failures is
+        occurring — you need separate metrics for separate pipeline stages.
+      </p>
+      <p>
+        <strong>RAGAS</strong> (Retrieval Augmented Generation Assessment) is an open-source framework
+        that addresses this by defining four complementary metrics, each targeting a different component
+        of the RAG pipeline. By computing all four metrics together, you get a comprehensive diagnostic
+        picture: is your retriever finding the right documents? Is your generator staying faithful to
+        what it retrieved? Is your answer actually addressing the user's question? Do you have a coverage
+        gap? Teams that start using RAGAS consistently report that it reveals problems they had no idea
+        existed — particularly faithfulness failures, where the LLM confidently generates information
+        that is not present in the retrieved context.
+      </p>
+      <p>
+        The framework is designed to be largely automated: most metrics use an LLM to perform the
+        fine-grained assessments (claim extraction, question generation, entailment checking) that
+        would otherwise require human annotators. This makes it practical to run as part of a CI/CD
+        pipeline. The one metric that requires human-provided ground truth is Context Recall, which
+        needs a reference answer to assess whether the retrieval system found everything necessary.
+        For the other three metrics, you only need the question, the retrieved context chunks, and
+        the generated answer — all of which are available from your RAG pipeline's runtime logs.
+      </p>
+
+      <!-- RAGAS DIAGRAM -->
+      <div class="diagram-wrap" id="ragas-metrics">
+        <svg viewBox="0 0 900 480" width="100%" xmlns="http://www.w3.org/2000/svg" aria-label="RAGAS metrics diagram">
+          <defs>
+            <marker id="arr-r" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#545a78"/>
+            </marker>
+          </defs>
+
+          <!-- Title -->
+          <text x="450" y="30" text-anchor="middle" fill="#e6e8f4" font-family="'Space Grotesk',sans-serif" font-size="16" font-weight="700">RAGAS: Four Metrics Covering the Entire RAG Pipeline</text>
+
+          <!-- Pipeline nodes -->
+          <!-- Question box -->
+          <rect x="30" y="80" width="120" height="48" rx="8" fill="#171c2e" stroke="#2e3554"/>
+          <text x="90" y="100" text-anchor="middle" fill="#8e94b5" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600">USER</text>
+          <text x="90" y="116" text-anchor="middle" fill="#e6e8f4" font-family="'Space Grotesk',sans-serif" font-size="12" font-weight="700">Question</text>
+
+          <!-- Retriever -->
+          <rect x="220" y="60" width="140" height="88" rx="8" fill="#1e2438" stroke="#f97316" stroke-width="1.5"/>
+          <text x="290" y="88" text-anchor="middle" fill="#f97316" font-family="'Space Grotesk',sans-serif" font-size="12" font-weight="700">Retriever</text>
+          <text x="290" y="106" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Vector search</text>
+          <text x="290" y="120" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">→ top-k chunks</text>
+          <text x="290" y="136" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Context [c1, c2 … ck]</text>
+
+          <!-- Generator -->
+          <rect x="440" y="60" width="140" height="88" rx="8" fill="#1e2438" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="510" y="88" text-anchor="middle" fill="#6366f1" font-family="'Space Grotesk',sans-serif" font-size="12" font-weight="700">Generator</text>
+          <text x="510" y="106" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">LLM synthesis</text>
+          <text x="510" y="120" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">question + context</text>
+          <text x="510" y="136" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">→ Answer</text>
+
+          <!-- Answer box -->
+          <rect x="660" y="80" width="120" height="48" rx="8" fill="#171c2e" stroke="#2e3554"/>
+          <text x="720" y="100" text-anchor="middle" fill="#8e94b5" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600">OUTPUT</text>
+          <text x="720" y="116" text-anchor="middle" fill="#e6e8f4" font-family="'Space Grotesk',sans-serif" font-size="12" font-weight="700">Answer</text>
+
+          <!-- Arrows between pipeline nodes -->
+          <line x1="150" y1="104" x2="218" y2="104" stroke="#545a78" stroke-width="1.5" marker-end="url(#arr-r)"/>
+          <line x1="360" y1="104" x2="438" y2="104" stroke="#545a78" stroke-width="1.5" marker-end="url(#arr-r)"/>
+          <line x1="580" y1="104" x2="658" y2="104" stroke="#545a78" stroke-width="1.5" marker-end="url(#arr-r)"/>
+
+          <!-- Metric 1: Faithfulness -->
+          <rect x="380" y="210" width="200" height="90" rx="10" fill="#1a0a0a" stroke="#ef4444" stroke-width="2"/>
+          <text x="480" y="232" text-anchor="middle" fill="#ef4444" font-family="'Space Grotesk',sans-serif" font-size="13" font-weight="700">Faithfulness</text>
+          <text x="480" y="250" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Answer claims ⊆ Context?</text>
+          <text x="480" y="264" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Decompose answer → claims</text>
+          <text x="480" y="278" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Check each claim vs context</text>
+          <text x="480" y="292" text-anchor="middle" fill="#ef4444" font-family="'Space Grotesk',sans-serif" font-size="10" font-weight="600">Hallucination detector</text>
+          <!-- Arrow: Answer → Faithfulness -->
+          <line x1="680" y1="128" x2="520" y2="210" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-r)"/>
+
+          <!-- Metric 2: Answer Relevance -->
+          <rect x="600" y="210" width="200" height="90" rx="10" fill="#0a0f1a" stroke="#6366f1" stroke-width="2"/>
+          <text x="700" y="232" text-anchor="middle" fill="#6366f1" font-family="'Space Grotesk',sans-serif" font-size="13" font-weight="700">Answer Relevance</text>
+          <text x="700" y="250" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Does answer address question?</text>
+          <text x="700" y="264" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Generate Qs from answer</text>
+          <text x="700" y="278" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Sim(generated Q, orig Q)</text>
+          <text x="700" y="292" text-anchor="middle" fill="#6366f1" font-family="'Space Grotesk',sans-serif" font-size="10" font-weight="600">Off-topic detector</text>
+          <!-- Arrow: Answer → Answer Relevance -->
+          <line x1="740" y1="128" x2="720" y2="210" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-r)"/>
+
+          <!-- Metric 3: Context Precision -->
+          <rect x="100" y="210" width="200" height="90" rx="10" fill="#0a130a" stroke="#22c55e" stroke-width="2"/>
+          <text x="200" y="232" text-anchor="middle" fill="#22c55e" font-family="'Space Grotesk',sans-serif" font-size="13" font-weight="700">Context Precision</text>
+          <text x="200" y="250" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Retrieved chunks useful?</text>
+          <text x="200" y="264" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Rank useful vs noise chunks</text>
+          <text x="200" y="278" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Precision@k over ranking</text>
+          <text x="200" y="292" text-anchor="middle" fill="#22c55e" font-family="'Space Grotesk',sans-serif" font-size="10" font-weight="600">Retrieval noise detector</text>
+          <!-- Arrow: Retriever → Context Precision -->
+          <line x1="260" y1="148" x2="220" y2="210" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-r)"/>
+
+          <!-- Metric 4: Context Recall -->
+          <rect x="320" y="210" width="200" height="90" rx="10" fill="#0d0a14" stroke="#a855f7" stroke-width="2"/>
+          <text x="420" y="232" text-anchor="middle" fill="#a855f7" font-family="'Space Grotesk',sans-serif" font-size="13" font-weight="700">Context Recall</text>
+          <text x="420" y="250" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Retrieved everything needed?</text>
+          <text x="420" y="264" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Needs ground truth answer</text>
+          <text x="420" y="278" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Claims in ref ⊆ context?</text>
+          <text x="420" y="292" text-anchor="middle" fill="#a855f7" font-family="'Space Grotesk',sans-serif" font-size="10" font-weight="600">Coverage gap detector</text>
+          <!-- Arrow: Retriever → Context Recall -->
+          <line x1="310" y1="148" x2="380" y2="210" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-r)"/>
+
+          <!-- Harmonic mean / Overall score -->
+          <rect x="300" y="360" width="300" height="60" rx="10" fill="#1e2438" stroke="#e6e8f4" stroke-width="1.5"/>
+          <text x="450" y="388" text-anchor="middle" fill="#e6e8f4" font-family="'Space Grotesk',sans-serif" font-size="14" font-weight="700">RAGAS Score (Harmonic Mean)</text>
+          <text x="450" y="408" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="11">4F / (1/Faith + 1/AnsRel + 1/CtxPrec + 1/CtxRecall)</text>
+
+          <!-- Arrows from metrics to RAGAS score -->
+          <line x1="200" y1="300" x2="360" y2="360" stroke="#545a78" stroke-width="1.2" marker-end="url(#arr-r)"/>
+          <line x1="420" y1="300" x2="420" y2="360" stroke="#545a78" stroke-width="1.2" marker-end="url(#arr-r)"/>
+          <line x1="480" y1="300" x2="460" y2="360" stroke="#545a78" stroke-width="1.2" marker-end="url(#arr-r)"/>
+          <line x1="700" y1="300" x2="560" y2="360" stroke="#545a78" stroke-width="1.2" marker-end="url(#arr-r)"/>
+
+          <!-- Legend -->
+          <text x="30" y="455" fill="#545a78" font-family="'Nunito',sans-serif" font-size="11">Dashed arrows = metric measurement target. Ground truth required only for Context Recall.</text>
+        </svg>
+        <p class="diagram-caption">RAGAS decomposes RAG evaluation into four targeted metrics, each diagnosing a different failure mode in the retrieval-generation pipeline.</p>
+      </div>
+
+      <h3>Deep Dive: Each RAGAS Metric Explained</h3>
+      <p>
+        <strong>Faithfulness (0-1)</strong> measures whether the generated answer contains only claims
+        that are supported by the retrieved context. It is designed to detect hallucination — the most
+        dangerous failure mode in RAG systems, where the LLM generates confident-sounding information
+        that has no basis in the retrieved documents. The measurement process works by first using an
+        LLM to decompose the generated answer into a list of atomic claims (individual factual
+        statements). Then, for each claim, a second LLM call determines whether that claim is
+        entailed by the retrieved context. The faithfulness score is the fraction of claims that are
+        supported. A score of 1.0 means every claim in the answer can be traced back to the context;
+        a score of 0.6 means 40% of the answer's claims are potentially hallucinated.
+      </p>
+      <p>
+        <strong>Answer Relevance (0-1)</strong> measures whether the generated answer actually addresses
+        the question that was asked. A high faithfulness score does not guarantee relevance — a model
+        could faithfully reproduce facts from the retrieved documents while completely ignoring the
+        user's actual question. Answer Relevance is measured using a clever reverse-generation approach:
+        the judge LLM is given the answer and asked to generate several questions for which this answer
+        would be a good response. These generated questions are then compared to the original question
+        using embedding similarity. If the generated questions are semantically close to the original
+        question, the answer was relevant; if they are very different, the answer drifted from the topic.
+      </p>
+      <p>
+        <strong>Context Precision (0-1)</strong> measures the signal-to-noise ratio in the retrieved
+        chunks. When your retriever returns ten chunks but only two of them are actually relevant to
+        the question, you have low context precision. Irrelevant chunks in the context window are a
+        problem for two reasons: they push the relevant information further away (LLMs are sensitive
+        to position in the context window), and they provide material for hallucination-by-distraction,
+        where the LLM picks up on tangentially related content and incorporates it inappropriately.
+        Context Precision is measured by asking the judge LLM to classify each retrieved chunk as
+        relevant or not relevant, then computing the precision-at-k metric across the ranked list.
+      </p>
+      <p>
+        <strong>Context Recall (0-1)</strong> is the coverage metric: did the retriever find all the
+        information needed to answer the question completely? Unlike the other three metrics, Context
+        Recall requires a ground-truth reference answer. The measurement works by decomposing the
+        reference answer into atomic claims and checking whether each claim can be attributed to the
+        retrieved context. A score of 1.0 means the retrieved context contains everything the reference
+        answer mentions; a score of 0.5 means the context is missing half the information needed for
+        a complete answer. Low context recall points to gaps in your document collection, chunking
+        strategy, or retrieval method.
+      </p>
+
+      <h3 id="ragas-code">Full RAGAS Evaluation Pipeline</h3>
+
+      <pre><code><span class="code-keyword">from</span> ragas <span class="code-keyword">import</span> evaluate, EvaluationDataset
+<span class="code-keyword">from</span> ragas.metrics <span class="code-keyword">import</span> (
+    Faithfulness,
+    AnswerRelevancy,
+    ContextPrecision,
+    ContextRecall,
+    AnswerCorrectness,
+)
+<span class="code-keyword">from</span> ragas.llms <span class="code-keyword">import</span> LangchainLLMWrapper
+<span class="code-keyword">from</span> ragas.embeddings <span class="code-keyword">import</span> LangchainEmbeddingsWrapper
+<span class="code-keyword">from</span> langchain_openai <span class="code-keyword">import</span> ChatOpenAI, OpenAIEmbeddings
+<span class="code-keyword">from</span> datasets <span class="code-keyword">import</span> Dataset
+<span class="code-keyword">import</span> pandas <span class="code-keyword">as</span> pd
+
+<span class="code-comment"># ── Configure judge LLM and embeddings ──────────────────────────────────────</span>
+llm = LangchainLLMWrapper(ChatOpenAI(model=<span class="code-string">"gpt-4o-mini"</span>, temperature=<span class="code-num">0</span>))
+embeddings = LangchainEmbeddingsWrapper(OpenAIEmbeddings(model=<span class="code-string">"text-embedding-3-small"</span>))
+
+<span class="code-comment"># ── Build your evaluation dataset ───────────────────────────────────────────</span>
+<span class="code-comment"># Each sample needs: question, answer, contexts (list of retrieved chunks)</span>
+<span class="code-comment"># Context Recall also needs: ground_truth (reference answer)</span>
+eval_samples = [
+    {
+        <span class="code-string">"user_input"</span>: <span class="code-string">"What is the refund policy for digital products?"</span>,
+        <span class="code-string">"response"</span>: <span class="code-string">"Digital products are non-refundable once downloaded, "</span>
+                   <span class="code-string">"except in cases of technical failure verified by support."</span>,
+        <span class="code-string">"retrieved_contexts"</span>: [
+            <span class="code-string">"Section 4.2: Digital goods including software, ebooks, and "</span>
+            <span class="code-string">"downloadable content are non-refundable after delivery."</span>,
+            <span class="code-string">"Section 4.5: If a product fails to function due to a technical "</span>
+            <span class="code-string">"error on our side, contact support@example.com for resolution."</span>,
+            <span class="code-string">"Section 1.1: Our store sells physical and digital products worldwide."</span>,
+        ],
+        <span class="code-string">"reference"</span>: <span class="code-string">"Digital products are non-refundable after download. "</span>
+                  <span class="code-string">"Technical failures may qualify for refund via support."</span>
+    },
+    <span class="code-comment"># ... more samples</span>
+]
+
+<span class="code-comment"># ── Run evaluation ───────────────────────────────────────────────────────────</span>
+dataset = EvaluationDataset.from_list(eval_samples)
+
+metrics = [
+    Faithfulness(llm=llm),
+    AnswerRelevancy(llm=llm, embeddings=embeddings),
+    ContextPrecision(llm=llm),
+    ContextRecall(llm=llm),
+    AnswerCorrectness(llm=llm, embeddings=embeddings),
+]
+
+results = evaluate(dataset=dataset, metrics=metrics)
+df = results.to_pandas()
+
+<span class="code-comment"># ── Inspect results ──────────────────────────────────────────────────────────</span>
+print(df[[<span class="code-string">"user_input"</span>, <span class="code-string">"faithfulness"</span>, <span class="code-string">"answer_relevancy"</span>,
+          <span class="code-string">"context_precision"</span>, <span class="code-string">"context_recall"</span>]])
+
+print(<span class="code-string">"\nAggregate Scores:"</span>)
+print(df[[<span class="code-string">"faithfulness"</span>, <span class="code-string">"answer_relevancy"</span>,
+          <span class="code-string">"context_precision"</span>, <span class="code-string">"context_recall"</span>]].mean())
+
+<span class="code-comment"># ── Find failing examples ────────────────────────────────────────────────────</span>
+low_faithfulness = df[df[<span class="code-string">"faithfulness"</span>] < <span class="code-num">0.7</span>]
+print(f<span class="code-string">"\n{len(low_faithfulness)} examples with faithfulness < 0.7 (potential hallucination)"</span>)
+
+<span class="code-comment"># ── Synthetic test set generation ────────────────────────────────────────────</span>
+<span class="code-keyword">from</span> ragas.testset <span class="code-keyword">import</span> TestsetGenerator
+<span class="code-keyword">from</span> langchain_community.document_loaders <span class="code-keyword">import</span> DirectoryLoader
+
+<span class="code-comment"># Load your knowledge base documents</span>
+loader = DirectoryLoader(<span class="code-string">"./docs"</span>, glob=<span class="code-string">"**/*.pdf"</span>)
+docs = loader.load()
+
+generator = TestsetGenerator(llm=llm, embedding_model=embeddings)
+testset = generator.generate_with_langchain_docs(
+    docs,
+    testset_size=<span class="code-num">50</span>,
+    <span class="code-comment"># Generates: simple, reasoning, multi-context question types</span>
+)
+testset_df = testset.to_pandas()
+print(testset_df.head())
+<span class="code-comment"># Columns: user_input (question), reference (ground truth answer),</span>
+<span class="code-comment">#          reference_contexts, synthesizer_name (question type)</span></code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Best Practice</div>
+        <p>Use RAGAS's TestsetGenerator to build your initial evaluation set from your actual knowledge base documents. It creates diverse question types — simple factual, multi-hop reasoning, and abstractive — that surface different failure modes. A 50-100 question synthetic test set gets you started immediately, even before you have collected real user queries.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 4: BENCHMARKS -->
+    <section class="section" id="benchmarks">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Benchmarks &amp; Task-Specific Metrics</h2>
+      </div>
+
+      <p>
+        Benchmarks serve a different purpose from application-level evaluation. While RAGAS and LLM-as-judge
+        tell you how well your specific application is performing on your specific task, benchmarks provide
+        a <strong>standardized, reproducible measure of a model's general capabilities</strong> that lets
+        you compare across model versions, fine-tuning runs, and different models entirely. When you read
+        that a model "scores 85 on MMLU" or "achieves 70% on HumanEval," you are reading the model's
+        performance on a standardized test administered under controlled conditions.
+      </p>
+      <p>
+        Understanding the major benchmarks matters even if you are not running them yourself, because
+        they directly inform which base model you should choose for a given application. A model with
+        strong MMLU scores tends to be better at knowledge-intensive QA tasks. A model with strong
+        HumanEval scores is better for code generation. A model with strong MT-Bench scores is better
+        for multi-turn conversational interactions. Benchmark scores are not perfect predictors of
+        application performance — the gap between benchmark performance and real-world performance is
+        well documented, and benchmark contamination (where a model's training data includes benchmark
+        questions) is a real problem — but they remain the most available signal for initial model
+        selection.
+      </p>
+      <p>
+        Beyond the standard benchmarks, every production LLM application eventually needs a <strong>custom
+        golden dataset</strong>: a curated set of questions with human-verified reference answers that
+        is specific to your domain, your users' vocabulary, and your application's specific requirements.
+        No general benchmark can tell you how well your insurance claims processing assistant handles
+        the actual questions insurance adjusters ask. Building and maintaining a golden dataset is an
+        investment, but it is the evaluation asset with the highest long-term value for an application
+        team.
+      </p>
+
+      <h3 id="standard-benchmarks">The Major Standard Benchmarks</h3>
+      <p>
+        <strong>MMLU (Massive Multitask Language Understanding)</strong> consists of 14,000 multiple-choice
+        questions across 57 subjects ranging from elementary mathematics to professional law, medicine,
+        and philosophy. It tests broad knowledge and reasoning across academic disciplines. A model
+        scoring above 70% on MMLU is considered strong; GPT-4 and Claude Opus score above 85%. MMLU
+        is useful for selecting models for knowledge-intensive applications but is sometimes criticized
+        for being too easy for frontier models and for measuring memorization as much as reasoning.
+      </p>
+      <p>
+        <strong>HumanEval</strong> contains 164 Python programming problems where the model must
+        generate a function body given the docstring and signature. Correctness is evaluated by running
+        unit tests, not by textual comparison — the code has to actually work. The primary metric is
+        <strong>pass@k</strong>: the probability that at least one of k generated solutions passes all
+        tests. Pass@1 is the most commonly reported figure (does the first generation work?). HumanEval
+        is the standard benchmark for code generation capability, though it has been largely solved by
+        frontier models and is being superseded by harder benchmarks like HumanEval+ and SWE-bench.
+      </p>
+      <p>
+        <strong>MT-Bench</strong> (Multi-Turn Benchmark) consists of 80 multi-turn conversational
+        questions spanning writing, roleplay, extraction, reasoning, math, coding, and STEM. The unique
+        feature is that it tests how well a model handles follow-up questions — a critical capability
+        for real chatbots that earlier single-turn benchmarks missed entirely. Models are evaluated by
+        GPT-4 as a judge on a 1-10 scale. MT-Bench correlates strongly with user preference in real
+        deployments, which is why it remains heavily cited despite being relatively small.
+      </p>
+      <p>
+        <strong>GPQA (Graduate-Level Google-Proof Q&amp;A)</strong> is a challenging benchmark of
+        448 questions written by domain experts in biology, physics, and chemistry. Questions are
+        designed to be "Google-proof" — you cannot answer them by finding facts online; you need to
+        understand and apply graduate-level scientific reasoning. Even expert humans with PhDs score
+        around 65% on questions outside their sub-specialty. GPQA is useful for evaluating models for
+        high-stakes scientific applications and for measuring true reasoning capability versus
+        knowledge retrieval.
+      </p>
+
+      <h3 id="task-metrics">Task-Specific Metrics Reference</h3>
+      <p>
+        <strong>BLEU (Bilingual Evaluation Understudy)</strong> measures n-gram overlap between the
+        model's output and one or more reference translations. It was designed for machine translation
+        and remains the standard there, but it is widely misused for other tasks where it correlates
+        poorly with quality. BLEU ranges from 0 to 1 (often reported as 0-100). For state-of-the-art
+        neural machine translation, BLEU scores above 30 are considered good. Never use BLEU to
+        evaluate open-ended generation like summarization or conversation — the n-gram overlap
+        assumption is too restrictive for tasks with high legitimate output variability.
+      </p>
+      <p>
+        <strong>ROUGE (Recall-Oriented Understudy for Gisting Evaluation)</strong> is a family of
+        metrics designed for summarization. ROUGE-1 measures unigram overlap, ROUGE-2 measures bigram
+        overlap, and ROUGE-L measures longest common subsequence. Unlike BLEU (which is
+        precision-focused), ROUGE variants also measure recall — whether the summary covers the
+        key information from the source. ROUGE-L above 0.4 is generally considered good for
+        abstractive summarization, but the same caveats about n-gram overlap limiting validity
+        for creative or diverse outputs apply.
+      </p>
+      <p>
+        <strong>BERTScore</strong> addresses the n-gram problem by comparing model and reference outputs
+        in embedding space. It computes token-level cosine similarity between BERT embeddings of the
+        model output and reference, then takes the F1 of the precision and recall scores. BERTScore
+        correlates more strongly with human judgments than BLEU or ROUGE for most generative tasks
+        and can handle paraphrases and synonyms that n-gram metrics penalize unfairly. The trade-off
+        is higher computational cost and the need to choose a base BERT model whose embeddings are
+        appropriate for your domain.
+      </p>
+      <p>
+        <strong>pass@k for code generation</strong> is computed by sampling k completions per problem
+        and checking whether any of them passes all unit tests. The formula accounts for the
+        combinatorics correctly: pass@k = 1 - C(n-c, k)/C(n, k), where n is the number of samples,
+        c is the number that pass, and k is the number of tries reported. In practice, pass@1 is what
+        matters for production (your user gets one code completion, and it either works or it does not),
+        but pass@10 or pass@100 is useful for measuring the model's ceiling capability — whether a
+        correct solution exists in the distribution even if it is not always first.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Building a Golden Dataset</div>
+        <p>Start by collecting 100 real queries from your application's production logs or beta users. Have subject-matter experts write reference answers for each. Label a subset with additional properties (difficulty, topic, required reasoning type). This dataset becomes your primary regression test suite — every model change, prompt change, or retrieval change must be evaluated against it before deployment.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 5: EVALUATION-DRIVEN DEVELOPMENT -->
+    <section class="section" id="edd">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Evaluation-Driven Development</h2>
+      </div>
+
+      <p>
+        Evaluation-Driven Development (EDD) is the LLM equivalent of Test-Driven Development (TDD) in
+        classical software engineering. The core principle is identical: <strong>define your success
+        criteria before you build</strong>, then build toward passing those criteria, and protect your
+        progress with automated regression tests that run on every change. If you have spent time in
+        software engineering, you already understand the value of this approach intellectually. In LLM
+        development, it is even more important because the system's behavior is less deterministic and
+        more sensitive to small changes than conventional software.
+      </p>
+      <p>
+        The reason most LLM application teams do not start with EDD is that it requires upfront investment
+        before you have a working system. It feels counterproductive to write tests when you do not yet
+        know what the system will do. But this upfront investment pays back enormously within the first
+        few iterations. Without an eval harness, every change to your prompt, your model version, your
+        chunking strategy, or your retrieval method requires manual spot-checking. With an eval harness,
+        those changes produce an objective score you can compare to the previous version. You stop
+        relying on intuition and start making data-driven decisions.
+      </p>
+      <p>
+        The practical starting point for EDD is <strong>writing down what "good" looks like before you
+        write any code</strong>. For a customer support assistant, good might mean: answers questions
+        correctly according to the knowledge base, never invents policies that do not exist, maintains
+        a professional tone, stays on-topic and redirects off-topic queries, and responds in under
+        200 words for simple questions. Each of these criteria can be operationalized as an automated
+        check or a judge prompt dimension. You write these checks first, then build the system that
+        passes them.
+      </p>
+      <p>
+        Once you have a baseline system and an eval suite, the development process becomes a disciplined
+        loop: measure the current baseline, identify the biggest failure category, make a targeted change
+        (rewrite the system prompt, adjust chunk size, add few-shot examples), measure again, compare.
+        This loop separates LLM engineering from LLM guessing. Teams that commit to this process
+        consistently report that it reduces the time to find effective improvements dramatically —
+        not because individual improvements are faster to implement, but because you stop spending time
+        on changes that feel intuitively right but actually hurt performance.
+      </p>
+      <p>
+        The most underappreciated part of EDD is <strong>regression protection</strong>. LLM systems
+        fail in non-obvious ways. A prompt change that improves performance on FAQ questions might
+        degrade performance on edge cases you did not test. A new model version might be better overall
+        but worse on your specific domain's terminology. Without regression tests, these regressions
+        go undetected until users complain. With regression tests, they are caught before deployment.
+        The golden dataset you painstakingly built becomes more valuable over time precisely because
+        it accumulates the edge cases and failure modes you have discovered — and ensures you never
+        accidentally reintroduce a bug you have already fixed.
+      </p>
+
+      <h3 id="eval-loop">The Evaluation Loop in Detail</h3>
+      <p>
+        The full EDD cycle has six stages that repeat continuously. <strong>Stage 1: Define success
+        criteria.</strong> For each major capability your system must have, write down a measurable
+        definition of success. Be specific enough that two different people would agree whether a given
+        output passes or fails. "Helpful" is not a criterion; "correctly identifies the policy that
+        applies to the user's situation" is a criterion.
+      </p>
+      <p>
+        <strong>Stage 2: Build the eval dataset.</strong> Collect or create questions that test your
+        criteria. Include three categories: golden examples (clear, unambiguous cases that any good
+        system should handle), edge cases (unusual inputs, corner cases, questions at the boundary of
+        your system's intended scope), and adversarial examples (inputs designed to probe failure modes
+        — jailbreaks, ambiguous phrasing, conflicting context). A good initial dataset has 50-200
+        examples; a mature production dataset has 500-2000.
+      </p>
+      <p>
+        <strong>Stage 3: Implement baseline.</strong> Build the simplest reasonable implementation of
+        your system. Do not over-engineer; you need something to measure against, not the final product.
+        Run your eval suite and record the baseline scores. These become the floor that all future
+        iterations must meet or exceed.
+      </p>
+      <p>
+        <strong>Stage 4: Measure.</strong> Run the full eval suite. Record per-category scores, not
+        just overall averages — a system that scores 80% overall but 40% on edge cases and 95% on
+        golden examples has a very different failure profile than a system that scores 80% uniformly.
+        Look at the failing examples in detail; manual inspection of failures is the most efficient
+        way to identify improvement opportunities.
+      </p>
+      <p>
+        <strong>Stage 5: Improve.</strong> Make one targeted change at a time. Changing multiple things
+        simultaneously makes it impossible to attribute score changes to specific interventions. Common
+        improvements to try in roughly increasing order of effort: system prompt rewrite, few-shot
+        examples added, model version upgrade, chunk size adjustment, retrieval top-k adjustment,
+        hybrid search, re-ranking, query rewriting.
+      </p>
+      <p>
+        <strong>Stage 6: Measure again and commit.</strong> Run the full eval suite. If scores improve
+        on the target category without degrading on other categories, commit the change. If the change
+        helps some categories but hurts others, decide explicitly whether the trade-off is acceptable.
+        Never ship a change without this explicit decision — "it seems better" is not an acceptable
+        deployment criterion when you have an eval harness.
+      </p>
+
+      <!-- EVAL-DRIVEN DEVELOPMENT LOOP DIAGRAM -->
+      <div class="diagram-wrap" id="ci-eval">
+        <svg viewBox="0 0 860 360" width="100%" xmlns="http://www.w3.org/2000/svg" aria-label="Evaluation-driven development loop">
+          <defs>
+            <marker id="arr-e" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+              <polygon points="0 0, 9 3.5, 0 7" fill="#ef4444"/>
+            </marker>
+          </defs>
+
+          <!-- Title -->
+          <text x="430" y="28" text-anchor="middle" fill="#e6e8f4" font-family="'Space Grotesk',sans-serif" font-size="15" font-weight="700">The Evaluation-Driven Development Loop</text>
+
+          <!-- Six stages in a cycle around a center -->
+          <!-- Stage 1: Define Criteria — top left -->
+          <rect x="40" y="60" width="170" height="72" rx="10" fill="#1e2438" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="125" y="84" text-anchor="middle" fill="#ef4444" font-family="'Space Grotesk',sans-serif" font-size="12" font-weight="700">1. Define Criteria</text>
+          <text x="125" y="100" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">What does "good" look like?</text>
+          <text x="125" y="114" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Measurable, specific, agreed</text>
+          <text x="125" y="128" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="9">→ rubrics, pass/fail rules</text>
+
+          <!-- Stage 2: Build Eval Dataset — top center -->
+          <rect x="245" y="60" width="170" height="72" rx="10" fill="#1e2438" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="330" y="84" text-anchor="middle" fill="#ef4444" font-family="'Space Grotesk',sans-serif" font-size="12" font-weight="700">2. Build Eval Dataset</text>
+          <text x="330" y="100" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Golden + edge + adversarial</text>
+          <text x="330" y="114" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">50–2000 labelled examples</text>
+          <text x="330" y="128" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="9">→ your ground truth</text>
+
+          <!-- Stage 3: Implement Baseline — top right -->
+          <rect x="450" y="60" width="170" height="72" rx="10" fill="#1e2438" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="535" y="84" text-anchor="middle" fill="#ef4444" font-family="'Space Grotesk',sans-serif" font-size="12" font-weight="700">3. Implement Baseline</text>
+          <text x="535" y="100" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Simplest working system</text>
+          <text x="535" y="114" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Record baseline scores</text>
+          <text x="535" y="128" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="9">→ the floor to beat</text>
+
+          <!-- Stage 4: Measure — right -->
+          <rect x="650" y="145" width="170" height="72" rx="10" fill="#1e2438" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="735" y="169" text-anchor="middle" fill="#22c55e" font-family="'Space Grotesk',sans-serif" font-size="12" font-weight="700">4. Measure</text>
+          <text x="735" y="185" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Run full eval suite</text>
+          <text x="735" y="199" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Per-category + overall scores</text>
+          <text x="735" y="213" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="9">→ inspect failures manually</text>
+
+          <!-- Stage 5: Improve — bottom right -->
+          <rect x="450" y="240" width="170" height="72" rx="10" fill="#1e2438" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="535" y="264" text-anchor="middle" fill="#6366f1" font-family="'Space Grotesk',sans-serif" font-size="12" font-weight="700">5. Improve</text>
+          <text x="535" y="280" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">One targeted change</text>
+          <text x="535" y="294" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Prompt / model / retrieval</text>
+          <text x="535" y="308" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="9">→ never multi-change at once</text>
+
+          <!-- Stage 6: Commit / Regress — bottom left -->
+          <rect x="245" y="240" width="170" height="72" rx="10" fill="#1e2438" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="330" y="264" text-anchor="middle" fill="#f59e0b" font-family="'Space Grotesk',sans-serif" font-size="12" font-weight="700">6. Commit or Roll Back</text>
+          <text x="330" y="280" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Re-measure after change</text>
+          <text x="330" y="294" text-anchor="middle" fill="#8e94b5" font-family="'Nunito',sans-serif" font-size="10">Ship only if no regression</text>
+          <text x="330" y="308" text-anchor="middle" fill="#545a78" font-family="'Nunito',sans-serif" font-size="9">→ explicit trade-off decision</text>
+
+          <!-- Center label -->
+          <ellipse cx="430" cy="181" rx="60" ry="36" fill="#171c2e" stroke="#2e3554"/>
+          <text x="430" y="176" text-anchor="middle" fill="#e6e8f4" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="700">Continuous</text>
+          <text x="430" y="192" text-anchor="middle" fill="#8e94b5" font-family="'Space Grotesk',sans-serif" font-size="10">Eval Loop</text>
+
+          <!-- Arrows connecting stages -->
+          <!-- 1 → 2 -->
+          <line x1="210" y1="96" x2="243" y2="96" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arr-e)"/>
+          <!-- 2 → 3 -->
+          <line x1="415" y1="96" x2="448" y2="96" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arr-e)"/>
+          <!-- 3 → 4 -->
+          <line x1="620" y1="115" x2="680" y2="148" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arr-e)"/>
+          <!-- 4 → 5 -->
+          <line x1="735" y1="217" x2="640" y2="256" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arr-e)"/>
+          <!-- 5 → 6 -->
+          <line x1="448" y1="276" x2="415" y2="276" stroke="#6366f1" stroke-width="1.5" marker-end="url(#arr-e)"/>
+          <!-- 6 → 4 (loop back) -->
+          <path d="M 330 240 Q 330 181 490 181" stroke="#f59e0b" stroke-width="1.5" fill="none" marker-end="url(#arr-e)"/>
+        </svg>
+        <p class="diagram-caption">The EDD loop runs continuously throughout the lifetime of an LLM application. Stages 4-5-6 repeat for every improvement iteration; stages 1-2-3 are revisited when the application scope changes.</p>
+      </div>
+
+      <h3>CI/CD Integration and Tooling</h3>
+      <p>
+        Modern LLM development treats eval runs the same way software development treats test suites:
+        they run automatically on every pull request, block merges if regressions are detected, and
+        produce dashboards that track performance trends over time. The infrastructure for this is not
+        trivial to build from scratch, which is why purpose-built platforms have emerged.
+      </p>
+      <p>
+        <strong>LangSmith</strong> (by LangChain) is the most tightly integrated platform for teams
+        already using LangChain. It records every run of your LLM chain — inputs, outputs, intermediate
+        steps, latency, token counts — and allows you to run evaluators against those traces. You can
+        compare datasets across experiments, track metric trends across versions, and replay specific
+        failing examples against new prompt versions. The eval runs are stored persistently, so you
+        can compare current performance against runs from three months ago.
+      </p>
+      <p>
+        <strong>Braintrust</strong> is a dedicated LLM eval platform that provides a flexible SDK
+        for defining experiments, a UI for analyzing results, and tight git integration for tracking
+        which code version produced which eval scores. It is model-agnostic and works well for teams
+        not using LangChain. <strong>Weights &amp; Biases</strong> (W&amp;B) — the standard tool for
+        ML experiment tracking — has added LLM-specific evaluation tables and trace logging to its
+        existing experiment tracking infrastructure, making it a good choice for teams that already
+        use W&amp;B for traditional ML workflows.
+      </p>
+      <p>
+        For <strong>A/B testing in production</strong>, the pattern is: serve two system variants
+        to random user segments (or split by user ID for consistency), log all interactions, sample
+        a subset for human review or LLM-as-judge scoring, and use statistical testing (typically a
+        two-proportion z-test or Mann-Whitney U test for score distributions) to determine whether
+        the difference in performance is statistically significant before making the winning variant
+        permanent. Always run A/B tests long enough to collect at least several hundred samples per
+        variant in each major query category before drawing conclusions.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Common Mistake</div>
+        <p>Never evaluate only on the examples you used to develop your system. This is as invalid as training on test data in traditional ML. Maintain a strict separation between development examples (which you look at while iterating) and held-out test examples (which you only run when you believe a version is ready for deployment). The held-out examples provide the only unbiased estimate of real-world performance.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 6: HUMAN EVALUATION -->
+    <section class="section" id="human-eval">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Human Evaluation</h2>
+      </div>
+
+      <p>
+        Every automated metric ultimately derives its authority from correlation with human judgment.
+        BLEU, ROUGE, BERTScore, LLM-as-judge — all of them are proxies for what humans actually think
+        is a good response. This means that however sophisticated your automated eval pipeline becomes,
+        you need <strong>periodic human evaluation to calibrate it and to catch systematic failures
+        that your automated metrics miss</strong>. Human eval is not a legacy practice that will be
+        automated away; it is the foundation that makes all other evaluation trustworthy.
+      </p>
+      <p>
+        The practical challenge with human evaluation is cost and speed. Having a domain expert review
+        and annotate 500 responses takes days and costs hundreds to thousands of dollars. This is why
+        human eval is not run continuously — it is run periodically (at major version releases, when
+        automated metrics diverge from user satisfaction signals, or when entering a new product phase)
+        and on carefully chosen samples (stratified to cover different query types and difficulty levels,
+        not random samples that will oversample easy cases).
+      </p>
+      <p>
+        The design of the human evaluation task matters as much as who does it. Annotators given vague
+        instructions ("rate this response on a scale of 1-5 for quality") will apply wildly different
+        interpretations of quality, producing data that is almost meaningless in aggregate. Annotators
+        given precise rubrics ("1 = the response contains a factual error; 2 = the response is
+        technically accurate but incomplete; 3 = the response is complete but uses overly technical
+        language; 4 = the response is complete and appropriately worded; 5 = the response is complete,
+        appropriately worded, and anticipates a follow-up need") will produce consistent, actionable data.
+        Writing good annotation guidelines is skilled work that takes significant iteration.
+      </p>
+
+      <h3 id="annotation">Annotation Guidelines and Rubric Design</h3>
+      <p>
+        A well-designed annotation rubric has several properties. First, it is <strong>decomposed into
+        independent dimensions</strong>: factual accuracy, completeness, tone appropriateness, response
+        length, safety. Annotating each dimension separately produces more actionable data than a single
+        holistic quality rating, because you can identify which dimension is driving low scores. An
+        annotator can be good at judging factual accuracy but poor at judging tone appropriateness —
+        decomposed rubrics let you route different dimensions to annotators with different expertise.
+      </p>
+      <p>
+        Second, good rubrics include <strong>anchor examples</strong> for each rating level on each
+        dimension. Abstract descriptions of what constitutes a "3" on a 5-point scale are ambiguous;
+        three concrete examples of "3" responses anchor the rating to a shared interpretation. The
+        process of creating anchor examples is itself valuable: it forces the rubric designer to think
+        carefully about the boundary cases and often reveals ambiguities in the rubric that need to
+        be resolved before annotation begins.
+      </p>
+      <p>
+        Third, rubrics must be <strong>calibrated across annotators</strong> before the main annotation
+        run. Have all annotators rate the same 20-30 examples independently, then compare their ratings.
+        High disagreement on specific examples reveals ambiguities in the rubric that need to be resolved
+        with clarification or revised anchor examples. This calibration session also serves as training —
+        walking through disagreements together helps annotators converge on a shared understanding of
+        the task that cannot be fully conveyed in written instructions alone.
+      </p>
+
+      <h3 id="agreement">Inter-Annotator Agreement</h3>
+      <p>
+        <strong>Inter-annotator agreement (IAA)</strong> is the statistical measure of how consistently
+        different annotators apply the same rubric to the same examples. Low IAA is a warning sign that
+        your rubric is ambiguous, your annotator pool is too diverse in background, or the task is
+        inherently subjective at the level you are trying to measure. The two most widely used IAA
+        metrics are Cohen's kappa (for two annotators) and Fleiss' kappa (for three or more annotators).
+        Both produce a value from -1 to 1, where 0 represents chance agreement, below 0.2 is considered
+        poor, 0.2-0.4 fair, 0.4-0.6 moderate, 0.6-0.8 substantial, and above 0.8 near-perfect.
+      </p>
+      <p>
+        For most LLM evaluation tasks, IAA of 0.4-0.6 is achievable with good rubric design. Tasks
+        involving factual accuracy tend toward higher IAA (facts are right or wrong); tasks involving
+        tone, helpfulness, or creativity tend toward lower IAA (these are genuinely more subjective).
+        Reporting IAA alongside your eval results is an important practice: an annotation with low IAA
+        and a 4.2/5 average quality score is a much weaker claim than a 4.2/5 with high IAA.
+      </p>
+      <p>
+        When IAA is unacceptably low on a particular dimension, you have three options: revise the
+        rubric for that dimension (add more anchor examples, sharpen the definitions), resolve conflicts
+        through adjudication (have a third annotator or a senior annotator resolve disagreements between
+        the first two), or accept that the dimension is too subjective to measure reliably and remove
+        it from the rubric. All three options are valid depending on the importance of the dimension to
+        your application.
+      </p>
+      <p>
+        <strong>Crowdsourcing platforms</strong> like Scale AI, Labelbox, and Amazon Mechanical Turk
+        provide access to large annotator pools for high-volume annotation. They are appropriate when:
+        your task does not require specialized domain expertise, your rubric is well-tested and produces
+        consistent results with non-expert annotators, and you need hundreds or thousands of annotations
+        quickly. Expert annotation (using domain specialists — doctors for medical content, lawyers for
+        legal content, software engineers for code quality) is appropriate when the task requires deep
+        domain knowledge that crowd workers reliably lack. The choice between the two is not about
+        cost alone: low-quality annotations produced cheaply at high volume can be worse than no
+        annotation at all.
+      </p>
+
+      <h3 id="red-team">Red-Teaming and Shadow Mode Evaluation</h3>
+      <p>
+        <strong>Red-teaming</strong> is structured adversarial testing: a group of people whose explicit
+        job is to find ways to make your LLM system fail, produce harmful outputs, or behave in ways
+        that violate your guidelines. Red-teaming is qualitatively different from standard eval because
+        it is not trying to measure average-case performance — it is trying to find the worst-case
+        inputs your system will encounter. The output of a red-team exercise is a list of specific
+        failure cases and input patterns that your system mishandles, which then get added to your
+        regression test suite so those failure modes are permanently monitored.
+      </p>
+      <p>
+        Effective red-teaming requires diversity in the team: people with different backgrounds, mental
+        models, and attack strategies will find different failure modes. It requires explicit guidance
+        on what to look for: for a customer support bot, red-teamers should probe for policy
+        hallucination, jailbreaks that get the bot to produce off-brand content, edge cases around
+        ambiguous policy interpretation, and multi-turn manipulation attempts. It also requires a
+        systematic output format so that discovered failures are clearly documented with the exact
+        input sequence and the problematic output, not just a general description of the problem.
+      </p>
+      <p>
+        <strong>Shadow mode evaluation</strong> is the production-scale complement to red-teaming. In
+        shadow mode, you log all production traffic and periodically sample a subset for human review.
+        The sampling strategy matters enormously: pure random sampling will heavily oversample common,
+        well-handled queries. A more useful strategy is stratified sampling — oversample by uncertainty
+        proxy (e.g., low-confidence retrieval scores, long responses, or responses with high perplexity),
+        oversample recent queries (to catch distribution shift), and include a random baseline for
+        comparison. The humans reviewing the shadow sample become your earliest warning system for
+        quality problems that your automated metrics have not yet been calibrated to detect.
+      </p>
+      <p>
+        Finally, the human preference data collected during evaluation does not have to be one-way
+        value: it can be recycled as <strong>RLHF-style training signal</strong>. Every preference
+        judgment ("response A was better than response B for this query") is potentially a training
+        example for a reward model that can then be used to fine-tune your base model's tendency to
+        produce the preferred style of response. This is how the preference data that OpenAI, Anthropic,
+        and Google collect through their human feedback processes feeds back into model training —
+        and it is available to application teams as well, through techniques like DPO (Direct Preference
+        Optimization) that train directly on preference pairs without requiring a separate reward model.
+      </p>
+
+      <div class="callout tip">
+        <div class="callout-label">Practical Tip</div>
+        <p>Do not wait until you have a perfect eval infrastructure to start collecting human judgments. Even a simple spreadsheet where team members tag 10 production responses per week as "good," "acceptable," or "needs improvement" with one-sentence explanations accumulates into a valuable dataset over time. When you are ready to build a proper annotation system, that backlog of judgments provides calibration data and reveals the most important quality dimensions for your specific application.</p>
+      </div>
+    </section>
+
+    <!-- NAVIGATION -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Module</div>
+        <a href="09-agents.html" class="next-btn prev-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          09 &middot; Agents
+        </a>
+      </div>
+      <div style="text-align:right">
+        <div class="next-label">Next Module</div>
+        <a href="11-guardrails.html" class="next-btn">
+          11 &middot; Guardrails
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+        <div class="next-phase">Quality Phase &rarr; Safety</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>
