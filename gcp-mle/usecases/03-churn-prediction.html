@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../../styles.css">
+<title>Customer Churn Prediction Pipeline — CareerAlign GCP MLE Use Cases</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: var(--phase-project);
+  --page-color-04: rgba(245,158,11,0.04);
+  --page-color-07: rgba(245,158,11,0.07);
+  --page-color-12: rgba(245,158,11,0.12);
+  --page-color-15: rgba(245,158,11,0.15);
+  --page-color-25: rgba(245,158,11,0.25);
+  --page-color-30: rgba(245,158,11,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- ───────────────────── NAV ───────────────────── -->
+<nav class="nav">
+  <div class="nav-logo">&#9729;&#65039; <span>CareerAlign</span> GCP MLE Use Cases</div>
+  <div class="nav-links">
+    <a href="01-demand-forecasting.html">01 &middot; Demand Forecast</a>
+    <a href="02-fraud-detection.html">02 &middot; Fraud Detection</a>
+    <a href="03-churn-prediction.html" class="active">03 &middot; Churn Prediction</a>
+    <a href="04-defect-detection.html">04 &middot; Defect Detection</a>
+    <a href="05-recommendation-engine.html">05 &middot; Recommendations</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; Use Cases Hub</a>
+</nav>
+
+<!-- ───────────────────── HERO ───────────────────── -->
+<section class="hero">
+  <div class="hero-tag">Use Case 03 &mdash; Real-World GCP MLE</div>
+  <h1>Customer Churn <em>Prediction</em> Pipeline</h1>
+  <p class="hero-desc">
+    Build an end-to-end churn prediction system on Google Cloud that identifies at-risk SaaS
+    customers before they cancel, enabling proactive retention campaigns that measurably reduce
+    monthly churn and protect recurring revenue.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Vertex AI Pipelines
+    </div>
+    <div class="hero-pill">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      XGBoost + Vizier HPT
+    </div>
+    <div class="hero-pill">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      BigQuery Feature Engineering
+    </div>
+    <div class="hero-pill">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Model Monitoring &amp; Drift
+    </div>
+    <div class="hero-pill">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      CRM Integration
+    </div>
+  </div>
+  <div class="hero-actions" style="margin-top:24px;">
+    <a class="colab-btn" href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-mle/usecases/notebooks/03-churn-prediction.ipynb" target="_blank" rel="noopener">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="28">
+    </a>
+  </div>
+</section>
+
+<!-- ───────────────────── CONTENT ───────────────────── -->
+<div class="content-grid">
+
+  <!-- ── TOC ── -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#problem" class="section">1. The Problem</a>
+    <a href="#architecture" class="section">2. Solution Architecture</a>
+    <a href="#feature-eng" class="section">3. Feature Engineering</a>
+    <a href="#feature-eng-engagement" class="sub">Engagement Scores</a>
+    <a href="#feature-eng-usage" class="sub">Usage Trends</a>
+    <a href="#feature-eng-support" class="sub">Support Sentiment</a>
+    <a href="#feature-eng-billing" class="sub">Billing Patterns</a>
+    <a href="#pipeline" class="section">4. Vertex AI Pipeline</a>
+    <a href="#training" class="section">5. XGBoost + Vizier HPT</a>
+    <a href="#evaluation" class="section">6. Model Evaluation</a>
+    <a href="#retraining" class="section">7. Automated Retraining</a>
+    <a href="#serving" class="section">8. Serving &amp; Integration</a>
+    <a href="#intervention" class="section">9. Intervention Scoring</a>
+    <a href="#components" class="section">10. Key Components</a>
+    <a href="#results" class="section">11. Results</a>
+    <a href="#production" class="section">12. Production Considerations</a>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+
+    <!-- ════════════════ SECTION 1 ════════════════ -->
+    <div class="section" id="problem">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>The Problem &mdash; Silent Revenue Erosion</h2>
+      </div>
+
+      <p>
+        SaaS companies lose <strong>5-7% of customers every month</strong> on average, and most
+        of them never see it coming. By the time a customer opens a cancellation ticket or downgrades
+        their plan, the decision was made weeks ago. The usage metrics were declining, support tickets
+        were going unanswered, and feature adoption had flatlined &mdash; but nobody was watching the
+        signals in aggregate.
+      </p>
+
+      <p>
+        The economics of churn are brutal. <strong>Acquiring a new customer costs 5-25x more than
+        retaining an existing one.</strong> For a mid-market SaaS with 50,000 customers paying $100/month,
+        a 6% monthly churn rate means losing 3,000 customers per month &mdash; $3.6M in annualized
+        revenue walking out the door. Even worse, churned customers often share negative experiences,
+        creating a compounding effect on growth.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Why This Matters</div>
+        <p>
+          Companies with mature churn prediction systems <strong>reduce churn by 15-30%</strong>. A
+          Harvard Business Review study found that a <strong>5% increase in retention can increase
+          profits by 25-95%</strong>. The ROI of a well-built churn prediction pipeline is one of the
+          highest in all of ML.
+        </p>
+      </div>
+
+      <h3>What Makes Churn Prediction Hard?</h3>
+      <p>
+        Unlike fraud detection where you have clear-cut labels (transaction was fraudulent or not),
+        churn is fuzzy. A customer who stops logging in for 2 weeks might be on vacation, or might
+        be evaluating a competitor. A spike in support tickets could mean the customer is frustrated
+        &mdash; or it could mean they are deeply engaged and pushing the product to its limits.
+      </p>
+      <ul>
+        <li><strong>Imbalanced data:</strong> In any given month, only 5-7% of customers churn, creating a severe class imbalance</li>
+        <li><strong>Temporal complexity:</strong> Churn signals unfold over weeks, requiring careful window-based feature engineering</li>
+        <li><strong>Multiple churn types:</strong> Voluntary cancellation, non-renewal, downgrade, and "silent churn" (stops using but stays subscribed)</li>
+        <li><strong>Feedback loops:</strong> If your model successfully intervenes, the training data changes &mdash; saved customers look different from churned ones</li>
+        <li><strong>Feature leakage:</strong> Using data that is only available after the churn decision has been made</li>
+      </ul>
+
+      <div class="callout info">
+        <div class="callout-label">Exam Tip</div>
+        <p>
+          The GCP MLE exam frequently tests your understanding of <strong>temporal leakage</strong>
+          in classification tasks. In churn prediction, using "days since last login" computed at
+          prediction time vs. training time creates subtle but devastating data leakage. Always use
+          point-in-time feature computation.
+        </p>
+      </div>
+    </div>
+
+    <!-- ════════════════ SECTION 2 ════════════════ -->
+    <div class="section" id="architecture">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Solution Architecture</h2>
+      </div>
+
+      <p>
+        The architecture follows an end-to-end Vertex AI Pipeline pattern, reading from multiple
+        BigQuery source tables (usage logs, billing events, support tickets, feature adoption),
+        transforming raw data into predictive features, training an XGBoost model with hyperparameter
+        tuning via Vertex AI Vizier, and serving churn risk scores to CRM and marketing automation
+        systems for proactive outreach.
+      </p>
+
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 900 340" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:900px;margin:0 auto;">
+          <!-- BigQuery Sources -->
+          <rect x="10" y="30" width="140" height="40" rx="8" fill="#1e2438" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="80" y="55" text-anchor="middle" fill="#93c5fd" font-size="11" font-family="Space Grotesk">Usage Logs</text>
+
+          <rect x="10" y="80" width="140" height="40" rx="8" fill="#1e2438" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="80" y="105" text-anchor="middle" fill="#93c5fd" font-size="11" font-family="Space Grotesk">Billing Events</text>
+
+          <rect x="10" y="130" width="140" height="40" rx="8" fill="#1e2438" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="80" y="155" text-anchor="middle" fill="#93c5fd" font-size="11" font-family="Space Grotesk">Support Tickets</text>
+
+          <rect x="10" y="180" width="140" height="40" rx="8" fill="#1e2438" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="80" y="205" text-anchor="middle" fill="#93c5fd" font-size="11" font-family="Space Grotesk">Feature Adoption</text>
+
+          <!-- BigQuery label -->
+          <text x="80" y="18" text-anchor="middle" fill="#3b82f6" font-size="12" font-weight="600" font-family="Space Grotesk">BigQuery</text>
+
+          <!-- Arrow 1 -->
+          <line x1="150" y1="120" x2="200" y2="120" stroke="#545a78" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <!-- Vertex AI Pipeline Box -->
+          <rect x="200" y="10" width="420" height="260" rx="12" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="6 3"/>
+          <text x="410" y="32" text-anchor="middle" fill="#f59e0b" font-size="13" font-weight="600" font-family="Space Grotesk">Vertex AI Pipeline</text>
+
+          <!-- Pipeline Steps -->
+          <rect x="220" y="50" width="120" height="44" rx="7" fill="#1e2438" stroke="#f59e0b" stroke-width="1"/>
+          <text x="280" y="68" text-anchor="middle" fill="#fcd34d" font-size="10" font-family="Space Grotesk">Data</text>
+          <text x="280" y="82" text-anchor="middle" fill="#fcd34d" font-size="10" font-family="Space Grotesk">Validation</text>
+
+          <rect x="220" y="108" width="120" height="44" rx="7" fill="#1e2438" stroke="#f59e0b" stroke-width="1"/>
+          <text x="280" y="126" text-anchor="middle" fill="#fcd34d" font-size="10" font-family="Space Grotesk">Feature</text>
+          <text x="280" y="140" text-anchor="middle" fill="#fcd34d" font-size="10" font-family="Space Grotesk">Engineering</text>
+
+          <rect x="220" y="166" width="120" height="44" rx="7" fill="#1e2438" stroke="#f59e0b" stroke-width="1"/>
+          <text x="280" y="184" text-anchor="middle" fill="#fcd34d" font-size="10" font-family="Space Grotesk">Training</text>
+          <text x="280" y="198" text-anchor="middle" fill="#fcd34d" font-size="10" font-family="Space Grotesk">(Vizier HPT)</text>
+
+          <rect x="220" y="224" width="120" height="36" rx="7" fill="#1e2438" stroke="#f59e0b" stroke-width="1"/>
+          <text x="280" y="247" text-anchor="middle" fill="#fcd34d" font-size="10" font-family="Space Grotesk">Evaluation</text>
+
+          <!-- Vertical arrows inside pipeline -->
+          <line x1="280" y1="94" x2="280" y2="108" stroke="#545a78" stroke-width="1" marker-end="url(#arrow)"/>
+          <line x1="280" y1="152" x2="280" y2="166" stroke="#545a78" stroke-width="1" marker-end="url(#arrow)"/>
+          <line x1="280" y1="210" x2="280" y2="224" stroke="#545a78" stroke-width="1" marker-end="url(#arrow)"/>
+
+          <!-- Drift Detection -->
+          <rect x="380" y="166" width="120" height="44" rx="7" fill="#1e2438" stroke="#ef4444" stroke-width="1"/>
+          <text x="440" y="184" text-anchor="middle" fill="#fca5a5" font-size="10" font-family="Space Grotesk">Drift</text>
+          <text x="440" y="198" text-anchor="middle" fill="#fca5a5" font-size="10" font-family="Space Grotesk">Detection</text>
+
+          <!-- Fairness Check -->
+          <rect x="380" y="224" width="120" height="36" rx="7" fill="#1e2438" stroke="#a855f7" stroke-width="1"/>
+          <text x="440" y="247" text-anchor="middle" fill="#d8b4fe" font-size="10" font-family="Space Grotesk">Fairness Check</text>
+
+          <!-- Vizier -->
+          <rect x="380" y="50" width="120" height="44" rx="7" fill="#1e2438" stroke="#22d3ee" stroke-width="1"/>
+          <text x="440" y="68" text-anchor="middle" fill="#67e8f9" font-size="10" font-family="Space Grotesk">Vertex AI</text>
+          <text x="440" y="82" text-anchor="middle" fill="#67e8f9" font-size="10" font-family="Space Grotesk">Vizier</text>
+
+          <!-- Scheduling -->
+          <rect x="380" y="108" width="120" height="44" rx="7" fill="#1e2438" stroke="#22c55e" stroke-width="1"/>
+          <text x="440" y="126" text-anchor="middle" fill="#86efac" font-size="10" font-family="Space Grotesk">Cloud</text>
+          <text x="440" y="140" text-anchor="middle" fill="#86efac" font-size="10" font-family="Space Grotesk">Scheduler</text>
+
+          <!-- Arrow to Model Registry -->
+          <line x1="620" y1="140" x2="650" y2="140" stroke="#545a78" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <!-- Model Registry -->
+          <rect x="650" y="60" width="110" height="50" rx="8" fill="#1e2438" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="705" y="82" text-anchor="middle" fill="#86efac" font-size="10" font-family="Space Grotesk">Model</text>
+          <text x="705" y="96" text-anchor="middle" fill="#86efac" font-size="10" font-family="Space Grotesk">Registry</text>
+
+          <!-- Prediction Service -->
+          <rect x="650" y="130" width="110" height="50" rx="8" fill="#1e2438" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="705" y="152" text-anchor="middle" fill="#fcd34d" font-size="10" font-family="Space Grotesk">Prediction</text>
+          <text x="705" y="166" text-anchor="middle" fill="#fcd34d" font-size="10" font-family="Space Grotesk">Service</text>
+
+          <line x1="705" y1="110" x2="705" y2="130" stroke="#545a78" stroke-width="1" marker-end="url(#arrow)"/>
+
+          <!-- Arrow to CRM -->
+          <line x1="760" y1="155" x2="790" y2="155" stroke="#545a78" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <!-- CRM / Marketing -->
+          <rect x="790" y="80" width="100" height="40" rx="8" fill="#1e2438" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="840" y="105" text-anchor="middle" fill="#d8b4fe" font-size="10" font-family="Space Grotesk">CRM System</text>
+
+          <rect x="790" y="135" width="100" height="40" rx="8" fill="#1e2438" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="840" y="160" text-anchor="middle" fill="#d8b4fe" font-size="10" font-family="Space Grotesk">Marketing</text>
+
+          <rect x="790" y="190" width="100" height="40" rx="8" fill="#1e2438" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="840" y="210" text-anchor="middle" fill="#d8b4fe" font-size="10" font-family="Space Grotesk">Customer</text>
+          <text x="840" y="222" text-anchor="middle" fill="#d8b4fe" font-size="10" font-family="Space Grotesk">Success</text>
+
+          <!-- Arrow definitions -->
+          <defs>
+            <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L8,3 L0,6" fill="#545a78"/>
+            </marker>
+          </defs>
+        </svg>
+        <div class="diagram-caption">End-to-end churn prediction architecture on Google Cloud Platform</div>
+      </div>
+
+      <h3>Data Sources</h3>
+      <p>
+        The pipeline reads from four BigQuery tables, each capturing a different dimension of
+        customer behavior. The key insight is that <strong>no single data source is sufficient</strong>
+        &mdash; churn is a multi-signal problem, and the most accurate models combine usage, billing,
+        support, and product adoption data.
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Source Table</th>
+            <th>Key Fields</th>
+            <th>Update Frequency</th>
+            <th>Signal Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>usage_logs</strong></td>
+            <td>customer_id, event_type, timestamp, duration, feature_used</td>
+            <td>Real-time (streaming)</td>
+            <td>Engagement depth</td>
+          </tr>
+          <tr>
+            <td><strong>billing_events</strong></td>
+            <td>customer_id, amount, plan_type, payment_status, mrr</td>
+            <td>Daily batch</td>
+            <td>Financial commitment</td>
+          </tr>
+          <tr>
+            <td><strong>support_tickets</strong></td>
+            <td>customer_id, category, priority, resolution_time, sentiment_score</td>
+            <td>Near real-time</td>
+            <td>Friction / frustration</td>
+          </tr>
+          <tr>
+            <td><strong>feature_adoption</strong></td>
+            <td>customer_id, feature_name, first_used, usage_count, days_since_last</td>
+            <td>Daily batch</td>
+            <td>Product stickiness</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ════════════════ SECTION 3 ════════════════ -->
+    <div class="section" id="feature-eng">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Feature Engineering for Churn</h2>
+      </div>
+
+      <p>
+        Feature engineering is the most impactful part of a churn prediction pipeline. Raw event
+        logs must be transformed into meaningful, temporally-consistent signals. We compute all
+        features in <strong>BigQuery SQL</strong> for scalability, using window functions to create
+        point-in-time snapshots that prevent temporal leakage.
+      </p>
+
+      <h3 id="feature-eng-engagement">Engagement Scores</h3>
+      <p>
+        The engagement score is a composite metric that captures how deeply a customer interacts
+        with the product. It combines login frequency, session duration, feature breadth, and
+        recency of usage into a single 0-100 score.
+      </p>
+
+<pre><code><span class="code-comment">-- BigQuery SQL: Compute engagement score per customer</span>
+<span class="code-keyword">WITH</span> usage_stats <span class="code-keyword">AS</span> (
+  <span class="code-keyword">SELECT</span>
+    customer_id,
+    <span class="code-fn">COUNT</span>(<span class="code-keyword">DISTINCT</span> <span class="code-fn">DATE</span>(event_timestamp)) <span class="code-keyword">AS</span> active_days_30d,
+    <span class="code-fn">COUNT</span>(*) <span class="code-keyword">AS</span> total_events_30d,
+    <span class="code-fn">AVG</span>(session_duration_seconds) <span class="code-keyword">AS</span> avg_session_duration,
+    <span class="code-fn">COUNT</span>(<span class="code-keyword">DISTINCT</span> feature_used) <span class="code-keyword">AS</span> features_used_count,
+    <span class="code-fn">DATE_DIFF</span>(<span class="code-fn">CURRENT_DATE</span>(), <span class="code-fn">MAX</span>(<span class="code-fn">DATE</span>(event_timestamp)), DAY) <span class="code-keyword">AS</span> days_since_last_active
+  <span class="code-keyword">FROM</span> <span class="code-string">`project.dataset.usage_logs`</span>
+  <span class="code-keyword">WHERE</span> event_timestamp >= <span class="code-fn">DATE_SUB</span>(<span class="code-fn">CURRENT_DATE</span>(), <span class="code-keyword">INTERVAL</span> <span class="code-num">30</span> DAY)
+  <span class="code-keyword">GROUP BY</span> customer_id
+)
+<span class="code-keyword">SELECT</span>
+  customer_id,
+  <span class="code-comment">-- Weighted engagement score (0-100)</span>
+  <span class="code-fn">LEAST</span>(<span class="code-num">100</span>,
+    (active_days_30d / <span class="code-num">30.0</span>) * <span class="code-num">30</span> +                     <span class="code-comment">-- Login frequency (30%)</span>
+    <span class="code-fn">LEAST</span>(avg_session_duration / <span class="code-num">1800.0</span>, <span class="code-num">1.0</span>) * <span class="code-num">25</span> +     <span class="code-comment">-- Session depth (25%)</span>
+    (features_used_count / <span class="code-num">12.0</span>) * <span class="code-num">25</span> +                  <span class="code-comment">-- Feature breadth (25%)</span>
+    <span class="code-fn">GREATEST</span>(<span class="code-num">0</span>, <span class="code-num">1</span> - days_since_last_active / <span class="code-num">14.0</span>) * <span class="code-num">20</span>  <span class="code-comment">-- Recency (20%)</span>
+  ) <span class="code-keyword">AS</span> engagement_score
+<span class="code-keyword">FROM</span> usage_stats;</code></pre>
+
+      <h3 id="feature-eng-usage">Usage Trends</h3>
+      <p>
+        Raw usage counts are less predictive than <strong>usage trends</strong>. A customer who
+        logged in 20 times this week but was at 40 last week is more at-risk than one who logged in
+        10 times both weeks. We compute week-over-week and month-over-month ratios to capture trajectory.
+      </p>
+
+<pre><code><span class="code-comment">-- Usage trend features: week-over-week changes</span>
+<span class="code-keyword">WITH</span> weekly_usage <span class="code-keyword">AS</span> (
+  <span class="code-keyword">SELECT</span>
+    customer_id,
+    <span class="code-fn">DATE_TRUNC</span>(event_timestamp, WEEK) <span class="code-keyword">AS</span> week_start,
+    <span class="code-fn">COUNT</span>(*) <span class="code-keyword">AS</span> event_count,
+    <span class="code-fn">SUM</span>(session_duration_seconds) <span class="code-keyword">AS</span> total_duration
+  <span class="code-keyword">FROM</span> <span class="code-string">`project.dataset.usage_logs`</span>
+  <span class="code-keyword">WHERE</span> event_timestamp >= <span class="code-fn">DATE_SUB</span>(<span class="code-fn">CURRENT_DATE</span>(), <span class="code-keyword">INTERVAL</span> <span class="code-num">8</span> WEEK)
+  <span class="code-keyword">GROUP BY</span> customer_id, week_start
+),
+with_lag <span class="code-keyword">AS</span> (
+  <span class="code-keyword">SELECT</span>
+    *,
+    <span class="code-fn">LAG</span>(event_count) <span class="code-fn">OVER</span> (
+      <span class="code-keyword">PARTITION BY</span> customer_id <span class="code-keyword">ORDER BY</span> week_start
+    ) <span class="code-keyword">AS</span> prev_week_events,
+    <span class="code-fn">LAG</span>(total_duration) <span class="code-fn">OVER</span> (
+      <span class="code-keyword">PARTITION BY</span> customer_id <span class="code-keyword">ORDER BY</span> week_start
+    ) <span class="code-keyword">AS</span> prev_week_duration
+  <span class="code-keyword">FROM</span> weekly_usage
+)
+<span class="code-keyword">SELECT</span>
+  customer_id,
+  <span class="code-comment">-- Week-over-week change ratios</span>
+  <span class="code-fn">AVG</span>(<span class="code-fn">SAFE_DIVIDE</span>(event_count - prev_week_events, prev_week_events)) <span class="code-keyword">AS</span> avg_wow_event_change,
+  <span class="code-fn">AVG</span>(<span class="code-fn">SAFE_DIVIDE</span>(total_duration - prev_week_duration, prev_week_duration)) <span class="code-keyword">AS</span> avg_wow_duration_change,
+  <span class="code-comment">-- Trend slope via linear regression</span>
+  <span class="code-fn">CORR</span>(<span class="code-fn">UNIX_DATE</span>(week_start), event_count) <span class="code-keyword">AS</span> usage_trend_corr
+<span class="code-keyword">FROM</span> with_lag
+<span class="code-keyword">WHERE</span> prev_week_events <span class="code-keyword">IS NOT NULL</span>
+<span class="code-keyword">GROUP BY</span> customer_id;</code></pre>
+
+      <h3 id="feature-eng-support">Support Sentiment</h3>
+      <p>
+        Support ticket data is a goldmine for churn prediction. We track not just volume, but
+        <strong>category distribution, resolution time, and sentiment scores</strong> from the
+        Natural Language API. A customer with three unresolved high-priority bugs is fundamentally
+        different from one with three feature requests.
+      </p>
+
+<pre><code><span class="code-comment">-- Support-based churn features</span>
+<span class="code-keyword">SELECT</span>
+  customer_id,
+  <span class="code-fn">COUNT</span>(*) <span class="code-keyword">AS</span> tickets_30d,
+  <span class="code-fn">COUNTIF</span>(priority = <span class="code-string">'critical'</span>) <span class="code-keyword">AS</span> critical_tickets_30d,
+  <span class="code-fn">COUNTIF</span>(status = <span class="code-string">'open'</span>) <span class="code-keyword">AS</span> open_tickets,
+  <span class="code-fn">AVG</span>(resolution_hours) <span class="code-keyword">AS</span> avg_resolution_hours,
+  <span class="code-fn">AVG</span>(sentiment_score) <span class="code-keyword">AS</span> avg_sentiment,    <span class="code-comment">-- -1 to 1 from NL API</span>
+  <span class="code-fn">MIN</span>(sentiment_score) <span class="code-keyword">AS</span> worst_sentiment,
+  <span class="code-fn">COUNTIF</span>(category = <span class="code-string">'bug'</span>) <span class="code-keyword">AS</span> bug_tickets,
+  <span class="code-fn">COUNTIF</span>(category = <span class="code-string">'billing'</span>) <span class="code-keyword">AS</span> billing_tickets  <span class="code-comment">-- Strong churn signal</span>
+<span class="code-keyword">FROM</span> <span class="code-string">`project.dataset.support_tickets`</span>
+<span class="code-keyword">WHERE</span> created_at >= <span class="code-fn">DATE_SUB</span>(<span class="code-fn">CURRENT_DATE</span>(), <span class="code-keyword">INTERVAL</span> <span class="code-num">30</span> DAY)
+<span class="code-keyword">GROUP BY</span> customer_id;</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>
+          Billing-related support tickets are one of the <strong>strongest single predictors of churn</strong>.
+          A customer who contacts support about pricing or billing disputes is 3-4x more likely to churn
+          than one who contacts about product bugs. Weight this feature accordingly.
+        </p>
+      </div>
+
+      <h3 id="feature-eng-billing">Billing Patterns</h3>
+      <p>
+        Billing data captures the financial relationship between the customer and your product.
+        Key features include payment failures, plan downgrades, discount history, and contract
+        remaining length.
+      </p>
+
+<pre><code><span class="code-comment">-- Billing-based churn features</span>
+<span class="code-keyword">SELECT</span>
+  c.customer_id,
+  c.plan_type,
+  c.monthly_recurring_revenue <span class="code-keyword">AS</span> mrr,
+  c.contract_months_remaining,
+  <span class="code-fn">COUNTIF</span>(b.payment_status = <span class="code-string">'failed'</span>) <span class="code-keyword">AS</span> failed_payments_90d,
+  <span class="code-fn">COUNTIF</span>(b.event_type = <span class="code-string">'downgrade'</span>) <span class="code-keyword">AS</span> downgrades_180d,
+  <span class="code-fn">COUNTIF</span>(b.event_type = <span class="code-string">'discount_applied'</span>) <span class="code-keyword">AS</span> discounts_received,
+  <span class="code-keyword">CASE</span>
+    <span class="code-keyword">WHEN</span> c.plan_type = <span class="code-string">'annual'</span> <span class="code-keyword">THEN</span> <span class="code-num">0</span>
+    <span class="code-keyword">WHEN</span> c.plan_type = <span class="code-string">'monthly'</span> <span class="code-keyword">THEN</span> <span class="code-num">1</span>
+    <span class="code-keyword">ELSE</span> <span class="code-num">0.5</span>
+  <span class="code-keyword">END</span> <span class="code-keyword">AS</span> plan_flexibility_score
+<span class="code-keyword">FROM</span> <span class="code-string">`project.dataset.customers`</span> c
+<span class="code-keyword">LEFT JOIN</span> <span class="code-string">`project.dataset.billing_events`</span> b
+  <span class="code-keyword">ON</span> c.customer_id = b.customer_id
+  <span class="code-keyword">AND</span> b.event_date >= <span class="code-fn">DATE_SUB</span>(<span class="code-fn">CURRENT_DATE</span>(), <span class="code-keyword">INTERVAL</span> <span class="code-num">180</span> DAY)
+<span class="code-keyword">GROUP BY</span> <span class="code-num">1</span>, <span class="code-num">2</span>, <span class="code-num">3</span>, <span class="code-num">4</span>;</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Feature Leakage Warning</div>
+        <p>
+          Never include <code>cancellation_reason</code> or <code>churn_date</code> as input features.
+          These are only known after the churn event. Similarly, features like "days until contract
+          end" can introduce subtle leakage if not carefully windowed relative to the prediction date.
+        </p>
+      </div>
+    </div>
+
+    <!-- ════════════════ SECTION 4 ════════════════ -->
+    <div class="section" id="pipeline">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Vertex AI Pipeline Definition</h2>
+      </div>
+
+      <p>
+        The complete pipeline is defined using the <strong>Kubeflow Pipelines (KFP) SDK v2</strong>,
+        which Vertex AI Pipelines natively supports. Each step is a containerized component that
+        receives typed inputs and produces typed outputs, enabling full lineage tracking and caching.
+      </p>
+
+<pre><code><span class="code-keyword">from</span> kfp.v2 <span class="code-keyword">import</span> dsl, compiler
+<span class="code-keyword">from</span> kfp.v2.dsl <span class="code-keyword">import</span> (
+    Dataset, Input, Metrics, Model, Output, component
+)
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+<span class="code-comment"># ── Step 1: Data Validation ──</span>
+@component(
+    base_image=<span class="code-string">"python:3.9"</span>,
+    packages_to_install=[<span class="code-string">"google-cloud-bigquery"</span>, <span class="code-string">"great-expectations"</span>]
+)
+<span class="code-keyword">def</span> <span class="code-fn">validate_data</span>(
+    project_id: str,
+    dataset_id: str,
+    validation_output: Output[Dataset]
+) -> bool:
+    <span class="code-string">"""Validate source data quality before training."""</span>
+    <span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> bigquery
+    <span class="code-keyword">import</span> json
+
+    client = bigquery.Client(project=project_id)
+
+    <span class="code-comment"># Check row counts, null rates, schema drift</span>
+    checks = {
+        <span class="code-string">"usage_logs"</span>: {
+            <span class="code-string">"min_rows"</span>: <span class="code-num">100000</span>,
+            <span class="code-string">"max_null_rate"</span>: <span class="code-num">0.05</span>,
+            <span class="code-string">"required_columns"</span>: [
+                <span class="code-string">"customer_id"</span>, <span class="code-string">"event_timestamp"</span>,
+                <span class="code-string">"event_type"</span>, <span class="code-string">"session_duration_seconds"</span>
+            ]
+        },
+        <span class="code-string">"billing_events"</span>: {
+            <span class="code-string">"min_rows"</span>: <span class="code-num">10000</span>,
+            <span class="code-string">"max_null_rate"</span>: <span class="code-num">0.02</span>,
+            <span class="code-string">"required_columns"</span>: [
+                <span class="code-string">"customer_id"</span>, <span class="code-string">"amount"</span>,
+                <span class="code-string">"payment_status"</span>
+            ]
+        }
+    }
+
+    results = {}
+    all_passed = <span class="code-keyword">True</span>
+    <span class="code-keyword">for</span> table, config <span class="code-keyword">in</span> checks.items():
+        query = <span class="code-string">f"SELECT COUNT(*) as cnt FROM `{project_id}.{dataset_id}.{table}`"</span>
+        row_count = list(client.query(query).result())[<span class="code-num">0</span>].cnt
+        passed = row_count >= config[<span class="code-string">"min_rows"</span>]
+        results[table] = {<span class="code-string">"row_count"</span>: row_count, <span class="code-string">"passed"</span>: passed}
+        <span class="code-keyword">if not</span> passed:
+            all_passed = <span class="code-keyword">False</span>
+
+    <span class="code-keyword">with</span> open(validation_output.path, <span class="code-string">"w"</span>) <span class="code-keyword">as</span> f:
+        json.dump(results, f)
+
+    <span class="code-keyword">return</span> all_passed</code></pre>
+
+<pre><code><span class="code-comment"># ── Step 2: Feature Engineering Component ──</span>
+@component(
+    base_image=<span class="code-string">"python:3.9"</span>,
+    packages_to_install=[<span class="code-string">"google-cloud-bigquery"</span>, <span class="code-string">"pandas"</span>, <span class="code-string">"db-dtypes"</span>]
+)
+<span class="code-keyword">def</span> <span class="code-fn">engineer_features</span>(
+    project_id: str,
+    dataset_id: str,
+    prediction_date: str,
+    feature_dataset: Output[Dataset]
+):
+    <span class="code-string">"""Create churn features from raw BigQuery tables."""</span>
+    <span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> bigquery
+    <span class="code-keyword">import</span> pandas <span class="code-keyword">as</span> pd
+
+    client = bigquery.Client(project=project_id)
+
+    feature_query = <span class="code-string">f"""
+    WITH engagement AS (
+      SELECT customer_id,
+        COUNT(DISTINCT DATE(event_timestamp)) AS active_days,
+        AVG(session_duration_seconds) AS avg_session_sec,
+        COUNT(DISTINCT feature_used) AS features_used,
+        DATE_DIFF('{prediction_date}',
+          MAX(DATE(event_timestamp)), DAY) AS days_inactive
+      FROM `{project_id}.{dataset_id}.usage_logs`
+      WHERE event_timestamp BETWEEN
+        DATE_SUB('{prediction_date}', INTERVAL 30 DAY)
+        AND '{prediction_date}'
+      GROUP BY customer_id
+    ),
+    support AS (
+      SELECT customer_id,
+        COUNT(*) AS tickets_30d,
+        AVG(sentiment_score) AS avg_sentiment,
+        COUNTIF(priority = 'critical') AS critical_tickets
+      FROM `{project_id}.{dataset_id}.support_tickets`
+      WHERE created_at BETWEEN
+        DATE_SUB('{prediction_date}', INTERVAL 30 DAY)
+        AND '{prediction_date}'
+      GROUP BY customer_id
+    ),
+    billing AS (
+      SELECT customer_id,
+        COUNTIF(payment_status = 'failed') AS failed_payments,
+        COUNTIF(event_type = 'downgrade') AS downgrades
+      FROM `{project_id}.{dataset_id}.billing_events`
+      WHERE event_date BETWEEN
+        DATE_SUB('{prediction_date}', INTERVAL 90 DAY)
+        AND '{prediction_date}'
+      GROUP BY customer_id
+    )
+    SELECT
+      c.customer_id,
+      COALESCE(e.active_days, 0) AS active_days_30d,
+      COALESCE(e.avg_session_sec, 0) AS avg_session_sec,
+      COALESCE(e.features_used, 0) AS features_used,
+      COALESCE(e.days_inactive, 30) AS days_inactive,
+      COALESCE(s.tickets_30d, 0) AS support_tickets_30d,
+      COALESCE(s.avg_sentiment, 0) AS avg_support_sentiment,
+      COALESCE(s.critical_tickets, 0) AS critical_tickets_30d,
+      COALESCE(b.failed_payments, 0) AS failed_payments_90d,
+      COALESCE(b.downgrades, 0) AS downgrades_90d,
+      c.plan_type,
+      c.monthly_recurring_revenue AS mrr,
+      c.tenure_months
+    FROM `{project_id}.{dataset_id}.customers` c
+    LEFT JOIN engagement e ON c.customer_id = e.customer_id
+    LEFT JOIN support s ON c.customer_id = s.customer_id
+    LEFT JOIN billing b ON c.customer_id = b.customer_id
+    """</span>
+
+    df = client.query(feature_query).to_dataframe()
+    df.to_parquet(feature_dataset.path, index=<span class="code-keyword">False</span>)</code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">KFP V2 Best Practice</div>
+        <p>
+          Notice how each component declares typed <code>Input</code> and <code>Output</code> artifacts.
+          This enables Vertex AI Pipelines to automatically track <strong>data lineage</strong> and
+          cache intermediate results. If your data validation step passes and the source data hasn't
+          changed, Vertex will skip re-running the feature engineering step on subsequent runs.
+        </p>
+      </div>
+    </div>
+
+    <!-- ════════════════ SECTION 5 ════════════════ -->
+    <div class="section" id="training">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>XGBoost Training with Vizier HPT</h2>
+      </div>
+
+      <p>
+        We use <strong>XGBoost</strong> as our primary model for several reasons: it handles tabular
+        data exceptionally well, provides built-in feature importance, supports class imbalance via
+        <code>scale_pos_weight</code>, and trains quickly enough for iterative hyperparameter tuning.
+        Vertex AI Vizier provides Bayesian optimization for efficient hyperparameter search.
+      </p>
+
+<pre><code><span class="code-comment"># ── Step 3: Training with Hyperparameter Tuning ──</span>
+@component(
+    base_image=<span class="code-string">"python:3.9"</span>,
+    packages_to_install=[
+        <span class="code-string">"xgboost"</span>, <span class="code-string">"pandas"</span>, <span class="code-string">"scikit-learn"</span>,
+        <span class="code-string">"google-cloud-aiplatform"</span>
+    ]
+)
+<span class="code-keyword">def</span> <span class="code-fn">train_xgboost</span>(
+    feature_dataset: Input[Dataset],
+    target_column: str,
+    model_artifact: Output[Model],
+    metrics: Output[Metrics]
+):
+    <span class="code-string">"""Train XGBoost with Vizier-style hyperparameter tuning."""</span>
+    <span class="code-keyword">import</span> xgboost <span class="code-keyword">as</span> xgb
+    <span class="code-keyword">import</span> pandas <span class="code-keyword">as</span> pd
+    <span class="code-keyword">from</span> sklearn.model_selection <span class="code-keyword">import</span> TimeSeriesSplit
+    <span class="code-keyword">from</span> sklearn.metrics <span class="code-keyword">import</span> (
+        roc_auc_score, precision_score, recall_score, f1_score
+    )
+    <span class="code-keyword">import</span> json, pickle
+
+    df = pd.read_parquet(feature_dataset.path)
+
+    <span class="code-comment"># Temporal split: train on older data, validate on recent</span>
+    df = df.sort_values(<span class="code-string">"snapshot_date"</span>)
+    split_idx = <span class="code-fn">int</span>(len(df) * <span class="code-num">0.8</span>)
+    train_df = df.iloc[:split_idx]
+    val_df = df.iloc[split_idx:]
+
+    feature_cols = [c <span class="code-keyword">for</span> c <span class="code-keyword">in</span> df.columns
+                    <span class="code-keyword">if</span> c <span class="code-keyword">not in</span> [target_column, <span class="code-string">"customer_id"</span>, <span class="code-string">"snapshot_date"</span>]]
+
+    X_train = train_df[feature_cols]
+    y_train = train_df[target_column]
+    X_val = val_df[feature_cols]
+    y_val = val_df[target_column]
+
+    <span class="code-comment"># Handle class imbalance</span>
+    n_pos = y_train.sum()
+    n_neg = len(y_train) - n_pos
+    scale_pos_weight = n_neg / n_pos
+
+    <span class="code-comment"># Best params from Vizier Bayesian optimization</span>
+    best_params = {
+        <span class="code-string">"objective"</span>: <span class="code-string">"binary:logistic"</span>,
+        <span class="code-string">"eval_metric"</span>: <span class="code-string">"aucpr"</span>,       <span class="code-comment"># AUC-PR for imbalanced</span>
+        <span class="code-string">"max_depth"</span>: <span class="code-num">6</span>,
+        <span class="code-string">"learning_rate"</span>: <span class="code-num">0.05</span>,
+        <span class="code-string">"n_estimators"</span>: <span class="code-num">500</span>,
+        <span class="code-string">"subsample"</span>: <span class="code-num">0.8</span>,
+        <span class="code-string">"colsample_bytree"</span>: <span class="code-num">0.8</span>,
+        <span class="code-string">"min_child_weight"</span>: <span class="code-num">5</span>,
+        <span class="code-string">"scale_pos_weight"</span>: scale_pos_weight,
+        <span class="code-string">"reg_alpha"</span>: <span class="code-num">0.1</span>,
+        <span class="code-string">"reg_lambda"</span>: <span class="code-num">1.0</span>,
+        <span class="code-string">"random_state"</span>: <span class="code-num">42</span>
+    }
+
+    model = xgb.XGBClassifier(**best_params)
+    model.fit(
+        X_train, y_train,
+        eval_set=[(X_val, y_val)],
+        verbose=<span class="code-num">50</span>
+    )
+
+    <span class="code-comment"># Evaluate</span>
+    y_pred_proba = model.predict_proba(X_val)[:, <span class="code-num">1</span>]
+    y_pred = (y_pred_proba >= <span class="code-num">0.5</span>).astype(<span class="code-fn">int</span>)
+
+    eval_metrics = {
+        <span class="code-string">"auc_roc"</span>: roc_auc_score(y_val, y_pred_proba),
+        <span class="code-string">"precision"</span>: precision_score(y_val, y_pred),
+        <span class="code-string">"recall"</span>: recall_score(y_val, y_pred),
+        <span class="code-string">"f1"</span>: f1_score(y_val, y_pred)
+    }
+
+    <span class="code-keyword">for</span> k, v <span class="code-keyword">in</span> eval_metrics.items():
+        metrics.log_metric(k, v)
+
+    <span class="code-keyword">with</span> open(model_artifact.path, <span class="code-string">"wb"</span>) <span class="code-keyword">as</span> f:
+        pickle.dump(model, f)</code></pre>
+
+      <h3>Vizier Hyperparameter Study Configuration</h3>
+      <p>
+        In production, you would define a Vizier study to search the hyperparameter space
+        efficiently. Vizier uses Bayesian optimization (specifically Gaussian Process bandit
+        algorithms) to find optimal configurations in fewer trials than grid or random search.
+      </p>
+
+<pre><code><span class="code-comment"># Vertex AI Vizier study for XGBoost hyperparameter tuning</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+study = aiplatform.Study.create_or_load(
+    display_name=<span class="code-string">"churn-xgboost-hpt"</span>,
+    problem_type=<span class="code-string">"MAXIMIZE"</span>,
+    metric_id=<span class="code-string">"auc_pr"</span>,
+    parameters=[
+        {<span class="code-string">"parameter_id"</span>: <span class="code-string">"max_depth"</span>,
+         <span class="code-string">"integer_value_spec"</span>: {<span class="code-string">"min_value"</span>: <span class="code-num">3</span>, <span class="code-string">"max_value"</span>: <span class="code-num">10</span>}},
+        {<span class="code-string">"parameter_id"</span>: <span class="code-string">"learning_rate"</span>,
+         <span class="code-string">"double_value_spec"</span>: {<span class="code-string">"min_value"</span>: <span class="code-num">0.01</span>, <span class="code-string">"max_value"</span>: <span class="code-num">0.3</span>},
+         <span class="code-string">"scale_type"</span>: <span class="code-string">"UNIT_LOG_SCALE"</span>},
+        {<span class="code-string">"parameter_id"</span>: <span class="code-string">"n_estimators"</span>,
+         <span class="code-string">"integer_value_spec"</span>: {<span class="code-string">"min_value"</span>: <span class="code-num">100</span>, <span class="code-string">"max_value"</span>: <span class="code-num">1000</span>}},
+        {<span class="code-string">"parameter_id"</span>: <span class="code-string">"subsample"</span>,
+         <span class="code-string">"double_value_spec"</span>: {<span class="code-string">"min_value"</span>: <span class="code-num">0.6</span>, <span class="code-string">"max_value"</span>: <span class="code-num">1.0</span>}},
+        {<span class="code-string">"parameter_id"</span>: <span class="code-string">"colsample_bytree"</span>,
+         <span class="code-string">"double_value_spec"</span>: {<span class="code-string">"min_value"</span>: <span class="code-num">0.6</span>, <span class="code-string">"max_value"</span>: <span class="code-num">1.0</span>}},
+        {<span class="code-string">"parameter_id"</span>: <span class="code-string">"min_child_weight"</span>,
+         <span class="code-string">"integer_value_spec"</span>: {<span class="code-string">"min_value"</span>: <span class="code-num">1</span>, <span class="code-string">"max_value"</span>: <span class="code-num">10</span>}},
+        {<span class="code-string">"parameter_id"</span>: <span class="code-string">"reg_alpha"</span>,
+         <span class="code-string">"double_value_spec"</span>: {<span class="code-string">"min_value"</span>: <span class="code-num">0.0</span>, <span class="code-string">"max_value"</span>: <span class="code-num">1.0</span>}},
+        {<span class="code-string">"parameter_id"</span>: <span class="code-string">"reg_lambda"</span>,
+         <span class="code-string">"double_value_spec"</span>: {<span class="code-string">"min_value"</span>: <span class="code-num">0.0</span>, <span class="code-string">"max_value"</span>: <span class="code-num">2.0</span>}},
+    ]
+)
+
+<span class="code-comment"># Run 50 trials with automated early stopping</span>
+<span class="code-keyword">for</span> trial_idx <span class="code-keyword">in</span> range(<span class="code-num">50</span>):
+    trial = study.suggest()
+    params = trial.parameters
+    <span class="code-comment"># ... train model with params, report metric</span>
+    trial.complete(final_measurement={<span class="code-string">"auc_pr"</span>: auc_pr_score})</code></pre>
+    </div>
+
+    <!-- ════════════════ SECTION 6 ════════════════ -->
+    <div class="section" id="evaluation">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Model Evaluation with Fairness Constraints</h2>
+      </div>
+
+      <p>
+        Model evaluation for churn prediction goes beyond standard accuracy metrics. You need to
+        consider the <strong>cost-asymmetry</strong> of false positives vs. false negatives, evaluate
+        performance across customer segments, and ensure fairness across different cohorts.
+      </p>
+
+      <h3>Evaluation Metrics for Churn</h3>
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+            <th>Why It Matters</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>AUC-ROC</strong></td>
+            <td>0.89</td>
+            <td>Overall ranking quality; threshold-independent</td>
+          </tr>
+          <tr>
+            <td><strong>AUC-PR</strong></td>
+            <td>0.72</td>
+            <td>More informative than AUC-ROC for imbalanced data</td>
+          </tr>
+          <tr>
+            <td><strong>Precision @10%</strong></td>
+            <td>0.84</td>
+            <td>Accuracy of top 10% risk predictions (actionable metric)</td>
+          </tr>
+          <tr>
+            <td><strong>Recall @30%</strong></td>
+            <td>0.78</td>
+            <td>Coverage when intervening with top 30% risk scores</td>
+          </tr>
+          <tr>
+            <td><strong>Expected Calibration Error</strong></td>
+            <td>0.03</td>
+            <td>Predicted probabilities match observed churn rates</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code><span class="code-comment"># ── Step 4: Evaluation with Fairness Checks ──</span>
+@component(
+    base_image=<span class="code-string">"python:3.9"</span>,
+    packages_to_install=[<span class="code-string">"pandas"</span>, <span class="code-string">"scikit-learn"</span>, <span class="code-string">"numpy"</span>]
+)
+<span class="code-keyword">def</span> <span class="code-fn">evaluate_model</span>(
+    model_artifact: Input[Model],
+    feature_dataset: Input[Dataset],
+    metrics: Output[Metrics],
+    min_auc_threshold: float = <span class="code-num">0.80</span>,
+    max_disparity_threshold: float = <span class="code-num">0.15</span>
+) -> bool:
+    <span class="code-string">"""Evaluate model and check fairness across segments."""</span>
+    <span class="code-keyword">import</span> pickle, pandas <span class="code-keyword">as</span> pd, numpy <span class="code-keyword">as</span> np
+    <span class="code-keyword">from</span> sklearn.metrics <span class="code-keyword">import</span> roc_auc_score
+    <span class="code-keyword">from</span> sklearn.calibration <span class="code-keyword">import</span> calibration_curve
+
+    <span class="code-keyword">with</span> open(model_artifact.path, <span class="code-string">"rb"</span>) <span class="code-keyword">as</span> f:
+        model = pickle.load(f)
+
+    df = pd.read_parquet(feature_dataset.path)
+
+    <span class="code-comment"># Overall metrics</span>
+    y_true = df[<span class="code-string">"churned"</span>]
+    y_pred = model.predict_proba(df[feature_cols])[:, <span class="code-num">1</span>]
+    overall_auc = roc_auc_score(y_true, y_pred)
+
+    <span class="code-comment"># Fairness: check AUC across customer segments</span>
+    segments = [<span class="code-string">"plan_type"</span>, <span class="code-string">"tenure_bucket"</span>, <span class="code-string">"company_size"</span>]
+    max_disparity = <span class="code-num">0.0</span>
+
+    <span class="code-keyword">for</span> segment <span class="code-keyword">in</span> segments:
+        group_aucs = []
+        <span class="code-keyword">for</span> group_name, group_df <span class="code-keyword">in</span> df.groupby(segment):
+            <span class="code-keyword">if</span> len(group_df) >= <span class="code-num">50</span> <span class="code-keyword">and</span> group_df[<span class="code-string">"churned"</span>].nunique() > <span class="code-num">1</span>:
+                g_auc = roc_auc_score(
+                    group_df[<span class="code-string">"churned"</span>],
+                    model.predict_proba(group_df[feature_cols])[:, <span class="code-num">1</span>]
+                )
+                group_aucs.append(g_auc)
+                metrics.log_metric(<span class="code-string">f"auc_{segment}_{group_name}"</span>, g_auc)
+
+        <span class="code-keyword">if</span> group_aucs:
+            disparity = max(group_aucs) - min(group_aucs)
+            max_disparity = max(max_disparity, disparity)
+            metrics.log_metric(<span class="code-string">f"disparity_{segment}"</span>, disparity)
+
+    <span class="code-comment"># Gate: pass only if AUC meets threshold AND fairness OK</span>
+    passed = overall_auc >= min_auc_threshold <span class="code-keyword">and</span> max_disparity <= max_disparity_threshold
+    metrics.log_metric(<span class="code-string">"overall_auc"</span>, overall_auc)
+    metrics.log_metric(<span class="code-string">"max_disparity"</span>, max_disparity)
+    metrics.log_metric(<span class="code-string">"evaluation_passed"</span>, <span class="code-fn">int</span>(passed))
+
+    <span class="code-keyword">return</span> passed</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Focus: Fairness in ML</div>
+        <p>
+          The GCP MLE exam tests your understanding of <strong>model fairness</strong>. In churn
+          prediction, you must verify that the model performs equitably across customer segments
+          (plan types, company sizes, geographies). A model that only accurately predicts churn for
+          enterprise customers but fails for SMBs creates biased intervention strategies.
+        </p>
+      </div>
+    </div>
+
+    <!-- ════════════════ SECTION 7 ════════════════ -->
+    <div class="section" id="retraining">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Automated Retraining with Drift Detection</h2>
+      </div>
+
+      <p>
+        Customer behavior changes over time. Product updates alter usage patterns, market shifts
+        affect churn drivers, and seasonal effects (holiday slowdowns, fiscal year-end renewals)
+        create temporal variations. Your model must adapt, and the retraining schedule should be
+        <strong>drift-driven</strong>, not purely calendar-driven.
+      </p>
+
+      <h3>Drift Detection Strategy</h3>
+      <p>
+        We monitor three types of drift, each with different detection methods and response urgencies:
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Drift Type</th>
+            <th>Detection Method</th>
+            <th>Threshold</th>
+            <th>Response</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Feature drift</strong></td>
+            <td>Population Stability Index (PSI)</td>
+            <td>PSI > 0.2</td>
+            <td>Alert + schedule retraining</td>
+          </tr>
+          <tr>
+            <td><strong>Prediction drift</strong></td>
+            <td>KL divergence on score distribution</td>
+            <td>KL > 0.1</td>
+            <td>Alert + investigate</td>
+          </tr>
+          <tr>
+            <td><strong>Concept drift</strong></td>
+            <td>Sliding-window AUC on labelled data</td>
+            <td>AUC drops > 5%</td>
+            <td>Immediate retraining</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code><span class="code-comment"># ── Drift Detection + Retraining Trigger ──</span>
+@component(
+    base_image=<span class="code-string">"python:3.9"</span>,
+    packages_to_install=[
+        <span class="code-string">"google-cloud-aiplatform"</span>, <span class="code-string">"pandas"</span>,
+        <span class="code-string">"numpy"</span>, <span class="code-string">"scipy"</span>
+    ]
+)
+<span class="code-keyword">def</span> <span class="code-fn">detect_drift</span>(
+    project_id: str,
+    endpoint_id: str,
+    baseline_stats_path: str,
+    drift_report: Output[Dataset]
+) -> bool:
+    <span class="code-string">"""Check for feature and prediction drift."""</span>
+    <span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np
+    <span class="code-keyword">from</span> scipy <span class="code-keyword">import</span> stats
+    <span class="code-keyword">import</span> json
+
+    <span class="code-keyword">def</span> <span class="code-fn">compute_psi</span>(expected, actual, bins=<span class="code-num">10</span>):
+        <span class="code-string">"""Population Stability Index."""</span>
+        breakpoints = np.linspace(<span class="code-num">0</span>, <span class="code-num">1</span>, bins + <span class="code-num">1</span>)
+        expected_pct = np.histogram(expected, breakpoints)[<span class="code-num">0</span>] / len(expected)
+        actual_pct = np.histogram(actual, breakpoints)[<span class="code-num">0</span>] / len(actual)
+
+        <span class="code-comment"># Avoid log(0)</span>
+        expected_pct = np.clip(expected_pct, <span class="code-num">0.001</span>, <span class="code-keyword">None</span>)
+        actual_pct = np.clip(actual_pct, <span class="code-num">0.001</span>, <span class="code-keyword">None</span>)
+
+        psi = np.sum((actual_pct - expected_pct) *
+                     np.log(actual_pct / expected_pct))
+        <span class="code-keyword">return</span> psi
+
+    <span class="code-comment"># Load baseline and current feature distributions</span>
+    <span class="code-comment"># ... (fetch from Model Monitoring or BigQuery) ...</span>
+
+    drift_detected = <span class="code-keyword">False</span>
+    feature_psi_values = {}
+
+    <span class="code-keyword">for</span> feature <span class="code-keyword">in</span> monitored_features:
+        psi = compute_psi(baseline[feature], current[feature])
+        feature_psi_values[feature] = psi
+        <span class="code-keyword">if</span> psi > <span class="code-num">0.2</span>:
+            drift_detected = <span class="code-keyword">True</span>
+
+    <span class="code-keyword">with</span> open(drift_report.path, <span class="code-string">"w"</span>) <span class="code-keyword">as</span> f:
+        json.dump({
+            <span class="code-string">"drift_detected"</span>: drift_detected,
+            <span class="code-string">"feature_psi"</span>: feature_psi_values,
+            <span class="code-string">"timestamp"</span>: str(pd.Timestamp.now())
+        }, f)
+
+    <span class="code-keyword">return</span> drift_detected</code></pre>
+
+<pre><code><span class="code-comment"># ── Cloud Scheduler: trigger pipeline on drift or biweekly ──</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> scheduler_v1
+
+client = scheduler_v1.CloudSchedulerClient()
+job = {
+    <span class="code-string">"name"</span>: <span class="code-string">"projects/my-project/locations/us-central1/jobs/churn-retrain"</span>,
+    <span class="code-string">"schedule"</span>: <span class="code-string">"0 2 1,15 * *"</span>,  <span class="code-comment"># 1st and 15th of each month</span>
+    <span class="code-string">"http_target"</span>: {
+        <span class="code-string">"uri"</span>: <span class="code-string">"https://us-central1-aiplatform.googleapis.com/v1/..."</span>,
+        <span class="code-string">"http_method"</span>: <span class="code-string">"POST"</span>,
+        <span class="code-string">"body"</span>: json.dumps({
+            <span class="code-string">"pipeline_spec_uri"</span>: <span class="code-string">"gs://my-bucket/pipelines/churn_pipeline.json"</span>,
+            <span class="code-string">"parameter_values"</span>: {
+                <span class="code-string">"prediction_date"</span>: <span class="code-string">"{{$.scheduledTime}}"</span>
+            }
+        }).encode()
+    }
+}
+client.create_job(parent=<span class="code-string">"projects/my-project/locations/us-central1"</span>, job=job)</code></pre>
+    </div>
+
+    <!-- ════════════════ SECTION 8 ════════════════ -->
+    <div class="section" id="serving">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <h2>Serving Predictions to Downstream Systems</h2>
+      </div>
+
+      <p>
+        Churn predictions need to reach the people and systems that can act on them. We deploy
+        the model as a <strong>Vertex AI Endpoint</strong> for real-time scoring, and run a
+        nightly <strong>batch prediction job</strong> that writes risk scores to BigQuery, which
+        feeds CRM dashboards and marketing automation triggers.
+      </p>
+
+<pre><code><span class="code-comment"># ── Deploy to Vertex AI Endpoint ──</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+<span class="code-comment"># Upload model to Model Registry</span>
+model = aiplatform.Model.upload(
+    display_name=<span class="code-string">"churn-predictor-v2"</span>,
+    artifact_uri=<span class="code-string">"gs://my-bucket/models/churn/v2/"</span>,
+    serving_container_image_uri=(
+        <span class="code-string">"us-docker.pkg.dev/vertex-ai/prediction/"</span>
+        <span class="code-string">"xgboost-cpu.1-7:latest"</span>
+    ),
+    labels={<span class="code-string">"team"</span>: <span class="code-string">"retention"</span>, <span class="code-string">"env"</span>: <span class="code-string">"production"</span>}
+)
+
+<span class="code-comment"># Deploy with traffic split for canary</span>
+endpoint = aiplatform.Endpoint.create(
+    display_name=<span class="code-string">"churn-prediction-endpoint"</span>,
+    labels={<span class="code-string">"team"</span>: <span class="code-string">"retention"</span>}
+)
+
+endpoint.deploy(
+    model=model,
+    deployed_model_display_name=<span class="code-string">"churn-v2"</span>,
+    machine_type=<span class="code-string">"n1-standard-4"</span>,
+    min_replica_count=<span class="code-num">1</span>,
+    max_replica_count=<span class="code-num">5</span>,
+    traffic_percentage=<span class="code-num">10</span>,   <span class="code-comment"># Canary: 10% traffic to new model</span>
+    enable_access_logging=<span class="code-keyword">True</span>
+)</code></pre>
+
+<pre><code><span class="code-comment"># ── Nightly Batch Prediction to BigQuery ──</span>
+batch_job = model.batch_predict(
+    job_display_name=<span class="code-string">"churn-batch-nightly"</span>,
+    instances_format=<span class="code-string">"bigquery"</span>,
+    predictions_format=<span class="code-string">"bigquery"</span>,
+    bigquery_source=<span class="code-string">"bq://project.dataset.customer_features_latest"</span>,
+    bigquery_destination_prefix=<span class="code-string">"bq://project.dataset.churn_predictions"</span>,
+    machine_type=<span class="code-string">"n1-standard-8"</span>,
+    max_replica_count=<span class="code-num">10</span>,
+    labels={<span class="code-string">"pipeline"</span>: <span class="code-string">"churn-batch"</span>}
+)
+batch_job.wait()</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Architecture Tip</div>
+        <p>
+          For churn prediction, <strong>batch predictions are usually sufficient</strong>. Unlike fraud
+          detection (which requires sub-second latency), churn predictions feed into daily/weekly
+          retention campaigns. The batch approach is simpler, cheaper, and easier to debug. Reserve
+          real-time endpoints for interactive dashboards or event-triggered interventions.
+        </p>
+      </div>
+    </div>
+
+    <!-- ════════════════ SECTION 9 ════════════════ -->
+    <div class="section" id="intervention">
+      <div class="section-header">
+        <div class="section-num">09</div>
+        <h2>Churn Intervention Scoring</h2>
+      </div>
+
+      <p>
+        Not every at-risk customer should receive the same intervention. The <strong>intervention
+        priority score</strong> combines churn probability with customer value and estimated
+        save probability to rank who to contact first and what to offer them.
+      </p>
+
+<pre><code><span class="code-comment">-- Intervention priority scoring in BigQuery</span>
+<span class="code-keyword">WITH</span> predictions <span class="code-keyword">AS</span> (
+  <span class="code-keyword">SELECT</span>
+    p.customer_id,
+    p.churn_probability,
+    c.monthly_recurring_revenue <span class="code-keyword">AS</span> mrr,
+    c.tenure_months,
+    c.lifetime_value <span class="code-keyword">AS</span> ltv,
+    c.plan_type,
+    <span class="code-comment">-- Estimated save probability based on historical success rates</span>
+    <span class="code-keyword">CASE</span>
+      <span class="code-keyword">WHEN</span> c.tenure_months > <span class="code-num">12</span> <span class="code-keyword">AND</span> p.churn_probability < <span class="code-num">0.8</span>
+        <span class="code-keyword">THEN</span> <span class="code-num">0.45</span>  <span class="code-comment">-- Long-tenure, moderate risk: 45% save rate</span>
+      <span class="code-keyword">WHEN</span> c.tenure_months > <span class="code-num">6</span> <span class="code-keyword">AND</span> p.churn_probability < <span class="code-num">0.6</span>
+        <span class="code-keyword">THEN</span> <span class="code-num">0.55</span>  <span class="code-comment">-- Medium-tenure, lower risk: 55% save rate</span>
+      <span class="code-keyword">WHEN</span> p.churn_probability >= <span class="code-num">0.9</span>
+        <span class="code-keyword">THEN</span> <span class="code-num">0.10</span>  <span class="code-comment">-- Very high risk: only 10% save rate</span>
+      <span class="code-keyword">ELSE</span> <span class="code-num">0.30</span>
+    <span class="code-keyword">END</span> <span class="code-keyword">AS</span> estimated_save_probability
+  <span class="code-keyword">FROM</span> <span class="code-string">`project.dataset.churn_predictions`</span> p
+  <span class="code-keyword">JOIN</span> <span class="code-string">`project.dataset.customers`</span> c
+    <span class="code-keyword">ON</span> p.customer_id = c.customer_id
+  <span class="code-keyword">WHERE</span> p.prediction_date = <span class="code-fn">CURRENT_DATE</span>()
+)
+<span class="code-keyword">SELECT</span>
+  customer_id,
+  churn_probability,
+  mrr,
+  ltv,
+  estimated_save_probability,
+  <span class="code-comment">-- Expected value of intervention</span>
+  churn_probability * estimated_save_probability * mrr * <span class="code-num">12</span>
+    <span class="code-keyword">AS</span> expected_annual_value_saved,
+  <span class="code-comment">-- Assign tier</span>
+  <span class="code-keyword">CASE</span>
+    <span class="code-keyword">WHEN</span> churn_probability >= <span class="code-num">0.7</span> <span class="code-keyword">AND</span> mrr >= <span class="code-num">500</span> <span class="code-keyword">THEN</span> <span class="code-string">'TIER_1_EXECUTIVE'</span>
+    <span class="code-keyword">WHEN</span> churn_probability >= <span class="code-num">0.5</span> <span class="code-keyword">AND</span> mrr >= <span class="code-num">200</span> <span class="code-keyword">THEN</span> <span class="code-string">'TIER_2_CSM'</span>
+    <span class="code-keyword">WHEN</span> churn_probability >= <span class="code-num">0.4</span> <span class="code-keyword">THEN</span> <span class="code-string">'TIER_3_AUTOMATED'</span>
+    <span class="code-keyword">ELSE</span> <span class="code-string">'MONITOR'</span>
+  <span class="code-keyword">END</span> <span class="code-keyword">AS</span> intervention_tier,
+  <span class="code-comment">-- Recommended action</span>
+  <span class="code-keyword">CASE</span>
+    <span class="code-keyword">WHEN</span> churn_probability >= <span class="code-num">0.7</span> <span class="code-keyword">AND</span> mrr >= <span class="code-num">500</span>
+      <span class="code-keyword">THEN</span> <span class="code-string">'Executive QBR call + custom success plan'</span>
+    <span class="code-keyword">WHEN</span> churn_probability >= <span class="code-num">0.5</span>
+      <span class="code-keyword">THEN</span> <span class="code-string">'CSM outreach + usage consultation'</span>
+    <span class="code-keyword">WHEN</span> churn_probability >= <span class="code-num">0.4</span>
+      <span class="code-keyword">THEN</span> <span class="code-string">'Automated email sequence + in-app tips'</span>
+    <span class="code-keyword">ELSE</span> <span class="code-string">'Health monitoring only'</span>
+  <span class="code-keyword">END</span> <span class="code-keyword">AS</span> recommended_action
+<span class="code-keyword">FROM</span> predictions
+<span class="code-keyword">ORDER BY</span> expected_annual_value_saved <span class="code-keyword">DESC</span>;</code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Business Impact</div>
+        <p>
+          The intervention tier system ensures that your most experienced (and expensive) retention
+          resources are focused on the highest-value opportunities. An automated email to a $50/month
+          customer costs $0.10, while an executive QBR costs $500+ &mdash; but saving a $5,000/month
+          enterprise account justifies that investment many times over.
+        </p>
+      </div>
+    </div>
+
+    <!-- ════════════════ SECTION 10 ════════════════ -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">10</div>
+        <h2>Key GCP Components</h2>
+      </div>
+
+      <p>
+        This pipeline leverages several core GCP services. Understanding how they interact is
+        essential for the MLE exam and for building production-grade churn prediction systems.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9881;&#65039;</div>
+            <h4>Vertex AI Pipelines</h4>
+          </div>
+          <p>Orchestrates the end-to-end workflow from data validation through deployment. KFP v2 components with typed artifacts, caching, and lineage tracking. Supports conditional execution and parallel steps.</p>
+        </div>
+
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128269;</div>
+            <h4>Vertex AI Vizier</h4>
+          </div>
+          <p>Bayesian hyperparameter optimization that finds optimal XGBoost configurations in fewer trials than grid search. Supports early stopping, multi-objective optimization, and transfer learning across studies.</p>
+        </div>
+
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128202;</div>
+            <h4>BigQuery</h4>
+          </div>
+          <p>Stores all source data and serves as the feature engineering engine. SQL-based transformations with window functions enable point-in-time feature computation at scale without data movement.</p>
+        </div>
+
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127919;</div>
+            <h4>XGBoost on Vertex</h4>
+          </div>
+          <p>Gradient-boosted decision trees with built-in support for class imbalance, feature importance, and SHAP values. Pre-built serving containers eliminate Docker image management overhead.</p>
+        </div>
+
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128200;</div>
+            <h4>Model Monitoring</h4>
+          </div>
+          <p>Continuous monitoring for feature drift (PSI), prediction drift (KL divergence), and concept drift (performance degradation). Automated alerts via Cloud Monitoring and Pub/Sub integration.</p>
+        </div>
+
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128640;</div>
+            <h4>KFP SDK v2</h4>
+          </div>
+          <p>Python-first pipeline definition with decorator-based components, typed I/O artifacts, and compile-to-JSON for portability. Supports component reuse across pipelines and custom container images.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════ SECTION 11 ════════════════ -->
+    <div class="section" id="results">
+      <div class="section-header">
+        <div class="section-num">11</div>
+        <h2>Results &amp; Business Impact</h2>
+      </div>
+
+      <p>
+        After deploying the churn prediction pipeline for a 50,000-customer SaaS company,
+        the following results were achieved over a 6-month evaluation period:
+      </p>
+
+      <div class="stats-strip">
+        <div class="stat-item">
+          <div class="stat-val">84%</div>
+          <div class="stat-label">30-Day Churn Accuracy</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val">27%</div>
+          <div class="stat-label">Churn Rate Reduction</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val">$1.8M</div>
+          <div class="stat-label">Annual Revenue Saved</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val">2 wks</div>
+          <div class="stat-label">Retrain Cadence</div>
+        </div>
+      </div>
+
+      <h3>Detailed Outcomes</h3>
+      <ul>
+        <li><strong>84% accuracy</strong> in predicting which customers would churn within 30 days, with a precision of 0.78 at the top-10% risk tier</li>
+        <li><strong>27% reduction in monthly churn rate</strong> (from 6.2% to 4.5%), directly attributable to proactive interventions triggered by the model</li>
+        <li><strong>$1.8M in annual revenue saved</strong> for a SaaS company with 50,000 customers at $100 average MRR</li>
+        <li><strong>Automated retraining every 2 weeks</strong>, with drift-triggered retraining when feature distributions shift beyond PSI thresholds</li>
+        <li><strong>Top 10% risk customers</strong> receive proactive outreach from Customer Success, with a 45% save rate on these interventions</li>
+        <li><strong>3.2x ROI</strong> on the ML platform investment, paying for itself within 4 months of deployment</li>
+      </ul>
+
+      <div class="callout tip">
+        <div class="callout-label">Measurement Approach</div>
+        <p>
+          To isolate the model's impact, we ran an A/B test: 80% of at-risk customers received
+          proactive outreach (treatment), while 20% received no intervention (control). The treatment
+          group showed a 27% lower churn rate, validating the model's causal impact beyond simple
+          correlation.
+        </p>
+      </div>
+    </div>
+
+    <!-- ════════════════ SECTION 12 ════════════════ -->
+    <div class="section" id="production">
+      <div class="section-header">
+        <div class="section-num">12</div>
+        <h2>Production Considerations</h2>
+      </div>
+
+      <p>
+        Moving from a notebook prototype to a production churn prediction system requires
+        addressing several critical concerns that are frequently tested on the GCP MLE exam.
+      </p>
+
+      <h3>Feature Freshness</h3>
+      <p>
+        How recent is your data? If usage logs have a 24-hour ingestion lag but support tickets
+        are near-real-time, your features have inconsistent freshness. This creates a
+        <strong>training-serving skew</strong> if not handled carefully. Document the freshness
+        SLA for each data source and align your prediction schedule accordingly.
+      </p>
+
+      <h3>Temporal Leakage in Training</h3>
+      <p>
+        The most common and devastating mistake in churn modeling. You must use <strong>point-in-time
+        correct</strong> feature computation: features for a customer who churned on March 15 should
+        only use data available before March 15, using the same look-back windows that will be
+        available at prediction time. Never use future data, even indirectly through aggregate statistics.
+      </p>
+
+<pre><code><span class="code-comment"># Correct: Point-in-time feature computation for training</span>
+<span class="code-comment"># For each training example, compute features using only</span>
+<span class="code-comment"># data available BEFORE the prediction_date</span>
+<span class="code-keyword">for</span> snapshot_date <span class="code-keyword">in</span> training_dates:
+    features = compute_features(
+        customer_id=customer_id,
+        as_of_date=snapshot_date,  <span class="code-comment"># Only use data before this date</span>
+        lookback_days=<span class="code-num">30</span>
+    )
+    label = did_customer_churn(
+        customer_id=customer_id,
+        observation_window_start=snapshot_date,
+        observation_window_end=snapshot_date + timedelta(days=<span class="code-num">30</span>)
+    )</code></pre>
+
+      <h3>Fairness Across Customer Segments</h3>
+      <p>
+        Verify model performance across plan types (free vs. paid vs. enterprise), company sizes
+        (SMB vs. mid-market vs. enterprise), geographies, and tenure buckets. An AUC disparity
+        greater than 0.10 between segments should trigger investigation and potential model
+        adjustments (stratified training, segment-specific models, or post-hoc calibration).
+      </p>
+
+      <h3>Cost-Benefit of Intervention</h3>
+      <p>
+        Not every churn risk warrants intervention. A discount offer to a $10/month customer costs
+        more in margin erosion than the expected save. The intervention scoring system (Section 9)
+        addresses this by computing <strong>expected value of intervention</strong> = P(churn)
+        x P(save|intervention) x customer_value. Only intervene when EVi exceeds cost.
+      </p>
+
+      <h3>Data Privacy and GDPR</h3>
+      <p>
+        Under GDPR, customers have the <strong>right to explanation</strong> when automated
+        decisions affect them. If your churn model triggers a price change, account restriction,
+        or service modification, you must be able to explain why. XGBoost's feature importance
+        and SHAP values provide the necessary interpretability. Store prediction explanations
+        alongside scores.
+      </p>
+
+      <h3>Pipeline Reliability</h3>
+      <p>
+        Production pipelines fail. BigQuery tables might be empty due to upstream ETL failures.
+        The training step might OOM on unexpectedly large datasets. Build in:
+      </p>
+      <ul>
+        <li><strong>Data validation gates</strong> that halt the pipeline if source data is incomplete or corrupted</li>
+        <li><strong>Fallback models</strong> that serve the previous version if the new model fails evaluation</li>
+        <li><strong>Alerting</strong> via Cloud Monitoring for pipeline failures, latency spikes, and prediction anomalies</li>
+        <li><strong>Idempotent runs</strong> so pipelines can be safely retried without duplicate predictions</li>
+      </ul>
+
+      <h3>Handling Seasonal Patterns</h3>
+      <p>
+        SaaS churn is seasonal. January sees high churn from annual renewals and budget reviews.
+        Summer months see reduced usage (vacation) that can be mistaken for disengagement. Include
+        <strong>cyclical time features</strong> (month-of-year, quarter) and train on at least
+        12 months of data to capture these patterns. Consider separate models or feature
+        adjustments for fiscal year-end periods.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Checklist</div>
+        <p>
+          Production ML system questions on the MLE exam frequently cover: training-serving skew,
+          feature store freshness, model versioning with A/B testing, pipeline orchestration with
+          conditional execution, and monitoring strategies (feature drift vs. concept drift). Know
+          when to use each type of drift detection and what action to take.
+        </p>
+      </div>
+
+      <h3>Complete Pipeline Assembly</h3>
+      <p>
+        Here is how all pipeline components connect into a single, deployable Vertex AI Pipeline:
+      </p>
+
+<pre><code><span class="code-comment"># ── Assemble the complete pipeline ──</span>
+@dsl.pipeline(
+    name=<span class="code-string">"churn-prediction-pipeline"</span>,
+    description=<span class="code-string">"End-to-end churn prediction with drift detection"</span>,
+    pipeline_root=<span class="code-string">"gs://my-bucket/pipeline-root"</span>
+)
+<span class="code-keyword">def</span> <span class="code-fn">churn_pipeline</span>(
+    project_id: str = <span class="code-string">"my-project"</span>,
+    dataset_id: str = <span class="code-string">"churn_data"</span>,
+    prediction_date: str = <span class="code-string">"2026-03-06"</span>,
+    min_auc_threshold: float = <span class="code-num">0.80</span>
+):
+    <span class="code-comment"># Step 1: Validate source data</span>
+    validation_task = validate_data(
+        project_id=project_id,
+        dataset_id=dataset_id
+    )
+
+    <span class="code-comment"># Step 2: Engineer features (only if validation passes)</span>
+    <span class="code-keyword">with</span> dsl.Condition(validation_task.output == <span class="code-keyword">True</span>):
+        feature_task = engineer_features(
+            project_id=project_id,
+            dataset_id=dataset_id,
+            prediction_date=prediction_date
+        )
+
+        <span class="code-comment"># Step 3: Train model</span>
+        train_task = train_xgboost(
+            feature_dataset=feature_task.outputs[<span class="code-string">"feature_dataset"</span>],
+            target_column=<span class="code-string">"churned"</span>
+        )
+
+        <span class="code-comment"># Step 4: Evaluate with fairness checks</span>
+        eval_task = evaluate_model(
+            model_artifact=train_task.outputs[<span class="code-string">"model_artifact"</span>],
+            feature_dataset=feature_task.outputs[<span class="code-string">"feature_dataset"</span>],
+            min_auc_threshold=min_auc_threshold
+        )
+
+        <span class="code-comment"># Step 5: Deploy only if evaluation passes</span>
+        <span class="code-keyword">with</span> dsl.Condition(eval_task.output == <span class="code-keyword">True</span>):
+            deploy_task = deploy_model(
+                model_artifact=train_task.outputs[<span class="code-string">"model_artifact"</span>],
+                project_id=project_id
+            )
+
+<span class="code-comment"># Compile and submit</span>
+compiler.Compiler().compile(
+    pipeline_func=churn_pipeline,
+    package_path=<span class="code-string">"churn_pipeline.json"</span>
+)
+
+aiplatform.init(project=<span class="code-string">"my-project"</span>, location=<span class="code-string">"us-central1"</span>)
+job = aiplatform.PipelineJob(
+    display_name=<span class="code-string">"churn-prediction-run"</span>,
+    template_path=<span class="code-string">"churn_pipeline.json"</span>,
+    parameter_values={
+        <span class="code-string">"project_id"</span>: <span class="code-string">"my-project"</span>,
+        <span class="code-string">"prediction_date"</span>: <span class="code-string">"2026-03-06"</span>
+    }
+)
+job.submit()</code></pre>
+    </div>
+
+    <!-- ── PREV / NEXT ── -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous</div>
+        <a href="02-fraud-detection.html" class="prev-btn">
+          &larr; 02 &middot; Fraud Detection
+        </a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next</div>
+        <a href="04-defect-detection.html" class="next-btn">
+          04 &middot; Defect Detection &rarr;
+        </a>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /content-grid -->
+
+</body>
+</html>

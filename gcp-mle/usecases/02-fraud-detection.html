@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../../styles.css">
+<title>Real-Time Fraud Detection — CareerAlign GCP MLE Use Cases</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: var(--phase-project);
+  --page-color-04: rgba(245,158,11,0.04);
+  --page-color-07: rgba(245,158,11,0.07);
+  --page-color-12: rgba(245,158,11,0.12);
+  --page-color-15: rgba(245,158,11,0.15);
+  --page-color-25: rgba(245,158,11,0.25);
+  --page-color-30: rgba(245,158,11,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- ── Navigation ─────────────────────────────────────────── -->
+<nav class="nav">
+  <div class="nav-logo">&#9729;&#65039; <span>CareerAlign</span> GCP MLE Use Cases</div>
+  <div class="nav-links">
+    <a href="01-demand-forecasting.html">01 &middot; Demand Forecast</a>
+    <a href="02-fraud-detection.html" class="active">02 &middot; Fraud Detection</a>
+    <a href="03-churn-prediction.html">03 &middot; Churn Prediction</a>
+    <a href="04-defect-detection.html">04 &middot; Defect Detection</a>
+    <a href="05-recommendation-engine.html">05 &middot; Recommendations</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; Use Cases Hub</a>
+</nav>
+
+<!-- ── Hero ───────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-tag">Use Case 02 &mdash; Real-World GCP MLE</div>
+  <h1>Real-Time Fraud <em>Detection</em></h1>
+  <p class="hero-desc">
+    Build a production-grade, real-time fraud detection system on Google Cloud Platform.
+    From streaming ingestion with Pub/Sub through feature engineering in Dataflow to
+    sub-50ms online predictions with Vertex AI &mdash; every component maps directly to
+    the GCP Professional Machine Learning Engineer exam.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+      Streaming ML Pipeline
+    </div>
+    <div class="hero-pill">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+      Vertex AI Feature Store
+    </div>
+    <div class="hero-pill">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+      XGBoost &amp; Class Imbalance
+    </div>
+    <div class="hero-pill">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+      Model Monitoring &amp; Drift
+    </div>
+    <div class="hero-pill">
+      <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-mle/usecases/notebooks/02-fraud-detection.ipynb" class="colab-btn" target="_blank" rel="noopener">
+        <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats strip -->
+  <div class="stats-strip">
+    <div class="stat-item">
+      <div class="stat-val">$32B</div>
+      <div class="stat-label">Annual Fraud Losses</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">&lt;50ms</div>
+      <div class="stat-label">Prediction Latency</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">94.7%</div>
+      <div class="stat-label">Detection Rate</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">0.1&ndash;0.5%</div>
+      <div class="stat-label">Fraud Rate</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Content Grid ───────────────────────────────────────── -->
+<div class="content-grid">
+
+  <!-- Sidebar TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#problem" class="section">1. The Problem</a>
+    <a href="#problem-cost" class="sub">Cost of Fraud</a>
+    <a href="#problem-challenge" class="sub">Why It's Hard</a>
+    <a href="#architecture" class="section">2. Solution Architecture</a>
+    <a href="#arch-diagram" class="sub">System Diagram</a>
+    <a href="#arch-components" class="sub">Component Breakdown</a>
+    <a href="#features" class="section">3. Feature Engineering</a>
+    <a href="#feat-velocity" class="sub">Velocity Features</a>
+    <a href="#feat-geo" class="sub">Geo-Anomaly</a>
+    <a href="#feat-device" class="sub">Device Fingerprint</a>
+    <a href="#feat-merchant" class="sub">Merchant Analysis</a>
+    <a href="#imbalance" class="section">4. Class Imbalance</a>
+    <a href="#imb-smote" class="sub">SMOTE</a>
+    <a href="#imb-weights" class="sub">Class Weights</a>
+    <a href="#imb-anomaly" class="sub">Anomaly Detection</a>
+    <a href="#training" class="section">5. Model Training</a>
+    <a href="#train-xgb" class="sub">XGBoost on Vertex AI</a>
+    <a href="#train-eval" class="sub">Evaluation Metrics</a>
+    <a href="#featurestore" class="section">6. Feature Store</a>
+    <a href="#fs-setup" class="sub">Online Serving</a>
+    <a href="#fs-sync" class="sub">Batch-to-Online Sync</a>
+    <a href="#pipeline" class="section">7. Real-Time Pipeline</a>
+    <a href="#pipe-pubsub" class="sub">Pub/Sub Ingestion</a>
+    <a href="#pipe-dataflow" class="sub">Dataflow Processing</a>
+    <a href="#pipe-predict" class="sub">Online Prediction</a>
+    <a href="#monitoring" class="section">8. Model Monitoring</a>
+    <a href="#mon-drift" class="sub">Concept Drift</a>
+    <a href="#mon-ab" class="sub">A/B Testing</a>
+    <a href="#components" class="section">9. Key Components</a>
+    <a href="#results" class="section">10. Results</a>
+    <a href="#production" class="section">11. Production Concerns</a>
+    <a href="#notebook" class="section">12. Hands-On Notebook</a>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- ═══════════════ Section 1: The Problem ═══════════════ -->
+    <div class="section" id="problem">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>The Problem</h2>
+      </div>
+
+      <p>
+        Credit card fraud costs the global financial industry an estimated <strong>$32 billion per year</strong>,
+        and that figure is growing as digital payments accelerate. Traditional rule-based fraud detection
+        systems &mdash; built on static thresholds like "flag any transaction over $5,000" &mdash; are
+        increasingly inadequate. Fraudsters adapt their tactics faster than analysts can write new rules,
+        creating an arms race that rules-based systems are losing.
+      </p>
+
+      <h3 id="problem-cost">The True Cost of Fraud</h3>
+      <p>
+        The direct losses from fraudulent transactions are only part of the story. The downstream costs
+        are staggering:
+      </p>
+      <ul class="checklist">
+        <li><span class="check-box done"></span> <strong>$118B/year</strong> in declined legitimate transactions (false positives)</li>
+        <li><span class="check-box done"></span> Customer churn from blocked good transactions (13x more likely to switch banks)</li>
+        <li><span class="check-box done"></span> Operational cost of manual review teams (average bank employs 200+ fraud analysts)</li>
+        <li><span class="check-box done"></span> Regulatory fines for inadequate fraud prevention (PCI-DSS non-compliance)</li>
+        <li><span class="check-box done"></span> Reputational damage and loss of consumer trust</li>
+      </ul>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Insight</div>
+        <p>
+          The GCP MLE exam frequently tests your understanding of <strong>class imbalance</strong>,
+          <strong>real-time serving</strong>, and <strong>model monitoring</strong> &mdash; all of which
+          are core to fraud detection. This use case maps to multiple exam objectives including
+          ML pipeline design, feature engineering, and production ML systems.
+        </p>
+      </div>
+
+      <h3 id="problem-challenge">Why Fraud Detection Is Hard</h3>
+      <p>
+        Fraud detection presents a unique combination of ML challenges that makes it one of the most
+        demanding production systems to build and maintain:
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Challenge</th>
+            <th>Impact</th>
+            <th>GCP Solution</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Extreme class imbalance</strong></td>
+            <td>Only 0.1&ndash;0.5% of transactions are fraudulent</td>
+            <td>SMOTE, class weights, custom loss functions</td>
+          </tr>
+          <tr>
+            <td><strong>Real-time latency</strong></td>
+            <td>Must decide in &lt;100ms to block transactions</td>
+            <td>Vertex AI Online Prediction, Feature Store</td>
+          </tr>
+          <tr>
+            <td><strong>Concept drift</strong></td>
+            <td>Fraud patterns change weekly/monthly</td>
+            <td>Vertex AI Model Monitoring, automated retraining</td>
+          </tr>
+          <tr>
+            <td><strong>Adversarial actors</strong></td>
+            <td>Fraudsters actively try to evade detection</td>
+            <td>Ensemble models, feature diversification</td>
+          </tr>
+          <tr>
+            <td><strong>Asymmetric cost</strong></td>
+            <td>Cost of missing fraud &gt;&gt; cost of false alarm</td>
+            <td>Custom threshold optimization, cost-sensitive learning</td>
+          </tr>
+          <tr>
+            <td><strong>Explainability</strong></td>
+            <td>Regulators require reasoning for each decline</td>
+            <td>Vertex Explainable AI, SHAP values</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        The core constraint is <strong>latency</strong>. When a customer swipes their card at a point-of-sale
+        terminal, the payment network has approximately 2 seconds to authorize or decline the transaction.
+        Within that window, your fraud model must receive the transaction data, compute features,
+        run inference, and return a decision. In practice, the ML component gets less than 100ms
+        of that budget, and our target is under 50ms.
+      </p>
+    </div>
+
+    <!-- ═══════════════ Section 2: Solution Architecture ═══════════════ -->
+    <div class="section" id="architecture">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Solution Architecture</h2>
+      </div>
+
+      <p>
+        Our fraud detection system uses a fully GCP-native architecture optimized for
+        real-time, low-latency prediction. Every component is a managed service, minimizing
+        operational overhead while maximizing reliability.
+      </p>
+
+      <h3 id="arch-diagram">System Diagram</h3>
+      <div class="diagram-wrap" id="arch-diagram-svg">
+        <svg viewBox="0 0 920 340" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+          <!-- Background grid dots -->
+          <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.6" fill="#232840"/>
+          </pattern>
+          <rect width="920" height="340" fill="url(#dots)"/>
+
+          <!-- Transaction Stream -->
+          <rect x="10" y="130" width="110" height="60" rx="10" fill="#171c2e" stroke="#2e3554"/>
+          <text x="65" y="155" text-anchor="middle" font-family="Space Grotesk" font-size="11" font-weight="600" fill="#e6e8f4">Transaction</text>
+          <text x="65" y="172" text-anchor="middle" font-family="Space Grotesk" font-size="11" font-weight="600" fill="#e6e8f4">Stream</text>
+
+          <!-- Arrow 1 -->
+          <line x1="120" y1="160" x2="155" y2="160" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+          <!-- Pub/Sub -->
+          <rect x="160" y="130" width="110" height="60" rx="10" fill="rgba(245,158,11,0.12)" stroke="#f59e0b"/>
+          <text x="215" y="155" text-anchor="middle" font-family="Space Grotesk" font-size="12" font-weight="700" fill="#f59e0b">Pub/Sub</text>
+          <text x="215" y="172" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8e94b5">Streaming Ingest</text>
+
+          <!-- Arrow 2 -->
+          <line x1="270" y1="160" x2="305" y2="160" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+          <!-- Dataflow -->
+          <rect x="310" y="120" width="130" height="80" rx="10" fill="rgba(245,158,11,0.12)" stroke="#f59e0b"/>
+          <text x="375" y="148" text-anchor="middle" font-family="Space Grotesk" font-size="12" font-weight="700" fill="#f59e0b">Dataflow</text>
+          <text x="375" y="165" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8e94b5">Feature</text>
+          <text x="375" y="180" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8e94b5">Computation</text>
+
+          <!-- Arrow to Feature Store (up) -->
+          <line x1="375" y1="120" x2="375" y2="70" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrowCyan)"/>
+
+          <!-- Feature Store -->
+          <rect x="310" y="10" width="130" height="55" rx="10" fill="rgba(34,211,238,0.1)" stroke="#22d3ee"/>
+          <text x="375" y="33" text-anchor="middle" font-family="Space Grotesk" font-size="11" font-weight="700" fill="#22d3ee">Feature Store</text>
+          <text x="375" y="50" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8e94b5">User Profiles</text>
+
+          <!-- Arrow from Feature Store to Prediction -->
+          <line x1="440" y1="37" x2="520" y2="37" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <line x1="520" y1="37" x2="520" y2="130" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+          <!-- Arrow 3 from Dataflow to Prediction -->
+          <line x1="440" y1="160" x2="475" y2="160" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+          <!-- Online Prediction -->
+          <rect x="480" y="120" width="140" height="80" rx="10" fill="rgba(99,102,241,0.12)" stroke="#6366f1"/>
+          <text x="550" y="148" text-anchor="middle" font-family="Space Grotesk" font-size="11" font-weight="700" fill="#6366f1">Online Prediction</text>
+          <text x="550" y="165" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8e94b5">Vertex AI Endpoint</text>
+          <text x="550" y="180" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8e94b5">&lt;50ms latency</text>
+
+          <!-- Arrow 4 -->
+          <line x1="620" y1="160" x2="660" y2="160" stroke="#6366f1" stroke-width="2" marker-end="url(#arrowIndigo)"/>
+
+          <!-- Decision Engine -->
+          <rect x="665" y="120" width="120" height="80" rx="10" fill="rgba(34,197,94,0.1)" stroke="#22c55e"/>
+          <text x="725" y="145" text-anchor="middle" font-family="Space Grotesk" font-size="11" font-weight="700" fill="#22c55e">Decision</text>
+          <text x="725" y="162" text-anchor="middle" font-family="Space Grotesk" font-size="11" font-weight="700" fill="#22c55e">Engine</text>
+          <text x="725" y="185" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#8e94b5">Approve / Decline / Review</text>
+
+          <!-- Arrow 5 to Monitoring -->
+          <line x1="725" y1="200" x2="725" y2="260" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+          <!-- Monitoring -->
+          <rect x="650" y="265" width="150" height="55" rx="10" fill="rgba(168,85,247,0.1)" stroke="#a855f7"/>
+          <text x="725" y="288" text-anchor="middle" font-family="Space Grotesk" font-size="11" font-weight="700" fill="#a855f7">Monitoring</text>
+          <text x="725" y="305" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8e94b5">Drift &amp; Alerts</text>
+
+          <!-- Arrow from Monitoring back to Prediction (feedback loop) -->
+          <line x1="650" y1="292" x2="550" y2="292" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <line x1="550" y1="292" x2="550" y2="200" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+          <!-- Cloud Functions label -->
+          <rect x="470" y="265" width="140" height="45" rx="8" fill="rgba(168,85,247,0.06)" stroke="#2e3554"/>
+          <text x="540" y="285" text-anchor="middle" font-family="Space Grotesk" font-size="10" font-weight="600" fill="#a855f7">Cloud Functions</text>
+          <text x="540" y="299" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#8e94b5">Alert Pipeline</text>
+
+          <!-- Arrowhead markers -->
+          <defs>
+            <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#f59e0b"/>
+            </marker>
+            <marker id="arrowCyan" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#22d3ee"/>
+            </marker>
+            <marker id="arrowIndigo" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#6366f1"/>
+            </marker>
+          </defs>
+        </svg>
+        <div class="diagram-caption">
+          Real-time fraud detection architecture &mdash; Transaction Stream &rarr; Pub/Sub &rarr; Dataflow &rarr; Feature Store + Online Prediction &rarr; Decision Engine &rarr; Monitoring
+        </div>
+      </div>
+
+      <h3 id="arch-components">Component Breakdown</h3>
+      <p>
+        Each component in the pipeline has a specific role and maps to GCP services you will
+        encounter on the MLE exam:
+      </p>
+
+      <p>
+        <strong>Cloud Pub/Sub</strong> serves as the streaming ingestion layer. Every transaction from every
+        payment terminal, mobile app, and e-commerce checkout is published as a message to a Pub/Sub
+        topic. Pub/Sub provides at-least-once delivery with global availability, handling millions of
+        transactions per second with sub-10ms publish latency. Messages are retained for up to 7 days,
+        providing a buffer for downstream processing failures.
+      </p>
+      <p>
+        <strong>Cloud Dataflow</strong> (Apache Beam) performs real-time feature computation. As transaction
+        messages arrive, Dataflow computes sliding-window aggregations (transaction velocity, average
+        amount in last N minutes), joins with user profile data, and enriches the transaction with
+        computed features. Dataflow autoscales horizontally to handle traffic spikes like Black Friday.
+      </p>
+      <p>
+        <strong>Vertex AI Feature Store</strong> serves pre-computed user profile features with single-digit
+        millisecond latency. Features like "average transaction amount over 30 days," "typical
+        transaction countries," and "device fingerprint history" are batch-computed and synced
+        to the online store. This avoids recomputing expensive aggregations at inference time.
+      </p>
+      <p>
+        <strong>Vertex AI Online Prediction</strong> hosts the trained XGBoost model behind an autoscaling
+        endpoint. The endpoint receives the enriched feature vector and returns a fraud probability
+        score in under 50ms. Multiple model versions can be deployed simultaneously for A/B testing.
+      </p>
+      <p>
+        <strong>Decision Engine</strong> applies business rules on top of the model score. A score above 0.85
+        triggers an automatic decline, 0.5&ndash;0.85 routes to manual review, and below 0.5 is approved.
+        These thresholds are tunable per merchant category and customer segment.
+      </p>
+      <p>
+        <strong>Model Monitoring</strong> via Vertex AI continuously tracks prediction distributions,
+        feature distributions, and model performance. When concept drift is detected (fraud patterns
+        changing), it triggers an alert via Cloud Functions that can initiate an automated retraining
+        pipeline.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Architecture Note</div>
+        <p>
+          This architecture separates <strong>online features</strong> (computed in real-time by Dataflow)
+          from <strong>batch features</strong> (pre-computed and served by Feature Store). This dual-path
+          approach is a common pattern in production ML systems and is frequently tested on the exam.
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══════════════ Section 3: Feature Engineering ═══════════════ -->
+    <div class="section" id="features">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Feature Engineering for Fraud</h2>
+      </div>
+
+      <p>
+        Feature engineering is the single most important factor in fraud detection model performance.
+        Raw transaction data (amount, timestamp, merchant ID) is necessary but insufficient. The
+        signal for fraud lies in <strong>behavioral patterns</strong> &mdash; deviations from a
+        customer's established transaction profile.
+      </p>
+
+      <h3 id="feat-velocity">Velocity Features</h3>
+      <p>
+        Velocity features capture the <strong>rate of transactions</strong> over sliding time windows.
+        A legitimate customer might make 3&ndash;5 transactions per day; a stolen card often generates
+        dozens of transactions in rapid succession as the fraudster tries to extract maximum value
+        before the card is blocked.
+      </p>
+
+<pre><code><span class="code-comment"># Velocity feature computation in Dataflow (Apache Beam)</span>
+<span class="code-keyword">def</span> <span class="code-fn">compute_velocity_features</span>(transaction, user_history):
+    <span class="code-string">"""Compute transaction velocity over multiple time windows."""</span>
+    current_time = transaction[<span class="code-string">'timestamp'</span>]
+
+    windows = {
+        <span class="code-string">'1min'</span>:  <span class="code-num">60</span>,
+        <span class="code-string">'5min'</span>:  <span class="code-num">300</span>,
+        <span class="code-string">'1hour'</span>: <span class="code-num">3600</span>,
+        <span class="code-string">'24hour'</span>: <span class="code-num">86400</span>,
+    }
+
+    features = {}
+    <span class="code-keyword">for</span> name, seconds <span class="code-keyword">in</span> windows.items():
+        window_start = current_time - seconds
+        window_txns = [
+            t <span class="code-keyword">for</span> t <span class="code-keyword">in</span> user_history
+            <span class="code-keyword">if</span> t[<span class="code-string">'timestamp'</span>] >= window_start
+        ]
+        features[<span class="code-keyword">f</span><span class="code-string">'txn_count_{name}'</span>] = len(window_txns)
+        features[<span class="code-keyword">f</span><span class="code-string">'txn_amount_sum_{name}'</span>] = sum(
+            t[<span class="code-string">'amount'</span>] <span class="code-keyword">for</span> t <span class="code-keyword">in</span> window_txns
+        )
+        features[<span class="code-keyword">f</span><span class="code-string">'txn_amount_avg_{name}'</span>] = (
+            features[<span class="code-keyword">f</span><span class="code-string">'txn_amount_sum_{name}'</span>] / max(features[<span class="code-keyword">f</span><span class="code-string">'txn_count_{name}'</span>], <span class="code-num">1</span>)
+        )
+
+    <span class="code-comment"># Time since last transaction (seconds)</span>
+    features[<span class="code-string">'time_since_last_txn'</span>] = (
+        current_time - user_history[-<span class="code-num">1</span>][<span class="code-string">'timestamp'</span>]
+        <span class="code-keyword">if</span> user_history <span class="code-keyword">else</span> <span class="code-num">-1</span>
+    )
+
+    <span class="code-keyword">return</span> features</code></pre>
+
+      <h3 id="feat-geo">Geo-Anomaly Features</h3>
+      <p>
+        Geographic anomaly detection identifies physically impossible transaction patterns. If a
+        customer makes a purchase in New York and another in London 30 minutes later, one of those
+        transactions is almost certainly fraudulent. We compute the <strong>haversine distance</strong>
+        between consecutive transactions and compare it against physically possible travel speeds.
+      </p>
+
+<pre><code><span class="code-keyword">import</span> math
+
+<span class="code-keyword">def</span> <span class="code-fn">compute_geo_features</span>(transaction, last_transaction):
+    <span class="code-string">"""Detect impossible travel and geographic anomalies."""</span>
+    <span class="code-keyword">if</span> last_transaction <span class="code-keyword">is None</span>:
+        <span class="code-keyword">return</span> {<span class="code-string">'geo_distance_km'</span>: <span class="code-num">0</span>, <span class="code-string">'travel_speed_kmh'</span>: <span class="code-num">0</span>, <span class="code-string">'impossible_travel'</span>: <span class="code-num">0</span>}
+
+    <span class="code-comment"># Haversine distance calculation</span>
+    lat1, lon1 = math.radians(transaction[<span class="code-string">'lat'</span>]), math.radians(transaction[<span class="code-string">'lon'</span>])
+    lat2, lon2 = math.radians(last_transaction[<span class="code-string">'lat'</span>]), math.radians(last_transaction[<span class="code-string">'lon'</span>])
+
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = math.sin(dlat/<span class="code-num">2</span>)**<span class="code-num">2</span> + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/<span class="code-num">2</span>)**<span class="code-num">2</span>
+    distance_km = <span class="code-num">2</span> * <span class="code-num">6371</span> * math.asin(math.sqrt(a))
+
+    time_hours = (transaction[<span class="code-string">'timestamp'</span>] - last_transaction[<span class="code-string">'timestamp'</span>]) / <span class="code-num">3600</span>
+    speed_kmh = distance_km / max(time_hours, <span class="code-num">0.001</span>)
+
+    <span class="code-keyword">return</span> {
+        <span class="code-string">'geo_distance_km'</span>: distance_km,
+        <span class="code-string">'travel_speed_kmh'</span>: speed_kmh,
+        <span class="code-string">'impossible_travel'</span>: <span class="code-num">1</span> <span class="code-keyword">if</span> speed_kmh > <span class="code-num">900</span> <span class="code-keyword">else</span> <span class="code-num">0</span>,  <span class="code-comment"># &gt; commercial flight speed</span>
+        <span class="code-string">'same_country'</span>: <span class="code-num">1</span> <span class="code-keyword">if</span> transaction[<span class="code-string">'country'</span>] == last_transaction[<span class="code-string">'country'</span>] <span class="code-keyword">else</span> <span class="code-num">0</span>,
+    }</code></pre>
+
+      <h3 id="feat-device">Device Fingerprint Features</h3>
+      <p>
+        Device fingerprinting identifies the <strong>hardware and software characteristics</strong> of the
+        device used for the transaction. A legitimate customer typically uses 1&ndash;3 devices; fraudsters
+        often use virtual machines, emulators, or rapidly switch devices. Key device features include:
+      </p>
+      <ul class="checklist">
+        <li><span class="check-box done"></span> <strong>Device ID consistency</strong> &mdash; has this device been seen with this customer before?</li>
+        <li><span class="check-box done"></span> <strong>Device count</strong> &mdash; how many unique devices has the customer used in 30 days?</li>
+        <li><span class="check-box done"></span> <strong>Browser/OS combination</strong> &mdash; unusual combinations suggest emulators</li>
+        <li><span class="check-box done"></span> <strong>IP address analysis</strong> &mdash; VPN/proxy detection, IP geolocation vs billing address</li>
+        <li><span class="check-box done"></span> <strong>Screen resolution and timezone</strong> &mdash; mismatches with claimed location</li>
+      </ul>
+
+      <h3 id="feat-merchant">Merchant Category Analysis</h3>
+      <p>
+        Different merchant categories have very different fraud profiles. High-risk categories include
+        digital goods (instant delivery, hard to reverse), wire transfers, and gambling sites.
+        We encode merchant category behavior as features:
+      </p>
+
+<pre><code><span class="code-keyword">def</span> <span class="code-fn">compute_merchant_features</span>(transaction, user_profile):
+    <span class="code-string">"""Merchant-based behavioral features."""</span>
+    mcc = transaction[<span class="code-string">'merchant_category_code'</span>]
+
+    <span class="code-comment"># Has customer ever used this merchant category?</span>
+    known_categories = set(user_profile.get(<span class="code-string">'mcc_history'</span>, []))
+
+    <span class="code-comment"># High-risk MCC codes (digital goods, gambling, wire transfer)</span>
+    high_risk_mccs = {<span class="code-num">5816</span>, <span class="code-num">5817</span>, <span class="code-num">5818</span>, <span class="code-num">7995</span>, <span class="code-num">6012</span>, <span class="code-num">4829</span>}
+
+    <span class="code-keyword">return</span> {
+        <span class="code-string">'is_new_mcc'</span>: <span class="code-num">1</span> <span class="code-keyword">if</span> mcc <span class="code-keyword">not in</span> known_categories <span class="code-keyword">else</span> <span class="code-num">0</span>,
+        <span class="code-string">'is_high_risk_mcc'</span>: <span class="code-num">1</span> <span class="code-keyword">if</span> mcc <span class="code-keyword">in</span> high_risk_mccs <span class="code-keyword">else</span> <span class="code-num">0</span>,
+        <span class="code-string">'mcc_txn_ratio'</span>: user_profile.get(<span class="code-keyword">f</span><span class="code-string">'mcc_{mcc}_ratio'</span>, <span class="code-num">0.0</span>),
+        <span class="code-string">'mcc_avg_amount'</span>: user_profile.get(<span class="code-keyword">f</span><span class="code-string">'mcc_{mcc}_avg'</span>, <span class="code-num">0.0</span>),
+        <span class="code-string">'amount_vs_mcc_avg'</span>: (
+            transaction[<span class="code-string">'amount'</span>] / max(user_profile.get(<span class="code-keyword">f</span><span class="code-string">'mcc_{mcc}_avg'</span>, <span class="code-num">1.0</span>), <span class="code-num">0.01</span>)
+        ),
+    }</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Feature Engineering Tip</div>
+        <p>
+          The most powerful fraud features are <strong>relative</strong>, not absolute. "Transaction amount
+          is $500" is weakly predictive. "Transaction amount is 8x the customer's average" is
+          strongly predictive. Always normalize features against the customer's own behavioral baseline.
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══════════════ Section 4: Class Imbalance ═══════════════ -->
+    <div class="section" id="imbalance">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Handling Extreme Class Imbalance</h2>
+      </div>
+
+      <p>
+        With a fraud rate of only 0.1&ndash;0.5%, a naive model that predicts "not fraud" for every
+        transaction would achieve 99.5%+ accuracy. This is useless. We need specialized techniques
+        to train models that can identify the rare fraudulent transactions while minimizing false
+        positives on the overwhelming majority of legitimate ones.
+      </p>
+
+      <h3 id="imb-smote">SMOTE (Synthetic Minority Over-sampling Technique)</h3>
+      <p>
+        SMOTE generates synthetic fraudulent examples by interpolating between existing fraud cases
+        in feature space. For each minority class sample, SMOTE finds its k-nearest neighbors
+        (also minority class) and creates new samples along the line segments connecting them.
+      </p>
+
+<pre><code><span class="code-keyword">from</span> imblearn.over_sampling <span class="code-keyword">import</span> SMOTE
+<span class="code-keyword">from</span> imblearn.combine <span class="code-keyword">import</span> SMOTETomek
+
+<span class="code-comment"># Basic SMOTE</span>
+smote = SMOTE(
+    sampling_strategy=<span class="code-num">0.3</span>,    <span class="code-comment"># Target 30% minority ratio (not 50%)</span>
+    k_neighbors=<span class="code-num">5</span>,
+    random_state=<span class="code-num">42</span>
+)
+X_resampled, y_resampled = smote.fit_resample(X_train, y_train)
+
+<span class="code-comment"># SMOTE + Tomek links (removes borderline samples)</span>
+smote_tomek = SMOTETomek(
+    smote=SMOTE(sampling_strategy=<span class="code-num">0.3</span>, random_state=<span class="code-num">42</span>),
+    random_state=<span class="code-num">42</span>
+)
+X_clean, y_clean = smote_tomek.fit_resample(X_train, y_train)
+
+print(<span class="code-keyword">f</span><span class="code-string">"Original: {sum(y_train)} fraud / {len(y_train)} total"</span>)
+print(<span class="code-keyword">f</span><span class="code-string">"After SMOTE: {sum(y_resampled)} fraud / {len(y_resampled)} total"</span>)</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Important</div>
+        <p>
+          Never apply SMOTE to the test set. Synthetic samples must only be generated from
+          training data. Applying SMOTE before the train/test split leads to data leakage
+          and inflated evaluation metrics.
+        </p>
+      </div>
+
+      <h3 id="imb-weights">Class Weights</h3>
+      <p>
+        An alternative to resampling is telling the model to <strong>penalize misclassification
+        of the minority class more heavily</strong>. XGBoost supports this natively via the
+        <code>scale_pos_weight</code> parameter:
+      </p>
+
+<pre><code><span class="code-keyword">import</span> xgboost <span class="code-keyword">as</span> xgb
+
+<span class="code-comment"># Calculate class weight ratio</span>
+n_negative = sum(y_train == <span class="code-num">0</span>)
+n_positive = sum(y_train == <span class="code-num">1</span>)
+scale_weight = n_negative / n_positive  <span class="code-comment"># e.g., 199 for 0.5% fraud rate</span>
+
+model = xgb.XGBClassifier(
+    scale_pos_weight=scale_weight,
+    max_depth=<span class="code-num">6</span>,
+    learning_rate=<span class="code-num">0.1</span>,
+    n_estimators=<span class="code-num">500</span>,
+    eval_metric=<span class="code-string">'aucpr'</span>,   <span class="code-comment"># Use PR-AUC, NOT ROC-AUC for imbalanced data</span>
+    early_stopping_rounds=<span class="code-num">20</span>,
+)
+
+model.fit(
+    X_train, y_train,
+    eval_set=[(X_val, y_val)],
+    verbose=<span class="code-num">50</span>
+)</code></pre>
+
+      <h3 id="imb-anomaly">Anomaly Detection Approach</h3>
+      <p>
+        For extremely rare fraud types, supervised classification may not have enough positive
+        examples to learn from. In these cases, an <strong>unsupervised anomaly detection</strong>
+        model trained only on legitimate transactions can flag outliers as potential fraud. This
+        approach is especially useful for detecting novel fraud patterns that have never been seen
+        before (zero-day fraud).
+      </p>
+
+<pre><code><span class="code-keyword">from</span> sklearn.ensemble <span class="code-keyword">import</span> IsolationForest
+
+<span class="code-comment"># Train only on legitimate transactions</span>
+legitimate_txns = X_train[y_train == <span class="code-num">0</span>]
+
+iso_forest = IsolationForest(
+    n_estimators=<span class="code-num">200</span>,
+    contamination=<span class="code-num">0.005</span>,  <span class="code-comment"># Expected fraud rate</span>
+    max_features=<span class="code-num">0.8</span>,
+    random_state=<span class="code-num">42</span>
+)
+iso_forest.fit(legitimate_txns)
+
+<span class="code-comment"># Anomaly scores (lower = more anomalous)</span>
+anomaly_scores = iso_forest.decision_function(X_test)
+predictions = iso_forest.predict(X_test)  <span class="code-comment"># -1 for anomaly, 1 for normal</span></code></pre>
+
+      <p>
+        In production, we often use an <strong>ensemble approach</strong>: combine the supervised
+        XGBoost model (good at catching known fraud patterns) with an unsupervised anomaly detector
+        (good at catching novel patterns). The decision engine weighs both scores.
+      </p>
+    </div>
+
+    <!-- ═══════════════ Section 5: Model Training ═══════════════ -->
+    <div class="section" id="training">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>XGBoost Model Training</h2>
+      </div>
+
+      <h3 id="train-xgb">Training on Vertex AI</h3>
+      <p>
+        We use <strong>Vertex AI Custom Training</strong> to train our XGBoost model at scale.
+        Vertex AI manages the compute infrastructure, experiment tracking, and model versioning.
+        The training job reads data from BigQuery, applies feature transformations, handles
+        class imbalance, and outputs a trained model artifact to Cloud Storage.
+      </p>
+
+<pre><code><span class="code-comment"># Vertex AI Custom Training Job (training script)</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+<span class="code-keyword">import</span> xgboost <span class="code-keyword">as</span> xgb
+<span class="code-keyword">from</span> sklearn.model_selection <span class="code-keyword">import</span> StratifiedKFold
+<span class="code-keyword">import</span> json, os
+
+<span class="code-comment"># Initialize Vertex AI</span>
+aiplatform.init(
+    project=<span class="code-string">'your-project-id'</span>,
+    location=<span class="code-string">'us-central1'</span>,
+    staging_bucket=<span class="code-string">'gs://your-bucket/staging'</span>
+)
+
+<span class="code-comment"># Define hyperparameters</span>
+params = {
+    <span class="code-string">'objective'</span>: <span class="code-string">'binary:logistic'</span>,
+    <span class="code-string">'eval_metric'</span>: [<span class="code-string">'aucpr'</span>, <span class="code-string">'auc'</span>],
+    <span class="code-string">'max_depth'</span>: <span class="code-num">6</span>,
+    <span class="code-string">'learning_rate'</span>: <span class="code-num">0.05</span>,
+    <span class="code-string">'subsample'</span>: <span class="code-num">0.8</span>,
+    <span class="code-string">'colsample_bytree'</span>: <span class="code-num">0.8</span>,
+    <span class="code-string">'min_child_weight'</span>: <span class="code-num">5</span>,
+    <span class="code-string">'scale_pos_weight'</span>: <span class="code-num">199</span>,  <span class="code-comment"># Inverse fraud ratio</span>
+    <span class="code-string">'reg_alpha'</span>: <span class="code-num">0.1</span>,
+    <span class="code-string">'reg_lambda'</span>: <span class="code-num">1.0</span>,
+    <span class="code-string">'tree_method'</span>: <span class="code-string">'hist'</span>,   <span class="code-comment"># Fast histogram-based training</span>
+    <span class="code-string">'seed'</span>: <span class="code-num">42</span>,
+}
+
+<span class="code-comment"># Create DMatrix with optimized data format</span>
+dtrain = xgb.DMatrix(X_train, label=y_train)
+dval = xgb.DMatrix(X_val, label=y_val)
+dtest = xgb.DMatrix(X_test, label=y_test)
+
+<span class="code-comment"># Train with early stopping</span>
+model = xgb.train(
+    params,
+    dtrain,
+    num_boost_round=<span class="code-num">1000</span>,
+    evals=[(dtrain, <span class="code-string">'train'</span>), (dval, <span class="code-string">'val'</span>)],
+    early_stopping_rounds=<span class="code-num">30</span>,
+    verbose_eval=<span class="code-num">50</span>
+)
+
+<span class="code-comment"># Save model artifact</span>
+model_path = os.path.join(os.environ.get(<span class="code-string">'AIP_MODEL_DIR'</span>, <span class="code-string">'.'</span>), <span class="code-string">'model.bst'</span>)
+model.save_model(model_path)</code></pre>
+
+      <h3 id="train-eval">Evaluation Metrics</h3>
+      <p>
+        For imbalanced classification, <strong>standard accuracy is meaningless</strong>. We focus on
+        metrics that specifically measure performance on the minority class:
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>What It Measures</th>
+            <th>Target</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Precision-Recall AUC</strong></td>
+            <td>Overall trade-off between precision and recall</td>
+            <td>&gt; 0.75</td>
+          </tr>
+          <tr>
+            <td><strong>Recall @ 5% FPR</strong></td>
+            <td>Fraud caught while keeping false positives at 5%</td>
+            <td>&gt; 0.90</td>
+          </tr>
+          <tr>
+            <td><strong>F2-Score</strong></td>
+            <td>Weighted harmonic mean (recall weighted 2x over precision)</td>
+            <td>&gt; 0.80</td>
+          </tr>
+          <tr>
+            <td><strong>Cost-Weighted Loss</strong></td>
+            <td>Business-specific: cost of missed fraud vs false positives</td>
+            <td>Minimize $</td>
+          </tr>
+          <tr>
+            <td><strong>ROC-AUC</strong></td>
+            <td>Discriminative ability across all thresholds</td>
+            <td>&gt; 0.98</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Tip</div>
+        <p>
+          The MLE exam will ask you which metric to use for imbalanced datasets.
+          <strong>PR-AUC</strong> (Precision-Recall AUC) is preferred over ROC-AUC because ROC-AUC
+          can be misleadingly high when the negative class dominates. A model with 0.99 ROC-AUC
+          might still have poor precision on the minority class.
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══════════════ Section 6: Feature Store ═══════════════ -->
+    <div class="section" id="featurestore">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Vertex AI Feature Store</h2>
+      </div>
+
+      <p>
+        The Feature Store is critical for bridging the <strong>training-serving skew</strong> gap.
+        Features computed during training must be served identically during inference. Without a
+        Feature Store, you risk subtle bugs where features are computed differently in the training
+        pipeline (Python/Spark) versus the serving pipeline (Java/Go), leading to degraded model
+        performance in production.
+      </p>
+
+      <h3 id="fs-setup">Online Serving Setup</h3>
+
+<pre><code><span class="code-comment"># Create Feature Store for fraud detection</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+aiplatform.init(project=<span class="code-string">'your-project'</span>, location=<span class="code-string">'us-central1'</span>)
+
+<span class="code-comment"># Create the Feature Store instance</span>
+feature_store = aiplatform.Featurestore.create(
+    featurestore_id=<span class="code-string">'fraud_detection_fs'</span>,
+    online_store_fixed_node_count=<span class="code-num">3</span>,  <span class="code-comment"># For low-latency serving</span>
+)
+
+<span class="code-comment"># Create entity type for user profiles</span>
+user_entity = feature_store.create_entity_type(
+    entity_type_id=<span class="code-string">'user_profile'</span>,
+    description=<span class="code-string">'Customer transaction profiles for fraud detection'</span>
+)
+
+<span class="code-comment"># Define features</span>
+features_config = {
+    <span class="code-string">'avg_txn_amount_30d'</span>:     {<span class="code-string">'value_type'</span>: <span class="code-string">'DOUBLE'</span>},
+    <span class="code-string">'txn_count_30d'</span>:           {<span class="code-string">'value_type'</span>: <span class="code-string">'INT64'</span>},
+    <span class="code-string">'unique_merchants_30d'</span>:    {<span class="code-string">'value_type'</span>: <span class="code-string">'INT64'</span>},
+    <span class="code-string">'unique_countries_30d'</span>:    {<span class="code-string">'value_type'</span>: <span class="code-string">'INT64'</span>},
+    <span class="code-string">'avg_txn_amount_7d'</span>:      {<span class="code-string">'value_type'</span>: <span class="code-string">'DOUBLE'</span>},
+    <span class="code-string">'max_txn_amount_30d'</span>:     {<span class="code-string">'value_type'</span>: <span class="code-string">'DOUBLE'</span>},
+    <span class="code-string">'typical_txn_hour'</span>:       {<span class="code-string">'value_type'</span>: <span class="code-string">'DOUBLE'</span>},
+    <span class="code-string">'device_count_30d'</span>:       {<span class="code-string">'value_type'</span>: <span class="code-string">'INT64'</span>},
+    <span class="code-string">'high_risk_mcc_ratio'</span>:    {<span class="code-string">'value_type'</span>: <span class="code-string">'DOUBLE'</span>},
+    <span class="code-string">'days_since_first_txn'</span>:   {<span class="code-string">'value_type'</span>: <span class="code-string">'INT64'</span>},
+}
+
+<span class="code-keyword">for</span> feat_id, config <span class="code-keyword">in</span> features_config.items():
+    user_entity.create_feature(
+        feature_id=feat_id,
+        value_type=config[<span class="code-string">'value_type'</span>],
+    )</code></pre>
+
+      <h3 id="fs-sync">Batch-to-Online Sync</h3>
+      <p>
+        User profile features are computed daily in a BigQuery batch pipeline and then synced to
+        the Feature Store's online serving layer. This ensures the online store always has
+        fresh data while keeping compute costs manageable:
+      </p>
+
+<pre><code><span class="code-comment"># Batch ingest from BigQuery to Feature Store</span>
+user_entity.ingest_from_bq(
+    feature_ids=[
+        <span class="code-string">'avg_txn_amount_30d'</span>, <span class="code-string">'txn_count_30d'</span>,
+        <span class="code-string">'unique_merchants_30d'</span>, <span class="code-string">'unique_countries_30d'</span>,
+        <span class="code-string">'avg_txn_amount_7d'</span>, <span class="code-string">'max_txn_amount_30d'</span>,
+        <span class="code-string">'typical_txn_hour'</span>, <span class="code-string">'device_count_30d'</span>,
+        <span class="code-string">'high_risk_mcc_ratio'</span>, <span class="code-string">'days_since_first_txn'</span>,
+    ],
+    feature_time=<span class="code-string">'feature_timestamp'</span>,
+    entity_id_field=<span class="code-string">'user_id'</span>,
+    bq_source_uri=<span class="code-string">'bq://project.dataset.user_profiles_latest'</span>,
+)
+
+<span class="code-comment"># Online read at serving time (single-digit ms latency)</span>
+user_features = user_entity.read(
+    entity_ids=[<span class="code-string">'user_12345'</span>],
+    feature_ids=[
+        <span class="code-string">'avg_txn_amount_30d'</span>, <span class="code-string">'txn_count_30d'</span>,
+        <span class="code-string">'unique_merchants_30d'</span>, <span class="code-string">'max_txn_amount_30d'</span>,
+    ]
+)</code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Training-Serving Consistency</div>
+        <p>
+          The Feature Store ensures that the same feature values used during training are available
+          at serving time. This eliminates training-serving skew, one of the most insidious bugs
+          in production ML. The exam tests this concept under the topic of "ML pipeline best practices."
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══════════════ Section 7: Real-Time Pipeline ═══════════════ -->
+    <div class="section" id="pipeline">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Real-Time Prediction Pipeline</h2>
+      </div>
+
+      <h3 id="pipe-pubsub">Pub/Sub Ingestion</h3>
+      <p>
+        Every transaction event is published to a Pub/Sub topic in a standardized JSON schema.
+        The Pub/Sub topic acts as a durable, ordered buffer between the payment processing
+        system and the ML pipeline:
+      </p>
+
+<pre><code><span class="code-comment"># Publishing a transaction event to Pub/Sub</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> pubsub_v1
+<span class="code-keyword">import</span> json
+
+publisher = pubsub_v1.PublisherClient()
+topic_path = publisher.topic_path(<span class="code-string">'project-id'</span>, <span class="code-string">'transactions'</span>)
+
+transaction_event = {
+    <span class="code-string">'transaction_id'</span>: <span class="code-string">'txn_abc123'</span>,
+    <span class="code-string">'user_id'</span>: <span class="code-string">'user_12345'</span>,
+    <span class="code-string">'amount'</span>: <span class="code-num">459.99</span>,
+    <span class="code-string">'merchant_id'</span>: <span class="code-string">'merch_789'</span>,
+    <span class="code-string">'merchant_category_code'</span>: <span class="code-num">5411</span>,
+    <span class="code-string">'timestamp'</span>: <span class="code-num">1709723400</span>,
+    <span class="code-string">'lat'</span>: <span class="code-num">40.7128</span>,
+    <span class="code-string">'lon'</span>: <span class="code-num">-74.0060</span>,
+    <span class="code-string">'country'</span>: <span class="code-string">'US'</span>,
+    <span class="code-string">'device_id'</span>: <span class="code-string">'dev_456'</span>,
+    <span class="code-string">'channel'</span>: <span class="code-string">'pos_terminal'</span>,
+}
+
+future = publisher.publish(
+    topic_path,
+    json.dumps(transaction_event).encode(<span class="code-string">'utf-8'</span>),
+    transaction_id=<span class="code-string">'txn_abc123'</span>,  <span class="code-comment"># Attribute for filtering</span>
+)
+print(<span class="code-keyword">f</span><span class="code-string">"Published message ID: {future.result()}"</span>)</code></pre>
+
+      <h3 id="pipe-dataflow">Dataflow Feature Computation</h3>
+      <p>
+        A Dataflow streaming pipeline subscribes to the Pub/Sub topic, computes real-time features,
+        fetches user profile features from the Feature Store, and assembles the complete feature
+        vector for prediction:
+      </p>
+
+<pre><code><span class="code-comment"># Apache Beam pipeline for real-time feature computation</span>
+<span class="code-keyword">import</span> apache_beam <span class="code-keyword">as</span> beam
+<span class="code-keyword">from</span> apache_beam.options.pipeline_options <span class="code-keyword">import</span> PipelineOptions
+
+options = PipelineOptions([
+    <span class="code-string">'--runner=DataflowRunner'</span>,
+    <span class="code-string">'--project=your-project'</span>,
+    <span class="code-string">'--region=us-central1'</span>,
+    <span class="code-string">'--streaming'</span>,
+    <span class="code-string">'--autoscaling_algorithm=THROUGHPUT_BASED'</span>,
+])
+
+<span class="code-keyword">with</span> beam.Pipeline(options=options) <span class="code-keyword">as</span> p:
+    transactions = (
+        p
+        | <span class="code-string">'ReadPubSub'</span> >> beam.io.ReadFromPubSub(
+            topic=<span class="code-string">'projects/your-project/topics/transactions'</span>
+        )
+        | <span class="code-string">'ParseJSON'</span> >> beam.Map(json.loads)
+    )
+
+    <span class="code-comment"># Compute real-time velocity features (windowed)</span>
+    velocity = (
+        transactions
+        | <span class="code-string">'KeyByUser'</span> >> beam.Map(<span class="code-keyword">lambda</span> t: (t[<span class="code-string">'user_id'</span>], t))
+        | <span class="code-string">'Window5min'</span> >> beam.WindowInto(
+            beam.window.SlidingWindows(<span class="code-num">300</span>, <span class="code-num">60</span>)  <span class="code-comment"># 5min window, 1min slide</span>
+        )
+        | <span class="code-string">'ComputeVelocity'</span> >> beam.ParDo(ComputeVelocityFn())
+    )
+
+    <span class="code-comment"># Enrich with Feature Store profile data</span>
+    enriched = (
+        velocity
+        | <span class="code-string">'FetchProfile'</span> >> beam.ParDo(FetchFeatureStoreFn())
+        | <span class="code-string">'AssembleVector'</span> >> beam.ParDo(AssembleFeatureVectorFn())
+    )
+
+    <span class="code-comment"># Send to prediction endpoint</span>
+    results = (
+        enriched
+        | <span class="code-string">'Predict'</span> >> beam.ParDo(CallPredictionEndpointFn())
+        | <span class="code-string">'RouteDecision'</span> >> beam.ParDo(DecisionEngineFn())
+    )</code></pre>
+
+      <h3 id="pipe-predict">Online Prediction Endpoint</h3>
+      <p>
+        The trained model is deployed to a Vertex AI endpoint with autoscaling configured for
+        peak transaction volumes:
+      </p>
+
+<pre><code><span class="code-comment"># Deploy model to Vertex AI endpoint</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+<span class="code-comment"># Upload model</span>
+model = aiplatform.Model.upload(
+    display_name=<span class="code-string">'fraud-detection-xgboost-v2'</span>,
+    artifact_uri=<span class="code-string">'gs://your-bucket/models/fraud_v2/'</span>,
+    serving_container_image_uri=(
+        <span class="code-string">'us-docker.pkg.dev/vertex-ai/prediction/'</span>
+        <span class="code-string">'xgboost-cpu.1-7:latest'</span>
+    ),
+)
+
+<span class="code-comment"># Create endpoint</span>
+endpoint = aiplatform.Endpoint.create(
+    display_name=<span class="code-string">'fraud-detection-endpoint'</span>,
+)
+
+<span class="code-comment"># Deploy with autoscaling</span>
+model.deploy(
+    endpoint=endpoint,
+    machine_type=<span class="code-string">'n1-standard-4'</span>,
+    min_replica_count=<span class="code-num">2</span>,    <span class="code-comment"># Always-on for low latency</span>
+    max_replica_count=<span class="code-num">10</span>,   <span class="code-comment"># Scale for peak traffic</span>
+    traffic_percentage=<span class="code-num">100</span>,
+    deploy_request_timeout=<span class="code-num">1200</span>,
+)
+
+<span class="code-comment"># Make a prediction (in the serving path)</span>
+prediction = endpoint.predict(
+    instances=[feature_vector],  <span class="code-comment"># Single transaction feature vector</span>
+)
+fraud_score = prediction.predictions[<span class="code-num">0</span>]  <span class="code-comment"># Probability of fraud</span></code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Latency Optimization</div>
+        <p>
+          Setting <code>min_replica_count=2</code> eliminates cold-start latency. The endpoint always
+          has warm instances ready to serve predictions. For fraud detection, a cold start adding
+          5&ndash;10 seconds is unacceptable. The trade-off is higher baseline cost, but for
+          financial services, the cost of downtime far exceeds the cost of always-on compute.
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══════════════ Section 8: Model Monitoring ═══════════════ -->
+    <div class="section" id="monitoring">
+      <div class="section-header">
+        <div class="section-num">8</div>
+        <h2>Model Monitoring &amp; Drift Detection</h2>
+      </div>
+
+      <h3 id="mon-drift">Concept Drift in Fraud</h3>
+      <p>
+        Fraud detection models face a unique challenge: <strong>the data distribution shifts
+        intentionally</strong>. Unlike most ML domains where drift is a natural process (e.g.,
+        seasonal changes in demand), fraud patterns shift because adversaries are actively
+        trying to evade your model. This makes continuous monitoring and rapid retraining
+        essential.
+      </p>
+      <p>
+        Common types of drift in fraud detection:
+      </p>
+      <ul class="checklist">
+        <li><span class="check-box done"></span> <strong>Feature drift</strong> &mdash; input distributions change (new transaction patterns post-COVID)</li>
+        <li><span class="check-box done"></span> <strong>Concept drift</strong> &mdash; the relationship between features and labels changes</li>
+        <li><span class="check-box done"></span> <strong>Label drift</strong> &mdash; the fraud rate itself changes (new attack campaign)</li>
+        <li><span class="check-box done"></span> <strong>Adversarial drift</strong> &mdash; fraudsters learn model weaknesses and adapt</li>
+      </ul>
+
+<pre><code><span class="code-comment"># Set up Vertex AI Model Monitoring</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+<span class="code-comment"># Configure monitoring job</span>
+monitoring_job = aiplatform.ModelDeploymentMonitoringJob.create(
+    display_name=<span class="code-string">'fraud-model-monitoring'</span>,
+    endpoint=endpoint,
+    logging_sampling_strategy={
+        <span class="code-string">'random_sample_config'</span>: {<span class="code-string">'sample_rate'</span>: <span class="code-num">0.1</span>}  <span class="code-comment"># Sample 10% of predictions</span>
+    },
+    schedule_config={<span class="code-string">'monitor_interval'</span>: {<span class="code-string">'seconds'</span>: <span class="code-num">3600</span>}},  <span class="code-comment"># Check hourly</span>
+    objective_configs=[
+        {
+            <span class="code-string">'deployed_model_id'</span>: deployed_model.id,
+            <span class="code-string">'objective_config'</span>: {
+                <span class="code-string">'training_dataset'</span>: {
+                    <span class="code-string">'bigquery_source'</span>: {
+                        <span class="code-string">'data_uri'</span>: <span class="code-string">'bq://project.dataset.training_data'</span>
+                    }
+                },
+                <span class="code-string">'training_prediction_skew_detection_config'</span>: {
+                    <span class="code-string">'skew_thresholds'</span>: {
+                        <span class="code-string">'txn_amount'</span>: {<span class="code-string">'value'</span>: <span class="code-num">0.3</span>},
+                        <span class="code-string">'velocity_1hour'</span>: {<span class="code-string">'value'</span>: <span class="code-num">0.2</span>},
+                        <span class="code-string">'geo_distance'</span>: {<span class="code-string">'value'</span>: <span class="code-num">0.25</span>},
+                    }
+                },
+                <span class="code-string">'prediction_drift_detection_config'</span>: {
+                    <span class="code-string">'drift_thresholds'</span>: {
+                        <span class="code-string">'txn_amount'</span>: {<span class="code-string">'value'</span>: <span class="code-num">0.2</span>},
+                        <span class="code-string">'velocity_1hour'</span>: {<span class="code-string">'value'</span>: <span class="code-num">0.15</span>},
+                    }
+                },
+            },
+        }
+    ],
+    alert_config={
+        <span class="code-string">'email_alert_config'</span>: {
+            <span class="code-string">'user_emails'</span>: [<span class="code-string">'ml-team@company.com'</span>]
+        }
+    },
+)</code></pre>
+
+      <h3 id="mon-ab">A/B Testing Fraud Models</h3>
+      <p>
+        Before fully deploying a new fraud model, we run it alongside the current production model
+        using Vertex AI's traffic splitting. This allows us to compare real-world performance
+        before committing to a full rollout:
+      </p>
+
+<pre><code><span class="code-comment"># A/B test: deploy new model with 10% traffic</span>
+new_model = aiplatform.Model.upload(
+    display_name=<span class="code-string">'fraud-detection-xgboost-v3'</span>,
+    artifact_uri=<span class="code-string">'gs://your-bucket/models/fraud_v3/'</span>,
+    serving_container_image_uri=(
+        <span class="code-string">'us-docker.pkg.dev/vertex-ai/prediction/'</span>
+        <span class="code-string">'xgboost-cpu.1-7:latest'</span>
+    ),
+)
+
+<span class="code-comment"># Deploy with traffic split</span>
+endpoint.deploy(
+    model=new_model,
+    machine_type=<span class="code-string">'n1-standard-4'</span>,
+    min_replica_count=<span class="code-num">1</span>,
+    max_replica_count=<span class="code-num">5</span>,
+    traffic_percentage=<span class="code-num">10</span>,  <span class="code-comment"># 10% of traffic to new model</span>
+)
+
+<span class="code-comment"># After validating performance, shift all traffic</span>
+endpoint.undeploy(deployed_model_id=old_model_deployment_id)
+<span class="code-comment"># New model now receives 100% of traffic</span></code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Production Safety</div>
+        <p>
+          Never deploy a new fraud model to 100% traffic immediately. Even with strong offline
+          metrics, real-world performance can differ. Start at 5&ndash;10%, monitor for 24&ndash;48 hours,
+          then gradually increase. A bad fraud model can either block thousands of legitimate
+          customers (too aggressive) or miss a fraud wave (too permissive).
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══════════════ Section 9: Key Components ═══════════════ -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">9</div>
+        <h2>Key GCP Components</h2>
+      </div>
+
+      <p>
+        This use case integrates multiple GCP services. Each maps to specific exam objectives
+        and demonstrates real-world ML engineering skills:
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9889;</div>
+            <h4>Vertex AI</h4>
+          </div>
+          <p>
+            Unified ML platform for training, deploying, and monitoring models. Manages the full
+            lifecycle from experiment tracking through custom training jobs to online prediction
+            endpoints with autoscaling.
+          </p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128202;</div>
+            <h4>Feature Store</h4>
+          </div>
+          <p>
+            Centralized repository for ML features with both batch and online serving. Eliminates
+            training-serving skew by ensuring identical feature computation across pipelines.
+            Single-digit ms online read latency.
+          </p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128233;</div>
+            <h4>Cloud Pub/Sub</h4>
+          </div>
+          <p>
+            Serverless messaging service for streaming ingestion. Handles millions of transaction
+            events per second with at-least-once delivery. Decouples payment systems from ML pipeline.
+          </p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127754;</div>
+            <h4>Cloud Dataflow</h4>
+          </div>
+          <p>
+            Fully managed stream and batch processing based on Apache Beam. Computes real-time
+            features with sliding window aggregations. Auto-scales based on throughput.
+          </p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127919;</div>
+            <h4>XGBoost</h4>
+          </div>
+          <p>
+            Gradient boosted decision trees optimized for tabular data. Ideal for fraud detection
+            due to handling of class imbalance (scale_pos_weight), feature importance, and fast
+            inference (<1ms per prediction).
+          </p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128065;</div>
+            <h4>Model Monitoring</h4>
+          </div>
+          <p>
+            Vertex AI Model Monitoring tracks feature drift, prediction drift, and training-serving
+            skew. Automated alerts trigger retraining when fraud patterns change, ensuring the
+            model stays current.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ Section 10: Results ═══════════════ -->
+    <div class="section" id="results">
+      <div class="section-header">
+        <div class="section-num">10</div>
+        <h2>Results &amp; Impact</h2>
+      </div>
+
+      <p>
+        After deploying the ML-based fraud detection system, we measured significant improvements
+        across all key metrics compared to the previous rule-based system:
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Rule-Based (Before)</th>
+            <th>ML Model (After)</th>
+            <th>Improvement</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Fraud detection rate</strong></td>
+            <td>82%</td>
+            <td>94.7%</td>
+            <td style="color:#22c55e;">+15.5%</td>
+          </tr>
+          <tr>
+            <td><strong>False positive rate</strong></td>
+            <td>5.2%</td>
+            <td>2.1%</td>
+            <td style="color:#22c55e;">-60%</td>
+          </tr>
+          <tr>
+            <td><strong>Prediction latency (p99)</strong></td>
+            <td>120ms</td>
+            <td>45ms</td>
+            <td style="color:#22c55e;">-62.5%</td>
+          </tr>
+          <tr>
+            <td><strong>Annual fraud losses prevented</strong></td>
+            <td>$3.2M</td>
+            <td>$8.5M</td>
+            <td style="color:#22c55e;">+$5.3M</td>
+          </tr>
+          <tr>
+            <td><strong>Concept drift detection time</strong></td>
+            <td>2&ndash;4 weeks (manual)</td>
+            <td>&lt;2 hours (automated)</td>
+            <td style="color:#22c55e;">99%+ faster</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Business Impact</div>
+        <p>
+          The 60% reduction in false positives is arguably more valuable than the improved
+          detection rate. Each false positive blocks a legitimate customer, risks them switching
+          to a competitor, and costs the business revenue. At scale, reducing false positives
+          from 5.2% to 2.1% means millions of additional approved legitimate transactions.
+        </p>
+      </div>
+
+      <p>
+        Key technical achievements:
+      </p>
+      <ul class="checklist">
+        <li><span class="check-box done"></span> <strong>94.7% fraud detection rate</strong> &mdash; catches 12.7% more fraud than rule-based system</li>
+        <li><span class="check-box done"></span> <strong>60% reduction in false positives</strong> &mdash; fewer legitimate customers blocked</li>
+        <li><span class="check-box done"></span> <strong>&lt;45ms prediction latency</strong> &mdash; well within the 100ms transaction window</li>
+        <li><span class="check-box done"></span> <strong>$8.5M annual fraud loss prevention</strong> &mdash; clear ROI for the ML investment</li>
+        <li><span class="check-box done"></span> <strong>Concept drift detected within 2 hours</strong> &mdash; vs weeks with manual monitoring</li>
+        <li><span class="check-box done"></span> <strong>Automated retraining pipeline</strong> &mdash; model refreshed weekly, emergency retrain on drift alert</li>
+      </ul>
+    </div>
+
+    <!-- ═══════════════ Section 11: Production Considerations ═══════════════ -->
+    <div class="section" id="production">
+      <div class="section-header">
+        <div class="section-num">11</div>
+        <h2>Production Considerations</h2>
+      </div>
+
+      <p>
+        Deploying a fraud detection model to production introduces challenges beyond pure ML
+        performance. These operational and regulatory concerns are frequently tested on the
+        GCP MLE exam.
+      </p>
+
+      <h3>Explainability Requirements</h3>
+      <p>
+        When a transaction is declined, the customer (and often the regulator) needs to know
+        <strong>why</strong>. "The model said so" is not an acceptable answer. We use Vertex
+        Explainable AI to generate feature attributions for each prediction:
+      </p>
+
+<pre><code><span class="code-comment"># Get prediction with explanations</span>
+prediction = endpoint.explain(
+    instances=[feature_vector],
+    parameters={<span class="code-string">'num_neighbors'</span>: <span class="code-num">10</span>}
+)
+
+<span class="code-comment"># Extract feature attributions</span>
+explanation = prediction.explanations[<span class="code-num">0</span>]
+attributions = explanation.attributions[<span class="code-num">0</span>]
+
+<span class="code-comment"># Top reasons for flagging</span>
+top_features = sorted(
+    attributions.feature_attributions.items(),
+    key=<span class="code-keyword">lambda</span> x: abs(x[<span class="code-num">1</span>]),
+    reverse=<span class="code-keyword">True</span>
+)[:<span class="code-num">3</span>]
+
+<span class="code-comment"># Human-readable explanation</span>
+<span class="code-comment"># "Flagged due to: unusual transaction velocity (5x normal),</span>
+<span class="code-comment">#  geographic anomaly (NY to London in 30min), high-risk merchant"</span></code></pre>
+
+      <h3>Regulatory Compliance (PCI-DSS)</h3>
+      <p>
+        Financial transaction data is subject to <strong>PCI-DSS</strong> (Payment Card Industry Data
+        Security Standard) requirements. Key compliance considerations for the ML pipeline:
+      </p>
+      <ul class="checklist">
+        <li><span class="check-box done"></span> <strong>Data encryption</strong> &mdash; all data encrypted at rest (Cloud KMS) and in transit (TLS 1.3)</li>
+        <li><span class="check-box done"></span> <strong>Access control</strong> &mdash; IAM roles restrict who can access training data and model artifacts</li>
+        <li><span class="check-box done"></span> <strong>Audit logging</strong> &mdash; Cloud Audit Logs track every access to sensitive data</li>
+        <li><span class="check-box done"></span> <strong>Data retention</strong> &mdash; automated deletion of raw transaction data after retention period</li>
+        <li><span class="check-box done"></span> <strong>Network isolation</strong> &mdash; VPC Service Controls restrict data exfiltration</li>
+      </ul>
+
+      <h3>Handling Adversarial Attacks</h3>
+      <p>
+        Sophisticated fraudsters may probe the system to learn its boundaries. Countermeasures include:
+      </p>
+      <ul class="checklist">
+        <li><span class="check-box done"></span> <strong>Rate limiting</strong> prediction requests to prevent probing attacks</li>
+        <li><span class="check-box done"></span> <strong>Feature diversification</strong> &mdash; use many uncorrelated features so gaming one does not bypass detection</li>
+        <li><span class="check-box done"></span> <strong>Ensemble models</strong> &mdash; combine supervised + unsupervised so novel attacks are still caught</li>
+        <li><span class="check-box done"></span> <strong>Honeypot features</strong> &mdash; features that adversaries might try to manipulate, triggering additional scrutiny</li>
+        <li><span class="check-box done"></span> <strong>Randomized thresholds</strong> &mdash; slight randomization prevents adversaries from learning exact boundaries</li>
+      </ul>
+
+      <h3>Cold-Start Problem</h3>
+      <p>
+        New customers have no transaction history, making behavioral features unavailable. Strategies
+        for cold-start fraud detection:
+      </p>
+      <ul class="checklist">
+        <li><span class="check-box done"></span> Fall back to <strong>population-level features</strong> (average behavior for similar demographics)</li>
+        <li><span class="check-box done"></span> Use <strong>device/IP reputation</strong> scores from third-party services</li>
+        <li><span class="check-box done"></span> Apply <strong>stricter thresholds</strong> for new customers, relaxing as history builds</li>
+        <li><span class="check-box done"></span> Use <strong>graph-based features</strong> linking new accounts to known entities</li>
+      </ul>
+
+      <h3>Cost Trade-Off: False Negatives vs False Positives</h3>
+      <p>
+        The business must explicitly quantify the cost of each error type to set optimal
+        decision thresholds:
+      </p>
+
+      <div class="formula">
+        Expected Cost = (FN &times; avg_fraud_amount) + (FP &times; avg_revenue_lost_per_block) + (TP &times; investigation_cost)
+      </div>
+
+      <p>
+        A typical credit card issuer might set these costs as: missed fraud = $500 average loss,
+        false positive = $15 (lost transaction fee + customer friction), investigation = $3.
+        This asymmetry (33:1 ratio) justifies a model threshold that favors recall over precision.
+      </p>
+
+      <h3>Model Retraining Frequency</h3>
+      <p>
+        Fraud models must be retrained more frequently than most production ML models. Our
+        recommended schedule:
+      </p>
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Trigger</th>
+            <th>Frequency</th>
+            <th>Scope</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Scheduled retrain</strong></td>
+            <td>Weekly</td>
+            <td>Full model retrain on rolling 90-day window</td>
+          </tr>
+          <tr>
+            <td><strong>Drift alert</strong></td>
+            <td>As needed</td>
+            <td>Emergency retrain triggered by monitoring</td>
+          </tr>
+          <tr>
+            <td><strong>Feature refresh</strong></td>
+            <td>Daily</td>
+            <td>Update Feature Store with latest user profiles</td>
+          </tr>
+          <tr>
+            <td><strong>Full pipeline review</strong></td>
+            <td>Quarterly</td>
+            <td>Re-evaluate feature set, model architecture, thresholds</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">Exam Connection</div>
+        <p>
+          The MLE exam tests your ability to design <strong>retraining triggers</strong> and
+          <strong>CI/CD for ML</strong>. Know the difference between scheduled retraining
+          (time-based), performance-triggered retraining (metric degradation), and data-triggered
+          retraining (drift detection). Vertex AI Pipelines + Cloud Scheduler enables all three.
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══════════════ Section 12: Notebook ═══════════════ -->
+    <div class="section" id="notebook">
+      <div class="section-header">
+        <div class="section-num">12</div>
+        <h2>Hands-On Notebook</h2>
+      </div>
+
+      <p>
+        Put these concepts into practice with the companion Colab notebook. You will generate
+        synthetic transaction data, engineer fraud features, handle class imbalance with SMOTE
+        and class weights, train an XGBoost model, evaluate with precision-recall curves, and
+        optimize the decision threshold for real-world cost trade-offs.
+      </p>
+
+      <div class="callout tip">
+        <div class="callout-label">Open the Notebook</div>
+        <p>
+          <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-mle/usecases/notebooks/02-fraud-detection.ipynb"
+             target="_blank" rel="noopener" class="colab-btn" style="display:inline-flex;align-items:center;gap:8px;opacity:1;">
+            <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+            Open in Google Colab
+          </a>
+        </p>
+      </div>
+
+      <p>
+        The notebook covers all the core techniques discussed in this page with working,
+        end-to-end code. GCP-specific operations (Vertex AI deployment, Feature Store,
+        Pub/Sub) are shown as annotated comments so you can run the ML portions locally
+        while understanding how each step maps to the cloud architecture.
+      </p>
+    </div>
+
+    <!-- ── Prev / Next ────────────────────────────────────────── -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous</div>
+        <a href="01-demand-forecasting.html" class="prev-btn">&larr; 01 &middot; Demand Forecasting</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next</div>
+        <a href="03-churn-prediction.html" class="next-btn">03 &middot; Churn Prediction &rarr;</a>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── Footer ─────────────────────────────────────────────── -->
+<footer>
+  CareerAlign &mdash; GCP Professional Machine Learning Engineer &middot; Use Case 02: Real-Time Fraud Detection
+</footer>
+
+</body>
+</html>

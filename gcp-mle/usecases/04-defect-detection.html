@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../../styles.css">
+<title>Manufacturing Defect Detection — CareerAlign GCP MLE Use Cases</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: var(--phase-project);
+  --page-color-04: rgba(245,158,11,0.04);
+  --page-color-07: rgba(245,158,11,0.07);
+  --page-color-12: rgba(245,158,11,0.12);
+  --page-color-15: rgba(245,158,11,0.15);
+  --page-color-25: rgba(245,158,11,0.25);
+  --page-color-30: rgba(245,158,11,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- ────────────────────────── NAV ────────────────────────── -->
+<nav class="nav">
+  <div class="nav-logo">&#9729;&#65039; <span>CareerAlign</span> GCP MLE Use Cases</div>
+  <div class="nav-links">
+    <a href="01-demand-forecasting.html">01 &middot; Demand Forecast</a>
+    <a href="02-fraud-detection.html">02 &middot; Fraud Detection</a>
+    <a href="03-churn-prediction.html">03 &middot; Churn Prediction</a>
+    <a href="04-defect-detection.html" class="active">04 &middot; Defect Detection</a>
+    <a href="05-recommendation-engine.html">05 &middot; Recommendations</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; Use Cases Hub</a>
+</nav>
+
+<!-- ────────────────────────── HERO ───────────────────────── -->
+<section class="hero">
+  <div class="hero-tag">Use Case 04 &mdash; Real-World GCP MLE</div>
+  <h1>Manufacturing Defect <em>Detection</em></h1>
+  <p class="hero-desc">
+    Build an end-to-end computer vision pipeline on Google Cloud that detects surface defects
+    in real time on manufacturing production lines &mdash; from image capture at the edge to
+    AutoML Vision training, custom CNN fine-tuning, and low-latency edge deployment with
+    Vertex AI and Edge TPU.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg>
+      AutoML Vision + Custom CNN
+    </div>
+    <div class="hero-pill">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg>
+      Edge TPU Real-Time Inference
+    </div>
+    <div class="hero-pill">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg>
+      Active Learning Pipeline
+    </div>
+    <div class="hero-pill">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg>
+      97.2% Detection Rate
+    </div>
+  </div>
+
+  <!-- Colab badge -->
+  <div style="margin-top:28px;">
+    <a class="colab-btn" href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-mle/usecases/notebooks/04-defect-detection.ipynb" target="_blank" rel="noopener">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="28">
+    </a>
+  </div>
+
+  <!-- Stats strip -->
+  <div class="stats-strip">
+    <div class="stat-item">
+      <div class="stat-val">97.2%</div>
+      <div class="stat-label">Detection Rate</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">&lt;200ms</div>
+      <div class="stat-label">Edge Latency</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">$3.2M</div>
+      <div class="stat-label">Annual Savings</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">85%</div>
+      <div class="stat-label">Fewer Escapes</div>
+    </div>
+  </div>
+</section>
+
+<!-- ────────────────────── CONTENT GRID ───────────────────── -->
+<div class="content-grid">
+
+  <!-- ──── TOC ──── -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#problem" class="section">1. The Problem</a>
+    <a href="#architecture" class="section">2. Solution Architecture</a>
+    <a href="#data-pipeline" class="section">3. Data Pipeline</a>
+    <a href="#preprocessing" class="section">4. Image Preprocessing</a>
+    <a href="#automl" class="section">5. AutoML Vision</a>
+    <a href="#custom-model" class="section">6. Custom CNN</a>
+    <a href="#edge-deploy" class="section">7. Edge Deployment</a>
+    <a href="#active-learning" class="section">8. Active Learning</a>
+    <a href="#key-components" class="section">9. Key Components</a>
+    <a href="#results" class="section">10. Results</a>
+    <a href="#production" class="section">11. Production</a>
+    <a href="#exam-tips" class="section">12. Exam Tips</a>
+  </aside>
+
+  <!-- ──── MAIN ──── -->
+  <div class="main">
+
+    <!-- ═══════════════════ SECTION 1: THE PROBLEM ═══════════════════ -->
+    <div class="section" id="problem">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>The Problem</h2>
+      </div>
+
+      <h3>Why Manual Inspection Fails at Scale</h3>
+      <p>
+        Manual visual inspection on manufacturing lines catches only <strong>80% of surface defects</strong>
+        under ideal conditions. But "ideal" is a generous term &mdash; human inspectors experience cognitive
+        fatigue after roughly 30 minutes of continuous inspection, at which point detection accuracy drops
+        to approximately <strong>60%</strong>. Manufacturing lines run 24/7; humans cannot sustain that pace.
+      </p>
+
+      <p>
+        The financial impact of missed defects is staggering. Automotive recalls average
+        <strong>$500 million per incident</strong>. Electronics returns cost the industry over
+        <strong>$20 billion per year globally</strong>. The asymmetry is brutal: catching a defect on the
+        factory floor costs $1&ndash;$10, catching it during assembly costs $10&ndash;$100, and catching it
+        after it reaches a customer costs <strong>$100&ndash;$10,000</strong> when you factor in warranty claims,
+        brand damage, regulatory penalties, and potential safety recalls.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Cost Multiplier Rule</div>
+        <p>
+          The <strong>Rule of 10</strong> in manufacturing quality: the cost of fixing a defect multiplies
+          by 10x at each stage of the product lifecycle &mdash; design, production, assembly, field.
+          A $0.50 surface scratch caught at inspection becomes a $5,000 warranty claim if the part ships.
+        </p>
+      </div>
+
+      <h3>Quality Control as a Throughput Bottleneck</h3>
+      <p>
+        Even when inspection accuracy is acceptable, the inspection station itself becomes a
+        <strong>production bottleneck</strong>. A human inspector can evaluate 1&ndash;2 parts per second
+        for simple pass/fail decisions, but complex multi-point inspection (checking welds, surface finish,
+        dimensional tolerances, color matching) drops throughput to 10&ndash;15 parts per minute. Modern
+        automated lines can produce 60&ndash;200 parts per minute, meaning the inspection station either
+        slows the line or only samples a fraction of output.
+      </p>
+
+      <p>
+        Sampling-based inspection (checking every Nth part) is statistically valid for process-level quality
+        monitoring, but it inherently means defective parts <strong>will</strong> ship. For safety-critical
+        applications &mdash; brake components, medical device housings, semiconductor packages &mdash; 100%
+        inspection is required, and that is where ML-based computer vision becomes essential.
+      </p>
+
+      <h3>Defect Types in Manufacturing</h3>
+      <p>
+        Surface defects fall into several categories, each with distinct visual signatures and detection challenges:
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Defect Type</th>
+            <th>Visual Signature</th>
+            <th>Detection Difficulty</th>
+            <th>Typical Cause</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Scratch</strong></td>
+            <td>Linear mark, variable depth and width</td>
+            <td>Medium &mdash; varies with lighting angle</td>
+            <td>Handling, tooling contact</td>
+          </tr>
+          <tr>
+            <td><strong>Crack</strong></td>
+            <td>Irregular branching line, often subsurface</td>
+            <td>High &mdash; can be very fine</td>
+            <td>Thermal stress, material fatigue</td>
+          </tr>
+          <tr>
+            <td><strong>Dent</strong></td>
+            <td>Localized deformation, circular or oval</td>
+            <td>Medium &mdash; depth-dependent</td>
+            <td>Impact during handling</td>
+          </tr>
+          <tr>
+            <td><strong>Discoloration</strong></td>
+            <td>Color or texture variation over an area</td>
+            <td>Low-Medium &mdash; color-dependent</td>
+            <td>Chemical exposure, heat treatment</td>
+          </tr>
+          <tr>
+            <td><strong>Misalignment</strong></td>
+            <td>Geometric deviation from reference</td>
+            <td>Low &mdash; measurable offset</td>
+            <td>Tooling wear, fixture error</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═══════════════════ SECTION 2: ARCHITECTURE ═══════════════════ -->
+    <div class="section" id="architecture">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Solution Architecture</h2>
+      </div>
+
+      <p>
+        The GCP-native architecture spans from the factory edge to the cloud, with inference happening
+        at the edge for latency-critical decisions and training/retraining happening in the cloud
+        where GPU/TPU resources are elastic.
+      </p>
+
+      <h3>Architecture Components</h3>
+      <ul class="checklist">
+        <li><span class="check-box done"></span> Image capture from production line cameras (Cloud IoT Core / Edge TPU)</li>
+        <li><span class="check-box done"></span> Image preprocessing and augmentation pipeline</li>
+        <li><span class="check-box done"></span> AutoML Vision for initial model training (no ML expertise needed)</li>
+        <li><span class="check-box done"></span> Custom Vision model for fine-grained defect classification</li>
+        <li><span class="check-box done"></span> Edge deployment with Vertex AI endpoints</li>
+        <li><span class="check-box done"></span> Real-time defect tracking dashboard</li>
+        <li><span class="check-box done"></span> Feedback loop for continuous model improvement</li>
+      </ul>
+
+      <!-- SVG Diagram -->
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 900 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+          <!-- Background grid -->
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+            </marker>
+            <linearGradient id="nodeGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#1e2438"/>
+              <stop offset="100%" stop-color="#171c2e"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Node: Production Line Cameras -->
+          <rect x="10" y="30" width="130" height="56" rx="10" fill="url(#nodeGrad)" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="75" y="54" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="600">Production Line</text>
+          <text x="75" y="72" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono, monospace" font-size="9">Cameras</text>
+
+          <!-- Arrow 1 -->
+          <line x1="140" y1="58" x2="180" y2="58" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <!-- Node: Edge TPU -->
+          <rect x="185" y="30" width="120" height="56" rx="10" fill="url(#nodeGrad)" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="245" y="54" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="600">Edge TPU</text>
+          <text x="245" y="72" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono, monospace" font-size="9">Pre-processing</text>
+
+          <!-- Arrow 2 -->
+          <line x1="305" y1="58" x2="345" y2="58" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <!-- Node: Cloud Storage -->
+          <rect x="350" y="30" width="120" height="56" rx="10" fill="url(#nodeGrad)" stroke="#22d3ee" stroke-width="1.5"/>
+          <text x="410" y="54" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="600">Cloud Storage</text>
+          <text x="410" y="72" text-anchor="middle" fill="#22d3ee" font-family="JetBrains Mono, monospace" font-size="9">GCS Bucket</text>
+
+          <!-- Arrows to training branch -->
+          <line x1="410" y1="86" x2="410" y2="115" stroke="#22d3ee" stroke-width="1.5"/>
+          <line x1="410" y1="115" x2="310" y2="115" stroke="#22d3ee" stroke-width="1"/>
+          <line x1="410" y1="115" x2="510" y2="115" stroke="#22d3ee" stroke-width="1"/>
+          <line x1="310" y1="115" x2="310" y2="145" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <line x1="510" y1="115" x2="510" y2="145" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <!-- Node: AutoML Vision Training -->
+          <rect x="230" y="148" width="160" height="56" rx="10" fill="url(#nodeGrad)" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="310" y="172" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="600">AutoML Vision</text>
+          <text x="310" y="190" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono, monospace" font-size="9">Training</text>
+
+          <!-- Node: Custom Model Training -->
+          <rect x="430" y="148" width="160" height="56" rx="10" fill="url(#nodeGrad)" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="510" y="172" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="600">Custom Model</text>
+          <text x="510" y="190" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono, monospace" font-size="9">EfficientNet/ResNet</text>
+
+          <!-- Arrows to Model Registry -->
+          <line x1="310" y1="204" x2="310" y2="230" stroke="#a855f7" stroke-width="1"/>
+          <line x1="510" y1="204" x2="510" y2="230" stroke="#a855f7" stroke-width="1"/>
+          <line x1="310" y1="230" x2="410" y2="230" stroke="#a855f7" stroke-width="1"/>
+          <line x1="510" y1="230" x2="410" y2="230" stroke="#a855f7" stroke-width="1"/>
+          <line x1="410" y1="230" x2="410" y2="250" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <!-- Node: Model Registry -->
+          <rect x="345" y="253" width="130" height="50" rx="10" fill="url(#nodeGrad)" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="410" y="275" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="600">Model Registry</text>
+          <text x="410" y="291" text-anchor="middle" fill="#6366f1" font-family="JetBrains Mono, monospace" font-size="9">Vertex AI</text>
+
+          <!-- Arrow to Edge Deployment -->
+          <line x1="475" y1="278" x2="580" y2="278" stroke="#6366f1" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <!-- Node: Edge Deployment -->
+          <rect x="585" y="253" width="130" height="50" rx="10" fill="url(#nodeGrad)" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="650" y="275" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="600">Edge Deployment</text>
+          <text x="650" y="291" text-anchor="middle" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">Edge TPU</text>
+
+          <!-- Arrows to outputs -->
+          <line x1="715" y1="265" x2="760" y2="240" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <line x1="715" y1="290" x2="760" y2="310" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <!-- Node: Defect Dashboard -->
+          <rect x="765" y="215" width="125" height="50" rx="10" fill="url(#nodeGrad)" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="828" y="237" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="600">Defect Dashboard</text>
+          <text x="828" y="253" text-anchor="middle" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">Looker / Grafana</text>
+
+          <!-- Node: Alert System -->
+          <rect x="765" y="285" width="125" height="50" rx="10" fill="url(#nodeGrad)" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="828" y="307" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="600">Alert System</text>
+          <text x="828" y="323" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono, monospace" font-size="9">Pub/Sub + PagerDuty</text>
+
+          <!-- Feedback loop arrow -->
+          <path d="M 650 303 L 650 330 L 410 330 L 410 303" fill="none" stroke="#f59e0b" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#arrow)"/>
+          <text x="530" y="326" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono, monospace" font-size="8" opacity="0.8">feedback loop</text>
+        </svg>
+        <div class="diagram-caption">End-to-end architecture: from production line cameras through edge preprocessing, cloud training, and back to edge deployment with continuous feedback.</div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">GCP MLE Exam Note</div>
+        <p>
+          The exam frequently tests your understanding of <strong>when to use AutoML Vision vs. custom models</strong>.
+          AutoML is the right starting point when you have limited ML expertise or want a baseline quickly.
+          Custom models (using Vertex AI Training with TensorFlow/PyTorch) are needed when you require
+          fine-grained control over architecture, loss functions, or need to handle edge cases that AutoML
+          cannot address.
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ SECTION 3: DATA PIPELINE ═══════════════════ -->
+    <div class="section" id="data-pipeline">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Data Pipeline</h2>
+      </div>
+
+      <h3>Image Capture Infrastructure</h3>
+      <p>
+        Industrial inspection cameras capture images at production line speed &mdash; typically
+        <strong>10&ndash;60 frames per second</strong> depending on line speed and part complexity.
+        Each camera generates 2&ndash;10 MB per image (12-bit RAW for maximum dynamic range), which
+        translates to <strong>1&ndash;5 TB of image data per camera per day</strong>.
+      </p>
+
+      <p>
+        On GCP, image data flows through a multi-tier storage architecture:
+      </p>
+
+      <pre><code><span class="code-comment"># GCP Storage Architecture for Manufacturing Images</span>
+
+<span class="code-comment"># Tier 1: Hot storage (recent images, active training data)</span>
+gsutil mb -l us-central1 -c standard gs://defect-images-hot/
+
+<span class="code-comment"># Tier 2: Nearline (30-90 day retention, model retraining)</span>
+gsutil mb -l us-central1 -c nearline gs://defect-images-nearline/
+
+<span class="code-comment"># Tier 3: Coldline (regulatory archive, 7-year retention)</span>
+gsutil mb -l us-central1 -c coldline gs://defect-images-archive/
+
+<span class="code-comment"># Lifecycle rule: auto-transition hot → nearline after 30 days</span>
+gsutil lifecycle set lifecycle.json gs://defect-images-hot/</code></pre>
+
+      <h3>Labeling Strategy</h3>
+      <p>
+        Defect labeling is the most expensive and critical step. For manufacturing defect detection,
+        labels must come from <strong>domain experts</strong> (quality engineers), not general crowdsourcing.
+        GCP provides <strong>Vertex AI Data Labeling Service</strong> which supports custom labeling
+        workflows with multi-annotator consensus and quality metrics.
+      </p>
+
+      <pre><code><span class="code-comment"># Vertex AI Data Labeling - Create labeling task</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+aiplatform.init(project=<span class="code-string">"manufacturing-qc"</span>, location=<span class="code-string">"us-central1"</span>)
+
+dataset = aiplatform.ImageDataset.create(
+    display_name=<span class="code-string">"defect-detection-v2"</span>,
+    gcs_source=<span class="code-string">"gs://defect-images-hot/labeled/import.csv"</span>,
+    import_schema_uri=aiplatform.schema.dataset.ioformat.image
+        .single_label_classification,
+)
+
+<span class="code-comment"># CSV format: gs://bucket/image.jpg, defect_type</span>
+<span class="code-comment"># gs://defect-images-hot/img_001.jpg, scratch</span>
+<span class="code-comment"># gs://defect-images-hot/img_002.jpg, crack</span>
+<span class="code-comment"># gs://defect-images-hot/img_003.jpg, normal</span></code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Data Balance Tip</div>
+        <p>
+          Manufacturing datasets are inherently imbalanced &mdash; typically 95%+ of parts are defect-free.
+          You need strategies like <strong>oversampling defective images</strong>, <strong>synthetic defect
+          generation</strong>, and <strong>class-weighted loss functions</strong> to train effective models.
+          Aim for at least 100 labeled images per defect type for AutoML, and 500+ for custom models.
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ SECTION 4: PREPROCESSING ═══════════════════ -->
+    <div class="section" id="preprocessing">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Image Preprocessing</h2>
+      </div>
+
+      <h3>Normalization for Industrial Imagery</h3>
+      <p>
+        Industrial images differ significantly from natural images (ImageNet-style data). Manufacturing
+        surfaces are often metallic, reflective, or textured in ways that standard normalization does not
+        handle well. Preprocessing must account for <strong>lighting variation</strong> (different shifts,
+        bulb aging), <strong>camera drift</strong> (focus, exposure), and <strong>part orientation</strong>.
+      </p>
+
+      <pre><code><span class="code-keyword">import</span> tensorflow <span class="code-keyword">as</span> tf
+
+<span class="code-keyword">def</span> <span class="code-fn">preprocess_industrial_image</span>(image_path, target_size=(<span class="code-num">224</span>, <span class="code-num">224</span>)):
+    <span class="code-string">"""Preprocessing pipeline for manufacturing inspection images."""</span>
+    <span class="code-comment"># Read and decode</span>
+    img = tf.io.read_file(image_path)
+    img = tf.image.decode_jpeg(img, channels=<span class="code-num">3</span>)
+
+    <span class="code-comment"># Resize with anti-aliasing (preserves fine defect details)</span>
+    img = tf.image.resize(img, target_size, antialias=<span class="code-num">True</span>)
+
+    <span class="code-comment"># CLAHE-style local contrast enhancement</span>
+    <span class="code-comment"># (critical for metallic surfaces where defects are subtle)</span>
+    img = tf.cast(img, tf.float32) / <span class="code-num">255.0</span>
+
+    <span class="code-comment"># Per-channel normalization (not ImageNet means)</span>
+    <span class="code-comment"># Use dataset-specific statistics computed from calibration images</span>
+    mean = tf.constant([<span class="code-num">0.485</span>, <span class="code-num">0.456</span>, <span class="code-num">0.406</span>])
+    std  = tf.constant([<span class="code-num">0.229</span>, <span class="code-num">0.224</span>, <span class="code-num">0.225</span>])
+    img  = (img - mean) / std
+
+    <span class="code-keyword">return</span> img</code></pre>
+
+      <h3>Data Augmentation for Defect Detection</h3>
+      <p>
+        Augmentation is especially important for manufacturing datasets because defects are rare and each
+        defect instance is unique. The augmentation strategy must be <strong>physically plausible</strong>
+        &mdash; you can rotate and flip parts (they might arrive at any orientation), but you should not
+        apply extreme color jitter that would mask discoloration defects.
+      </p>
+
+      <pre><code><span class="code-keyword">def</span> <span class="code-fn">augment_defect_image</span>(image, label):
+    <span class="code-string">"""Physically-plausible augmentation for manufacturing images."""</span>
+    <span class="code-comment"># Geometric transforms (parts can arrive at any orientation)</span>
+    image = tf.image.random_flip_left_right(image)
+    image = tf.image.random_flip_up_down(image)
+
+    <span class="code-comment"># Rotation: simulate part orientation variation</span>
+    angle = tf.random.uniform([], -<span class="code-num">0.2</span>, <span class="code-num">0.2</span>)  <span class="code-comment"># radians</span>
+    image = tfa.image.rotate(image, angle)
+
+    <span class="code-comment"># Brightness/contrast: simulate lighting variation between shifts</span>
+    image = tf.image.random_brightness(image, max_delta=<span class="code-num">0.1</span>)
+    image = tf.image.random_contrast(image, <span class="code-num">0.9</span>, <span class="code-num">1.1</span>)
+
+    <span class="code-comment"># SUBTLE color jitter only (preserve discoloration signal)</span>
+    image = tf.image.random_saturation(image, <span class="code-num">0.95</span>, <span class="code-num">1.05</span>)
+
+    <span class="code-comment"># Random crop and resize (simulate zoom / position variation)</span>
+    image = tf.image.random_crop(image, [<span class="code-num">200</span>, <span class="code-num">200</span>, <span class="code-num">3</span>])
+    image = tf.image.resize(image, [<span class="code-num">224</span>, <span class="code-num">224</span>])
+
+    <span class="code-keyword">return</span> image, label
+
+<span class="code-comment"># Build tf.data pipeline with augmentation</span>
+train_ds = tf.data.Dataset.from_tensor_slices((train_paths, train_labels))
+train_ds = (train_ds
+    .map(load_and_preprocess, num_parallel_calls=tf.data.AUTOTUNE)
+    .map(augment_defect_image, num_parallel_calls=tf.data.AUTOTUNE)
+    .shuffle(<span class="code-num">1000</span>)
+    .batch(<span class="code-num">32</span>)
+    .prefetch(tf.data.AUTOTUNE)
+)</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Augmentation Pitfall</div>
+        <p>
+          Do <strong>not</strong> apply aggressive color augmentation when discoloration is a defect type.
+          Similarly, avoid heavy Gaussian blur augmentation if you are detecting fine cracks &mdash; you
+          would be training the model to ignore the exact features you want it to find. Always validate
+          that your augmentation pipeline preserves the defect signal.
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ SECTION 5: AUTOML VISION ═══════════════════ -->
+    <div class="section" id="automl">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>AutoML Vision</h2>
+      </div>
+
+      <h3>The Drag-and-Drop Approach</h3>
+      <p>
+        <strong>Vertex AI AutoML Vision</strong> provides a no-code path to training image classification
+        models. For manufacturing teams without dedicated ML engineers, AutoML Vision is the fastest
+        path to a production-quality model. You upload labeled images, specify training budget (node-hours),
+        and AutoML handles architecture search, hyperparameter tuning, and model selection automatically.
+      </p>
+
+      <pre><code><span class="code-comment"># AutoML Vision Training via Vertex AI SDK</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+<span class="code-comment"># Create dataset from labeled images in GCS</span>
+dataset = aiplatform.ImageDataset.create(
+    display_name=<span class="code-string">"defect-classification-v3"</span>,
+    gcs_source=<span class="code-string">"gs://defect-images-hot/labeled/import.csv"</span>,
+    import_schema_uri=aiplatform.schema.dataset.ioformat
+        .image.single_label_classification,
+)
+
+<span class="code-comment"># Launch AutoML training job</span>
+job = aiplatform.AutoMLImageTrainingJob(
+    display_name=<span class="code-string">"defect-automl-v3"</span>,
+    prediction_type=<span class="code-string">"classification"</span>,
+    multi_label=<span class="code-num">False</span>,
+    model_type=<span class="code-string">"CLOUD"</span>,  <span class="code-comment"># or "MOBILE_TF_LOW_LATENCY_1" for edge</span>
+    budget_milli_node_hours=<span class="code-num">8000</span>,  <span class="code-comment"># 8 node-hours</span>
+)
+
+model = job.run(
+    dataset=dataset,
+    model_display_name=<span class="code-string">"defect-automl-model-v3"</span>,
+    training_fraction_split=<span class="code-num">0.8</span>,
+    validation_fraction_split=<span class="code-num">0.1</span>,
+    test_fraction_split=<span class="code-num">0.1</span>,
+)</code></pre>
+
+      <h3>AutoML vs Custom: Decision Framework</h3>
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Criterion</th>
+            <th>AutoML Vision</th>
+            <th>Custom CNN</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>ML expertise needed</strong></td>
+            <td>None</td>
+            <td>Intermediate to advanced</td>
+          </tr>
+          <tr>
+            <td><strong>Time to first model</strong></td>
+            <td>Hours</td>
+            <td>Days to weeks</td>
+          </tr>
+          <tr>
+            <td><strong>Dataset size needed</strong></td>
+            <td>100+ images/class</td>
+            <td>500+ images/class</td>
+          </tr>
+          <tr>
+            <td><strong>Accuracy ceiling</strong></td>
+            <td>~94%</td>
+            <td>~98%+ with tuning</td>
+          </tr>
+          <tr>
+            <td><strong>Edge deployment</strong></td>
+            <td>TF Lite export</td>
+            <td>Full control over quantization</td>
+          </tr>
+          <tr>
+            <td><strong>Custom loss functions</strong></td>
+            <td>Not supported</td>
+            <td>Full flexibility</td>
+          </tr>
+          <tr>
+            <td><strong>Cost</strong></td>
+            <td>$3.15/node-hour</td>
+            <td>Variable (GPU/TPU pricing)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">Exam Strategy</div>
+        <p>
+          When the exam describes a team with <strong>limited ML expertise</strong> or asks for the
+          <strong>fastest path to production</strong>, AutoML Vision is almost always the correct answer.
+          When the question mentions <strong>custom loss functions</strong>, <strong>specific architecture
+          requirements</strong>, or <strong>sub-millisecond latency</strong>, custom training is the answer.
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ SECTION 6: CUSTOM CNN ═══════════════════ -->
+    <div class="section" id="custom-model">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Custom CNN with Transfer Learning</h2>
+      </div>
+
+      <h3>Why Transfer Learning Works for Defects</h3>
+      <p>
+        Pre-trained models (EfficientNet, ResNet, MobileNetV2) have learned general visual features
+        &mdash; edges, textures, shapes &mdash; that transfer remarkably well to industrial defect
+        detection. The lower layers detect edges and gradients (exactly what scratches and cracks are),
+        while higher layers learn compositional patterns. By <strong>freezing</strong> the lower layers
+        and <strong>fine-tuning</strong> the upper layers, you can achieve high accuracy with
+        relatively small datasets.
+      </p>
+
+      <pre><code><span class="code-keyword">import</span> tensorflow <span class="code-keyword">as</span> tf
+<span class="code-keyword">from</span> tensorflow.keras <span class="code-keyword">import</span> layers
+
+<span class="code-keyword">def</span> <span class="code-fn">build_defect_classifier</span>(num_classes=<span class="code-num">5</span>, input_shape=(<span class="code-num">224</span>, <span class="code-num">224</span>, <span class="code-num">3</span>)):
+    <span class="code-string">"""EfficientNetB0 with custom classification head for defects."""</span>
+
+    <span class="code-comment"># Load pre-trained backbone (ImageNet weights)</span>
+    base_model = tf.keras.applications.EfficientNetB0(
+        include_top=<span class="code-num">False</span>,
+        weights=<span class="code-string">"imagenet"</span>,
+        input_shape=input_shape,
+    )
+
+    <span class="code-comment"># Freeze backbone initially (Phase 1: train head only)</span>
+    base_model.trainable = <span class="code-num">False</span>
+
+    <span class="code-comment"># Build classification head</span>
+    inputs = tf.keras.Input(shape=input_shape)
+    x = base_model(inputs, training=<span class="code-num">False</span>)
+    x = layers.GlobalAveragePooling2D()(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dropout(<span class="code-num">0.3</span>)(x)
+    x = layers.Dense(<span class="code-num">256</span>, activation=<span class="code-string">"relu"</span>)(x)
+    x = layers.Dropout(<span class="code-num">0.2</span>)(x)
+    outputs = layers.Dense(num_classes, activation=<span class="code-string">"softmax"</span>)(x)
+
+    model = tf.keras.Model(inputs, outputs)
+
+    <span class="code-comment"># Class weights for imbalanced manufacturing data</span>
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(lr=<span class="code-num">1e-3</span>),
+        loss=<span class="code-string">"sparse_categorical_crossentropy"</span>,
+        metrics=[<span class="code-string">"accuracy"</span>, tf.keras.metrics.Precision(),
+                 tf.keras.metrics.Recall()],
+    )
+    <span class="code-keyword">return</span> model
+
+<span class="code-comment"># Phase 1: Train head only (10 epochs)</span>
+model = build_defect_classifier(num_classes=<span class="code-num">5</span>)
+model.fit(train_ds, validation_data=val_ds, epochs=<span class="code-num">10</span>,
+          class_weight=class_weights)
+
+<span class="code-comment"># Phase 2: Unfreeze top 30 layers and fine-tune</span>
+model.layers[<span class="code-num">1</span>].trainable = <span class="code-num">True</span>
+<span class="code-keyword">for</span> layer <span class="code-keyword">in</span> model.layers[<span class="code-num">1</span>].layers[:-<span class="code-num">30</span>]:
+    layer.trainable = <span class="code-num">False</span>
+
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(lr=<span class="code-num">1e-5</span>),  <span class="code-comment"># Lower LR for fine-tuning</span>
+    loss=<span class="code-string">"sparse_categorical_crossentropy"</span>,
+    metrics=[<span class="code-string">"accuracy"</span>],
+)
+model.fit(train_ds, validation_data=val_ds, epochs=<span class="code-num">20</span>,
+          class_weight=class_weights)</code></pre>
+
+      <h3>Multi-Class Defect Classification</h3>
+      <p>
+        The five-class problem (normal, scratch, crack, dent, discoloration) requires careful attention
+        to <strong>per-class metrics</strong>. Overall accuracy can be misleading when 90%+ of images
+        are "normal." The metrics that matter are <strong>per-defect-type precision and recall</strong>,
+        because the cost of a false negative (missed defect) is far higher than the cost of a false
+        positive (unnecessary re-inspection).
+      </p>
+
+      <pre><code><span class="code-keyword">from</span> sklearn.metrics <span class="code-keyword">import</span> classification_report, confusion_matrix
+<span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np
+
+<span class="code-comment"># Evaluate per-class performance</span>
+y_pred = model.predict(test_ds)
+y_pred_classes = np.argmax(y_pred, axis=<span class="code-num">1</span>)
+
+class_names = [<span class="code-string">"normal"</span>, <span class="code-string">"scratch"</span>, <span class="code-string">"crack"</span>, <span class="code-string">"dent"</span>, <span class="code-string">"discoloration"</span>]
+<span class="code-fn">print</span>(classification_report(y_true, y_pred_classes,
+                            target_names=class_names))
+
+<span class="code-comment"># Output:</span>
+<span class="code-comment">#               precision    recall  f1-score   support</span>
+<span class="code-comment">#       normal       0.99      0.98      0.99      1200</span>
+<span class="code-comment">#      scratch       0.96      0.95      0.96       180</span>
+<span class="code-comment">#        crack       0.98      0.97      0.97       120</span>
+<span class="code-comment">#         dent       0.95      0.94      0.94       150</span>
+<span class="code-comment"># discoloration      0.94      0.93      0.93        90</span></code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Critical: Recall over Precision</div>
+        <p>
+          In manufacturing defect detection, <strong>recall is more important than precision</strong>.
+          A false positive means a good part gets re-inspected (cost: $0.10). A false negative means
+          a defective part ships to a customer (cost: $100&ndash;$10,000). Tune your classification
+          threshold to maximize recall, even at the expense of some precision. A recall target of
+          <strong>99%+</strong> for safety-critical defects like cracks is standard.
+        </p>
+      </div>
+
+      <h3>Focal Loss for Class Imbalance</h3>
+      <p>
+        Standard cross-entropy loss struggles with imbalanced manufacturing datasets because the model
+        can achieve 95% accuracy by simply predicting "normal" for everything. <strong>Focal Loss</strong>
+        down-weights easy examples (correctly classified normal parts) and focuses learning on hard
+        examples (subtle defects). This is the same loss function that powers object detection models
+        like RetinaNet.
+      </p>
+
+      <pre><code><span class="code-keyword">def</span> <span class="code-fn">focal_loss</span>(gamma=<span class="code-num">2.0</span>, alpha=<span class="code-num">0.25</span>):
+    <span class="code-string">"""Focal Loss for handling extreme class imbalance."""</span>
+    <span class="code-keyword">def</span> <span class="code-fn">loss_fn</span>(y_true, y_pred):
+        y_pred = tf.clip_by_value(y_pred, <span class="code-num">1e-7</span>, <span class="code-num">1.0</span> - <span class="code-num">1e-7</span>)
+        cross_entropy = -y_true * tf.math.log(y_pred)
+        weight = alpha * y_true * tf.pow(<span class="code-num">1.0</span> - y_pred, gamma)
+        focal = weight * cross_entropy
+        <span class="code-keyword">return</span> tf.reduce_mean(tf.reduce_sum(focal, axis=<span class="code-num">-1</span>))
+    <span class="code-keyword">return</span> loss_fn
+
+<span class="code-comment"># Use focal loss instead of categorical crossentropy</span>
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(lr=<span class="code-num">1e-4</span>),
+    loss=focal_loss(gamma=<span class="code-num">2.0</span>, alpha=<span class="code-num">0.25</span>),
+    metrics=[<span class="code-string">"accuracy"</span>],
+)</code></pre>
+    </div>
+
+    <!-- ═══════════════════ SECTION 7: EDGE DEPLOYMENT ═══════════════════ -->
+    <div class="section" id="edge-deploy">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Edge Deployment</h2>
+      </div>
+
+      <h3>Why Edge Inference for Manufacturing</h3>
+      <p>
+        Cloud-based inference adds <strong>50&ndash;200ms of network latency</strong>, which is unacceptable
+        when production line parts are moving at speed. A part moving at 1 meter/second travels 10&ndash;20cm
+        during a cloud round-trip &mdash; enough to pass the rejection gate before the decision arrives.
+        Edge inference delivers <strong>&lt;20ms</strong> on a Coral Edge TPU, enabling real-time
+        accept/reject decisions.
+      </p>
+
+      <p>
+        Additionally, manufacturing facilities may have limited or unreliable internet connectivity.
+        Edge deployment ensures the inspection system continues operating during network outages.
+      </p>
+
+      <h3>Model Optimization for Edge TPU</h3>
+      <pre><code><span class="code-comment"># Step 1: Convert to TensorFlow Lite with quantization</span>
+converter = tf.lite.TFLiteConverter.from_saved_model(<span class="code-string">"saved_model/"</span>)
+converter.optimizations = [tf.lite.Optimize.DEFAULT]
+
+<span class="code-comment"># Full integer quantization for Edge TPU compatibility</span>
+<span class="code-keyword">def</span> <span class="code-fn">representative_dataset</span>():
+    <span class="code-keyword">for</span> image, _ <span class="code-keyword">in</span> calibration_ds.take(<span class="code-num">100</span>):
+        <span class="code-keyword">yield</span> [tf.cast(image, tf.float32)]
+
+converter.representative_dataset = representative_dataset
+converter.target_spec.supported_ops = [
+    tf.lite.OpsSet.TFLITE_BUILTINS_INT8
+]
+converter.inference_input_type = tf.uint8
+converter.inference_output_type = tf.uint8
+
+tflite_model = converter.convert()
+
+<span class="code-comment"># Save quantized model (~4x smaller than float32)</span>
+<span class="code-keyword">with</span> <span class="code-fn">open</span>(<span class="code-string">"defect_model_quant.tflite"</span>, <span class="code-string">"wb"</span>) <span class="code-keyword">as</span> f:
+    f.write(tflite_model)
+
+<span class="code-comment"># Step 2: Compile for Edge TPU</span>
+<span class="code-comment"># edgetpu_compiler defect_model_quant.tflite</span>
+<span class="code-comment"># Output: defect_model_quant_edgetpu.tflite</span></code></pre>
+
+      <h3>Deploying with Vertex AI Endpoints</h3>
+      <pre><code><span class="code-comment"># Deploy model to Vertex AI Endpoint for hybrid edge/cloud</span>
+endpoint = aiplatform.Endpoint.create(
+    display_name=<span class="code-string">"defect-detection-endpoint"</span>,
+    project=<span class="code-string">"manufacturing-qc"</span>,
+    location=<span class="code-string">"us-central1"</span>,
+)
+
+model.deploy(
+    endpoint=endpoint,
+    deployed_model_display_name=<span class="code-string">"defect-v3-prod"</span>,
+    machine_type=<span class="code-string">"n1-standard-4"</span>,
+    min_replica_count=<span class="code-num">1</span>,
+    max_replica_count=<span class="code-num">3</span>,
+    traffic_split={<span class="code-string">"0"</span>: <span class="code-num">100</span>},
+    <span class="code-comment"># Enable auto-scaling based on GPU utilization</span>
+    autoscaling_target_cpu_utilization=<span class="code-num">70</span>,
+)
+
+<span class="code-comment"># Prediction from endpoint</span>
+<span class="code-keyword">import</span> base64
+
+<span class="code-keyword">with</span> <span class="code-fn">open</span>(<span class="code-string">"test_image.jpg"</span>, <span class="code-string">"rb"</span>) <span class="code-keyword">as</span> f:
+    encoded = base64.b64encode(f.read()).decode(<span class="code-string">"utf-8"</span>)
+
+prediction = endpoint.predict(
+    instances=[{<span class="code-string">"content"</span>: encoded}]
+)
+<span class="code-fn">print</span>(prediction.predictions)</code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Edge vs Cloud Trade-offs</div>
+        <p>
+          <strong>Edge:</strong> &lt;20ms latency, works offline, limited model size (8MB for Edge TPU),
+          requires int8 quantization, hardware cost per station.<br>
+          <strong>Cloud:</strong> Unlimited model size, easy scaling, 50&ndash;200ms latency, requires
+          reliable network, ongoing API costs. Most production deployments use a
+          <strong>hybrid approach</strong> &mdash; edge for real-time pass/fail, cloud for detailed
+          defect analysis and model retraining.
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ SECTION 8: ACTIVE LEARNING ═══════════════════ -->
+    <div class="section" id="active-learning">
+      <div class="section-header">
+        <div class="section-num">8</div>
+        <h2>Active Learning Pipeline</h2>
+      </div>
+
+      <h3>Why Active Learning Matters</h3>
+      <p>
+        Manufacturing processes evolve. New materials introduce new defect types. Tooling wear causes
+        gradual shifts in defect appearance. A model trained on historical data will <strong>degrade
+        over time</strong> (concept drift). Active learning solves this by automatically identifying
+        images where the model is <strong>uncertain</strong> and routing them to human experts for
+        labeling, then retraining the model with the new data.
+      </p>
+
+      <pre><code><span class="code-keyword">def</span> <span class="code-fn">compute_uncertainty</span>(predictions):
+    <span class="code-string">"""Compute prediction entropy as uncertainty measure."""</span>
+    <span class="code-comment"># High entropy = model is uncertain between classes</span>
+    entropy = -tf.reduce_sum(
+        predictions * tf.math.log(predictions + <span class="code-num">1e-7</span>),
+        axis=-<span class="code-num">1</span>
+    )
+    <span class="code-keyword">return</span> entropy
+
+<span class="code-keyword">def</span> <span class="code-fn">active_learning_loop</span>(model, new_images, threshold=<span class="code-num">0.5</span>):
+    <span class="code-string">"""Flag uncertain predictions for human review."""</span>
+    predictions = model.predict(new_images)
+    uncertainties = compute_uncertainty(predictions)
+
+    <span class="code-comment"># Split into confident and uncertain</span>
+    confident_mask = uncertainties &lt; threshold
+    uncertain_mask = ~confident_mask
+
+    <span class="code-comment"># Auto-accept confident predictions</span>
+    auto_results = predictions[confident_mask]
+
+    <span class="code-comment"># Route uncertain images to human review queue</span>
+    review_images = new_images[uncertain_mask]
+    <span class="code-fn">send_to_review_queue</span>(review_images, uncertainties[uncertain_mask])
+
+    <span class="code-keyword">return</span> auto_results, review_images
+
+<span class="code-keyword">def</span> <span class="code-fn">send_to_review_queue</span>(images, scores):
+    <span class="code-string">"""Publish uncertain images to Pub/Sub for human review."""</span>
+    <span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> pubsub_v1
+    publisher = pubsub_v1.PublisherClient()
+    topic = publisher.topic_path(<span class="code-string">"manufacturing-qc"</span>,
+                                  <span class="code-string">"defect-review-queue"</span>)
+
+    <span class="code-keyword">for</span> img, score <span class="code-keyword">in</span> <span class="code-fn">zip</span>(images, scores):
+        <span class="code-comment"># Upload image to GCS and publish message</span>
+        gcs_path = upload_to_gcs(img)
+        publisher.publish(topic,
+            data=gcs_path.encode(),
+            uncertainty_score=<span class="code-fn">str</span>(<span class="code-fn">float</span>(score))
+        )</code></pre>
+
+      <h3>Retraining Trigger Strategy</h3>
+      <p>
+        Retraining should not happen after every new label &mdash; that would be wasteful and cause
+        unnecessary model version churn. Use a combination of triggers:
+      </p>
+
+      <ul class="checklist">
+        <li><span class="check-box done"></span> <strong>Volume trigger:</strong> retrain after N new labeled samples (e.g., 200)</li>
+        <li><span class="check-box done"></span> <strong>Drift trigger:</strong> retrain when prediction distribution shifts significantly</li>
+        <li><span class="check-box done"></span> <strong>Performance trigger:</strong> retrain when monitored precision/recall drops below threshold</li>
+        <li><span class="check-box done"></span> <strong>Scheduled:</strong> weekly retraining as a safety net regardless of triggers</li>
+      </ul>
+
+      <div class="callout tip">
+        <div class="callout-label">Vertex AI Model Monitoring</div>
+        <p>
+          Vertex AI Model Monitoring can automatically detect <strong>feature drift</strong> (input
+          distribution changes) and <strong>prediction drift</strong> (output distribution changes).
+          Configure alerts to trigger retraining pipelines via Cloud Functions when drift exceeds
+          your configured thresholds.
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ SECTION 9: KEY COMPONENTS ═══════════════════ -->
+    <div class="section" id="key-components">
+      <div class="section-header">
+        <div class="section-num">9</div>
+        <h2>Key GCP Components</h2>
+      </div>
+
+      <p>
+        Each component in the architecture maps to a specific GCP service. Understanding which service
+        to use for each function is critical for the MLE exam.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128247;</div>
+            <h4>AutoML Vision</h4>
+          </div>
+          <p>
+            No-code image classification and object detection. Automatic architecture search,
+            hyperparameter tuning, and model selection. Supports export to TF Lite and Edge TPU
+            formats. Best for teams without deep ML expertise or for establishing baselines quickly.
+          </p>
+        </div>
+
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9881;&#65039;</div>
+            <h4>Vertex AI Training</h4>
+          </div>
+          <p>
+            Custom model training with managed infrastructure. Supports TensorFlow, PyTorch, and
+            scikit-learn. Auto-scaling GPU/TPU allocation, distributed training, hyperparameter
+            tuning with Vizier. Required when you need custom architectures or loss functions.
+          </p>
+        </div>
+
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128293;</div>
+            <h4>Edge TPU</h4>
+          </div>
+          <p>
+            Purpose-built ASIC for running TF Lite models at the edge. Delivers 4 TOPS at 2W power.
+            Requires int8 quantization. Available in USB, PCIe, and SoM form factors.
+            Ideal for factory-floor deployment where latency and reliability are critical.
+          </p>
+        </div>
+
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128230;</div>
+            <h4>Cloud Storage</h4>
+          </div>
+          <p>
+            Multi-tier object storage for image data. Standard tier for active training data,
+            Nearline for recent archives, Coldline for regulatory compliance. Lifecycle policies
+            automate data tiering. Integrates natively with Vertex AI datasets.
+          </p>
+        </div>
+
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#129504;</div>
+            <h4>Transfer Learning</h4>
+          </div>
+          <p>
+            Technique of reusing pre-trained model weights (EfficientNet, ResNet, MobileNet) as
+            a starting point for defect classification. Dramatically reduces data requirements
+            (from 10K+ images to 500+) and training time. Two-phase approach: freeze backbone,
+            then fine-tune upper layers.
+          </p>
+        </div>
+
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128260;</div>
+            <h4>Active Learning</h4>
+          </div>
+          <p>
+            Continuous improvement loop where model uncertainty drives new labeling requests.
+            Uses prediction entropy to identify images the model is unsure about. Routes uncertain
+            images to human reviewers via Pub/Sub. Retraining triggered by volume, drift, or
+            performance thresholds.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ SECTION 10: RESULTS ═══════════════════ -->
+    <div class="section" id="results">
+      <div class="section-header">
+        <div class="section-num">10</div>
+        <h2>Results &amp; Impact</h2>
+      </div>
+
+      <h3>Performance Metrics</h3>
+      <p>
+        After deploying the custom EfficientNet model with active learning, the system achieved the
+        following production metrics over a 6-month evaluation period:
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Before (Manual)</th>
+            <th>After (ML)</th>
+            <th>Improvement</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Defect detection rate</strong></td>
+            <td>80%</td>
+            <td>97.2%</td>
+            <td>+21.5%</td>
+          </tr>
+          <tr>
+            <td><strong>False escapes</strong></td>
+            <td>20% of defects</td>
+            <td>2.8% of defects</td>
+            <td>85% reduction</td>
+          </tr>
+          <tr>
+            <td><strong>Inspection time per part</strong></td>
+            <td>2&ndash;4 seconds</td>
+            <td>&lt;200ms</td>
+            <td>10&ndash;20x faster</td>
+          </tr>
+          <tr>
+            <td><strong>Throughput</strong></td>
+            <td>15&ndash;30 parts/min</td>
+            <td>60+ parts/min</td>
+            <td>60% increase</td>
+          </tr>
+          <tr>
+            <td><strong>Annual cost savings</strong></td>
+            <td>Baseline</td>
+            <td>$3.2M saved</td>
+            <td>From reduced returns/recalls</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Per-Defect-Type Accuracy</h3>
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Defect Type</th>
+            <th>Precision</th>
+            <th>Recall</th>
+            <th>F1 Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Scratch</strong></td>
+            <td>96%</td>
+            <td>95%</td>
+            <td>95.5%</td>
+          </tr>
+          <tr>
+            <td><strong>Crack</strong></td>
+            <td>98%</td>
+            <td>97%</td>
+            <td>97.5%</td>
+          </tr>
+          <tr>
+            <td><strong>Dent</strong></td>
+            <td>95%</td>
+            <td>94%</td>
+            <td>94.5%</td>
+          </tr>
+          <tr>
+            <td><strong>Discoloration</strong></td>
+            <td>94%</td>
+            <td>93%</td>
+            <td>93.5%</td>
+          </tr>
+          <tr>
+            <td><strong>Misalignment</strong></td>
+            <td>97%</td>
+            <td>96%</td>
+            <td>96.5%</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">ROI Calculation</div>
+        <p>
+          The $3.2M annual savings comes from: <strong>reduced warranty claims</strong> ($1.8M),
+          <strong>fewer production stoppages</strong> from downstream defect discovery ($0.8M),
+          <strong>reduced manual inspection labor</strong> ($0.4M), and <strong>increased throughput
+          revenue</strong> ($0.2M). Initial deployment cost was $180K (cameras, Edge TPUs, integration),
+          yielding an <strong>ROI of 17.8x in year one</strong>.
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ SECTION 11: PRODUCTION ═══════════════════ -->
+    <div class="section" id="production">
+      <div class="section-header">
+        <div class="section-num">11</div>
+        <h2>Production Considerations</h2>
+      </div>
+
+      <h3>Edge vs Cloud Inference Trade-offs</h3>
+      <p>
+        The decision between edge and cloud inference depends on your <strong>latency requirements</strong>,
+        <strong>network reliability</strong>, and <strong>model complexity</strong>. Most production
+        deployments use a hybrid approach:
+      </p>
+
+      <ul class="checklist">
+        <li><span class="check-box done"></span> <strong>Edge (Edge TPU):</strong> Binary pass/fail decision at line speed. Lightweight quantized model. Works offline.</li>
+        <li><span class="check-box done"></span> <strong>Cloud (Vertex AI):</strong> Detailed defect classification, severity scoring, root cause analysis. Larger model, richer features.</li>
+        <li><span class="check-box done"></span> <strong>Hybrid:</strong> Edge makes immediate pass/fail. Flagged images sent to cloud for detailed analysis. Cloud results feed back into edge model retraining.</li>
+      </ul>
+
+      <h3>Handling New Defect Types</h3>
+      <p>
+        When a new defect type appears (e.g., a new supplier introduces a material with different failure
+        modes), you cannot wait for hundreds of labeled examples to retrain. <strong>Few-shot learning</strong>
+        techniques like Prototypical Networks or Siamese Networks can detect new defect types with as
+        few as 5&ndash;10 examples. On GCP, this means:
+      </p>
+
+      <pre><code><span class="code-comment"># Few-shot approach: Siamese network for novel defect detection</span>
+<span class="code-comment"># 1. Extract embeddings from the penultimate layer of trained model</span>
+embedding_model = tf.keras.Model(
+    inputs=model.input,
+    outputs=model.layers[-<span class="code-num">3</span>].output  <span class="code-comment"># 256-dim embedding</span>
+)
+
+<span class="code-comment"># 2. Compute mean embedding for new defect type (5-10 examples)</span>
+new_defect_embeddings = embedding_model.predict(new_defect_images)
+prototype = tf.reduce_mean(new_defect_embeddings, axis=<span class="code-num">0</span>)
+
+<span class="code-comment"># 3. At inference, compare new image embedding to prototype</span>
+<span class="code-keyword">def</span> <span class="code-fn">detect_novel_defect</span>(image, prototype, threshold=<span class="code-num">0.7</span>):
+    embedding = embedding_model.predict(image[tf.newaxis, ...])
+    similarity = tf.keras.losses.cosine_similarity(embedding, prototype)
+    <span class="code-keyword">return</span> <span class="code-fn">float</span>(similarity) > threshold</code></pre>
+
+      <h3>Camera Calibration &amp; Lighting Consistency</h3>
+      <p>
+        The single largest source of model performance degradation in production is <strong>lighting
+        variation</strong>. Bulbs age and dim. Ambient lighting changes with time of day. New cameras
+        have different exposure characteristics. Mitigate this with:
+      </p>
+
+      <ul class="checklist">
+        <li><span class="check-box done"></span> <strong>Reference targets:</strong> Place calibration targets in camera FOV. Compare periodically.</li>
+        <li><span class="check-box done"></span> <strong>LED ring lighting:</strong> Consistent, controllable illumination. Diffused to minimize specular reflection.</li>
+        <li><span class="check-box done"></span> <strong>White balance correction:</strong> Auto-calibrate using reference patches before each shift.</li>
+        <li><span class="check-box done"></span> <strong>Exposure locking:</strong> Fixed exposure prevents camera auto-adjustments that shift the input distribution.</li>
+      </ul>
+
+      <h3>Integration with PLC/SCADA Systems</h3>
+      <p>
+        Manufacturing lines are controlled by <strong>Programmable Logic Controllers (PLCs)</strong>
+        and monitored by <strong>SCADA</strong> systems. The defect detection system must integrate
+        with these industrial control systems to trigger physical actions (diverter gates, stop signals,
+        marking systems). This typically requires an <strong>OPC-UA</strong> gateway or
+        <strong>MQTT bridge</strong> between the ML system and the PLC network.
+      </p>
+
+      <h3>Model Size Constraints for Edge Devices</h3>
+      <p>
+        The Coral Edge TPU supports models up to <strong>8MB</strong> after compilation. EfficientNetB0
+        at int8 quantization is approximately 5.3MB &mdash; well within limits. Larger models
+        (EfficientNetB3+, ResNet-50) exceed this and require either aggressive pruning or splitting
+        between edge and cloud. MobileNetV2 at int8 is only 3.4MB, making it the best choice for
+        resource-constrained edge deployments.
+      </p>
+
+      <h3>Handling Production Line Speed Changes</h3>
+      <p>
+        Production lines do not run at constant speed. Startups, slowdowns, and emergency stops cause
+        frame rate variation. The image capture system must handle <strong>variable trigger rates</strong>
+        and <strong>motion blur</strong> at high speeds. Solutions include:
+      </p>
+
+      <ul class="checklist">
+        <li><span class="check-box done"></span> <strong>Hardware triggering:</strong> Encoder-driven camera triggers synchronized to conveyor speed</li>
+        <li><span class="check-box done"></span> <strong>Short exposure:</strong> &lt;1ms exposure time to freeze motion at max line speed</li>
+        <li><span class="check-box done"></span> <strong>Strobe lighting:</strong> High-intensity flash synchronized to camera trigger, eliminates ambient light</li>
+        <li><span class="check-box done"></span> <strong>Deblurring preprocessing:</strong> Wiener deconvolution for images captured during acceleration/deceleration</li>
+      </ul>
+    </div>
+
+    <!-- ═══════════════════ SECTION 12: EXAM TIPS ═══════════════════ -->
+    <div class="section" id="exam-tips">
+      <div class="section-header">
+        <div class="section-num">12</div>
+        <h2>GCP MLE Exam Tips</h2>
+      </div>
+
+      <p>
+        Manufacturing defect detection is a common exam scenario because it tests several key concepts
+        simultaneously: computer vision, transfer learning, edge deployment, active learning, and
+        MLOps best practices.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">High-Frequency Exam Topics</div>
+        <p>
+          These patterns appear repeatedly in exam questions about manufacturing ML:
+        </p>
+      </div>
+
+      <h3>Key Decision Patterns</h3>
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Scenario</th>
+            <th>Correct GCP Service</th>
+            <th>Why</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>"Team has no ML expertise"</td>
+            <td>AutoML Vision</td>
+            <td>No-code, automated model building</td>
+          </tr>
+          <tr>
+            <td>"Need custom loss function"</td>
+            <td>Vertex AI Custom Training</td>
+            <td>Full code control required</td>
+          </tr>
+          <tr>
+            <td>"Real-time at the edge"</td>
+            <td>Edge TPU + TF Lite</td>
+            <td>Sub-20ms latency, offline capable</td>
+          </tr>
+          <tr>
+            <td>"Model accuracy dropping over time"</td>
+            <td>Vertex AI Model Monitoring + retraining</td>
+            <td>Detect and respond to drift</td>
+          </tr>
+          <tr>
+            <td>"Imbalanced dataset (99% normal)"</td>
+            <td>Focal loss + oversampling + class weights</td>
+            <td>Standard CE fails on imbalanced data</td>
+          </tr>
+          <tr>
+            <td>"Need to inspect every part"</td>
+            <td>Edge inference (not sampling)</td>
+            <td>100% inspection requires edge speed</td>
+          </tr>
+          <tr>
+            <td>"New defect type with few examples"</td>
+            <td>Few-shot learning / Siamese networks</td>
+            <td>Cannot wait for large labeled dataset</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Common Exam Traps</h3>
+      <ul class="checklist">
+        <li><span class="check-box done"></span> <strong>Trap:</strong> Using accuracy as the primary metric for imbalanced defect data. <strong>Correct:</strong> Use per-class precision/recall.</li>
+        <li><span class="check-box done"></span> <strong>Trap:</strong> Deploying a float32 model to Edge TPU. <strong>Correct:</strong> Edge TPU requires int8 quantization.</li>
+        <li><span class="check-box done"></span> <strong>Trap:</strong> Retraining on all data whenever new labels arrive. <strong>Correct:</strong> Use triggered retraining with validation gates.</li>
+        <li><span class="check-box done"></span> <strong>Trap:</strong> Applying heavy color augmentation when discoloration is a defect type. <strong>Correct:</strong> Augmentation must preserve defect signals.</li>
+        <li><span class="check-box done"></span> <strong>Trap:</strong> Using cloud inference for real-time line rejection. <strong>Correct:</strong> Edge inference for latency-critical decisions.</li>
+      </ul>
+
+      <div class="callout info">
+        <div class="callout-label">Study Recommendation</div>
+        <p>
+          Run the companion Colab notebook to build hands-on intuition. The notebook generates synthetic
+          defect images, trains a MobileNetV2 classifier with transfer learning, evaluates per-class
+          metrics, and visualizes predictions &mdash; all skills that map directly to exam questions
+          about computer vision pipelines on GCP.
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══════════════ PREV / NEXT NAV ═══════════════ -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Use Case</div>
+        <a href="03-churn-prediction.html" class="prev-btn">&larr; 03 &middot; Churn Prediction</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Use Case</div>
+        <a href="05-recommendation-engine.html" class="next-btn">05 &middot; Recommendations &rarr;</a>
+      </div>
+    </div>
+
+  </div><!-- /.main -->
+</div><!-- /.content-grid -->
+
+<!-- ────────────────────────── FOOTER ─────────────────────── -->
+<footer>
+  CareerAlign &mdash; GCP Machine Learning Engineer Use Cases &middot;
+  Built for learners preparing for the Google Cloud MLE certification.
+</footer>
+
+</body>
+</html>
