@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>MLOps with Vertex AI: Model Evaluation — GCP MLE Certification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--phase-cloud); background: rgba(34,197,94,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-indigo);
+  padding: 6px 14px; border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(99,102,241,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--phase-cloud); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--phase-cloud); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--phase-cloud); flex-shrink: 0; }
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--phase-cloud); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--phase-cloud); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--phase-cloud);
+  background: rgba(34,197,94,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--phase-cloud); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--phase-project); background: rgba(245,158,11,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--phase-cloud);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--phase-cloud); }
+.callout.warn .callout-label { color: var(--phase-project); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* SVG DIAGRAM */
+.diagram-wrap {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg); padding: 32px;
+  margin: 32px 0;
+}
+.diagram-caption {
+  text-align: center; font-size: 13px; color: var(--text-muted);
+  margin-top: 16px; font-style: italic;
+}
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--phase-cloud); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(34,197,94,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* CHECKLIST */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px; color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 2px solid var(--phase-cloud);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.check-box.done { background: var(--phase-cloud); border-color: var(--phase-cloud); }
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--phase-cloud); color: var(--phase-cloud); transform: translateX(4px); }
+.prev-btn:hover { border-color: var(--phase-prereq); color: var(--phase-prereq); transform: translateX(-4px); }
+.next-phase { font-size: 12px; color: var(--phase-cloud); font-weight: 500; }
+
+/* FORMULA */
+.formula {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 16px 22px; margin: 20px 0;
+  font-family: var(--font-mono); font-size: 14px; color: var(--accent-cyan);
+  text-align: center; letter-spacing: 0.02em;
+}
+
+/* TABLE */
+.info-table {
+  width: 100%; border-collapse: collapse; margin: 20px 0;
+  font-size: 14px;
+}
+.info-table th, .info-table td {
+  padding: 12px 16px; text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.info-table th {
+  font-family: var(--font-display); font-weight: 600; font-size: 12px;
+  color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em;
+  background: var(--bg-surface);
+}
+.info-table td { color: var(--text-secondary); }
+.info-table td strong { color: var(--text-primary); }
+.info-table tr:hover td { background: var(--bg-surface); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9889; <span>CareerAlign</span> GCP MLE</div>
+  <div class="nav-links">
+    <a href="01-intro-ml-ai.html">01</a>
+    <a href="02-ml-development.html">02</a>
+    <a href="03-data-engineering.html">03</a>
+    <a href="04-feature-engineering.html">04</a>
+    <a href="05-model-training.html">05</a>
+    <a href="06-model-optimization.html">06</a>
+    <a href="07-model-deployment.html">07</a>
+    <a href="08-ml-monitoring.html">08</a>
+    <a href="09-vertex-ai-platform.html">09</a>
+    <a href="10-bigquery-ml.html">10</a>
+    <a href="11-responsible-ai.html">11</a>
+    <a href="12-intro-llms.html">12</a>
+    <a href="13-mlops-generative-ai.html">13 &middot; GenAI MLOps</a>
+    <a href="14-mlops-model-evaluation.html" class="active">14 &middot; Evaluation</a>
+    <a href="15-ml-pipelines-gcp.html">15</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GCP MLE Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Course 14 &middot; Sections 5 &amp; 6 &middot; Model Evaluation
+  </div>
+  <h1>MLOps with Vertex AI: <em>Model Evaluation</em></h1>
+  <p class="hero-desc">
+    Model evaluation is the gatekeeper between development and production. A model that scores well on training
+    data can fail catastrophically in the real world. This module covers every metric, method, and tool you need
+    for evaluating both classical ML and generative AI models on GCP &mdash; from confusion matrices to
+    LLM-based judging, fairness analysis, and continuous evaluation in production.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Classification Metrics
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Regression Metrics
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      GenAI Evaluation
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Vertex AI Evaluation
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Bias &amp; Fairness
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      A/B Testing
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="notebooks/14-mlops-model-evaluation.ipynb"
+       class="next-btn" target="_blank" rel="noopener" style="font-size:13px; padding:10px 18px;">
+      Open Companion Notebook
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#fundamentals" class="section">1 &middot; Evaluation Fundamentals</a>
+    <a href="#classification" class="section">2 &middot; Classification Metrics</a>
+    <a href="#confusion-matrix" class="sub">Confusion Matrix</a>
+    <a href="#roc-pr" class="sub">ROC &amp; PR Curves</a>
+    <a href="#regression" class="section">3 &middot; Regression Metrics</a>
+    <a href="#genai-eval" class="section">4 &middot; GenAI Evaluation</a>
+    <a href="#pointwise" class="sub">Pointwise Eval</a>
+    <a href="#pairwise" class="sub">Pairwise Eval</a>
+    <a href="#auto-metrics" class="sub">BLEU, ROUGE, Perplexity</a>
+    <a href="#llm-eval" class="sub">LLM-Based Evaluation</a>
+    <a href="#vertex-eval" class="section">5 &middot; Vertex AI Evaluation</a>
+    <a href="#golden-datasets" class="section">6 &middot; Evaluation Datasets</a>
+    <a href="#continuous-eval" class="section">7 &middot; Continuous Evaluation</a>
+    <a href="#bias-fairness" class="section">8 &middot; Bias &amp; Fairness</a>
+    <a href="#ab-testing" class="section">9 &middot; A/B Testing</a>
+    <a href="#exam-focus" class="section">10 &middot; Exam Focus</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- SECTION 1 -->
+    <section class="section" id="fundamentals">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Model Evaluation Fundamentals</h2>
+      </div>
+
+      <p>
+        Model evaluation answers three critical questions: <strong>Is this model good enough for production?</strong>
+        <strong>Is it better than what we have?</strong> <strong>Is it fair and safe?</strong> Evaluation happens
+        at multiple stages of the ML lifecycle:
+      </p>
+
+      <table class="info-table">
+        <thead>
+          <tr><th>When</th><th>What</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>During Training</strong></td><td>Validation metrics per epoch</td><td>Detect overfitting, tune hyperparameters</td></tr>
+          <tr><td><strong>Post-Training</strong></td><td>Test set evaluation</td><td>Unbiased performance estimate</td></tr>
+          <tr><td><strong>Pre-Deployment</strong></td><td>Champion-challenger comparison</td><td>Decide whether to deploy new model</td></tr>
+          <tr><td><strong>Post-Deployment</strong></td><td>Continuous evaluation</td><td>Detect model degradation in production</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">Golden Rule</div>
+        <p>
+          Never evaluate on training data. Always hold out a test set that the model has never seen. For time-series
+          data, use temporal splits (train on past, test on future). For GenAI, ensure evaluation prompts were not in
+          the fine-tuning dataset.
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section class="section" id="classification">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Classification Metrics</h2>
+      </div>
+
+      <p>
+        Classification is the most common ML task on the exam. You must know when to use each metric and the
+        tradeoffs between them.
+      </p>
+
+      <h3 id="confusion-matrix">The Confusion Matrix</h3>
+
+      <p>
+        Every classification metric derives from the confusion matrix. For binary classification:
+      </p>
+
+      <!-- SVG Confusion Matrix -->
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 500 300" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'Space Grotesk', sans-serif">
+          <rect width="500" height="300" fill="#10131e" rx="12"/>
+
+          <!-- Labels -->
+          <text x="300" y="30" text-anchor="middle" fill="#8e94b5" font-size="13" font-weight="600">Predicted</text>
+          <text x="225" y="55" text-anchor="middle" fill="#22c55e" font-size="12">Positive</text>
+          <text x="375" y="55" text-anchor="middle" fill="#ef4444" font-size="12">Negative</text>
+
+          <text x="80" y="135" text-anchor="middle" fill="#8e94b5" font-size="13" font-weight="600" transform="rotate(-90, 80, 135)">Actual</text>
+          <text x="120" y="120" text-anchor="middle" fill="#22c55e" font-size="12">Positive</text>
+          <text x="120" y="210" text-anchor="middle" fill="#ef4444" font-size="12">Negative</text>
+
+          <!-- Grid cells -->
+          <rect x="155" y="70" width="140" height="80" rx="8" fill="rgba(34,197,94,0.15)" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="225" y="105" text-anchor="middle" fill="#22c55e" font-size="14" font-weight="700">TP</text>
+          <text x="225" y="125" text-anchor="middle" fill="#22c55e" font-size="10">True Positive</text>
+
+          <rect x="305" y="70" width="140" height="80" rx="8" fill="rgba(239,68,68,0.1)" stroke="#ef4444" stroke-width="1"/>
+          <text x="375" y="105" text-anchor="middle" fill="#ef4444" font-size="14" font-weight="700">FN</text>
+          <text x="375" y="125" text-anchor="middle" fill="#ef4444" font-size="10">False Negative</text>
+
+          <rect x="155" y="160" width="140" height="80" rx="8" fill="rgba(239,68,68,0.1)" stroke="#ef4444" stroke-width="1"/>
+          <text x="225" y="195" text-anchor="middle" fill="#ef4444" font-size="14" font-weight="700">FP</text>
+          <text x="225" y="215" text-anchor="middle" fill="#ef4444" font-size="10">False Positive</text>
+
+          <rect x="305" y="160" width="140" height="80" rx="8" fill="rgba(34,197,94,0.15)" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="375" y="195" text-anchor="middle" fill="#22c55e" font-size="14" font-weight="700">TN</text>
+          <text x="375" y="215" text-anchor="middle" fill="#22c55e" font-size="10">True Negative</text>
+
+          <!-- Footnote -->
+          <text x="250" y="275" text-anchor="middle" fill="#545a78" font-size="10">TP + TN = Correct predictions | FP + FN = Errors</text>
+        </svg>
+        <div class="diagram-caption">The confusion matrix is the foundation of all classification metrics.</div>
+      </div>
+
+      <h3>Core Classification Metrics</h3>
+
+      <div class="formula">Accuracy = (TP + TN) / (TP + TN + FP + FN)</div>
+
+      <p>
+        <strong>Accuracy</strong> is the simplest metric but misleading for imbalanced datasets. If 99% of emails
+        are not spam, a model that always predicts "not spam" achieves 99% accuracy but catches zero spam.
+      </p>
+
+      <div class="formula">Precision = TP / (TP + FP) &mdash; "Of predicted positives, how many are correct?"</div>
+
+      <p>
+        <strong>Precision</strong> matters when <strong>false positives are costly</strong>. Example: spam filter
+        (you don't want to send real emails to spam), medical diagnosis (false positive means unnecessary treatment).
+      </p>
+
+      <div class="formula">Recall = TP / (TP + FN) &mdash; "Of actual positives, how many did we find?"</div>
+
+      <p>
+        <strong>Recall</strong> matters when <strong>false negatives are costly</strong>. Example: fraud detection
+        (missing a fraud case is expensive), cancer screening (missing a cancer case is dangerous).
+      </p>
+
+      <div class="formula">F1 = 2 * (Precision * Recall) / (Precision + Recall)</div>
+
+      <p>
+        <strong>F1 Score</strong> is the harmonic mean of precision and recall. Use it when you need to balance
+        both. It is the default metric for imbalanced classification problems.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Tip</div>
+        <p>
+          When the exam says "minimize false positives" &rarr; <strong>optimize precision</strong>.
+          When it says "minimize false negatives" &rarr; <strong>optimize recall</strong>.
+          When it says "imbalanced dataset" &rarr; do NOT use accuracy; use <strong>F1, PR-AUC, or ROC-AUC</strong>.
+        </p>
+      </div>
+
+      <h3 id="roc-pr">ROC-AUC and PR-AUC</h3>
+
+      <p>
+        <strong>ROC-AUC</strong> (Receiver Operating Characteristic - Area Under Curve) plots True Positive Rate vs
+        False Positive Rate at all classification thresholds. AUC = 1.0 is perfect, AUC = 0.5 is random.
+      </p>
+
+      <p>
+        <strong>PR-AUC</strong> (Precision-Recall AUC) plots Precision vs Recall. More informative than ROC-AUC
+        for <strong>highly imbalanced datasets</strong> where the positive class is rare (fraud, disease).
+      </p>
+
+      <table class="info-table">
+        <thead>
+          <tr><th>Metric</th><th>Best For</th><th>Range</th><th>Threshold-Free?</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Accuracy</strong></td><td>Balanced datasets</td><td>0-1</td><td>No</td></tr>
+          <tr><td><strong>Precision</strong></td><td>FP is costly</td><td>0-1</td><td>No</td></tr>
+          <tr><td><strong>Recall</strong></td><td>FN is costly</td><td>0-1</td><td>No</td></tr>
+          <tr><td><strong>F1</strong></td><td>Imbalanced, need balance</td><td>0-1</td><td>No</td></tr>
+          <tr><td><strong>ROC-AUC</strong></td><td>Overall ranking ability</td><td>0-1</td><td>Yes</td></tr>
+          <tr><td><strong>PR-AUC</strong></td><td>Imbalanced + rare positive</td><td>0-1</td><td>Yes</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section class="section" id="regression">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Regression Metrics</h2>
+      </div>
+
+      <div class="formula">MAE = (1/n) * &sum; |y_i - y&#770;_i|</div>
+      <p>
+        <strong>Mean Absolute Error (MAE)</strong>: Average absolute difference between predictions and actual values.
+        Robust to outliers. Easy to interpret (same units as target).
+      </p>
+
+      <div class="formula">MSE = (1/n) * &sum; (y_i - y&#770;_i)&sup2;</div>
+      <p>
+        <strong>Mean Squared Error (MSE)</strong>: Average squared difference. Penalizes large errors more heavily
+        than MAE. Units are squared (harder to interpret).
+      </p>
+
+      <div class="formula">RMSE = &radic;MSE</div>
+      <p>
+        <strong>Root Mean Squared Error (RMSE)</strong>: Square root of MSE. Same units as target, but still
+        penalizes large errors. The most commonly used regression metric.
+      </p>
+
+      <div class="formula">R&sup2; = 1 - (SS_res / SS_tot)</div>
+      <p>
+        <strong>R-Squared (Coefficient of Determination)</strong>: Proportion of variance explained by the model.
+        R&sup2; = 1.0 is perfect, R&sup2; = 0 means the model is no better than predicting the mean.
+        Can be negative if the model is worse than the mean.
+      </p>
+
+      <div class="formula">MAPE = (100/n) * &sum; |y_i - y&#770;_i| / |y_i|</div>
+      <p>
+        <strong>Mean Absolute Percentage Error (MAPE)</strong>: Error as a percentage. Easy for stakeholders to
+        understand ("our predictions are off by 5%"). Undefined when actual value is zero.
+      </p>
+
+      <div class="callout tip">
+        <div class="callout-label">Choosing Regression Metrics</div>
+        <p>
+          Use <strong>RMSE</strong> as the default. Use <strong>MAE</strong> when outliers should not dominate.
+          Use <strong>MAPE</strong> for business stakeholder communication. Use <strong>R&sup2;</strong> to
+          explain "how much variance does the model explain?"
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 4 -->
+    <section class="section" id="genai-eval">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Evaluation for Generative AI</h2>
+      </div>
+
+      <p>
+        Evaluating generative AI requires fundamentally different approaches than classical ML. There is no
+        single ground truth for open-ended text generation, and traditional metrics like accuracy do not apply.
+      </p>
+
+      <h3 id="pointwise">Pointwise Evaluation</h3>
+      <p>
+        <strong>Pointwise evaluation</strong> scores a single model response on a rubric. A human or LLM judge
+        rates the response on criteria like relevance, accuracy, completeness, and coherence, typically on a 1-5 scale.
+      </p>
+
+      <pre><code><span class="code-comment"># Pointwise evaluation criteria</span>
+criteria = {
+    <span class="code-string">"relevance"</span>:    <span class="code-string">"Does the response address the question?"</span>,
+    <span class="code-string">"accuracy"</span>:     <span class="code-string">"Is the information factually correct?"</span>,
+    <span class="code-string">"completeness"</span>: <span class="code-string">"Does it cover all important aspects?"</span>,
+    <span class="code-string">"coherence"</span>:    <span class="code-string">"Is the text well-organized and logical?"</span>,
+    <span class="code-string">"safety"</span>:       <span class="code-string">"Is the response free from harmful content?"</span>,
+}
+<span class="code-comment"># Each criterion scored 1-5, aggregate for overall quality</span></code></pre>
+
+      <h3 id="pairwise">Pairwise Evaluation</h3>
+      <p>
+        <strong>Pairwise evaluation</strong> compares two responses and determines which is better. This is more
+        reliable than pointwise scoring because humans and LLMs are better at relative comparisons than absolute
+        ratings. Used heavily in RLHF for collecting preference data.
+      </p>
+
+      <h3 id="auto-metrics">Automated Metrics: BLEU, ROUGE, Perplexity</h3>
+
+      <table class="info-table">
+        <thead>
+          <tr><th>Metric</th><th>Measures</th><th>Best For</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>BLEU</strong></td>
+            <td>N-gram overlap between generated and reference text</td>
+            <td>Translation, constrained generation</td>
+            <td>Ignores meaning; multiple valid outputs score poorly</td>
+          </tr>
+          <tr>
+            <td><strong>ROUGE</strong></td>
+            <td>Recall-oriented n-gram overlap</td>
+            <td>Summarization</td>
+            <td>Only measures surface-level similarity</td>
+          </tr>
+          <tr>
+            <td><strong>Perplexity</strong></td>
+            <td>How "surprised" the model is by text (lower = better)</td>
+            <td>Language model quality</td>
+            <td>Does not measure factual correctness</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <div class="callout-label">Important for Exam</div>
+        <p>
+          BLEU and ROUGE are fast and reproducible but <strong>correlate poorly with human judgment</strong> for
+          open-ended generation. The exam may test whether you know to use <strong>LLM-based evaluation</strong>
+          (not just BLEU/ROUGE) for GenAI quality assessment.
+        </p>
+      </div>
+
+      <h3 id="llm-eval">LLM-Based Evaluation</h3>
+      <p>
+        LLM-based evaluation uses a strong model (e.g., Gemini Pro) to judge outputs from any model.
+        Key dimensions evaluated:
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">F</div>
+            <h4>Faithfulness</h4>
+          </div>
+          <p>Is the response grounded in the provided context? Critical for RAG systems to prevent hallucination.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">R</div>
+            <h4>Relevance</h4>
+          </div>
+          <p>Does the response actually answer the question? Measures alignment between query and answer.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">C</div>
+            <h4>Coherence</h4>
+          </div>
+          <p>Is the response well-structured and logically consistent? No contradictions or random tangents.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">S</div>
+            <h4>Safety</h4>
+          </div>
+          <p>Is the response free from harmful, biased, or inappropriate content? Required for production deployment.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5 -->
+    <section class="section" id="vertex-eval">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Vertex AI Model Evaluation</h2>
+      </div>
+
+      <p>
+        Vertex AI provides built-in evaluation tools for both classical ML and generative AI models.
+      </p>
+
+      <h3>AutoML Model Evaluation</h3>
+      <p>
+        When you train an AutoML model, Vertex AI automatically generates evaluation metrics on the test set.
+        These include confusion matrix, ROC curve, precision-recall curve, and feature importance for
+        classification; MAE, RMSE, R&sup2; for regression.
+      </p>
+
+      <pre><code><span class="code-comment"># Access AutoML model evaluation via SDK</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+model = aiplatform.<span class="code-fn">Model</span>(<span class="code-string">"projects/my-proj/locations/us-central1/models/12345"</span>)
+
+<span class="code-comment"># Get all evaluation slices</span>
+evaluations = model.<span class="code-fn">list_model_evaluations</span>()
+<span class="code-keyword">for</span> eval <span class="code-keyword">in</span> evaluations:
+    <span class="code-keyword">print</span>(f<span class="code-string">"Evaluation: {eval.display_name}"</span>)
+    <span class="code-keyword">print</span>(f<span class="code-string">"  Metrics: {eval.metrics}"</span>)
+    <span class="code-keyword">print</span>(f<span class="code-string">"  Slices: {eval.model_evaluation_slices}"</span>)</code></pre>
+
+      <h3>Gen AI Evaluation Service</h3>
+      <p>
+        The <strong>Vertex AI Gen AI Evaluation Service</strong> provides automated evaluation for generative AI models.
+        It supports:
+      </p>
+
+      <ul class="checklist">
+        <li><div class="check-box done"></div><strong>Pointwise metrics:</strong> Fluency, coherence, safety, groundedness</li>
+        <li><div class="check-box done"></div><strong>Pairwise comparison:</strong> Compare outputs from two models</li>
+        <li><div class="check-box done"></div><strong>Task-specific:</strong> Summarization quality, QA accuracy, text generation</li>
+        <li><div class="check-box done"></div><strong>Custom rubrics:</strong> Define your own evaluation criteria</li>
+        <li><div class="check-box done"></div><strong>Batch evaluation:</strong> Evaluate hundreds of examples in parallel</li>
+      </ul>
+
+      <pre><code><span class="code-comment"># Vertex AI Gen AI Evaluation</span>
+<span class="code-keyword">from</span> vertexai.evaluation <span class="code-keyword">import</span> EvalTask, PointwiseMetric
+
+eval_task = EvalTask(
+    dataset=eval_dataset,      <span class="code-comment"># List of {prompt, reference, response}</span>
+    metrics=[
+        <span class="code-string">"fluency"</span>,
+        <span class="code-string">"coherence"</span>,
+        <span class="code-string">"safety"</span>,
+        <span class="code-string">"groundedness"</span>,
+        PointwiseMetric(
+            metric=<span class="code-string">"custom_quality"</span>,
+            metric_prompt_template=<span class="code-string">"Rate quality 1-5: {response}"</span>,
+        ),
+    ],
+)
+
+result = eval_task.<span class="code-fn">evaluate</span>(
+    model=GenerativeModel(<span class="code-string">"gemini-2.0-flash"</span>),
+)
+<span class="code-keyword">print</span>(result.summary_metrics)
+<span class="code-keyword">print</span>(result.metrics_table)  <span class="code-comment"># Per-example scores</span></code></pre>
+    </section>
+
+    <!-- SECTION 6 -->
+    <section class="section" id="golden-datasets">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Evaluation Datasets</h2>
+      </div>
+
+      <p>
+        The quality of your evaluation is only as good as your evaluation dataset. A <strong>golden dataset</strong>
+        (or gold standard dataset) is a curated collection of inputs and expected outputs used as the ground truth
+        for evaluation.
+      </p>
+
+      <h3>Creating Golden Datasets</h3>
+      <ul class="checklist">
+        <li><div class="check-box done"></div><strong>Representative:</strong> Cover all important use cases and edge cases</li>
+        <li><div class="check-box done"></div><strong>Diverse:</strong> Include examples from all user segments, languages, topics</li>
+        <li><div class="check-box done"></div><strong>Annotated:</strong> Human-verified expected outputs (not model-generated)</li>
+        <li><div class="check-box done"></div><strong>Versioned:</strong> Track changes to evaluation data over time</li>
+        <li><div class="check-box done"></div><strong>Size:</strong> 100-500 examples minimum for meaningful evaluation</li>
+      </ul>
+
+      <h3>Avoiding Contamination</h3>
+      <div class="callout warn">
+        <div class="callout-label">Data Leakage Warning</div>
+        <p>
+          <strong>Test set contamination</strong> is the most common evaluation mistake. Ensure:
+          (1) test data was never in the training set,
+          (2) no duplicate or near-duplicate examples across splits,
+          (3) for GenAI, evaluation prompts were not used during fine-tuning,
+          (4) temporal ordering is preserved for time-series data.
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 7 -->
+    <section class="section" id="continuous-eval">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Continuous Evaluation</h2>
+      </div>
+
+      <p>
+        Models degrade over time as data distributions shift. <strong>Continuous evaluation</strong> monitors
+        deployed model performance by periodically comparing predictions against ground truth labels that
+        arrive with a delay.
+      </p>
+
+      <h3>Vertex AI Continuous Evaluation</h3>
+      <p>
+        Vertex AI supports continuous evaluation for deployed models. It samples predictions from the serving
+        endpoint, collects ground truth labels (when available), and computes metrics over time windows.
+      </p>
+
+      <table class="info-table">
+        <thead>
+          <tr><th>Approach</th><th>How</th><th>When to Use</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Ground truth comparison</strong></td>
+            <td>Compare predictions to delayed labels</td>
+            <td>When labels eventually become available (e.g., loan default after 6 months)</td>
+          </tr>
+          <tr>
+            <td><strong>Proxy metrics</strong></td>
+            <td>Track user engagement, click-through rate, task completion</td>
+            <td>When ground truth is unavailable or subjective</td>
+          </tr>
+          <tr>
+            <td><strong>LLM judge pipeline</strong></td>
+            <td>Periodically run LLM-as-judge on sampled outputs</td>
+            <td>GenAI models where ground truth is not well-defined</td>
+          </tr>
+          <tr>
+            <td><strong>Human review sampling</strong></td>
+            <td>Send random samples to human reviewers</td>
+            <td>High-stakes applications (medical, legal, financial)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">Retraining Triggers</div>
+        <p>
+          Set up alerts to trigger retraining when: (1) evaluation metrics drop below a threshold,
+          (2) data drift is detected, (3) new training data is available, (4) business requirements change.
+          Use Vertex AI Pipelines to automate the retrain-evaluate-deploy cycle.
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 8 -->
+    <section class="section" id="bias-fairness">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <h2>Bias and Fairness Evaluation</h2>
+      </div>
+
+      <p>
+        A model can have excellent aggregate metrics but perform poorly for specific subgroups. <strong>Slice-based
+        evaluation</strong> breaks down metrics by demographic or business-relevant segments.
+      </p>
+
+      <h3>Slice-Based Evaluation</h3>
+      <p>
+        Instead of looking only at overall accuracy, compute metrics for each slice of your data:
+      </p>
+
+      <pre><code><span class="code-comment"># Slice-based evaluation example</span>
+slices = {
+    <span class="code-string">"gender"</span>: [<span class="code-string">"male"</span>, <span class="code-string">"female"</span>, <span class="code-string">"non-binary"</span>],
+    <span class="code-string">"age_group"</span>: [<span class="code-string">"18-30"</span>, <span class="code-string">"31-50"</span>, <span class="code-string">"51+"</span>],
+    <span class="code-string">"region"</span>: [<span class="code-string">"US"</span>, <span class="code-string">"EU"</span>, <span class="code-string">"Asia"</span>],
+}
+
+<span class="code-keyword">for</span> slice_name, values <span class="code-keyword">in</span> slices.items():
+    <span class="code-keyword">for</span> value <span class="code-keyword">in</span> values:
+        subset = test_data[test_data[slice_name] == value]
+        metrics = <span class="code-fn">compute_metrics</span>(subset.predictions, subset.labels)
+        <span class="code-keyword">print</span>(f<span class="code-string">"{slice_name}={value}: F1={metrics['f1']:.3f}, Recall={metrics['recall']:.3f}"</span>)</code></pre>
+
+      <h3>Fairness Metrics</h3>
+      <table class="info-table">
+        <thead>
+          <tr><th>Metric</th><th>Definition</th><th>Use Case</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Demographic Parity</strong></td>
+            <td>Equal positive prediction rates across groups</td>
+            <td>Hiring, lending decisions</td>
+          </tr>
+          <tr>
+            <td><strong>Equal Opportunity</strong></td>
+            <td>Equal true positive rates across groups</td>
+            <td>When FN cost varies by group</td>
+          </tr>
+          <tr>
+            <td><strong>Equalized Odds</strong></td>
+            <td>Equal TPR and FPR across groups</td>
+            <td>Strictest fairness requirement</td>
+          </tr>
+          <tr>
+            <td><strong>Calibration</strong></td>
+            <td>Predicted probabilities match actual rates per group</td>
+            <td>Risk scoring (credit, insurance)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Vertex AI Fairness</div>
+        <p>
+          Vertex AI Model Evaluation provides slice-based evaluation out of the box. Use the <code>model_evaluation_slices</code>
+          API to retrieve metrics for specific data segments. The What-If Tool (WIT) provides interactive fairness analysis.
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 9 -->
+    <section class="section" id="ab-testing">
+      <div class="section-header">
+        <div class="section-num">09</div>
+        <h2>A/B Testing</h2>
+      </div>
+
+      <p>
+        A/B testing compares two model versions in production by splitting live traffic and measuring real-world
+        performance. Unlike offline evaluation, A/B testing captures user behavior and business metrics.
+      </p>
+
+      <h3>Setting Up A/B Tests on Vertex AI</h3>
+      <p>
+        Vertex AI endpoints support <strong>traffic splitting</strong> natively. Deploy two model versions to the
+        same endpoint and configure the traffic split:
+      </p>
+
+      <pre><code><span class="code-comment"># Deploy two models with traffic split</span>
+endpoint = aiplatform.<span class="code-fn">Endpoint</span>(<span class="code-string">"projects/.../endpoints/12345"</span>)
+
+<span class="code-comment"># Champion: current model (90% traffic)</span>
+endpoint.<span class="code-fn">deploy</span>(
+    model=champion_model,
+    deployed_model_display_name=<span class="code-string">"champion-v2"</span>,
+    traffic_percentage=<span class="code-num">90</span>,
+    machine_type=<span class="code-string">"n1-standard-4"</span>,
+)
+
+<span class="code-comment"># Challenger: new model (10% traffic)</span>
+endpoint.<span class="code-fn">deploy</span>(
+    model=challenger_model,
+    deployed_model_display_name=<span class="code-string">"challenger-v3"</span>,
+    traffic_percentage=<span class="code-num">10</span>,
+    machine_type=<span class="code-string">"n1-standard-4"</span>,
+)</code></pre>
+
+      <h3>Statistical Significance</h3>
+      <p>
+        Do not declare a winner until you reach <strong>statistical significance</strong>. Key concepts:
+      </p>
+
+      <ul class="checklist">
+        <li><div class="check-box done"></div><strong>Sample size:</strong> Calculate minimum sample size before starting the test</li>
+        <li><div class="check-box done"></div><strong>p-value:</strong> Probability the observed difference is due to chance (p &lt; 0.05 typical threshold)</li>
+        <li><div class="check-box done"></div><strong>Effect size:</strong> How large is the practical difference between models?</li>
+        <li><div class="check-box done"></div><strong>Duration:</strong> Run long enough to capture weekly/seasonal patterns</li>
+        <li><div class="check-box done"></div><strong>Multiple comparisons:</strong> If testing many metrics, apply Bonferroni correction</li>
+      </ul>
+
+      <div class="formula">
+        Minimum Sample Size per Variant = (Z_alpha + Z_beta)&sup2; * 2 * p * (1-p) / (delta)&sup2;
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-label">Common A/B Testing Mistakes</div>
+        <p>
+          (1) Stopping the test early when results "look good" (peeking problem).
+          (2) Not accounting for novelty effects (users may interact more with any new model).
+          (3) Testing too many variants at once without proper correction.
+          (4) Using the wrong metric (optimize for business KPI, not just ML metric).
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 10 -->
+    <section class="section" id="exam-focus">
+      <div class="section-header">
+        <div class="section-num">10</div>
+        <h2>Exam Focus: Key Takeaways</h2>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Tips - Sections 5 &amp; 6</div>
+        <p>
+          Model evaluation is heavily tested. You must be able to choose the right metric for the scenario and
+          know when to use GenAI-specific evaluation methods.
+        </p>
+      </div>
+
+      <h3>Choosing the Right Metric</h3>
+      <table class="info-table">
+        <thead>
+          <tr><th>Scenario</th><th>Metric</th><th>Why</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Balanced classification</strong></td><td>Accuracy, ROC-AUC</td><td>Classes are roughly equal</td></tr>
+          <tr><td><strong>Imbalanced classification</strong></td><td>F1, PR-AUC</td><td>Accuracy is misleading</td></tr>
+          <tr><td><strong>Minimize false positives</strong></td><td>Precision</td><td>FP is costly (spam filter)</td></tr>
+          <tr><td><strong>Minimize false negatives</strong></td><td>Recall</td><td>FN is costly (fraud, cancer)</td></tr>
+          <tr><td><strong>Regression with outliers</strong></td><td>MAE</td><td>Robust to outliers</td></tr>
+          <tr><td><strong>Regression, standard</strong></td><td>RMSE</td><td>Default regression metric</td></tr>
+          <tr><td><strong>Business communication</strong></td><td>MAPE, R&sup2;</td><td>Easy to explain to stakeholders</td></tr>
+          <tr><td><strong>GenAI quality</strong></td><td>LLM-as-judge</td><td>Scalable, correlates with human judgment</td></tr>
+          <tr><td><strong>RAG evaluation</strong></td><td>Faithfulness, relevance</td><td>Measures retrieval + generation quality</td></tr>
+          <tr><td><strong>Summarization</strong></td><td>ROUGE + LLM-judge</td><td>ROUGE for overlap, LLM for quality</td></tr>
+        </tbody>
+      </table>
+
+      <h3>GenAI Evaluation Methods</h3>
+      <ul class="checklist">
+        <li><div class="check-box done"></div>Know the difference between <strong>pointwise</strong> (absolute scoring) and <strong>pairwise</strong> (comparative) evaluation</li>
+        <li><div class="check-box done"></div><strong>BLEU/ROUGE</strong> are fast but limited; use <strong>LLM-based evaluation</strong> for quality</li>
+        <li><div class="check-box done"></div>Vertex AI Gen AI Evaluation Service supports both built-in and custom metrics</li>
+        <li><div class="check-box done"></div>For RAG: evaluate <strong>faithfulness</strong> (grounded in context) and <strong>relevance</strong> (answers the question)</li>
+      </ul>
+
+      <h3>When to Retrain</h3>
+      <ul class="checklist">
+        <li><div class="check-box done"></div>Continuous evaluation metrics drop below threshold</li>
+        <li><div class="check-box done"></div>Data drift or concept drift detected</li>
+        <li><div class="check-box done"></div>Significant new training data is available</li>
+        <li><div class="check-box done"></div>Business requirements or target distribution changes</li>
+        <li><div class="check-box done"></div>Scheduled periodic retraining (weekly/monthly depending on domain)</li>
+      </ul>
+    </section>
+
+    <!-- NAV -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous</div>
+        <a href="13-mlops-generative-ai.html" class="next-btn prev-btn">
+          &larr; 13 &middot; MLOps for GenAI
+        </a>
+      </div>
+      <div style="text-align: right;">
+        <div class="next-label">Next</div>
+        <a href="15-ml-pipelines-gcp.html" class="next-btn">
+          15 &middot; ML Pipelines on GCP &rarr;
+        </a>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

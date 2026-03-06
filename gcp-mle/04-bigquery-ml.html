@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Create ML Models with BigQuery ML — CareerAlign GCP MLE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--phase-found); background: rgba(59,130,246,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-indigo);
+  padding: 6px 14px; border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(99,102,241,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--phase-found); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--phase-found); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--phase-found); flex-shrink: 0; }
+.exam-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-left: 10px;
+  font-size: 12px; font-family: var(--font-display); font-weight: 600;
+  color: var(--accent-violet); letter-spacing: 0.04em; text-transform: uppercase;
+}
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--phase-found); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--phase-found); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--phase-found);
+  background: rgba(59,130,246,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--phase-cloud); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--phase-project); background: rgba(245,158,11,0.07); }
+.callout.exam { border-color: var(--accent-violet); background: rgba(168,85,247,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--phase-found);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--phase-cloud); }
+.callout.warn .callout-label { color: var(--phase-project); }
+.callout.exam .callout-label { color: var(--accent-violet); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--phase-found); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(59,130,246,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* TABLE */
+.compare-table {
+  width: 100%; border-collapse: collapse; margin: 20px 0;
+  font-size: 13.5px;
+}
+.compare-table th {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  padding: 10px 14px; text-align: left; font-family: var(--font-display);
+  font-weight: 600; font-size: 12px; color: var(--text-primary);
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.compare-table td {
+  border: 1px solid var(--border-default); padding: 10px 14px;
+  color: var(--text-secondary); background: var(--bg-surface);
+}
+.compare-table tr:hover td { background: var(--bg-elevated); }
+
+/* CHECKLIST */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px; color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 2px solid var(--phase-found);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.check-box.done { background: var(--phase-found); border-color: var(--phase-found); }
+
+/* TAB LABELS */
+.tab-row {
+  display: flex; gap: 8px; margin-bottom: -1px; padding: 0;
+}
+.tab-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  padding: 5px 12px; border-radius: 6px 6px 0 0;
+  background: var(--bg-overlay); color: var(--text-muted);
+  border: 1px solid var(--border-default); border-bottom: none;
+}
+.tab-label.plain { color: var(--phase-cloud); }
+.tab-label.deep  { color: var(--accent-violet); }
+
+/* FORMULA */
+.formula {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 16px 22px; margin: 20px 0;
+  font-family: var(--font-mono); font-size: 14px; color: var(--accent-cyan);
+  text-align: center; letter-spacing: 0.02em;
+}
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--phase-found); color: var(--phase-found); transform: translateX(4px); }
+.prev-btn:hover { border-color: var(--phase-prereq); color: var(--phase-prereq); transform: translateX(-4px); }
+.next-phase { font-size: 12px; color: var(--phase-found); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9729;&#65039; <span>CareerAlign</span> GCP MLE</div>
+  <div class="nav-links">
+    <a href="01-intro-ml-ai.html">01 &middot; Intro</a>
+    <a href="02-prepare-data-ml-apis.html">02 &middot; Data Prep</a>
+    <a href="03-vertex-ai-notebooks.html">03 &middot; Notebooks</a>
+    <a href="04-bigquery-ml.html" class="active">04 &middot; BQML</a>
+    <a href="05-data-engineering-bqml.html">05 &middot; Data Eng</a>
+    <a href="06-custom-training.html">06 &middot; Custom</a>
+    <a href="07-vertex-ai-pipelines.html">07 &middot; Pipelines</a>
+    <a href="08-model-monitoring.html">08 &middot; Monitoring</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GCP MLE Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Course 04 &middot; Create ML Models with BigQuery ML
+  </div>
+  <span class="exam-badge">Section 1 &middot; Low-Code ML</span>
+  <span class="exam-badge">Section 3 &middot; Scaling Prototypes</span>
+  <h1>Train ML Models with <em>SQL in BigQuery</em></h1>
+  <p class="hero-desc">
+    BigQuery ML lets you create, evaluate, and predict with machine learning models using standard SQL
+    &mdash; no data movement, no separate training infrastructure. This module covers every model type,
+    the <code>CREATE MODEL</code> syntax, feature engineering, evaluation metrics, and how to export
+    models to Vertex AI for serving. A critical topic for the MLE exam.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      CREATE MODEL
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Model Types
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Feature Engineering
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      ML.EVALUATE
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Vertex AI Export
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-mle/notebooks/04-bigquery-ml.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#overview" class="section">1 &middot; BQML Overview</a>
+    <a href="#why-bqml" class="sub">Why BigQuery ML?</a>
+    <a href="#model-types" class="section">2 &middot; Supported Model Types</a>
+    <a href="#model-table" class="sub">Complete Reference Table</a>
+    <a href="#create-model" class="section">3 &middot; CREATE MODEL Syntax</a>
+    <a href="#key-options" class="sub">Key Options Deep Dive</a>
+    <a href="#feature-eng" class="section">4 &middot; Feature Engineering</a>
+    <a href="#transform-clause" class="sub">TRANSFORM Clause</a>
+    <a href="#evaluation" class="section">5 &middot; Model Evaluation</a>
+    <a href="#metrics" class="sub">Key Metrics</a>
+    <a href="#prediction" class="section">6 &middot; Prediction &amp; Explainability</a>
+    <a href="#explain-predict" class="sub">ML.EXPLAIN_PREDICT</a>
+    <a href="#export" class="section">7 &middot; Export to Vertex AI</a>
+    <a href="#hptuning" class="section">8 &middot; Hyperparameter Tuning</a>
+    <a href="#comparison" class="section">9 &middot; BQML vs AutoML vs Custom</a>
+    <a href="#exam-focus" class="section">10 &middot; Exam Focus</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1: BQML OVERVIEW
+    ════════════════════════════════════════════ -->
+    <section class="section" id="overview">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>BigQuery ML Overview</h2>
+      </div>
+
+      <p>
+        BigQuery ML (BQML) allows you to create and execute machine learning models directly in
+        BigQuery using standard SQL. The data stays in BigQuery &mdash; there is no need to export
+        data to a separate training environment, dramatically reducing time-to-insight.
+      </p>
+
+      <h3 id="why-bqml">Why BigQuery ML?</h3>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128640;</div>
+            <h4>No Data Movement</h4>
+          </div>
+          <p>Train models where the data lives. No ETL to a separate training service. Reduces latency and data governance risk.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128221;</div>
+            <h4>SQL Interface</h4>
+          </div>
+          <p>Data analysts and SQL users can build ML models without Python or framework knowledge. Democratizes ML across the organization.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9889;</div>
+            <h4>Automatic Preprocessing</h4>
+          </div>
+          <p>BQML handles feature normalization, one-hot encoding of categoricals, and missing value imputation by default.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128200;</div>
+            <h4>Scales with BigQuery</h4>
+          </div>
+          <p>Leverages BigQuery's distributed infrastructure. Models train on petabyte-scale datasets without managing infrastructure.</p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">How It Works</div>
+        <p>When you run <code>CREATE MODEL</code>, BigQuery allocates training resources, reads data from
+           the specified query, trains the model, and stores it as a BigQuery model object. The model
+           metadata, weights, and training statistics are all accessible via SQL functions like
+           <code>ML.EVALUATE</code>, <code>ML.PREDICT</code>, and <code>ML.TRAINING_INFO</code>.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2: SUPPORTED MODEL TYPES
+    ════════════════════════════════════════════ -->
+    <section class="section" id="model-types">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Supported Model Types</h2>
+      </div>
+
+      <p>
+        BQML supports a wide range of model types, from simple linear models to AutoML and imported
+        TensorFlow models. The exam frequently tests your ability to choose the right model type
+        for a given scenario.
+      </p>
+
+      <h3 id="model-table">Complete Model Type Reference</h3>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Model Type</th>
+            <th>SQL Keyword</th>
+            <th>Task</th>
+            <th>When to Use</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Linear Regression</strong></td>
+            <td><code>LINEAR_REG</code></td>
+            <td>Regression</td>
+            <td>Predict continuous values (price, revenue, duration). Fast training, interpretable.</td>
+          </tr>
+          <tr>
+            <td><strong>Logistic Regression</strong></td>
+            <td><code>LOGISTIC_REG</code></td>
+            <td>Classification</td>
+            <td>Binary or multiclass classification. Set <code>auto_class_weights=TRUE</code> for imbalanced data.</td>
+          </tr>
+          <tr>
+            <td><strong>K-Means Clustering</strong></td>
+            <td><code>KMEANS</code></td>
+            <td>Clustering</td>
+            <td>Customer segmentation, anomaly detection. Unsupervised &mdash; no label column needed.</td>
+          </tr>
+          <tr>
+            <td><strong>Matrix Factorization</strong></td>
+            <td><code>MATRIX_FACTORIZATION</code></td>
+            <td>Recommendation</td>
+            <td>Build recommendation systems from user-item interaction data (explicit or implicit feedback).</td>
+          </tr>
+          <tr>
+            <td><strong>ARIMA+</strong></td>
+            <td><code>ARIMA_PLUS</code></td>
+            <td>Time Series</td>
+            <td>Forecasting with automatic seasonality detection, holiday effects, and trend decomposition.</td>
+          </tr>
+          <tr>
+            <td><strong>Boosted Tree Classifier</strong></td>
+            <td><code>BOOSTED_TREE_CLASSIFIER</code></td>
+            <td>Classification</td>
+            <td>Higher accuracy than logistic regression for complex, non-linear classification tasks.</td>
+          </tr>
+          <tr>
+            <td><strong>Boosted Tree Regressor</strong></td>
+            <td><code>BOOSTED_TREE_REGRESSOR</code></td>
+            <td>Regression</td>
+            <td>Non-linear regression with feature interactions. Good default for tabular data.</td>
+          </tr>
+          <tr>
+            <td><strong>DNN Classifier</strong></td>
+            <td><code>DNN_CLASSIFIER</code></td>
+            <td>Classification</td>
+            <td>Deep neural network for complex classification. Requires more data and training time.</td>
+          </tr>
+          <tr>
+            <td><strong>DNN Regressor</strong></td>
+            <td><code>DNN_REGRESSOR</code></td>
+            <td>Regression</td>
+            <td>Deep neural network for complex regression. Good when linear/tree models underperform.</td>
+          </tr>
+          <tr>
+            <td><strong>AutoML Classifier</strong></td>
+            <td><code>AUTOML_CLASSIFIER</code></td>
+            <td>Classification</td>
+            <td>Automated model architecture search. Best accuracy with minimal configuration. Higher cost.</td>
+          </tr>
+          <tr>
+            <td><strong>AutoML Regressor</strong></td>
+            <td><code>AUTOML_REGRESSOR</code></td>
+            <td>Regression</td>
+            <td>Automated regression model. Use when you want maximum accuracy and budget allows.</td>
+          </tr>
+          <tr>
+            <td><strong>TensorFlow (imported)</strong></td>
+            <td><code>TENSORFLOW</code></td>
+            <td>Any</td>
+            <td>Import a pre-trained SavedModel for inference in BigQuery. No training in BQML.</td>
+          </tr>
+          <tr>
+            <td><strong>XGBoost</strong></td>
+            <td><code>BOOSTED_TREE_*</code></td>
+            <td>Any tabular</td>
+            <td>BQML's boosted tree implementation uses XGBoost under the hood. Same SQL syntax.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Tip</div>
+        <p>The exam often presents a scenario and asks which model type to use. Key signals:
+           <strong>"forecast sales"</strong> = ARIMA_PLUS.
+           <strong>"segment customers"</strong> = KMEANS.
+           <strong>"recommend products"</strong> = MATRIX_FACTORIZATION.
+           <strong>"predict churn (yes/no)"</strong> = LOGISTIC_REG or BOOSTED_TREE_CLASSIFIER.
+           <strong>"predict price"</strong> = LINEAR_REG or BOOSTED_TREE_REGRESSOR.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3: CREATE MODEL SYNTAX
+    ════════════════════════════════════════════ -->
+    <section class="section" id="create-model">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>CREATE MODEL Syntax Deep Dive</h2>
+      </div>
+
+      <p>
+        The <code>CREATE MODEL</code> statement is the core of BigQuery ML. It combines model
+        specification, hyperparameters, and training data in a single SQL statement.
+      </p>
+
+      <h3 id="key-options">Basic Syntax</h3>
+
+      <pre><code><span class="code-comment">-- General CREATE MODEL syntax</span>
+<span class="code-keyword">CREATE OR REPLACE MODEL</span> `project.dataset.model_name`
+<span class="code-keyword">OPTIONS</span> (
+  model_type = <span class="code-string">'LOGISTIC_REG'</span>,           <span class="code-comment">-- Required: model type</span>
+  input_label_cols = [<span class="code-string">'target_column'</span>],   <span class="code-comment">-- Label column (supervised)</span>
+  auto_class_weights = <span class="code-keyword">TRUE</span>,             <span class="code-comment">-- Handle imbalanced classes</span>
+  data_split_method = <span class="code-string">'AUTO_SPLIT'</span>,      <span class="code-comment">-- AUTO_SPLIT, RANDOM, CUSTOM, SEQ, NO_SPLIT</span>
+  max_iterations = <span class="code-num">20</span>,                    <span class="code-comment">-- Training iterations</span>
+  learn_rate = <span class="code-num">0.1</span>,                        <span class="code-comment">-- Learning rate</span>
+  l1_reg = <span class="code-num">0.001</span>,                          <span class="code-comment">-- L1 regularization</span>
+  l2_reg = <span class="code-num">0.001</span>,                          <span class="code-comment">-- L2 regularization</span>
+  early_stop = <span class="code-keyword">TRUE</span>,                      <span class="code-comment">-- Stop when no improvement</span>
+  min_rel_progress = <span class="code-num">0.01</span>                  <span class="code-comment">-- Minimum relative progress</span>
+) <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span>
+  feature1,
+  feature2,
+  feature3,
+  target_column
+<span class="code-keyword">FROM</span>
+  `project.dataset.training_table`
+<span class="code-keyword">WHERE</span>
+  feature1 <span class="code-keyword">IS NOT NULL</span></code></pre>
+
+      <h3>Classification Example (Logistic Regression)</h3>
+
+      <pre><code><span class="code-comment">-- Predict penguin species using logistic regression</span>
+<span class="code-keyword">CREATE OR REPLACE MODEL</span> `my_dataset.penguin_classifier`
+<span class="code-keyword">OPTIONS</span> (
+  model_type = <span class="code-string">'LOGISTIC_REG'</span>,
+  input_label_cols = [<span class="code-string">'species'</span>],
+  auto_class_weights = <span class="code-keyword">TRUE</span>,
+  max_iterations = <span class="code-num">20</span>
+) <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span>
+  species,
+  island,
+  culmen_length_mm,
+  culmen_depth_mm,
+  flipper_length_mm,
+  body_mass_g,
+  sex
+<span class="code-keyword">FROM</span>
+  `bigquery-public-data.ml_datasets.penguins`
+<span class="code-keyword">WHERE</span>
+  body_mass_g <span class="code-keyword">IS NOT NULL</span>
+  <span class="code-keyword">AND</span> sex <span class="code-keyword">IS NOT NULL</span></code></pre>
+
+      <h3>Regression Example (Boosted Tree)</h3>
+
+      <pre><code><span class="code-comment">-- Predict taxi fare using boosted tree regression</span>
+<span class="code-keyword">CREATE OR REPLACE MODEL</span> `my_dataset.taxi_fare_model`
+<span class="code-keyword">OPTIONS</span> (
+  model_type = <span class="code-string">'BOOSTED_TREE_REGRESSOR'</span>,
+  input_label_cols = [<span class="code-string">'fare'</span>],
+  num_parallel_tree = <span class="code-num">5</span>,
+  max_tree_depth = <span class="code-num">6</span>,
+  subsample = <span class="code-num">0.8</span>,
+  learn_rate = <span class="code-num">0.1</span>,
+  early_stop = <span class="code-keyword">TRUE</span>,
+  data_split_method = <span class="code-string">'AUTO_SPLIT'</span>
+) <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span>
+  fare,
+  pickup_latitude, pickup_longitude,
+  dropoff_latitude, dropoff_longitude,
+  passenger_count,
+  EXTRACT(HOUR <span class="code-keyword">FROM</span> pickup_datetime) <span class="code-keyword">AS</span> pickup_hour,
+  EXTRACT(DAYOFWEEK <span class="code-keyword">FROM</span> pickup_datetime) <span class="code-keyword">AS</span> pickup_day
+<span class="code-keyword">FROM</span>
+  `my_dataset.taxi_trips`
+<span class="code-keyword">WHERE</span>
+  fare > <span class="code-num">0</span> <span class="code-keyword">AND</span> fare < <span class="code-num">200</span></code></pre>
+
+      <h3>Time Series Example (ARIMA_PLUS)</h3>
+
+      <pre><code><span class="code-comment">-- Forecast daily sales using ARIMA_PLUS</span>
+<span class="code-keyword">CREATE OR REPLACE MODEL</span> `my_dataset.sales_forecast`
+<span class="code-keyword">OPTIONS</span> (
+  model_type = <span class="code-string">'ARIMA_PLUS'</span>,
+  time_series_timestamp_col = <span class="code-string">'date'</span>,
+  time_series_data_col = <span class="code-string">'total_sales'</span>,
+  time_series_id_col = <span class="code-string">'store_id'</span>,       <span class="code-comment">-- Multiple time series</span>
+  auto_arima = <span class="code-keyword">TRUE</span>,                     <span class="code-comment">-- Auto-detect (p,d,q)</span>
+  holiday_region = <span class="code-string">'US'</span>,                 <span class="code-comment">-- Holiday effects</span>
+  data_frequency = <span class="code-string">'DAILY'</span>               <span class="code-comment">-- AUTO_FREQUENCY also works</span>
+) <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span>
+  date,
+  store_id,
+  total_sales
+<span class="code-keyword">FROM</span>
+  `my_dataset.daily_sales`</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Common Pitfall</div>
+        <p>The <code>input_label_cols</code> option is required for supervised models but must be
+           omitted for unsupervised models (KMEANS, MATRIX_FACTORIZATION). Including it for KMEANS
+           will cause an error. For ARIMA_PLUS, use <code>time_series_data_col</code> instead.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4: FEATURE ENGINEERING
+    ════════════════════════════════════════════ -->
+    <section class="section" id="feature-eng">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Feature Engineering in BQML</h2>
+      </div>
+
+      <p>
+        BQML provides built-in feature engineering functions that can be applied within the
+        <code>TRANSFORM</code> clause. This ensures transformations are consistently applied
+        during both training and prediction.
+      </p>
+
+      <h3 id="transform-clause">The TRANSFORM Clause</h3>
+
+      <p>
+        The <code>TRANSFORM</code> clause defines feature transformations that become part of the model.
+        When you call <code>ML.PREDICT</code>, these transformations are automatically applied &mdash;
+        you pass raw data and the model handles preprocessing.
+      </p>
+
+      <pre><code><span class="code-comment">-- Feature engineering with TRANSFORM clause</span>
+<span class="code-keyword">CREATE OR REPLACE MODEL</span> `my_dataset.engineered_model`
+<span class="code-keyword">TRANSFORM</span> (
+  <span class="code-comment">-- Pass through label and features</span>
+  target_col,
+
+  <span class="code-comment">-- Bucketize continuous features</span>
+  ML.<span class="code-fn">BUCKETIZE</span>(age, [<span class="code-num">18</span>, <span class="code-num">25</span>, <span class="code-num">35</span>, <span class="code-num">50</span>, <span class="code-num">65</span>]) <span class="code-keyword">AS</span> age_bucket,
+
+  <span class="code-comment">-- Quantile bucketize (data-driven boundaries)</span>
+  ML.<span class="code-fn">QUANTILE_BUCKETIZE</span>(income, <span class="code-num">10</span>) <span class="code-keyword">AS</span> income_decile,
+
+  <span class="code-comment">-- Feature cross (interaction between categoricals)</span>
+  ML.<span class="code-fn">FEATURE_CROSS</span>(<span class="code-keyword">STRUCT</span>(city, product_category)) <span class="code-keyword">AS</span> city_product_cross,
+
+  <span class="code-comment">-- Polynomial expansion</span>
+  ML.<span class="code-fn">POLYNOMIAL_EXPAND</span>(<span class="code-keyword">STRUCT</span>(feature1, feature2), <span class="code-num">2</span>) <span class="code-keyword">AS</span> poly_features,
+
+  <span class="code-comment">-- Standard SQL transformations</span>
+  LOG(amount + <span class="code-num">1</span>) <span class="code-keyword">AS</span> log_amount,
+  EXTRACT(HOUR <span class="code-keyword">FROM</span> timestamp_col) <span class="code-keyword">AS</span> hour_of_day,
+  EXTRACT(DAYOFWEEK <span class="code-keyword">FROM</span> timestamp_col) <span class="code-keyword">AS</span> day_of_week,
+  IF(category <span class="code-keyword">IS NULL</span>, <span class="code-string">'unknown'</span>, category) <span class="code-keyword">AS</span> category_clean
+)
+<span class="code-keyword">OPTIONS</span> (
+  model_type = <span class="code-string">'BOOSTED_TREE_CLASSIFIER'</span>,
+  input_label_cols = [<span class="code-string">'target_col'</span>]
+) <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> `my_dataset.training_data`</code></pre>
+
+      <h3>Built-in Feature Engineering Functions</h3>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Function</th>
+            <th>Purpose</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>ML.BUCKETIZE</code></td>
+            <td>Bin continuous values into fixed buckets</td>
+            <td><code>ML.BUCKETIZE(age, [18, 30, 50])</code></td>
+          </tr>
+          <tr>
+            <td><code>ML.QUANTILE_BUCKETIZE</code></td>
+            <td>Bin by quantiles (data-driven boundaries)</td>
+            <td><code>ML.QUANTILE_BUCKETIZE(income, 5)</code></td>
+          </tr>
+          <tr>
+            <td><code>ML.FEATURE_CROSS</code></td>
+            <td>Combine categoricals into interaction features</td>
+            <td><code>ML.FEATURE_CROSS(STRUCT(city, day))</code></td>
+          </tr>
+          <tr>
+            <td><code>ML.POLYNOMIAL_EXPAND</code></td>
+            <td>Create polynomial feature combinations</td>
+            <td><code>ML.POLYNOMIAL_EXPAND(STRUCT(x, y), 2)</code></td>
+          </tr>
+          <tr>
+            <td><code>ML.NGRAMS</code></td>
+            <td>Generate n-grams from text</td>
+            <td><code>ML.NGRAMS(tokens, [1, 2])</code></td>
+          </tr>
+          <tr>
+            <td><code>ML.HASH_BUCKETIZE</code></td>
+            <td>Hash high-cardinality features into fixed buckets</td>
+            <td><code>ML.HASH_BUCKETIZE(user_id, 1000)</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Best Practice</div>
+        <p>Always use the <code>TRANSFORM</code> clause instead of applying transformations in the
+           training query. The <code>TRANSFORM</code> clause ensures the same transformations are
+           applied during <code>ML.PREDICT</code>, preventing training-serving skew.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 5: MODEL EVALUATION
+    ════════════════════════════════════════════ -->
+    <section class="section" id="evaluation">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Model Evaluation</h2>
+      </div>
+
+      <p>
+        After training, use <code>ML.EVALUATE</code> to assess model performance. The metrics
+        returned depend on the model type.
+      </p>
+
+      <pre><code><span class="code-comment">-- Evaluate model performance</span>
+<span class="code-keyword">SELECT</span> *
+<span class="code-keyword">FROM</span> ML.<span class="code-fn">EVALUATE</span>(
+  <span class="code-keyword">MODEL</span> `my_dataset.penguin_classifier`
+)
+
+<span class="code-comment">-- Evaluate on a specific holdout set</span>
+<span class="code-keyword">SELECT</span> *
+<span class="code-keyword">FROM</span> ML.<span class="code-fn">EVALUATE</span>(
+  <span class="code-keyword">MODEL</span> `my_dataset.penguin_classifier`,
+  (
+    <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> `my_dataset.penguins_test`
+    <span class="code-keyword">WHERE</span> body_mass_g <span class="code-keyword">IS NOT NULL</span>
+  )
+)</code></pre>
+
+      <h3 id="metrics">Key Metrics by Model Type</h3>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Model Type</th>
+            <th>Interpretation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>accuracy</strong></td>
+            <td>Classification</td>
+            <td>Proportion of correct predictions. Misleading for imbalanced classes.</td>
+          </tr>
+          <tr>
+            <td><strong>precision</strong></td>
+            <td>Classification</td>
+            <td>Of predicted positives, how many are correct? High precision = few false positives.</td>
+          </tr>
+          <tr>
+            <td><strong>recall</strong></td>
+            <td>Classification</td>
+            <td>Of actual positives, how many did we find? High recall = few false negatives.</td>
+          </tr>
+          <tr>
+            <td><strong>f1_score</strong></td>
+            <td>Classification</td>
+            <td>Harmonic mean of precision and recall. Best single metric for imbalanced data.</td>
+          </tr>
+          <tr>
+            <td><strong>roc_auc</strong></td>
+            <td>Binary Classification</td>
+            <td>Area under ROC curve. 0.5 = random, 1.0 = perfect. Threshold-independent.</td>
+          </tr>
+          <tr>
+            <td><strong>log_loss</strong></td>
+            <td>Classification</td>
+            <td>Measures confidence of predictions. Lower is better. Penalizes confident wrong answers.</td>
+          </tr>
+          <tr>
+            <td><strong>mean_squared_error</strong></td>
+            <td>Regression</td>
+            <td>Average of squared errors. Sensitive to outliers. Lower is better.</td>
+          </tr>
+          <tr>
+            <td><strong>mean_absolute_error</strong></td>
+            <td>Regression</td>
+            <td>Average of absolute errors. More robust to outliers than MSE.</td>
+          </tr>
+          <tr>
+            <td><strong>r2_score</strong></td>
+            <td>Regression</td>
+            <td>Proportion of variance explained. 1.0 = perfect. Can be negative for poor models.</td>
+          </tr>
+          <tr>
+            <td><strong>davies_bouldin_index</strong></td>
+            <td>Clustering (KMEANS)</td>
+            <td>Cluster separation quality. Lower is better (tighter, more separated clusters).</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="formula">
+        F1 = 2 &times; (precision &times; recall) / (precision + recall)
+      </div>
+
+      <pre><code><span class="code-comment">-- View training info (loss curve)</span>
+<span class="code-keyword">SELECT</span> *
+<span class="code-keyword">FROM</span> ML.<span class="code-fn">TRAINING_INFO</span>(
+  <span class="code-keyword">MODEL</span> `my_dataset.penguin_classifier`
+)
+<span class="code-keyword">ORDER BY</span> iteration
+
+<span class="code-comment">-- View confusion matrix for classification</span>
+<span class="code-keyword">SELECT</span> *
+<span class="code-keyword">FROM</span> ML.<span class="code-fn">CONFUSION_MATRIX</span>(
+  <span class="code-keyword">MODEL</span> `my_dataset.penguin_classifier`
+)</code></pre>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Focus</div>
+        <p>Know when to use each metric. <strong>Fraud detection</strong> (high cost of false negatives)
+           &rarr; optimize for <strong>recall</strong>. <strong>Spam filtering</strong> (high cost of false
+           positives) &rarr; optimize for <strong>precision</strong>. <strong>Balanced importance</strong>
+           &rarr; use <strong>F1 score</strong>. <strong>Regression with outliers</strong> &rarr;
+           prefer <strong>MAE</strong> over RMSE.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 6: PREDICTION & EXPLAINABILITY
+    ════════════════════════════════════════════ -->
+    <section class="section" id="prediction">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Prediction and Explainability</h2>
+      </div>
+
+      <p>
+        <code>ML.PREDICT</code> generates batch predictions, while <code>ML.EXPLAIN_PREDICT</code>
+        adds feature attributions to explain why the model made each prediction.
+      </p>
+
+      <h3>Batch Prediction with ML.PREDICT</h3>
+
+      <pre><code><span class="code-comment">-- Generate predictions on new data</span>
+<span class="code-keyword">SELECT</span>
+  predicted_species,
+  predicted_species_probs,
+  island,
+  body_mass_g
+<span class="code-keyword">FROM</span> ML.<span class="code-fn">PREDICT</span>(
+  <span class="code-keyword">MODEL</span> `my_dataset.penguin_classifier`,
+  (
+    <span class="code-keyword">SELECT</span>
+      island, culmen_length_mm, culmen_depth_mm,
+      flipper_length_mm, body_mass_g, sex
+    <span class="code-keyword">FROM</span> `my_dataset.new_penguins`
+  )
+)
+
+<span class="code-comment">-- For regression models, output column is: predicted_&lt;label&gt;</span>
+<span class="code-keyword">SELECT</span> predicted_fare, actual_fare
+<span class="code-keyword">FROM</span> ML.<span class="code-fn">PREDICT</span>(
+  <span class="code-keyword">MODEL</span> `my_dataset.taxi_fare_model`,
+  (<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> `my_dataset.test_trips`)
+)</code></pre>
+
+      <h3 id="explain-predict">Explainability with ML.EXPLAIN_PREDICT</h3>
+
+      <pre><code><span class="code-comment">-- Get predictions with feature attributions</span>
+<span class="code-keyword">SELECT</span> *
+<span class="code-keyword">FROM</span> ML.<span class="code-fn">EXPLAIN_PREDICT</span>(
+  <span class="code-keyword">MODEL</span> `my_dataset.penguin_classifier`,
+  (
+    <span class="code-keyword">SELECT</span> *
+    <span class="code-keyword">FROM</span> `bigquery-public-data.ml_datasets.penguins`
+    <span class="code-keyword">WHERE</span> body_mass_g <span class="code-keyword">IS NOT NULL</span>
+    <span class="code-keyword">LIMIT</span> <span class="code-num">5</span>
+  ),
+  <span class="code-keyword">STRUCT</span>(<span class="code-num">3</span> <span class="code-keyword">AS</span> top_k_features)
+)
+
+<span class="code-comment">-- Returns: predicted label + Shapley-based feature attributions</span>
+<span class="code-comment">-- Each row includes the top_k most important features for that prediction</span></code></pre>
+
+      <h3>ARIMA_PLUS Forecasting</h3>
+
+      <pre><code><span class="code-comment">-- Generate 30-day forecast</span>
+<span class="code-keyword">SELECT</span> *
+<span class="code-keyword">FROM</span> ML.<span class="code-fn">FORECAST</span>(
+  <span class="code-keyword">MODEL</span> `my_dataset.sales_forecast`,
+  <span class="code-keyword">STRUCT</span>(<span class="code-num">30</span> <span class="code-keyword">AS</span> horizon, <span class="code-num">0.95</span> <span class="code-keyword">AS</span> confidence_level)
+)
+
+<span class="code-comment">-- Returns: forecast_timestamp, forecast_value,</span>
+<span class="code-comment">--          standard_error, prediction_interval_lower_bound,</span>
+<span class="code-comment">--          prediction_interval_upper_bound</span></code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Key Difference</div>
+        <p><code>ML.PREDICT</code> is used for all model types except ARIMA_PLUS. For time series
+           models, use <code>ML.FORECAST</code> instead. <code>ML.EXPLAIN_PREDICT</code> works
+           with classification and regression models and uses Shapley values for feature attribution.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 7: EXPORT TO VERTEX AI
+    ════════════════════════════════════════════ -->
+    <section class="section" id="export">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Exporting Models to Vertex AI</h2>
+      </div>
+
+      <p>
+        BQML models trained in BigQuery can be exported and deployed to Vertex AI Endpoints for
+        <strong>online (real-time) prediction</strong>. This is the bridge from BQML prototyping
+        to production serving.
+      </p>
+
+      <pre><code><span class="code-comment">-- Step 1: Export model to Cloud Storage</span>
+<span class="code-keyword">EXPORT MODEL</span> `my_dataset.penguin_classifier`
+<span class="code-keyword">OPTIONS</span> (
+  URI = <span class="code-string">'gs://my-bucket/exported_models/penguin_classifier/'</span>
+)
+
+<span class="code-comment">-- Step 2: Register in Vertex AI Model Registry (via gcloud)</span>
+gcloud ai models upload \
+  --region=us-central1 \
+  --display-name=penguin-classifier \
+  --artifact-uri=gs://my-bucket/exported_models/penguin_classifier/ \
+  --container-image-uri=us-docker.pkg.dev/vertex-ai/prediction/tf2-cpu.2-12:latest
+
+<span class="code-comment">-- Step 3: Deploy to an endpoint</span>
+gcloud ai endpoints deploy-model ENDPOINT_ID \
+  --region=us-central1 \
+  --model=MODEL_ID \
+  --display-name=penguin-prod \
+  --machine-type=n1-standard-4 \
+  --min-replica-count=1 \
+  --max-replica-count=3</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">When to Export</div>
+        <p>Export BQML models to Vertex AI when you need <strong>online (real-time) prediction</strong>
+           with low latency (&lt;100ms). Keep models in BigQuery if you only need
+           <strong>batch prediction</strong> via <code>ML.PREDICT</code>.</p>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-label">Export Limitations</div>
+        <p>Not all BQML model types can be exported. <strong>ARIMA_PLUS</strong> and
+           <strong>MATRIX_FACTORIZATION</strong> models cannot be exported to Vertex AI.
+           AutoML models are exported differently (they are already Vertex AI models under the hood).</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 8: HYPERPARAMETER TUNING
+    ════════════════════════════════════════════ -->
+    <section class="section" id="hptuning">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <h2>Hyperparameter Tuning in BQML</h2>
+      </div>
+
+      <p>
+        BQML supports automatic hyperparameter tuning using the <code>num_trials</code> option.
+        BigQuery uses a Bayesian optimization strategy to search the hyperparameter space.
+      </p>
+
+      <pre><code><span class="code-comment">-- Hyperparameter tuning with BQML</span>
+<span class="code-keyword">CREATE OR REPLACE MODEL</span> `my_dataset.tuned_model`
+<span class="code-keyword">OPTIONS</span> (
+  model_type = <span class="code-string">'BOOSTED_TREE_CLASSIFIER'</span>,
+  input_label_cols = [<span class="code-string">'species'</span>],
+
+  <span class="code-comment">-- Enable HP tuning</span>
+  num_trials = <span class="code-num">20</span>,                        <span class="code-comment">-- Number of trials to run</span>
+  max_parallel_trials = <span class="code-num">5</span>,                <span class="code-comment">-- Parallel trials</span>
+  hparam_tuning_objectives = [<span class="code-string">'roc_auc'</span>], <span class="code-comment">-- Metric to optimize</span>
+
+  <span class="code-comment">-- Hyperparameter search ranges (auto-selected if omitted)</span>
+  max_tree_depth = hparam_range(<span class="code-num">3</span>, <span class="code-num">10</span>),
+  learn_rate = hparam_range(<span class="code-num">0.01</span>, <span class="code-num">0.3</span>),
+  subsample = hparam_range(<span class="code-num">0.5</span>, <span class="code-num">1.0</span>),
+  l2_reg = hparam_candidates([<span class="code-num">0</span>, <span class="code-num">0.1</span>, <span class="code-num">1.0</span>, <span class="code-num">10.0</span>])
+) <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> `my_dataset.training_data`
+
+<span class="code-comment">-- View tuning results</span>
+<span class="code-keyword">SELECT</span> *
+<span class="code-keyword">FROM</span> ML.<span class="code-fn">TRIAL_INFO</span>(
+  <span class="code-keyword">MODEL</span> `my_dataset.tuned_model`
+)
+<span class="code-keyword">ORDER BY</span> roc_auc <span class="code-keyword">DESC</span></code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Tuning Functions</div>
+        <p><code>hparam_range(min, max)</code> defines a continuous range for search.
+           <code>hparam_candidates([v1, v2, v3])</code> defines discrete values to try.
+           BQML automatically selects the best trial as the final model.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 9: BQML vs AutoML vs CUSTOM
+    ════════════════════════════════════════════ -->
+    <section class="section" id="comparison">
+      <div class="section-header">
+        <div class="section-num">09</div>
+        <h2>BQML vs AutoML vs Custom Training</h2>
+      </div>
+
+      <p>
+        Choosing the right ML approach on GCP depends on your team's skills, data complexity,
+        performance requirements, and time constraints.
+      </p>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Criteria</th>
+            <th>BigQuery ML</th>
+            <th>AutoML (Vertex AI)</th>
+            <th>Custom (TF/PyTorch)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Interface</strong></td>
+            <td>SQL</td>
+            <td>GUI + API</td>
+            <td>Python (code)</td>
+          </tr>
+          <tr>
+            <td><strong>Skill Required</strong></td>
+            <td>SQL knowledge</td>
+            <td>Minimal ML knowledge</td>
+            <td>Deep ML expertise</td>
+          </tr>
+          <tr>
+            <td><strong>Data Location</strong></td>
+            <td>Must be in BigQuery</td>
+            <td>GCS or BigQuery</td>
+            <td>Anywhere</td>
+          </tr>
+          <tr>
+            <td><strong>Model Types</strong></td>
+            <td>Pre-defined (see table above)</td>
+            <td>Tabular, image, text, video</td>
+            <td>Any architecture</td>
+          </tr>
+          <tr>
+            <td><strong>Training Time</strong></td>
+            <td>Minutes to hours</td>
+            <td>Hours (architecture search)</td>
+            <td>Hours to days</td>
+          </tr>
+          <tr>
+            <td><strong>Customization</strong></td>
+            <td>Hyperparameters only</td>
+            <td>Limited (objectives, budget)</td>
+            <td>Full control</td>
+          </tr>
+          <tr>
+            <td><strong>Best For</strong></td>
+            <td>Quick prototyping, SQL-based teams, tabular data</td>
+            <td>High accuracy with minimal effort</td>
+            <td>Complex architectures, research, unique requirements</td>
+          </tr>
+          <tr>
+            <td><strong>Cost Model</strong></td>
+            <td>BigQuery compute (on-demand or flat-rate)</td>
+            <td>Node-hours</td>
+            <td>Compute Engine / Vertex AI Training</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Decision Flow</div>
+        <p><strong>Data already in BigQuery + SQL team + tabular data?</strong> &rarr; Start with BQML.
+           <strong>Need highest accuracy with minimal tuning?</strong> &rarr; AutoML.
+           <strong>Need custom architecture or unstructured data?</strong> &rarr; Custom training.
+           <strong>BQML prototype worked but need online serving?</strong> &rarr; Export BQML model to Vertex AI.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 10: EXAM FOCUS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="exam-focus">
+      <div class="section-header">
+        <div class="section-num">10</div>
+        <h2>Exam Focus</h2>
+      </div>
+
+      <h3>Model Type Selection Cheat Sheet</h3>
+
+      <div class="callout exam">
+        <div class="callout-label">Quick Reference</div>
+        <p>
+          <strong>Predict a number</strong> (price, count, duration) &rarr; <code>LINEAR_REG</code> or <code>BOOSTED_TREE_REGRESSOR</code><br>
+          <strong>Predict a category</strong> (yes/no, A/B/C) &rarr; <code>LOGISTIC_REG</code> or <code>BOOSTED_TREE_CLASSIFIER</code><br>
+          <strong>Group similar items</strong> (customer segments) &rarr; <code>KMEANS</code><br>
+          <strong>Recommend items</strong> (products, movies) &rarr; <code>MATRIX_FACTORIZATION</code><br>
+          <strong>Forecast future values</strong> (sales, demand) &rarr; <code>ARIMA_PLUS</code><br>
+          <strong>Maximum accuracy, tabular data</strong> &rarr; <code>AUTOML_CLASSIFIER</code> / <code>AUTOML_REGRESSOR</code><br>
+          <strong>Use existing TF model in BQ</strong> &rarr; Import <code>TENSORFLOW</code> model
+        </p>
+      </div>
+
+      <h3>Common Exam Scenarios</h3>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 1</div>
+        <p>"A retail company has sales data in BigQuery. They want to forecast next quarter's sales
+           by region. The data shows clear weekly and yearly seasonality." &rarr;
+           <strong>ARIMA_PLUS</strong> with <code>time_series_id_col='region'</code> and
+           <code>auto_arima=TRUE</code></p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 2</div>
+        <p>"A data analyst (SQL expert, no Python) needs to predict customer churn (binary outcome)
+           using data already in BigQuery." &rarr; <strong>LOGISTIC_REG</strong> in BQML. If accuracy
+           needs improvement, upgrade to <strong>BOOSTED_TREE_CLASSIFIER</strong>.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 3</div>
+        <p>"The team trained a BQML model for fraud detection. It performs well in batch evaluation.
+           Now they need real-time predictions for incoming transactions." &rarr;
+           <strong>Export model</strong> to Cloud Storage, upload to <strong>Vertex AI Model Registry</strong>,
+           deploy to a <strong>Vertex AI Endpoint</strong> for online prediction.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 4</div>
+        <p>"An ML engineer wants to ensure consistent feature transformations between training and
+           serving in BQML." &rarr; Use the <strong>TRANSFORM</strong> clause in
+           <code>CREATE MODEL</code>. Transformations defined here are automatically applied during
+           <code>ML.PREDICT</code>.</p>
+      </div>
+
+      <h3>Key Exam Takeaways</h3>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"></div>
+          BQML trains models using SQL with no data movement from BigQuery
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          Know all model types and when to use each (especially ARIMA_PLUS, KMEANS, LOGISTIC_REG)
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          TRANSFORM clause prevents training-serving skew by embedding preprocessing in the model
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          ML.EVALUATE returns different metrics based on model type (classification vs regression)
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          ML.EXPLAIN_PREDICT uses Shapley values for feature attribution
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          Export BQML models to Vertex AI for online serving (not all types are exportable)
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          Use ML.FORECAST (not ML.PREDICT) for ARIMA_PLUS time series models
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          Hyperparameter tuning uses num_trials with Bayesian optimization
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          Choose precision for "minimize false positives," recall for "minimize false negatives"
+        </li>
+      </ul>
+
+      <!-- NAVIGATION -->
+      <div class="next-section">
+        <div>
+          <div class="next-label">Previous Module</div>
+          <a href="03-vertex-ai-notebooks.html" class="next-btn prev-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            03 &middot; Vertex AI Notebooks
+          </a>
+        </div>
+        <div style="text-align:right">
+          <div class="next-label">Next Module</div>
+          <a href="05-data-engineering-bqml.html" class="next-btn">
+            05 &middot; Data Engineering for BQML
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+          <div class="next-phase">Feature Engineering &amp; Pipelines</div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+</body>
+</html>

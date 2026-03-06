@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Working with Notebooks in Vertex AI — CareerAlign GCP MLE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--phase-found); background: rgba(59,130,246,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-indigo);
+  padding: 6px 14px; border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(99,102,241,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--phase-found); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--phase-found); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--phase-found); flex-shrink: 0; }
+.exam-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-left: 10px;
+  font-size: 12px; font-family: var(--font-display); font-weight: 600;
+  color: var(--accent-violet); letter-spacing: 0.04em; text-transform: uppercase;
+}
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--phase-found); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--phase-found); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--phase-found);
+  background: rgba(59,130,246,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--phase-cloud); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--phase-project); background: rgba(245,158,11,0.07); }
+.callout.exam { border-color: var(--accent-violet); background: rgba(168,85,247,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--phase-found);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--phase-cloud); }
+.callout.warn .callout-label { color: var(--phase-project); }
+.callout.exam .callout-label { color: var(--accent-violet); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--phase-found); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(59,130,246,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* TABLE */
+.compare-table {
+  width: 100%; border-collapse: collapse; margin: 20px 0;
+  font-size: 13.5px;
+}
+.compare-table th {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  padding: 10px 14px; text-align: left; font-family: var(--font-display);
+  font-weight: 600; font-size: 12px; color: var(--text-primary);
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.compare-table td {
+  border: 1px solid var(--border-default); padding: 10px 14px;
+  color: var(--text-secondary); background: var(--bg-surface);
+}
+.compare-table tr:hover td { background: var(--bg-elevated); }
+
+/* CHECKLIST */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px; color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 2px solid var(--phase-found);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.check-box.done { background: var(--phase-found); border-color: var(--phase-found); }
+
+/* TAB LABELS */
+.tab-row {
+  display: flex; gap: 8px; margin-bottom: -1px; padding: 0;
+}
+.tab-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  padding: 5px 12px; border-radius: 6px 6px 0 0;
+  background: var(--bg-overlay); color: var(--text-muted);
+  border: 1px solid var(--border-default); border-bottom: none;
+}
+.tab-label.plain { color: var(--phase-cloud); }
+.tab-label.deep  { color: var(--accent-violet); }
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--phase-found); color: var(--phase-found); transform: translateX(4px); }
+.prev-btn:hover { border-color: var(--phase-prereq); color: var(--phase-prereq); transform: translateX(-4px); }
+.next-phase { font-size: 12px; color: var(--phase-found); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9729;&#65039; <span>CareerAlign</span> GCP MLE</div>
+  <div class="nav-links">
+    <a href="01-intro-ml-ai.html">01 &middot; Intro</a>
+    <a href="02-prepare-data-ml-apis.html">02 &middot; Data Prep</a>
+    <a href="03-vertex-ai-notebooks.html" class="active">03 &middot; Notebooks</a>
+    <a href="04-bigquery-ml.html">04 &middot; BQML</a>
+    <a href="05-data-engineering-bqml.html">05 &middot; Data Eng</a>
+    <a href="06-custom-training.html">06 &middot; Custom</a>
+    <a href="07-vertex-ai-pipelines.html">07 &middot; Pipelines</a>
+    <a href="08-model-monitoring.html">08 &middot; Monitoring</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GCP MLE Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Course 03 &middot; Working with Notebooks in Vertex AI
+  </div>
+  <span class="exam-badge">Exam Section 2 &middot; Collaborating to Manage Data &amp; Models</span>
+  <h1>Notebook Environments for <em>ML on GCP</em></h1>
+  <p class="hero-desc">
+    GCP offers multiple notebook environments &mdash; from serverless Colab Enterprise to fully customizable
+    Vertex AI Workbench instances. This module helps you understand the trade-offs, configure runtimes,
+    integrate with data services, and choose the right environment for every scenario on the MLE exam.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Colab Enterprise
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Vertex AI Workbench
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Runtime Configuration
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Data Integration
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Security &amp; IAM
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-mle/notebooks/03-vertex-ai-notebooks.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#notebook-options" class="section">1 &middot; Notebook Options on GCP</a>
+    <a href="#decision-matrix" class="sub">Decision Matrix</a>
+    <a href="#colab-enterprise" class="section">2 &middot; Colab Enterprise</a>
+    <a href="#colab-features" class="sub">Features &amp; IAM</a>
+    <a href="#workbench" class="section">3 &middot; Vertex AI Workbench</a>
+    <a href="#managed-vs-user" class="sub">Managed vs User-Managed</a>
+    <a href="#runtime-config" class="section">4 &middot; Runtime Configuration</a>
+    <a href="#machine-types" class="sub">Machine Types &amp; GPUs</a>
+    <a href="#git-integration" class="section">5 &middot; Git Integration</a>
+    <a href="#data-access" class="section">6 &middot; Data Access Patterns</a>
+    <a href="#bq-gcs-fs" class="sub">BigQuery, GCS, Feature Store</a>
+    <a href="#security" class="section">7 &middot; Security</a>
+    <a href="#iam-vpc" class="sub">IAM, VPC-SC, CMEK</a>
+    <a href="#best-practices" class="section">8 &middot; Best Practices</a>
+    <a href="#prod-vs-explore" class="sub">Production vs Exploration</a>
+    <a href="#exam-focus" class="section">9 &middot; Exam Focus</a>
+    <a href="#scenario-guide" class="sub">Scenario Selection Guide</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1: NOTEBOOK OPTIONS ON GCP
+    ════════════════════════════════════════════ -->
+    <section class="section" id="notebook-options">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Notebook Options on GCP</h2>
+      </div>
+
+      <p>
+        Google Cloud provides several Jupyter-based notebook environments, each optimized for different
+        workflows. Understanding the differences is critical for the MLE exam and for real-world
+        architecture decisions.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9889;</div>
+            <h4>Colab Enterprise</h4>
+          </div>
+          <p>Serverless, zero-config notebooks in the Google Cloud console. Built for collaboration with
+             IAM integration, no infrastructure to manage. Ideal for quick exploration and sharing.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9881;</div>
+            <h4>Vertex AI Workbench &mdash; Managed</h4>
+          </div>
+          <p>Google-managed JupyterLab instances with automatic updates, health monitoring, and
+             built-in integrations. Good balance of control and convenience.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128736;</div>
+            <h4>Vertex AI Workbench &mdash; User-Managed</h4>
+          </div>
+          <p>Full VM-based notebooks with persistent disk, deep customization, GPU/TPU access, and
+             the ability to install arbitrary software. Best for heavy training and custom environments.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128218;</div>
+            <h4>JupyterLab on Compute Engine</h4>
+          </div>
+          <p>Self-hosted JupyterLab on a GCE VM or GKE. Maximum flexibility but requires manual setup,
+             patching, and security hardening.</p>
+        </div>
+      </div>
+
+      <h3 id="decision-matrix">Decision Matrix: When to Use Each Option</h3>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Criteria</th>
+            <th>Colab Enterprise</th>
+            <th>Workbench Managed</th>
+            <th>Workbench User-Managed</th>
+            <th>Self-Hosted JupyterLab</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Setup Effort</strong></td>
+            <td>None (serverless)</td>
+            <td>Low (click-to-create)</td>
+            <td>Medium (configure VM)</td>
+            <td>High (manual install)</td>
+          </tr>
+          <tr>
+            <td><strong>Custom Packages</strong></td>
+            <td>pip install in cell</td>
+            <td>Container customization</td>
+            <td>Full OS-level control</td>
+            <td>Full OS-level control</td>
+          </tr>
+          <tr>
+            <td><strong>GPU/TPU</strong></td>
+            <td>Limited (runtime types)</td>
+            <td>T4, V100, A100</td>
+            <td>Any available accelerator</td>
+            <td>Any available accelerator</td>
+          </tr>
+          <tr>
+            <td><strong>Persistent Disk</strong></td>
+            <td>No (ephemeral)</td>
+            <td>Yes</td>
+            <td>Yes (customizable size)</td>
+            <td>Yes (custom)</td>
+          </tr>
+          <tr>
+            <td><strong>Collaboration</strong></td>
+            <td>Excellent (real-time)</td>
+            <td>Share via IAM</td>
+            <td>Single user per instance</td>
+            <td>Manual setup</td>
+          </tr>
+          <tr>
+            <td><strong>IAM Integration</strong></td>
+            <td>Native</td>
+            <td>Native</td>
+            <td>Native</td>
+            <td>Manual</td>
+          </tr>
+          <tr>
+            <td><strong>Idle Shutdown</strong></td>
+            <td>Automatic</td>
+            <td>Configurable</td>
+            <td>Configurable</td>
+            <td>Manual</td>
+          </tr>
+          <tr>
+            <td><strong>Cost Model</strong></td>
+            <td>Pay-per-use (compute)</td>
+            <td>VM pricing</td>
+            <td>VM pricing + disk</td>
+            <td>VM pricing + disk</td>
+          </tr>
+          <tr>
+            <td><strong>Best For</strong></td>
+            <td>Quick prototyping, sharing</td>
+            <td>Team data science</td>
+            <td>Heavy training, custom envs</td>
+            <td>Max control, compliance</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Tip</div>
+        <p>The exam loves asking "which notebook environment should you use?" scenarios. Key signals:
+           <strong>collaboration + no setup</strong> = Colab Enterprise.
+           <strong>custom containers + managed</strong> = Workbench Managed.
+           <strong>full OS control + GPU</strong> = Workbench User-Managed.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2: COLAB ENTERPRISE
+    ════════════════════════════════════════════ -->
+    <section class="section" id="colab-enterprise">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Colab Enterprise</h2>
+      </div>
+
+      <p>
+        Colab Enterprise brings the familiar Google Colab experience into the Google Cloud console with
+        enterprise-grade security, compliance, and data governance. Notebooks run on serverless
+        infrastructure with no VM to manage.
+      </p>
+
+      <h3 id="colab-features">Key Features</h3>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"></div>
+          <strong>Serverless &amp; Zero-Config:</strong> No VMs to create, patch, or manage. Runtimes spin up on demand
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>Real-Time Collaboration:</strong> Multiple users can edit the same notebook simultaneously, similar to Google Docs
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>IAM Integration:</strong> Access controlled via Cloud IAM roles &mdash; <code>roles/aiplatform.colabEnterpriseUser</code>
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>VPC Service Controls:</strong> Notebooks can be placed within a VPC-SC perimeter for data exfiltration prevention
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>Org Policies:</strong> Admins can enforce notebook-level restrictions (e.g., no external network)
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>BigQuery Integration:</strong> Native connectors for querying directly from notebook cells
+        </li>
+      </ul>
+
+      <p>
+        <strong>Runtime types</strong> determine the compute available. You can select CPU-only, GPU-enabled
+        (T4), or high-memory runtimes. Runtimes are ephemeral &mdash; when disconnected, local files are lost.
+        Persist results to Cloud Storage or BigQuery.
+      </p>
+
+      <pre><code><span class="code-comment"># Colab Enterprise — query BigQuery directly</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> bigquery
+
+client = bigquery.<span class="code-fn">Client</span>(project=<span class="code-string">"my-project"</span>)
+query = <span class="code-string">"""
+    SELECT name, SUM(number) as total
+    FROM `bigquery-public-data.usa_names.usa_1910_2013`
+    GROUP BY name
+    ORDER BY total DESC
+    LIMIT 10
+"""</span>
+df = client.<span class="code-fn">query</span>(query).<span class="code-fn">to_dataframe</span>()
+df.<span class="code-fn">head</span>()</code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Key Difference</div>
+        <p>Colab Enterprise is NOT the same as free Google Colab. Colab Enterprise notebooks run inside
+           your GCP project with your data governance, IAM policies, and networking. Free Colab runs
+           on Google's shared infrastructure outside your project boundary.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3: VERTEX AI WORKBENCH
+    ════════════════════════════════════════════ -->
+    <section class="section" id="workbench">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Vertex AI Workbench</h2>
+      </div>
+
+      <p>
+        Vertex AI Workbench provides JupyterLab-based notebook instances backed by Compute Engine VMs.
+        There are two variants: <strong>Managed Notebooks</strong> and <strong>User-Managed Notebooks</strong>.
+      </p>
+
+      <h3 id="managed-vs-user">Managed Notebooks</h3>
+
+      <p>
+        Managed notebooks are Google-maintained JupyterLab instances. Google handles kernel updates,
+        security patches, and health monitoring. You choose the machine type, then get a JupyterLab
+        URL that is authenticated via IAM.
+      </p>
+
+      <pre><code><span class="code-comment"># Create a managed notebook instance via gcloud</span>
+gcloud notebooks instances create my-managed-notebook \
+  --location=us-central1-a \
+  --machine-type=n1-standard-4 \
+  --vm-image-project=deeplearning-platform-release \
+  --vm-image-family=common-cpu-notebooks</code></pre>
+
+      <p>
+        <strong>Key properties:</strong> automatic idle shutdown, environment health checks, integration
+        with Vertex AI services (training, pipelines, endpoints), and support for custom containers.
+      </p>
+
+      <h3>User-Managed Notebooks</h3>
+
+      <p>
+        User-managed notebooks give you a full Compute Engine VM with JupyterLab installed via
+        Deep Learning VM images. You have <strong>root/sudo access</strong>, can install arbitrary
+        packages at the OS level, configure networking, and attach multiple GPUs.
+      </p>
+
+      <pre><code><span class="code-comment"># Create a user-managed notebook with GPU</span>
+gcloud notebooks instances create my-gpu-notebook \
+  --location=us-central1-a \
+  --machine-type=n1-standard-8 \
+  --accelerator-type=NVIDIA_TESLA_T4 \
+  --accelerator-core-count=1 \
+  --vm-image-project=deeplearning-platform-release \
+  --vm-image-family=tf-latest-gpu \
+  --boot-disk-size=200GB \
+  --install-gpu-driver</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Cost Warning</div>
+        <p>User-managed notebooks incur VM costs even when idle unless you configure auto-shutdown
+           or manually stop the instance. Always set <code>--idle-shutdown-timeout</code> to avoid
+           surprise bills. Stopped instances still incur disk charges.</p>
+      </div>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Managed Notebooks</th>
+            <th>User-Managed Notebooks</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>OS-level access (sudo)</td>
+            <td>No</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td>Auto-patching</td>
+            <td>Yes (Google-managed)</td>
+            <td>No (your responsibility)</td>
+          </tr>
+          <tr>
+            <td>Custom containers</td>
+            <td>Yes (specify container URI)</td>
+            <td>Yes (Deep Learning VM images)</td>
+          </tr>
+          <tr>
+            <td>Multi-GPU support</td>
+            <td>Limited</td>
+            <td>Full (up to 8 GPUs)</td>
+          </tr>
+          <tr>
+            <td>Scheduled notebooks</td>
+            <td>Yes (built-in)</td>
+            <td>Via nbconvert + cron or Cloud Scheduler</td>
+          </tr>
+          <tr>
+            <td>Health monitoring</td>
+            <td>Automatic</td>
+            <td>Manual or via Cloud Monitoring</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4: RUNTIME CONFIGURATION
+    ════════════════════════════════════════════ -->
+    <section class="section" id="runtime-config">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Runtime Configuration</h2>
+      </div>
+
+      <h3 id="machine-types">Machine Types and Accelerators</h3>
+
+      <p>
+        Choosing the right machine type depends on your workload. For data exploration, a standard
+        CPU machine is sufficient. For model training, you need GPU-accelerated instances.
+      </p>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Machine Type</th>
+            <th>vCPUs</th>
+            <th>Memory</th>
+            <th>Best For</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>n1-standard-4</code></td>
+            <td>4</td>
+            <td>15 GB</td>
+            <td>Light exploration, small datasets</td>
+          </tr>
+          <tr>
+            <td><code>n1-standard-8</code></td>
+            <td>8</td>
+            <td>30 GB</td>
+            <td>Medium workloads, feature engineering</td>
+          </tr>
+          <tr>
+            <td><code>n1-highmem-16</code></td>
+            <td>16</td>
+            <td>104 GB</td>
+            <td>Large in-memory datasets</td>
+          </tr>
+          <tr>
+            <td><code>a2-highgpu-1g</code></td>
+            <td>12</td>
+            <td>85 GB + A100 40GB</td>
+            <td>Deep learning training</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p><strong>Accelerator options:</strong></p>
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"></div>
+          <strong>NVIDIA T4:</strong> Cost-effective for inference and light training (16GB VRAM)
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>NVIDIA V100:</strong> Good for medium-scale training (16/32GB HBM2)
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>NVIDIA A100:</strong> High-end training and large models (40/80GB HBM2e)
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>TPU v2/v3:</strong> Best for TensorFlow/JAX workloads at scale
+        </li>
+      </ul>
+
+      <h3>Idle Shutdown</h3>
+
+      <p>
+        Idle shutdown automatically stops a notebook instance after a period of inactivity. This is
+        critical for cost management, especially with GPU instances.
+      </p>
+
+      <pre><code><span class="code-comment"># Set idle shutdown to 60 minutes on an existing instance</span>
+gcloud notebooks instances update my-notebook \
+  --location=us-central1-a \
+  --idle-shutdown-timeout=60m
+
+<span class="code-comment"># Disable idle shutdown (not recommended for GPU instances)</span>
+gcloud notebooks instances update my-notebook \
+  --location=us-central1-a \
+  --no-idle-shutdown</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Best Practice</div>
+        <p>Always set idle shutdown to 30&ndash;90 minutes for GPU-attached notebooks. For CPU-only
+           exploration notebooks, 120 minutes is a reasonable default. Monitor costs via billing
+           alerts tied to notebook instance labels.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 5: GIT INTEGRATION
+    ════════════════════════════════════════════ -->
+    <section class="section" id="git-integration">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Git Integration and Version Control</h2>
+      </div>
+
+      <p>
+        All Vertex AI notebook environments support Git integration for version-controlling your
+        notebooks, scripts, and configuration files.
+      </p>
+
+      <h3>Workbench Git Integration</h3>
+
+      <p>
+        Vertex AI Workbench instances include a built-in Git UI in JupyterLab. You can clone repos,
+        create branches, commit, and push directly from the sidebar. For Cloud Source Repositories
+        or GitHub, configure SSH keys or use <code>gcloud</code> credential helpers.
+      </p>
+
+      <pre><code><span class="code-comment"># Clone a repo inside your notebook instance</span>
+git clone https://source.developers.google.com/p/my-project/r/my-repo
+
+<span class="code-comment"># Or use GitHub with SSH</span>
+git clone git@github.com:my-org/ml-notebooks.git
+
+<span class="code-comment"># Configure credential helper for Cloud Source Repos</span>
+git config --global credential.helper gcloud.sh</code></pre>
+
+      <h3>Colab Enterprise Git Support</h3>
+
+      <p>
+        In Colab Enterprise, notebooks are stored in Cloud Storage buckets by default. You can
+        integrate with GitHub by connecting your repository and syncing notebooks. Changes are
+        committed via the Colab Enterprise UI or programmatically.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Version Control Strategy</div>
+        <p>For production ML workflows, store notebooks in Git but keep outputs stripped to avoid
+           merge conflicts. Use <code>nbstripout</code> as a Git filter. For experiment tracking,
+           complement Git with Vertex AI Experiments or MLflow.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 6: DATA ACCESS PATTERNS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="data-access">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Data Access Patterns</h2>
+      </div>
+
+      <p>
+        Notebooks on GCP can connect to multiple data sources. The three most common patterns
+        for ML workflows are BigQuery, Cloud Storage, and Vertex AI Feature Store.
+      </p>
+
+      <h3 id="bq-gcs-fs">BigQuery Integration</h3>
+
+      <p>
+        BigQuery is the primary data warehouse for ML on GCP. You can query data directly from
+        notebooks using the <code>google-cloud-bigquery</code> client library or BigQuery cell magic.
+      </p>
+
+      <pre><code><span class="code-comment"># Method 1: Python client</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> bigquery
+client = bigquery.<span class="code-fn">Client</span>()
+df = client.<span class="code-fn">query</span>(<span class="code-string">"SELECT * FROM `project.dataset.table` LIMIT 1000"</span>).<span class="code-fn">to_dataframe</span>()
+
+<span class="code-comment"># Method 2: BigQuery cell magic (in Colab / Workbench)</span>
+%%bigquery df
+SELECT *
+FROM `bigquery-public-data.ml_datasets.penguins`
+WHERE body_mass_g IS NOT NULL
+LIMIT 100</code></pre>
+
+      <h3>Cloud Storage Access</h3>
+
+      <pre><code><span class="code-comment"># Read a CSV from Cloud Storage</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> storage
+<span class="code-keyword">import</span> pandas <span class="code-keyword">as</span> pd
+
+<span class="code-comment"># Direct pandas read via gcsfs (installed by default)</span>
+df = pd.<span class="code-fn">read_csv</span>(<span class="code-string">"gs://my-bucket/data/training.csv"</span>)
+
+<span class="code-comment"># Or use the storage client for binary files</span>
+client = storage.<span class="code-fn">Client</span>()
+bucket = client.<span class="code-fn">get_bucket</span>(<span class="code-string">"my-bucket"</span>)
+blob = bucket.<span class="code-fn">blob</span>(<span class="code-string">"models/saved_model.pb"</span>)
+blob.<span class="code-fn">download_to_filename</span>(<span class="code-string">"local_model.pb"</span>)</code></pre>
+
+      <h3>Vertex AI Feature Store</h3>
+
+      <pre><code><span class="code-comment"># Read features from Vertex AI Feature Store</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+aiplatform.<span class="code-fn">init</span>(project=<span class="code-string">"my-project"</span>, location=<span class="code-string">"us-central1"</span>)
+
+feature_store = aiplatform.<span class="code-fn">Featurestore</span>(featurestore_name=<span class="code-string">"my_featurestore"</span>)
+
+<span class="code-comment"># Batch read features for training</span>
+df = feature_store.<span class="code-fn">batch_serve_to_df</span>(
+    serving_feature_ids={
+        <span class="code-string">"users"</span>: [<span class="code-string">"age"</span>, <span class="code-string">"tenure"</span>, <span class="code-string">"spending_score"</span>],
+        <span class="code-string">"products"</span>: [<span class="code-string">"category"</span>, <span class="code-string">"price"</span>]
+    },
+    read_instances_df=entity_df
+)</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Performance Tip</div>
+        <p>For large BigQuery tables, avoid downloading everything to the notebook. Use
+           <code>%%bigquery</code> with aggregation/filtering, or use BigQuery DataFrames
+           (<code>bigframes</code>) which push computation to BigQuery while providing a
+           pandas-like API.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 7: SECURITY
+    ════════════════════════════════════════════ -->
+    <section class="section" id="security">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Security</h2>
+      </div>
+
+      <h3 id="iam-vpc">IAM Roles for Notebooks</h3>
+
+      <p>
+        Access to notebook instances is controlled via IAM. Key roles include:
+      </p>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>IAM Role</th>
+            <th>Permissions</th>
+            <th>Use Case</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>roles/notebooks.admin</code></td>
+            <td>Full control over notebook instances</td>
+            <td>Platform admins</td>
+          </tr>
+          <tr>
+            <td><code>roles/notebooks.viewer</code></td>
+            <td>View notebook instances (no access to JupyterLab)</td>
+            <td>Auditors</td>
+          </tr>
+          <tr>
+            <td><code>roles/notebooks.runner</code></td>
+            <td>Execute scheduled notebook runs</td>
+            <td>Automation service accounts</td>
+          </tr>
+          <tr>
+            <td><code>roles/aiplatform.colabEnterpriseUser</code></td>
+            <td>Create and use Colab Enterprise notebooks</td>
+            <td>Data scientists</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Service Accounts</h3>
+
+      <p>
+        Notebook instances run code using a <strong>service account</strong>. By default, the Compute Engine
+        default service account is used. For production, always create a dedicated service account with
+        least-privilege permissions.
+      </p>
+
+      <pre><code><span class="code-comment"># Create a dedicated service account for notebooks</span>
+gcloud iam service-accounts create notebook-sa \
+  --display-name=<span class="code-string">"Notebook Service Account"</span>
+
+<span class="code-comment"># Grant only needed roles</span>
+gcloud projects add-iam-policy-binding my-project \
+  --member=<span class="code-string">"serviceAccount:notebook-sa@my-project.iam.gserviceaccount.com"</span> \
+  --role=<span class="code-string">"roles/bigquery.dataViewer"</span>
+
+gcloud projects add-iam-policy-binding my-project \
+  --member=<span class="code-string">"serviceAccount:notebook-sa@my-project.iam.gserviceaccount.com"</span> \
+  --role=<span class="code-string">"roles/storage.objectViewer"</span>
+
+<span class="code-comment"># Create notebook with custom service account</span>
+gcloud notebooks instances create secure-notebook \
+  --location=us-central1-a \
+  --machine-type=n1-standard-4 \
+  --service-account=notebook-sa@my-project.iam.gserviceaccount.com \
+  --vm-image-project=deeplearning-platform-release \
+  --vm-image-family=common-cpu-notebooks</code></pre>
+
+      <h3>VPC Service Controls (VPC-SC)</h3>
+
+      <p>
+        VPC-SC creates a security perimeter around your GCP resources to prevent data exfiltration.
+        Notebook instances within a VPC-SC perimeter can only access resources within the same perimeter.
+      </p>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"></div>
+          <strong>Perimeter setup:</strong> Include Vertex AI API (notebooks) and BigQuery API in the same service perimeter
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>Ingress rules:</strong> Define who can access the notebook from outside the perimeter
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>Egress rules:</strong> Control what data can leave the perimeter (e.g., no external API calls)
+        </li>
+      </ul>
+
+      <h3>Customer-Managed Encryption Keys (CMEK)</h3>
+
+      <p>
+        By default, Google encrypts data at rest. With CMEK, you control the encryption key via
+        Cloud KMS. This is required for many compliance frameworks (HIPAA, PCI-DSS).
+      </p>
+
+      <pre><code><span class="code-comment"># Create a notebook with CMEK</span>
+gcloud notebooks instances create cmek-notebook \
+  --location=us-central1-a \
+  --machine-type=n1-standard-4 \
+  --kms-key=projects/my-project/locations/us-central1/keyRings/my-ring/cryptoKeys/my-key \
+  --vm-image-project=deeplearning-platform-release \
+  --vm-image-family=common-cpu-notebooks</code></pre>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Focus</div>
+        <p>Security questions often combine multiple concepts: "A data scientist needs notebook access
+           to sensitive data in BigQuery. The organization requires CMEK and VPC-SC. Which notebook
+           type supports this?" Answer: Vertex AI Workbench (both managed and user-managed) support
+           CMEK and VPC-SC. Colab Enterprise also supports VPC-SC.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 8: BEST PRACTICES
+    ════════════════════════════════════════════ -->
+    <section class="section" id="best-practices">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <h2>Best Practices</h2>
+      </div>
+
+      <h3 id="prod-vs-explore">Production Notebooks vs Exploration</h3>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Aspect</th>
+            <th>Exploration Notebook</th>
+            <th>Production Notebook</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Purpose</td>
+            <td>EDA, prototyping, ad-hoc analysis</td>
+            <td>Scheduled runs, reports, CI/CD integration</td>
+          </tr>
+          <tr>
+            <td>Execution</td>
+            <td>Interactive (cell-by-cell)</td>
+            <td>Parameterized, end-to-end via <code>papermill</code></td>
+          </tr>
+          <tr>
+            <td>Environment</td>
+            <td>Colab Enterprise or Managed Workbench</td>
+            <td>User-Managed Workbench or containerized</td>
+          </tr>
+          <tr>
+            <td>Version Control</td>
+            <td>Optional</td>
+            <td>Mandatory (Git + stripped outputs)</td>
+          </tr>
+          <tr>
+            <td>Testing</td>
+            <td>Informal</td>
+            <td>Unit tests for helper functions, integration tests</td>
+          </tr>
+          <tr>
+            <td>Output Management</td>
+            <td>Inline display</td>
+            <td>Save to GCS/BigQuery, generate reports</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Parameterized Notebook Execution</h3>
+
+      <p>
+        <strong>Papermill</strong> allows you to parameterize and execute notebooks programmatically.
+        This is the bridge between exploration and production.
+      </p>
+
+      <pre><code><span class="code-comment"># Execute a notebook with parameters via papermill</span>
+<span class="code-keyword">import</span> papermill <span class="code-keyword">as</span> pm
+
+pm.<span class="code-fn">execute_notebook</span>(
+    <span class="code-string">"template_notebook.ipynb"</span>,
+    <span class="code-string">"output/run_2024_01.ipynb"</span>,
+    parameters={
+        <span class="code-string">"start_date"</span>: <span class="code-string">"2024-01-01"</span>,
+        <span class="code-string">"end_date"</span>: <span class="code-string">"2024-01-31"</span>,
+        <span class="code-string">"model_type"</span>: <span class="code-string">"xgboost"</span>,
+        <span class="code-string">"learning_rate"</span>: <span class="code-num">0.01</span>
+    }
+)</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>For scheduled notebook execution on GCP, use <strong>Vertex AI Workbench Scheduled
+           Runs</strong> (managed notebooks) or combine Cloud Scheduler + Cloud Functions + Papermill
+           for user-managed notebooks. Both approaches support parameterized execution.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 9: EXAM FOCUS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="exam-focus">
+      <div class="section-header">
+        <div class="section-num">09</div>
+        <h2>Exam Focus: Choosing the Right Notebook Environment</h2>
+      </div>
+
+      <h3 id="scenario-guide">Scenario Selection Guide</h3>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 1</div>
+        <p>"A team of data scientists needs to collaboratively explore a new dataset stored in BigQuery.
+           They want zero infrastructure setup." &rarr; <strong>Colab Enterprise</strong></p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 2</div>
+        <p>"An ML engineer needs to train a TensorFlow model on a GPU with a custom Conda environment
+           and specific CUDA libraries." &rarr; <strong>Vertex AI Workbench (User-Managed)</strong> with
+           GPU and custom Deep Learning VM image</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 3</div>
+        <p>"The team wants JupyterLab notebooks that auto-update and integrate with Vertex AI Pipelines,
+           without managing the underlying VM." &rarr; <strong>Vertex AI Workbench (Managed)</strong></p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 4</div>
+        <p>"A healthcare company needs notebooks with CMEK encryption, VPC-SC, and audit logging for
+           processing PHI data." &rarr; <strong>Vertex AI Workbench (User-Managed or Managed)</strong>
+           with CMEK key and VPC-SC perimeter configured</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 5</div>
+        <p>"An analyst needs to run a notebook weekly to generate a report from BigQuery, parameterized
+           by date range." &rarr; <strong>Vertex AI Workbench Managed Notebooks</strong> with scheduled
+           execution, or Papermill on a user-managed instance</p>
+      </div>
+
+      <h3>Key Exam Takeaways</h3>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"></div>
+          Colab Enterprise = serverless, collaborative, no GPU customization, IAM-native
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          Workbench Managed = Google-maintained, auto-patching, scheduled runs, good for teams
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          Workbench User-Managed = full control, sudo access, custom envs, multi-GPU
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          All notebook types support BigQuery and Cloud Storage access
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          VPC-SC and CMEK are supported on Workbench instances for compliance
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          Always configure idle shutdown for GPU instances to control costs
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          Use dedicated service accounts (not default) for production notebooks
+        </li>
+      </ul>
+
+      <!-- NAVIGATION -->
+      <div class="next-section">
+        <div>
+          <div class="next-label">Previous Module</div>
+          <a href="02-prepare-data-ml-apis.html" class="next-btn prev-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            02 &middot; Prepare Data &amp; ML APIs
+          </a>
+        </div>
+        <div style="text-align:right">
+          <div class="next-label">Next Module</div>
+          <a href="04-bigquery-ml.html" class="next-btn">
+            04 &middot; BigQuery ML
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+          <div class="next-phase">Create ML Models with SQL</div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+</body>
+</html>

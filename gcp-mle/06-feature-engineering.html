@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Feature Engineering — CareerAlign GCP MLE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--phase-found); background: rgba(59,130,246,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-indigo);
+  padding: 6px 14px; border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(99,102,241,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--phase-found); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--phase-found); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--phase-found); flex-shrink: 0; }
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--phase-found); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--phase-found); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--phase-found);
+  background: rgba(59,130,246,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--phase-cloud); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--phase-project); background: rgba(245,158,11,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--phase-found);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--phase-cloud); }
+.callout.warn .callout-label { color: var(--phase-project); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* SVG DIAGRAM */
+.diagram-wrap {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg); padding: 32px;
+  margin: 32px 0;
+}
+.diagram-caption {
+  text-align: center; font-size: 13px; color: var(--text-muted);
+  margin-top: 16px; font-style: italic;
+}
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--phase-found); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(59,130,246,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* CHECKLIST */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px; color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 2px solid var(--phase-found);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.check-box.done { background: var(--phase-found); border-color: var(--phase-found); }
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--phase-found); color: var(--phase-found); transform: translateX(4px); }
+.prev-btn:hover { border-color: var(--phase-prereq); color: var(--phase-prereq); transform: translateX(-4px); }
+.next-phase { font-size: 12px; color: var(--phase-found); font-weight: 500; }
+
+/* FORMULA */
+.formula {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 16px 22px; margin: 20px 0;
+  font-family: var(--font-mono); font-size: 14px; color: var(--accent-cyan);
+  text-align: center; letter-spacing: 0.02em;
+}
+
+/* TAB LABELS */
+.tab-row {
+  display: flex; gap: 8px; margin-bottom: -1px; padding: 0;
+}
+.tab-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  padding: 5px 12px; border-radius: 6px 6px 0 0;
+  background: var(--bg-overlay); color: var(--text-muted);
+  border: 1px solid var(--border-default); border-bottom: none;
+}
+.tab-label.plain { color: var(--phase-cloud); }
+.tab-label.deep  { color: var(--accent-violet); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9729;&#65039; <span>CareerAlign</span> GCP MLE</div>
+  <div class="nav-links">
+    <a href="01-intro-ml-on-gcp.html">01 &middot; Intro ML</a>
+    <a href="02-ml-development-lifecycle.html">02 &middot; ML Lifecycle</a>
+    <a href="03-data-preparation.html">03 &middot; Data Prep</a>
+    <a href="04-bigquery-ml.html">04 &middot; BQML</a>
+    <a href="05-data-engineering-bqml.html">05 &middot; Data Eng</a>
+    <a href="06-feature-engineering.html" class="active">06 &middot; Features</a>
+    <a href="07-tensorflow-gcp.html">07 &middot; TensorFlow</a>
+    <a href="08-vertex-ai.html">08 &middot; Vertex AI</a>
+    <a href="09-ml-pipelines.html">09 &middot; Pipelines</a>
+    <a href="10-mlops.html">10 &middot; MLOps</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GCP MLE Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Module 06 &middot; Feature Engineering
+  </div>
+  <h1>Turning Raw Data into <em>Powerful Features</em></h1>
+  <p class="hero-desc">
+    Feature engineering is where domain knowledge meets data science. This module covers the complete
+    feature engineering toolkit on GCP &mdash; from Vertex AI Feature Store for production serving, through
+    tf.Transform for scalable preprocessing, to feature crosses, encodings, and selection techniques.
+    Covers exam Sections 2 and 3.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Feature Store
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Feature Transforms
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Feature Crosses
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      tf.Transform
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Feature Selection
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-mle/notebooks/06-feature-engineering.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#feature-store" class="section">1 &middot; Vertex AI Feature Store</a>
+    <a href="#fs-architecture" class="sub">Architecture</a>
+    <a href="#fs-operations" class="sub">Operations</a>
+    <a href="#transforms" class="section">2 &middot; Feature Transforms</a>
+    <a href="#transforms-numerical" class="sub">Numerical</a>
+    <a href="#transforms-categorical" class="sub">Categorical</a>
+    <a href="#transforms-text-temporal" class="sub">Text &amp; Temporal</a>
+    <a href="#best-practices" class="section">3 &middot; Best Practices</a>
+    <a href="#bp-leakage" class="sub">Avoiding Leakage</a>
+    <a href="#bp-skew" class="sub">Training-Serving Skew</a>
+    <a href="#crosses" class="section">4 &middot; Feature Crosses</a>
+    <a href="#crosses-what" class="sub">What &amp; When</a>
+    <a href="#crosses-examples" class="sub">Examples</a>
+    <a href="#tftransform" class="section">5 &middot; tf.Transform</a>
+    <a href="#tft-pattern" class="sub">Analyze-and-Transform</a>
+    <a href="#tft-dataflow" class="sub">Dataflow Integration</a>
+    <a href="#preprocessing" class="section">6 &middot; Preprocessing at Scale</a>
+    <a href="#selection" class="section">7 &middot; Feature Selection</a>
+    <a href="#selection-methods" class="sub">Methods</a>
+    <a href="#selection-importance" class="sub">Feature Importance</a>
+    <a href="#exam" class="section">8 &middot; Exam Focus</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1: VERTEX AI FEATURE STORE
+    ════════════════════════════════════════════ -->
+    <section class="section" id="feature-store">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Vertex AI Feature Store</h2>
+      </div>
+
+      <!-- SVG DIAGRAM -->
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 820 260" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'Space Grotesk', sans-serif">
+          <rect width="820" height="260" fill="#10131e" rx="12"/>
+          <defs>
+            <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#3b82f6" opacity="0.7"/>
+            </marker>
+          </defs>
+
+          <!-- Feature Sources -->
+          <rect x="20" y="30" width="130" height="40" rx="6" fill="#171c2e" stroke="#232840" stroke-width="1.5"/>
+          <text x="85" y="55" text-anchor="middle" fill="#8e94b5" font-size="11">Batch (BigQuery)</text>
+          <rect x="20" y="80" width="130" height="40" rx="6" fill="#171c2e" stroke="#232840" stroke-width="1.5"/>
+          <text x="85" y="105" text-anchor="middle" fill="#8e94b5" font-size="11">Stream (Pub/Sub)</text>
+          <rect x="20" y="130" width="130" height="40" rx="6" fill="#171c2e" stroke="#232840" stroke-width="1.5"/>
+          <text x="85" y="155" text-anchor="middle" fill="#8e94b5" font-size="11">CSV / Avro / GCS</text>
+
+          <text x="85" y="195" text-anchor="middle" fill="#545a78" font-size="10">Data Sources</text>
+
+          <!-- Arrows to Feature Store -->
+          <line x1="152" y1="50" x2="238" y2="95" stroke="#3b82f6" stroke-width="1.2" marker-end="url(#arr)" opacity="0.6"/>
+          <line x1="152" y1="100" x2="238" y2="100" stroke="#3b82f6" stroke-width="1.2" marker-end="url(#arr)" opacity="0.6"/>
+          <line x1="152" y1="150" x2="238" y2="105" stroke="#3b82f6" stroke-width="1.2" marker-end="url(#arr)" opacity="0.6"/>
+
+          <!-- Feature Store -->
+          <rect x="240" y="40" width="200" height="140" rx="10" fill="#1e2438" stroke="#6366f1" stroke-width="2"/>
+          <text x="340" y="68" text-anchor="middle" fill="#a855f7" font-size="13" font-weight="600">Feature Store</text>
+
+          <!-- Entity Types inside -->
+          <rect x="260" y="80" width="80" height="30" rx="4" fill="#171c2e" stroke="#3b82f6" stroke-width="1"/>
+          <text x="300" y="100" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="500">User Entity</text>
+          <rect x="350" y="80" width="80" height="30" rx="4" fill="#171c2e" stroke="#3b82f6" stroke-width="1"/>
+          <text x="390" y="100" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="500">Item Entity</text>
+
+          <rect x="260" y="118" width="80" height="30" rx="4" fill="#171c2e" stroke="#22d3ee" stroke-width="1"/>
+          <text x="300" y="137" text-anchor="middle" fill="#22d3ee" font-size="9">Features[]</text>
+          <rect x="350" y="118" width="80" height="30" rx="4" fill="#171c2e" stroke="#22d3ee" stroke-width="1"/>
+          <text x="390" y="137" text-anchor="middle" fill="#22d3ee" font-size="9">Features[]</text>
+
+          <text x="340" y="168" text-anchor="middle" fill="#545a78" font-size="9">Versioned + Time-stamped</text>
+
+          <!-- Arrows out -->
+          <line x1="442" y1="80" x2="498" y2="60" stroke="#3b82f6" stroke-width="1.2" marker-end="url(#arr)" opacity="0.6"/>
+          <line x1="442" y1="130" x2="498" y2="150" stroke="#3b82f6" stroke-width="1.2" marker-end="url(#arr)" opacity="0.6"/>
+
+          <!-- Online Serving -->
+          <rect x="500" y="30" width="150" height="60" rx="8" fill="#171c2e" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="575" y="55" text-anchor="middle" fill="#22c55e" font-size="11" font-weight="600">Online Serving</text>
+          <text x="575" y="72" text-anchor="middle" fill="#545a78" font-size="10">Low-latency lookups</text>
+
+          <!-- Offline Serving -->
+          <rect x="500" y="120" width="150" height="60" rx="8" fill="#171c2e" stroke="#f97316" stroke-width="1.5"/>
+          <text x="575" y="145" text-anchor="middle" fill="#f97316" font-size="11" font-weight="600">Offline Serving</text>
+          <text x="575" y="162" text-anchor="middle" fill="#545a78" font-size="10">Batch training data</text>
+
+          <!-- Consumers -->
+          <line x1="652" y1="60" x2="688" y2="60" stroke="#3b82f6" stroke-width="1.2" marker-end="url(#arr)" opacity="0.6"/>
+          <line x1="652" y1="150" x2="688" y2="150" stroke="#3b82f6" stroke-width="1.2" marker-end="url(#arr)" opacity="0.6"/>
+
+          <rect x="690" y="35" width="110" height="50" rx="6" fill="#171c2e" stroke="#232840" stroke-width="1.5"/>
+          <text x="745" y="58" text-anchor="middle" fill="#8e94b5" font-size="10">Prediction</text>
+          <text x="745" y="73" text-anchor="middle" fill="#8e94b5" font-size="10">Endpoints</text>
+
+          <rect x="690" y="125" width="110" height="50" rx="6" fill="#171c2e" stroke="#232840" stroke-width="1.5"/>
+          <text x="745" y="148" text-anchor="middle" fill="#8e94b5" font-size="10">Training</text>
+          <text x="745" y="163" text-anchor="middle" fill="#8e94b5" font-size="10">Pipelines</text>
+
+          <!-- Shared access label -->
+          <rect x="280" y="210" width="260" height="30" rx="6" fill="none" stroke="#2e3554" stroke-width="1" stroke-dasharray="4,3"/>
+          <text x="410" y="230" text-anchor="middle" fill="#545a78" font-size="10">Shared across teams via Feature Registry</text>
+        </svg>
+        <div class="diagram-caption">Figure 1 &mdash; Vertex AI Feature Store: data from multiple sources is ingested into entity-based feature groups, then served online (low-latency) or offline (batch) to training and prediction workloads.</div>
+      </div>
+
+      <h3 id="fs-architecture">Architecture</h3>
+
+      <p>
+        <strong>Vertex AI Feature Store</strong> is a centralized, managed repository for storing, organizing, and serving ML features. It solves several critical problems: feature reuse across teams, consistent feature values between training and serving, and point-in-time correctness for training data.
+      </p>
+      <p>
+        The architecture is organized around these concepts:
+      </p>
+      <p>
+        <strong>Featurestore</strong>: The top-level container (one per project/use-case). Contains all entity types and features.
+      </p>
+      <p>
+        <strong>Entity Type</strong>: A logical grouping of features about a specific entity (e.g., "user," "product," "transaction"). Each entity type has a unique ID column that identifies individual entities.
+      </p>
+      <p>
+        <strong>Feature</strong>: An individual measurable property within an entity type (e.g., "age," "total_purchases," "last_login_days_ago"). Features have a data type (INT64, FLOAT, STRING, BOOL, array types) and are versioned with timestamps.
+      </p>
+      <p>
+        <strong>Online serving</strong> provides low-latency feature lookups for real-time prediction. The Feature Store maintains an optimized online storage (backed by Bigtable) that returns feature values for a given entity ID in milliseconds. This is used when a prediction endpoint needs to fetch the latest features for a user at inference time.
+      </p>
+      <p>
+        <strong>Offline serving</strong> provides batch access to historical feature values for training. It performs <strong>point-in-time joins</strong>, ensuring that training examples use only features that were available at the time of each training label. This prevents data leakage from the future.
+      </p>
+
+      <h3 id="fs-operations">Operations: Create, Ingest, Serve, Share</h3>
+
+      <p>
+        The Feature Store workflow follows four steps:
+      </p>
+      <p>
+        <strong>1. Create</strong>: Define the featurestore, entity types, and features using the Vertex AI SDK or REST API. Specify feature names, types, and descriptions.
+      </p>
+
+      <pre><code><span class="code-comment"># Create Feature Store resources (requires GCP)</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+aiplatform.init(project=<span class="code-string">"my-project"</span>, location=<span class="code-string">"us-central1"</span>)
+
+<span class="code-comment"># Create a featurestore</span>
+fs = aiplatform.Featurestore.create(
+    featurestore_id=<span class="code-string">"ecommerce_features"</span>,
+    online_store_fixed_node_count=<span class="code-num">1</span>
+)
+
+<span class="code-comment"># Create an entity type</span>
+user_entity = fs.create_entity_type(
+    entity_type_id=<span class="code-string">"users"</span>,
+    description=<span class="code-string">"User-level features for churn prediction"</span>
+)
+
+<span class="code-comment"># Add features to the entity type</span>
+user_entity.batch_create_features(
+    feature_configs={
+        <span class="code-string">"age"</span>: {<span class="code-string">"value_type"</span>: <span class="code-string">"INT64"</span>},
+        <span class="code-string">"total_purchases"</span>: {<span class="code-string">"value_type"</span>: <span class="code-string">"DOUBLE"</span>},
+        <span class="code-string">"account_age_days"</span>: {<span class="code-string">"value_type"</span>: <span class="code-string">"INT64"</span>},
+        <span class="code-string">"region"</span>: {<span class="code-string">"value_type"</span>: <span class="code-string">"STRING"</span>},
+        <span class="code-string">"is_premium"</span>: {<span class="code-string">"value_type"</span>: <span class="code-string">"BOOL"</span>},
+    }
+)</code></pre>
+
+      <p>
+        <strong>2. Ingest</strong>: Import feature values from BigQuery, GCS (CSV/Avro), or streaming sources. Ingestion is timestamp-aware &mdash; each feature value has an associated timestamp for point-in-time lookups.
+      </p>
+      <p>
+        <strong>3. Serve</strong>: Read features online (by entity ID for real-time) or offline (batch export with point-in-time joins for training datasets).
+      </p>
+      <p>
+        <strong>4. Share</strong>: Features registered in the Feature Store are discoverable by other teams via the Feature Registry. This promotes reuse and consistency across the organization.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Feature Store vs Inline Features</div>
+        <p>Use the Feature Store when features are shared across multiple models or teams, when you need point-in-time correctness, or when low-latency online serving is required. Use inline features (computed in the query/pipeline) for model-specific features that are only used once or are trivially derived.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2: FEATURE TRANSFORMS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="transforms">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Raw Data to Features</h2>
+      </div>
+
+      <h3 id="transforms-numerical">Numerical Features</h3>
+
+      <p>
+        Numerical features often need transformation before they are useful for ML models. The key techniques:
+      </p>
+      <p>
+        <strong>Scaling (Min-Max)</strong>: Maps values to [0, 1] range. Formula: <code>(x - min) / (max - min)</code>. Use when you need bounded values and the distribution is roughly uniform. Sensitive to outliers.
+      </p>
+      <p>
+        <strong>Standardization (Z-score)</strong>: Centers at 0 with unit variance. Formula: <code>(x - mean) / std</code>. Use for algorithms that assume Gaussian distributions (linear regression, SVMs). Less sensitive to outliers than min-max.
+      </p>
+      <p>
+        <strong>Log Transform</strong>: Compresses right-skewed distributions. Apply <code>log(x + 1)</code> for features like revenue, counts, or prices that span orders of magnitude.
+      </p>
+      <p>
+        <strong>Bucketizing / Binning</strong>: Converts continuous values into categorical bins. Use when the relationship between the feature and target is non-linear, or when you want to reduce noise. In BigQuery: <code>ML.BUCKETIZE(age, [18, 25, 35, 50, 65])</code>.
+      </p>
+
+      <div class="formula">
+        Min-Max: x' = (x - min) / (max - min) &nbsp;&nbsp;&nbsp; Z-score: x' = (x - mean) / std
+      </div>
+
+      <h3 id="transforms-categorical">Categorical Features</h3>
+
+      <p>
+        <strong>One-Hot Encoding</strong>: Creates a binary column for each category. Works well for low-cardinality features (&lt;50 categories). In BQML, this is automatic for STRING columns. Drawback: high-cardinality features create very sparse, wide vectors.
+      </p>
+      <p>
+        <strong>Label Encoding</strong>: Maps categories to integers (A=0, B=1, C=2). Simple but introduces an artificial ordinal relationship. Only use for tree-based models that can handle arbitrary splits.
+      </p>
+      <p>
+        <strong>Feature Hashing (Hashing Trick)</strong>: Hashes category strings into a fixed number of buckets. Handles high-cardinality features without storing a vocabulary. Collisions are possible but acceptable for large bucket counts. In BQML: <code>ML.HASH_BUCKETS(column, num_buckets)</code>.
+      </p>
+      <p>
+        <strong>Embeddings</strong>: Learn dense vector representations for categories. Best for very high cardinality (user IDs, product IDs). Requires a neural network to learn the embedding during training. Captures semantic similarity between categories.
+      </p>
+
+      <h3 id="transforms-text-temporal">Text and Temporal Features</h3>
+
+      <p>
+        <strong>Text features</strong>: For short text (product names, categories), use TF-IDF or bag-of-words. For longer text (reviews, descriptions), use pre-trained embeddings (BERT, Universal Sentence Encoder). In the GCP context, <code>tf.Transform</code> provides <code>tft.compute_and_apply_vocabulary()</code> and <code>tft.tfidf()</code> for scalable text featurization.
+      </p>
+      <p>
+        <strong>Temporal features</strong>: Extract components (day of week, hour, month, quarter). Create <strong>cyclical encodings</strong> to capture periodicity: encode hour as <code>sin(2*pi*hour/24)</code> and <code>cos(2*pi*hour/24)</code>. This ensures hour 23 is close to hour 0. Create <strong>lag features</strong> (value at t-1, t-7) for time-series. Create <strong>rolling aggregates</strong> (7-day average, 30-day max).
+      </p>
+
+      <div class="callout tip">
+        <div class="callout-label">Cyclical Encoding</div>
+        <p>For periodic features (hour of day, day of week, month of year), cyclical encoding with sine/cosine preserves the circular nature. Without it, a model sees hour 23 and hour 0 as far apart; with cyclical encoding, they are adjacent. Formula: <code>sin_hour = sin(2 * pi * hour / 24)</code>, <code>cos_hour = cos(2 * pi * hour / 24)</code>.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3: BEST PRACTICES
+    ════════════════════════════════════════════ -->
+    <section class="section" id="best-practices">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Feature Engineering Best Practices</h2>
+      </div>
+
+      <h3 id="bp-leakage">Avoiding Data Leakage</h3>
+
+      <p>
+        <strong>Data leakage</strong> occurs when information from the target variable or from the future leaks into the training features. This causes artificially high training performance that does not generalize to production. Common sources:
+      </p>
+      <p>
+        <strong>Target leakage</strong>: A feature that is directly derived from or highly correlated with the label. Example: using "cancellation_date" as a feature to predict churn &mdash; the cancellation date IS the churn event.
+      </p>
+      <p>
+        <strong>Temporal leakage</strong>: Using future data to predict the past. Example: using a user's total lifetime purchases to predict whether they will make their first purchase. Always ensure features only use data available at prediction time.
+      </p>
+      <p>
+        <strong>Pre-processing leakage</strong>: Computing statistics (mean, std) on the full dataset including the test set, then using those statistics for scaling. Always fit preprocessing on the training set only, then transform both train and test.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Critical Rule</div>
+        <p>Every feature must answer: "Would this information be available at prediction time in production?" If the answer is no, it is leakage. This is the single most important question in feature engineering.</p>
+      </div>
+
+      <h3 id="bp-skew">Training-Serving Skew</h3>
+
+      <p>
+        <strong>Training-serving skew</strong> occurs when the feature engineering code used during training differs from what runs during prediction. This is one of the most insidious bugs in ML systems because the model will silently produce degraded results.
+      </p>
+      <p>
+        Common causes: different programming languages (Python training vs Java serving), different library versions, manual copy-paste of transformation logic, or different data access patterns (offline batch vs online lookup).
+      </p>
+      <p>
+        <strong>Solutions on GCP</strong>:
+      </p>
+
+      <ul class="checklist">
+        <li><div class="check-box done"></div><strong>tf.Transform</strong>: Define preprocessing as a TensorFlow graph that is saved with the model and applied identically at training and serving time</li>
+        <li><div class="check-box done"></div><strong>BQML TRANSFORM clause</strong>: Feature engineering is part of the model definition, automatically applied during <code>ML.PREDICT</code></li>
+        <li><div class="check-box done"></div><strong>Feature Store</strong>: Centralized source of truth for feature values, same store serves training and prediction</li>
+        <li><div class="check-box done"></div><strong>Vertex AI Pipelines</strong>: Orchestrate identical preprocessing steps for training and batch prediction</li>
+      </ul>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4: FEATURE CROSSES
+    ════════════════════════════════════════════ -->
+    <section class="section" id="crosses">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Feature Crosses</h2>
+      </div>
+
+      <h3 id="crosses-what">What They Are and When to Use Them</h3>
+
+      <p>
+        A <strong>feature cross</strong> is a synthetic feature formed by combining two or more existing features. For categorical features, a cross creates a new feature whose values are the Cartesian product of the original features' values. For example, crossing <code>city</code> (3 values) with <code>device</code> (2 values) creates 6 new combined values like "NYC_mobile," "NYC_desktop," "SF_mobile," etc.
+      </p>
+      <p>
+        Feature crosses are powerful because they allow <strong>linear models to learn non-linear patterns</strong>. Without crosses, a linear model can only learn that "being in NYC" has one effect and "using mobile" has another effect, independently. With a cross, the model can learn that the combination "NYC + mobile" has a unique effect that is different from the sum of the individual effects.
+      </p>
+      <p>
+        <strong>When to use feature crosses</strong>:
+      </p>
+
+      <ul class="checklist">
+        <li><div class="check-box done"></div>When the interaction between features matters more than individual features</li>
+        <li><div class="check-box done"></div>When using linear models (logistic regression, linear regression) that cannot learn interactions natively</li>
+        <li><div class="check-box done"></div>When combining location + time, user segment + product category, or similar interaction pairs</li>
+        <li><div class="check-box"></div>When features are already high-cardinality (crosses multiply cardinality &mdash; use hashing to manage)</li>
+        <li><div class="check-box"></div>When using tree-based models (they learn interactions automatically through splits)</li>
+      </ul>
+
+      <h3 id="crosses-examples">Examples</h3>
+
+      <pre><code><span class="code-comment">-- Feature cross in BQML</span>
+<span class="code-keyword">CREATE MODEL</span> `project.dataset.model`
+<span class="code-keyword">TRANSFORM</span>(
+  <span class="code-comment">-- Cross two categorical features</span>
+  <span class="code-fn">ML.FEATURE_CROSS</span>(<span class="code-keyword">STRUCT</span>(city, device_type)) <span class="code-keyword">AS</span> city_device,
+  <span class="code-comment">-- Cross with hashing to limit dimensionality</span>
+  <span class="code-fn">ML.FEATURE_CROSS</span>(<span class="code-keyword">STRUCT</span>(
+    <span class="code-fn">ML.HASH_BUCKETS</span>(city, <span class="code-num">10</span>),
+    <span class="code-fn">ML.HASH_BUCKETS</span>(zipcode, <span class="code-num">50</span>)
+  )) <span class="code-keyword">AS</span> city_zip_cross,
+  <span class="code-comment">-- Cross bucketed numerical with categorical</span>
+  <span class="code-fn">ML.FEATURE_CROSS</span>(<span class="code-keyword">STRUCT</span>(
+    <span class="code-fn">ML.BUCKETIZE</span>(age, [<span class="code-num">18</span>, <span class="code-num">30</span>, <span class="code-num">45</span>, <span class="code-num">60</span>]),
+    membership_tier
+  )) <span class="code-keyword">AS</span> age_tier_cross,
+  label
+)
+<span class="code-keyword">OPTIONS</span>(model_type=<span class="code-string">'LOGISTIC_REG'</span>, input_label_cols=[<span class="code-string">'label'</span>])
+<span class="code-keyword">AS SELECT</span> * <span class="code-keyword">FROM</span> `project.dataset.features`;</code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">TF Playground Intuition</div>
+        <p>The TensorFlow Playground (<a href="https://playground.tensorflow.org" style="color: var(--accent-cyan);">playground.tensorflow.org</a>) visually demonstrates feature crosses. The classic example: the XOR dataset cannot be separated by a linear model using x1 and x2 alone. Adding the cross feature x1*x2 makes it linearly separable. Try it: select the XOR dataset, add x1*x2 as an input, and watch a linear model solve it.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 5: TF.TRANSFORM
+    ════════════════════════════════════════════ -->
+    <section class="section" id="tftransform">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>TensorFlow Transform (tf.Transform)</h2>
+      </div>
+
+      <h3 id="tft-pattern">The Analyze-and-Transform Pattern</h3>
+
+      <p>
+        <strong>tf.Transform</strong> is a library for preprocessing data at scale. Its key innovation is the <strong>analyze-and-transform</strong> pattern that separates full-pass computations (like computing the mean of a column across the entire dataset) from per-example transformations (like subtracting that mean from each value).
+      </p>
+      <p>
+        The central concept is the <code>preprocessing_fn</code> &mdash; a pure function that defines all feature transformations. Inside this function, you use two types of operations:
+      </p>
+      <p>
+        <strong>Analyzers</strong> (full-pass): Functions like <code>tft.mean()</code>, <code>tft.min()</code>, <code>tft.max()</code>, <code>tft.vocabulary()</code> that need to see the entire dataset to compute a result. These run once during training as a Beam pipeline over the full dataset.
+      </p>
+      <p>
+        <strong>Mappers</strong> (per-example): Functions like <code>tft.scale_to_0_1()</code>, <code>tft.apply_vocabulary()</code> that transform individual examples using the values computed by analyzers. These become part of the saved TensorFlow graph.
+      </p>
+      <p>
+        The key benefit: the preprocessing function is exported as a <strong>TensorFlow graph</strong> that is attached to the model. At serving time, the same graph is applied automatically, guaranteeing identical preprocessing. No Python code runs at serving time &mdash; it is all graph ops. This eliminates training-serving skew.
+      </p>
+
+      <pre><code><span class="code-keyword">import</span> tensorflow_transform <span class="code-keyword">as</span> tft
+
+<span class="code-keyword">def</span> <span class="code-fn">preprocessing_fn</span>(inputs):
+    <span class="code-string">"""Define feature transformations."""</span>
+    outputs = {}
+
+    <span class="code-comment"># Numerical: scale to [0, 1] using full-dataset min/max</span>
+    outputs[<span class="code-string">'age_scaled'</span>] = tft.scale_to_0_1(inputs[<span class="code-string">'age'</span>])
+
+    <span class="code-comment"># Numerical: z-score normalize</span>
+    outputs[<span class="code-string">'income_normalized'</span>] = tft.scale_to_z_score(inputs[<span class="code-string">'income'</span>])
+
+    <span class="code-comment"># Numerical: bucketize into quantile bins</span>
+    outputs[<span class="code-string">'age_bucket'</span>] = tft.bucketize(inputs[<span class="code-string">'age'</span>], num_buckets=<span class="code-num">5</span>)
+
+    <span class="code-comment"># Categorical: compute vocabulary and map to integers</span>
+    outputs[<span class="code-string">'city_index'</span>] = tft.compute_and_apply_vocabulary(inputs[<span class="code-string">'city'</span>])
+
+    <span class="code-comment"># Categorical: hash to fixed buckets (high cardinality)</span>
+    outputs[<span class="code-string">'zipcode_hash'</span>] = tft.hash_strings(inputs[<span class="code-string">'zipcode'</span>], hash_buckets=<span class="code-num">100</span>)
+
+    <span class="code-comment"># Text: compute TF-IDF</span>
+    outputs[<span class="code-string">'description_tfidf'</span>] = tft.tfidf(
+        tft.compute_and_apply_vocabulary(inputs[<span class="code-string">'description'</span>]),
+        vocab_size=<span class="code-num">10000</span>
+    )
+
+    <span class="code-comment"># Pass through the label</span>
+    outputs[<span class="code-string">'label'</span>] = inputs[<span class="code-string">'label'</span>]
+
+    <span class="code-keyword">return</span> outputs</code></pre>
+
+      <h3 id="tft-dataflow">Dataflow Integration</h3>
+
+      <p>
+        In production, tf.Transform runs on <strong>Apache Beam / Dataflow</strong>. The workflow is:
+      </p>
+      <p>
+        1. Define the <code>preprocessing_fn</code> with analyzers and mappers.
+      </p>
+      <p>
+        2. Run <code>tft_beam.AnalyzeAndTransformDataset</code> on the training data. This executes analyzers as Beam operations (distributed across Dataflow workers) and produces: (a) the transformed training data, and (b) a <strong>transform function</strong> (saved TF graph with computed constants like mean, vocabulary).
+      </p>
+      <p>
+        3. Use <code>tft_beam.TransformDataset</code> to apply the saved transform to eval/test data (using the constants from step 2, not recomputing them).
+      </p>
+      <p>
+        4. Attach the transform function to the serving model so identical preprocessing runs at inference time.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Tip</div>
+        <p><strong>tf.Transform vs manual preprocessing</strong>: If the question asks about preventing training-serving skew at scale, the answer is tf.Transform. If it asks about simple SQL-based transforms in BigQuery, the answer is the BQML TRANSFORM clause. tf.Transform is for TensorFlow models; BQML TRANSFORM is for BQML models.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 6: PREPROCESSING AT SCALE
+    ════════════════════════════════════════════ -->
+    <section class="section" id="preprocessing">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Preprocessing at Scale</h2>
+      </div>
+
+      <p>
+        Choosing the right preprocessing approach depends on scale, model framework, and operational requirements. Here is the decision framework:
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128202;</div>
+            <h4>BigQuery SQL</h4>
+          </div>
+          <p><strong>When</strong>: Data is in BigQuery, using BQML, SQL-expressible transforms. <strong>Scale</strong>: Petabytes. <strong>Skew prevention</strong>: BQML TRANSFORM clause. <strong>Limitation</strong>: Limited to SQL functions.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9889;</div>
+            <h4>tf.Transform + Dataflow</h4>
+          </div>
+          <p><strong>When</strong>: TensorFlow models, complex transforms, need graph-based serving. <strong>Scale</strong>: Terabytes+. <strong>Skew prevention</strong>: Exported TF graph. <strong>Limitation</strong>: TensorFlow ecosystem only.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128295;</div>
+            <h4>Dataflow (Beam)</h4>
+          </div>
+          <p><strong>When</strong>: Custom ETL, multi-framework, streaming. <strong>Scale</strong>: Terabytes+. <strong>Skew prevention</strong>: Must manage manually. <strong>Limitation</strong>: No automatic serving-time replay.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127981;</div>
+            <h4>Feature Store</h4>
+          </div>
+          <p><strong>When</strong>: Features shared across models/teams, need online serving. <strong>Scale</strong>: Enterprise. <strong>Skew prevention</strong>: Single source of truth. <strong>Limitation</strong>: Operational overhead for setup.</p>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-label">Decision Rule</div>
+        <p>Ask three questions: (1) What model framework? BQML = BigQuery SQL. TensorFlow = tf.Transform. Sklearn/XGBoost = Dataflow or Feature Store. (2) Need online serving? Use Feature Store. (3) Need to prevent skew automatically? tf.Transform or BQML TRANSFORM.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 7: FEATURE SELECTION
+    ════════════════════════════════════════════ -->
+    <section class="section" id="selection">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Feature Selection</h2>
+      </div>
+
+      <h3 id="selection-methods">Methods</h3>
+
+      <p>
+        Feature selection reduces dimensionality, speeds up training, improves generalization, and makes models more interpretable. Three families of methods:
+      </p>
+      <p>
+        <strong>Filter methods</strong>: Use statistical tests to score features independently of the model. Fast but ignore feature interactions. Examples: correlation with target, chi-squared test (categorical features + categorical target), mutual information (measures any dependency, not just linear), ANOVA F-test (numerical features + categorical target).
+      </p>
+      <p>
+        <strong>Wrapper methods</strong>: Evaluate feature subsets by training models. Expensive but considers interactions. Examples: forward selection (start empty, add best feature), backward elimination (start full, remove worst), recursive feature elimination (RFE &mdash; train, remove least important, repeat).
+      </p>
+      <p>
+        <strong>Embedded methods</strong>: Feature selection happens during model training. The model itself learns which features matter. Examples: L1 regularization (Lasso &mdash; drives unimportant feature weights to zero), tree-based feature importance (how much each feature reduces impurity across all splits).
+      </p>
+
+      <h3 id="selection-importance">Feature Importance</h3>
+
+      <p>
+        <strong>Tree-based importance</strong>: Random forests and gradient-boosted trees compute feature importance as the total reduction in impurity (Gini or entropy) across all trees. Available in sklearn as <code>model.feature_importances_</code>. In BQML, use <code>ML.FEATURE_IMPORTANCE(MODEL model_name)</code>.
+      </p>
+      <p>
+        <strong>Permutation importance</strong>: Shuffle one feature at a time and measure how much model performance degrades. Works with any model. More robust than tree-based importance for correlated features.
+      </p>
+      <p>
+        <strong>Correlation analysis</strong>: Compute pairwise correlations between features. Highly correlated features (&gt;0.9) are redundant &mdash; drop one. Use Pearson for linear relationships, Spearman for monotonic relationships.
+      </p>
+
+      <pre><code><span class="code-comment"># Feature importance with sklearn</span>
+<span class="code-keyword">from</span> sklearn.ensemble <span class="code-keyword">import</span> RandomForestClassifier
+<span class="code-keyword">from</span> sklearn.feature_selection <span class="code-keyword">import</span> mutual_info_classif
+
+<span class="code-comment"># Tree-based importance</span>
+rf = RandomForestClassifier(n_estimators=<span class="code-num">100</span>, random_state=<span class="code-num">42</span>)
+rf.fit(X_train, y_train)
+importances = pd.Series(rf.feature_importances_, index=feature_names)
+print(importances.sort_values(ascending=<span class="code-keyword">False</span>))
+
+<span class="code-comment"># Mutual information (filter method)</span>
+mi_scores = mutual_info_classif(X_train, y_train)
+mi_series = pd.Series(mi_scores, index=feature_names)
+print(mi_series.sort_values(ascending=<span class="code-keyword">False</span>))</code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">BQML Feature Importance</div>
+        <p>In BQML, call <code>SELECT * FROM ML.FEATURE_IMPORTANCE(MODEL `project.dataset.model`)</code> to get feature attribution scores. This works for all BQML model types and uses the Shapley value method to compute how much each feature contributes to predictions.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 8: EXAM FOCUS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="exam">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <h2>Exam Focus</h2>
+      </div>
+
+      <p>
+        High-yield topics for exam Sections 2 and 3 relating to feature engineering.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127919;</div>
+            <h4>Feature Store vs Inline</h4>
+          </div>
+          <p>Feature Store = shared features, online serving, point-in-time correctness. Inline = model-specific, simple derivations. If the question mentions "multiple teams" or "real-time lookup," choose Feature Store.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127919;</div>
+            <h4>tf.Transform vs Manual</h4>
+          </div>
+          <p>tf.Transform = TensorFlow models, prevents skew via saved graph, runs on Dataflow. Manual = Python/pandas in a notebook. If the question asks "how to prevent training-serving skew for a TF model," answer tf.Transform.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127919;</div>
+            <h4>Feature Crosses</h4>
+          </div>
+          <p>Enable linear models to capture non-linear interactions. Use <code>ML.FEATURE_CROSS</code> in BQML. Combine with hashing for high cardinality. Not needed for tree models (they learn interactions via splits).</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127919;</div>
+            <h4>Encoding Strategy</h4>
+          </div>
+          <p>Low cardinality: one-hot. High cardinality: hashing or embeddings. Ordinal data: label encoding. Text: TF-IDF or embeddings. BQML auto-encodes strings as one-hot.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127919;</div>
+            <h4>Data Leakage</h4>
+          </div>
+          <p>Every feature must be available at prediction time. Fit preprocessing on training set only. Use point-in-time joins in Feature Store. "Would I have this data when making a real prediction?"</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127919;</div>
+            <h4>Scaling Strategy</h4>
+          </div>
+          <p>BigQuery SQL for BQML. tf.Transform for TF models. Feature Store for shared/multi-model. Dataflow for custom ETL. Match the tool to the model framework and operational needs.</p>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-label">Common Exam Traps</div>
+        <p>1) tf.Transform analyzers (mean, vocab) run once on full data, not per-example. 2) Feature Store online serving = low-latency, offline = batch training. 3) Feature crosses multiply cardinality &mdash; use hashing to control dimensionality. 4) BQML handles string encoding automatically &mdash; you do NOT need to pre-encode. 5) Cyclical encoding (sin/cos) is needed for time features, not just extracting hour as an integer.</p>
+      </div>
+    </section>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous</div>
+        <a href="05-data-engineering-bqml.html" class="next-btn prev-btn">
+          &larr; 05 &middot; Data Engineering
+        </a>
+      </div>
+      <div style="text-align: right;">
+        <div class="next-label">Next</div>
+        <a href="07-tensorflow-gcp.html" class="next-btn">
+          07 &middot; TensorFlow on GCP &rarr;
+        </a>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

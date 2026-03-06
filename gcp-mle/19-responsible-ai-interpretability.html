@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Responsible AI — Interpretability &amp; Transparency — CareerAlign GCP MLE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--phase-found); background: rgba(59,130,246,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-indigo);
+  padding: 6px 14px; border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(99,102,241,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--phase-found); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--phase-found); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--phase-found); flex-shrink: 0; }
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--phase-found); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--phase-found); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--phase-found);
+  background: rgba(59,130,246,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--phase-cloud); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--phase-project); background: rgba(245,158,11,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--phase-found);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--phase-cloud); }
+.callout.warn .callout-label { color: var(--phase-project); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* SVG DIAGRAM */
+.diagram-wrap {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg); padding: 32px;
+  margin: 32px 0;
+}
+.diagram-caption {
+  text-align: center; font-size: 13px; color: var(--text-muted);
+  margin-top: 16px; font-style: italic;
+}
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--phase-found); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(59,130,246,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* CHECKLIST */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px; color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 2px solid var(--phase-found);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.check-box.done { background: var(--phase-found); border-color: var(--phase-found); }
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--phase-found); color: var(--phase-found); transform: translateX(4px); }
+.prev-btn:hover { border-color: var(--phase-prereq); color: var(--phase-prereq); transform: translateX(-4px); }
+.next-phase { font-size: 12px; color: var(--phase-found); font-weight: 500; }
+
+/* FORMULA */
+.formula {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 16px 22px; margin: 20px 0;
+  font-family: var(--font-mono); font-size: 14px; color: var(--accent-cyan);
+  text-align: center; letter-spacing: 0.02em;
+}
+
+/* TAB LABELS */
+.tab-row {
+  display: flex; gap: 8px; margin-bottom: -1px; padding: 0;
+}
+.tab-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  padding: 5px 12px; border-radius: 6px 6px 0 0;
+  background: var(--bg-overlay); color: var(--text-muted);
+  border: 1px solid var(--border-default); border-bottom: none;
+}
+.tab-label.plain { color: var(--phase-cloud); }
+.tab-label.deep  { color: var(--accent-violet); }
+
+/* TABLE */
+table {
+  width: 100%; border-collapse: collapse; margin: 20px 0;
+  font-size: 14px;
+}
+th, td {
+  text-align: left; padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+th {
+  font-family: var(--font-display); font-weight: 600;
+  color: var(--text-primary); background: var(--bg-surface);
+  font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em;
+}
+td { color: var(--text-secondary); }
+tr:hover td { background: var(--bg-surface); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9729; <span>CareerAlign</span> GCP MLE</div>
+  <div class="nav-links">
+    <a href="18-responsible-ai-fairness.html">18 &middot; Fairness</a>
+    <a href="19-responsible-ai-interpretability.html" class="active">19 &middot; Interpretability</a>
+    <a href="20-responsible-ai-privacy.html">20 &middot; Privacy &amp; Safety</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GCP MLE Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Course 19 &middot; Exam Section 6
+  </div>
+  <h1>Responsible AI &mdash; <em>Interpretability &amp; Transparency</em></h1>
+  <p class="hero-desc">
+    A model that cannot be explained cannot be trusted. This module covers the full spectrum of interpretability
+    techniques &mdash; from intrinsic methods like linear coefficients and decision-tree splits to post-hoc
+    explainers like SHAP, LIME, and Partial Dependence Plots. You will learn how to use Vertex AI Explainability,
+    the What-If Tool, and Model Cards to build transparent, auditable ML systems on GCP.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      SHAP &amp; LIME
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Vertex AI Explainability
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      What-If Tool
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Model Cards
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      GenAI Explainability
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-mle/notebooks/19-responsible-ai-interpretability.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#why-interpretability" class="section">1 &middot; Why Interpretability Matters</a>
+    <a href="#trust" class="sub">Trust &amp; Debugging</a>
+    <a href="#compliance" class="sub">Compliance &amp; Science</a>
+    <a href="#intrinsic-posthoc" class="section">2 &middot; Intrinsic vs Post-Hoc</a>
+    <a href="#model-specific" class="section">3 &middot; Model-Specific Methods</a>
+    <a href="#linear-interp" class="sub">Linear Models</a>
+    <a href="#tree-interp" class="sub">Decision Trees</a>
+    <a href="#nn-interp" class="sub">Neural Networks</a>
+    <a href="#model-agnostic" class="section">4 &middot; Model-Agnostic Methods</a>
+    <a href="#shap" class="sub">SHAP</a>
+    <a href="#lime" class="sub">LIME</a>
+    <a href="#pdp" class="sub">PDP</a>
+    <a href="#permutation" class="sub">Permutation Importance</a>
+    <a href="#vertex-explain" class="section">5 &middot; Vertex AI Explainability</a>
+    <a href="#vertex-eval" class="section">6 &middot; Vertex AI Model Evaluation</a>
+    <a href="#what-if" class="section">7 &middot; What-If Tool</a>
+    <a href="#transparency" class="section">8 &middot; Transparency Practices</a>
+    <a href="#genai-explain" class="section">9 &middot; Explaining GenAI</a>
+    <a href="#exam-focus" class="section">10 &middot; Exam Focus</a>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- SECTION 1 -->
+    <div class="section" id="why-interpretability">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Why Interpretability Matters</h2>
+      </div>
+
+      <h3 id="trust">Trust and Debugging</h3>
+      <p>
+        <strong>Trust</strong> is the foundational reason for interpretability. Stakeholders &mdash; executives,
+        regulators, end users &mdash; will not deploy a model they cannot understand. A credit-scoring model
+        that rejects a loan application must be able to explain <em>why</em>. A medical diagnosis model must
+        point to the features (symptoms, lab values) that drove its prediction.
+      </p>
+      <p>
+        <strong>Debugging</strong> is the engineering reason. When a model performs poorly on a slice of data,
+        interpretability tools reveal whether the model learned a spurious correlation (e.g., predicting
+        pneumonia risk from the hospital ID in the X-ray metadata) or a legitimate signal. Without
+        interpretability, debugging is reduced to trial-and-error retraining.
+      </p>
+
+      <h3 id="compliance">Compliance and Scientific Understanding</h3>
+      <p>
+        <strong>Regulatory compliance</strong> increasingly mandates explainability. The EU AI Act classifies
+        high-risk AI systems and requires that their decisions be "sufficiently transparent to enable users
+        to interpret the system's output." GDPR Article 22 gives individuals the right to "meaningful
+        information about the logic involved" in automated decisions. In the US, the Equal Credit Opportunity
+        Act (ECOA) requires lenders to provide specific reasons for adverse credit decisions.
+      </p>
+      <p>
+        <strong>Scientific understanding</strong> uses interpretability to generate hypotheses. A model trained
+        on genomic data might reveal that certain gene interactions are predictive of disease &mdash; insights
+        that drive new research directions. Interpretability transforms ML from a black box into a discovery tool.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Key Insight</div>
+        <p>Interpretability is not a single technique &mdash; it is a spectrum. The right method depends on
+        the audience (data scientist vs regulator), the model type, and whether you need global explanations
+        (how the model works overall) or local explanations (why this specific prediction was made).</p>
+      </div>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="section" id="intrinsic-posthoc">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Intrinsic vs Post-Hoc Interpretability</h2>
+      </div>
+
+      <p>
+        <strong>Intrinsic interpretability</strong> means the model is inherently understandable by design.
+        Linear regression, logistic regression, decision trees, and rule-based systems fall into this category.
+        You can read the coefficients or follow the tree splits to understand exactly how a prediction is made.
+        The trade-off is that intrinsically interpretable models often have lower capacity for complex patterns.
+      </p>
+      <p>
+        <strong>Post-hoc interpretability</strong> applies explanation techniques <em>after</em> a model is
+        trained. This is necessary for complex models (deep neural networks, gradient-boosted ensembles) where
+        the internal structure is too complex for direct human understanding. Post-hoc methods can be
+        model-specific (leveraging internal model structure) or model-agnostic (treating the model as a black box).
+      </p>
+
+      <table>
+        <tr>
+          <th>Aspect</th>
+          <th>Intrinsic</th>
+          <th>Post-Hoc</th>
+        </tr>
+        <tr>
+          <td>When applied</td>
+          <td>Built into model design</td>
+          <td>After model training</td>
+        </tr>
+        <tr>
+          <td>Model types</td>
+          <td>Linear, trees, rules</td>
+          <td>Any model</td>
+        </tr>
+        <tr>
+          <td>Fidelity</td>
+          <td>Exact (is the model)</td>
+          <td>Approximate</td>
+        </tr>
+        <tr>
+          <td>Complexity trade-off</td>
+          <td>Limited model capacity</td>
+          <td>No constraint on model</td>
+        </tr>
+        <tr>
+          <td>Examples</td>
+          <td>Coefficients, tree splits</td>
+          <td>SHAP, LIME, saliency maps</td>
+        </tr>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>When the exam asks about "most interpretable model," the answer is typically linear/logistic
+        regression or decision trees. When it asks about "explaining a complex model," the answer is a
+        post-hoc method like SHAP or Vertex AI Explainability.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div class="section" id="model-specific">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Model-Specific Interpretability Methods</h2>
+      </div>
+
+      <h3 id="linear-interp">Linear Models: Coefficients and Feature Importance</h3>
+      <p>
+        In linear regression, each coefficient directly tells you: "For a one-unit increase in feature X,
+        the predicted output changes by <em>coefficient</em> units, holding all else constant." In logistic
+        regression, coefficients represent log-odds. <strong>Standardizing features</strong> before training
+        makes coefficients directly comparable, turning them into a feature importance ranking.
+      </p>
+      <p>
+        <strong>Regularization effects</strong>: L1 (Lasso) regularization drives unimportant coefficients
+        to exactly zero, performing automatic feature selection. L2 (Ridge) shrinks coefficients but keeps
+        all features. Elastic Net combines both. The resulting coefficient magnitudes serve as a built-in
+        feature importance measure.
+      </p>
+
+      <pre><code><span class="code-comment"># Linear model interpretability</span>
+<span class="code-keyword">from</span> sklearn.linear_model <span class="code-keyword">import</span> LogisticRegression
+<span class="code-keyword">from</span> sklearn.preprocessing <span class="code-keyword">import</span> StandardScaler
+
+scaler = StandardScaler()
+X_scaled = scaler.<span class="code-fn">fit_transform</span>(X_train)
+model = LogisticRegression(penalty=<span class="code-string">'l1'</span>, solver=<span class="code-string">'liblinear'</span>)
+model.<span class="code-fn">fit</span>(X_scaled, y_train)
+
+<span class="code-comment"># Coefficients = feature importance (standardized)</span>
+<span class="code-keyword">for</span> name, coef <span class="code-keyword">in</span> <span class="code-fn">zip</span>(feature_names, model.coef_[<span class="code-num">0</span>]):
+    <span class="code-fn">print</span>(<span class="code-string">f"</span>{name}: {coef:<span class="code-num">.4f</span>}<span class="code-string">"</span>)</code></pre>
+
+      <h3 id="tree-interp">Decision Trees: Feature Importance and Visualization</h3>
+      <p>
+        Decision trees provide two forms of intrinsic interpretability. First, <strong>tree visualization</strong>
+        lets you trace the exact path from root to leaf for any prediction, seeing every split condition.
+        Second, <strong>feature importance</strong> is computed as the total reduction in impurity (Gini or
+        entropy) contributed by each feature across all splits, normalized to sum to 1.
+      </p>
+      <p>
+        For ensemble methods (Random Forest, Gradient Boosting), feature importance is averaged across all
+        trees. However, these importances can be <strong>biased toward high-cardinality features</strong>
+        and features with many possible split points. Permutation importance (Section 4) addresses this bias.
+      </p>
+
+      <pre><code><span class="code-comment"># Tree-based feature importance</span>
+<span class="code-keyword">from</span> sklearn.ensemble <span class="code-keyword">import</span> GradientBoostingClassifier
+<span class="code-keyword">from</span> sklearn.tree <span class="code-keyword">import</span> export_text
+
+model = GradientBoostingClassifier(n_estimators=<span class="code-num">100</span>)
+model.<span class="code-fn">fit</span>(X_train, y_train)
+
+<span class="code-comment"># Impurity-based importance</span>
+importances = model.feature_importances_
+<span class="code-keyword">for</span> name, imp <span class="code-keyword">in</span> <span class="code-fn">sorted</span>(<span class="code-fn">zip</span>(feature_names, importances),
+                           key=<span class="code-keyword">lambda</span> x: x[<span class="code-num">1</span>], reverse=<span class="code-keyword">True</span>):
+    <span class="code-fn">print</span>(<span class="code-string">f"</span>{name}: {imp:<span class="code-num">.4f</span>}<span class="code-string">"</span>)</code></pre>
+
+      <h3 id="nn-interp">Neural Networks: Attention and Gradient-Based Methods</h3>
+      <p>
+        Neural networks are not intrinsically interpretable, but their internal structure provides
+        model-specific post-hoc methods:
+      </p>
+      <p>
+        <strong>Attention weights</strong> in Transformer-based models show which input tokens the model
+        "attends to" when generating each output token. While attention weights are not perfect explanations
+        (they show correlation, not causation), they provide useful debugging signals. Multi-head attention
+        can be visualized layer by layer.
+      </p>
+      <p>
+        <strong>Gradient-based methods</strong> compute the gradient of the output with respect to each input
+        feature. <strong>Vanilla gradients</strong> show which features, if slightly changed, would most affect
+        the prediction. <strong>Integrated Gradients</strong> (used by Vertex AI) accumulate gradients along a
+        path from a baseline input to the actual input, satisfying key axioms (sensitivity and implementation
+        invariance). <strong>SmoothGrad</strong> averages gradients over noisy copies of the input to reduce
+        visual noise.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">G</div>
+            <h4>Vanilla Gradients</h4>
+          </div>
+          <p>Compute the partial derivative of output w.r.t. each input. Fast but noisy. Shows local sensitivity only.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">IG</div>
+            <h4>Integrated Gradients</h4>
+          </div>
+          <p>Accumulate gradients from a baseline (e.g., black image) to the input. Satisfies completeness axiom: attributions sum to the prediction difference.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">SG</div>
+            <h4>SmoothGrad</h4>
+          </div>
+          <p>Average gradients over N noisy copies of the input. Reduces visual noise and produces cleaner saliency maps.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">A</div>
+            <h4>Attention Visualization</h4>
+          </div>
+          <p>Visualize attention weight matrices across heads and layers. Useful for NLP and vision transformers to see which tokens/patches are attended to.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4 -->
+    <div class="section" id="model-agnostic">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Model-Agnostic Methods</h2>
+      </div>
+
+      <p>
+        Model-agnostic methods treat the model as a black box &mdash; they only need the ability to query
+        the model with inputs and observe outputs. This makes them applicable to <em>any</em> model type.
+      </p>
+
+      <h3 id="shap">SHAP (SHapley Additive exPlanations)</h3>
+      <p>
+        SHAP is rooted in cooperative game theory. It assigns each feature a <strong>Shapley value</strong>
+        representing its marginal contribution to the prediction, averaged over all possible feature
+        coalitions. SHAP is the only method that satisfies three desirable properties simultaneously:
+        <strong>local accuracy</strong> (attributions sum to the prediction), <strong>missingness</strong>
+        (absent features get zero attribution), and <strong>consistency</strong> (if a feature's contribution
+        increases, its attribution does not decrease).
+      </p>
+
+      <div class="formula">
+        phi_i = SUM over S subset of N\{i}: [ |S|!(|N|-|S|-1)! / |N|! ] * [ f(S union {i}) - f(S) ]
+      </div>
+
+      <p>
+        <strong>Kernel SHAP</strong> approximates Shapley values using a weighted linear regression. It works
+        with any model but can be slow for high-dimensional inputs. <strong>Tree SHAP</strong> is an exact,
+        polynomial-time algorithm for tree-based models (XGBoost, LightGBM, Random Forest) &mdash; orders of
+        magnitude faster than Kernel SHAP.
+      </p>
+      <p>
+        SHAP provides multiple visualization types: <strong>summary plots</strong> (global feature importance
+        with distribution), <strong>force plots</strong> (local explanation for a single prediction),
+        <strong>dependence plots</strong> (feature value vs SHAP value, colored by interaction), and
+        <strong>waterfall plots</strong> (step-by-step attribution breakdown).
+      </p>
+
+      <h3 id="lime">LIME (Local Interpretable Model-agnostic Explanations)</h3>
+      <p>
+        LIME explains individual predictions by fitting a <strong>simple interpretable model</strong>
+        (typically linear regression) in the local neighborhood of the instance. The process: (1) generate
+        perturbed samples around the instance, (2) get the black-box model's predictions for each, (3) weight
+        samples by proximity to the original, (4) fit a linear model on the weighted samples. The linear
+        model's coefficients become the local explanation.
+      </p>
+      <p>
+        <strong>Strengths</strong>: intuitive, fast, works with any model, produces human-readable explanations.
+        <strong>Weaknesses</strong>: explanations can be unstable (different runs may yield different results),
+        the neighborhood size is a hyperparameter that affects quality, and it does not guarantee consistency
+        across instances.
+      </p>
+
+      <h3 id="pdp">Partial Dependence Plots (PDP)</h3>
+      <p>
+        A PDP shows the <strong>marginal effect</strong> of one or two features on the model's prediction,
+        averaged over all other features. For feature X_i, the partial dependence is computed by varying X_i
+        across its range while keeping all other features at their observed values, then averaging predictions.
+      </p>
+      <p>
+        PDPs are excellent for revealing non-linear relationships and interactions (with 2D PDPs). However,
+        they assume feature independence &mdash; if features are correlated, PDPs may show unrealistic
+        feature combinations. <strong>Individual Conditional Expectation (ICE) plots</strong> address this
+        by showing one line per instance instead of the average.
+      </p>
+
+      <h3 id="permutation">Permutation Feature Importance</h3>
+      <p>
+        Permutation importance measures how much the model's performance <strong>degrades</strong> when a
+        single feature's values are randomly shuffled. If shuffling feature X causes a large drop in accuracy,
+        X is important. Unlike impurity-based importance, permutation importance is <strong>unbiased</strong>
+        with respect to feature cardinality and works on the test set (not training set).
+      </p>
+      <p>
+        The algorithm: (1) compute baseline score on test set, (2) for each feature, shuffle its column,
+        (3) recompute score, (4) importance = baseline score minus shuffled score. Repeat multiple times
+        and average for stability. This method is available in <code>sklearn.inspection.permutation_importance</code>.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Watch Out</div>
+        <p>Permutation importance can underestimate the importance of correlated features. If two features
+        are highly correlated, shuffling one still leaves the other intact, so the model can compensate.
+        Use SHAP or drop-column importance for correlated feature sets.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 5 -->
+    <div class="section" id="vertex-explain">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Vertex AI Explainability</h2>
+      </div>
+
+      <p>
+        Vertex AI provides built-in explainability through <strong>feature attributions</strong>. When you
+        deploy a model to a Vertex AI endpoint, you can configure an <code>ExplanationSpec</code> that
+        automatically returns feature attributions with every prediction request.
+      </p>
+
+      <h3>Supported Attribution Methods</h3>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">IG</div>
+            <h4>Integrated Gradients</h4>
+          </div>
+          <p>Default for TensorFlow models. Requires a baseline input. Best for neural networks where
+          gradients are available. Supports image, tabular, and text data.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">XR</div>
+            <h4>XRAI</h4>
+          </div>
+          <p>Region-based attribution for images. Segments the image and assigns importance to regions rather
+          than individual pixels. More human-interpretable for vision models.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">SA</div>
+            <h4>Sampled Shapley</h4>
+          </div>
+          <p>Approximates Shapley values by sampling feature subsets. Works with any model (including
+          AutoML, custom containers). No gradient access required.</p>
+        </div>
+      </div>
+
+      <h3>Configuration</h3>
+      <p>
+        You configure explainability when uploading a model or creating an endpoint. The key components are:
+        (1) <strong>ExplanationParameters</strong> &mdash; the method and step count, (2) <strong>ExplanationMetadata</strong>
+        &mdash; which inputs and outputs to explain, and (3) optional <strong>baselines</strong> for Integrated Gradients.
+      </p>
+
+      <pre><code><span class="code-comment"># Vertex AI Explainability configuration</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+<span class="code-comment"># Define explanation parameters</span>
+explanation_params = aiplatform.explain.ExplanationParameters(
+    sampled_shapley_attribution=
+        aiplatform.explain.SampledShapleyAttribution(path_count=<span class="code-num">25</span>)
+)
+
+<span class="code-comment"># Define explanation metadata</span>
+explanation_metadata = aiplatform.explain.ExplanationMetadata(
+    inputs={
+        <span class="code-string">"features"</span>: aiplatform.explain.ExplanationMetadata.InputMetadata(
+            input_tensor_name=<span class="code-string">"input_layer"</span>,
+            encoding=<span class="code-string">"BAG_OF_FEATURES"</span>,
+            modality=<span class="code-string">"numeric"</span>,
+        )
+    },
+    outputs={
+        <span class="code-string">"prediction"</span>: aiplatform.explain.ExplanationMetadata.OutputMetadata(
+            output_tensor_name=<span class="code-string">"output_layer"</span>
+        )
+    },
+)
+
+<span class="code-comment"># Upload model with explainability</span>
+model = aiplatform.Model.<span class="code-fn">upload</span>(
+    display_name=<span class="code-string">"my-model"</span>,
+    artifact_uri=<span class="code-string">"gs://bucket/model/"</span>,
+    serving_container_image_uri=<span class="code-string">"us-docker.pkg.dev/vertex-ai/prediction/tf2-cpu:latest"</span>,
+    explanation_parameters=explanation_params,
+    explanation_metadata=explanation_metadata,
+)</code></pre>
+
+      <h3>Example-Based Explanations</h3>
+      <p>
+        Beyond feature attributions, Vertex AI supports <strong>example-based explanations</strong> that
+        return the most similar training examples to a given prediction. This is useful for debugging
+        ("which training examples led to this prediction?") and for building trust ("here are real cases
+        similar to yours"). Example-based explanations use approximate nearest-neighbor search on the
+        model's learned embedding space.
+      </p>
+    </div>
+
+    <!-- SECTION 6 -->
+    <div class="section" id="vertex-eval">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Vertex AI Model Evaluation</h2>
+      </div>
+
+      <p>
+        Vertex AI Model Evaluation provides a unified interface for assessing model quality alongside
+        interpretability. When you run an evaluation job, Vertex AI computes standard metrics (AUC, F1,
+        precision, recall for classification; RMSE, MAE for regression) and can include feature attributions.
+      </p>
+      <p>
+        <strong>Slice-based evaluation</strong> lets you assess model performance on specific data subgroups.
+        Combined with feature attributions, you can detect if the model relies on different features for
+        different slices &mdash; a potential fairness concern. For example, if the model uses "zip code" as a
+        top feature for one demographic group but not another, this warrants investigation.
+      </p>
+      <p>
+        <strong>Model comparison</strong> lets you compare multiple model versions side by side. Vertex AI
+        tracks evaluation metrics across model versions in the Model Registry, making it easy to see if a
+        new model version changed which features are most important.
+      </p>
+
+      <div class="callout tip">
+        <div class="callout-label">Best Practice</div>
+        <p>Always run model evaluation with feature attributions on validation data before deploying to
+        production. Compare the top features against domain expert expectations. Unexpected top features
+        often indicate data leakage or spurious correlations.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 7 -->
+    <div class="section" id="what-if">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>What-If Tool (WIT)</h2>
+      </div>
+
+      <p>
+        The <strong>What-If Tool</strong> is an interactive visualization tool for probing ML models without
+        writing code. Originally developed at Google, it integrates with TensorBoard, Jupyter notebooks,
+        and Cloud AI Platform.
+      </p>
+
+      <h3>Counterfactual Analysis</h3>
+      <p>
+        WIT's counterfactual feature finds the <strong>most similar example with a different prediction</strong>.
+        For a loan applicant who was rejected, WIT can find the most similar applicant who was approved and
+        highlight the differences. This directly answers the question: "What would need to change for this
+        prediction to flip?" &mdash; critical for actionable explanations.
+      </p>
+
+      <h3>Feature Exploration</h3>
+      <p>
+        WIT provides interactive scatter plots where you can color, bin, and filter data points by any feature
+        or by model prediction. You can manually edit feature values for any data point and see how the prediction
+        changes in real time. This supports "what-if" scenario analysis: "If this patient's blood pressure
+        were 120 instead of 140, would the diagnosis change?"
+      </p>
+
+      <h3>Fairness Exploration</h3>
+      <p>
+        WIT includes built-in fairness metrics. You can define sensitive attributes (race, gender, age group)
+        and compare model performance across groups. Metrics include demographic parity, equal opportunity, and
+        equalized odds. WIT visualizes threshold curves showing the trade-off between fairness metrics and
+        overall accuracy at different classification thresholds.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Integration Note</div>
+        <p>The What-If Tool works with models served via TensorFlow Serving, Vertex AI Prediction, or any
+        model exposed as a Python function. For Vertex AI models, point WIT at the prediction endpoint URL.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 8 -->
+    <div class="section" id="transparency">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <h2>Transparency Practices</h2>
+      </div>
+
+      <h3>Model Cards</h3>
+      <p>
+        <strong>Model Cards</strong> are standardized documentation for ML models, introduced by Google in
+        2019. A Model Card describes: (1) <strong>Model details</strong> &mdash; architecture, training data,
+        intended use; (2) <strong>Performance metrics</strong> &mdash; overall and broken down by demographic
+        group; (3) <strong>Limitations</strong> &mdash; known failure modes, out-of-scope uses; (4)
+        <strong>Ethical considerations</strong> &mdash; potential harms, mitigation strategies.
+      </p>
+      <p>
+        Vertex AI Model Registry supports attaching Model Cards to registered models. The Model Card Toolkit
+        (MCT) automates generation from evaluation data.
+      </p>
+
+      <h3>Data Documentation</h3>
+      <p>
+        <strong>Datasheets for Datasets</strong> (Gebru et al., 2018) document the motivation, composition,
+        collection process, preprocessing, distribution, and maintenance of training datasets. Key questions
+        include: "Who collected the data?", "What population does it represent?", "What are the known
+        biases?", and "How should it not be used?"
+      </p>
+
+      <h3>Audit Trails</h3>
+      <p>
+        A complete audit trail connects every deployed model to its training data, code version, hyperparameters,
+        evaluation metrics, and approval decisions. On GCP, this is achieved through: <strong>Vertex AI
+        Experiments</strong> (tracking training runs), <strong>Vertex AI Model Registry</strong> (versioning
+        models), <strong>ML Metadata</strong> (artifact lineage), and <strong>Cloud Audit Logs</strong>
+        (who did what and when).
+      </p>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>When the exam asks about "documenting a model for stakeholders," the answer is Model Cards.
+        When it asks about "documenting training data," the answer is Datasheets for Datasets. Both are
+        part of Google's Responsible AI practices.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 9 -->
+    <div class="section" id="genai-explain">
+      <div class="section-header">
+        <div class="section-num">09</div>
+        <h2>Explaining Generative AI</h2>
+      </div>
+
+      <p>
+        Generative AI models present unique interpretability challenges. Unlike classification models that
+        output a single label, LLMs generate sequences of tokens where each token depends on all previous
+        tokens. Explaining "why the model generated this response" is fundamentally harder.
+      </p>
+
+      <h3>Attention Visualization</h3>
+      <p>
+        Attention patterns in Transformer models can be visualized as heatmaps showing which input tokens
+        each output token attended to most strongly. Tools like <strong>BertViz</strong> render multi-head
+        attention patterns across layers. While attention is not a perfect proxy for explanation, it reveals
+        useful patterns: does the model attend to relevant keywords? Does it copy patterns from the prompt?
+      </p>
+
+      <h3>Token Attribution</h3>
+      <p>
+        <strong>Token-level attribution</strong> extends gradient-based methods to text. For each generated
+        token, you can compute which input tokens had the highest influence via Integrated Gradients or
+        attention rollout. This is useful for detecting whether a model is grounding its response in the
+        provided context (for RAG systems) or hallucinating from its parametric memory.
+      </p>
+
+      <h3>Prompt Sensitivity Analysis</h3>
+      <p>
+        <strong>Prompt sensitivity analysis</strong> systematically varies parts of the prompt and observes
+        how the output changes. This reveals: (1) which instructions the model follows most reliably, (2)
+        whether the output is sensitive to irrelevant prompt variations (fragility), (3) whether few-shot
+        examples actually influence the output. Tools like prompt perturbation frameworks automate this process.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Important Caveat</div>
+        <p>No current technique fully explains why an LLM generates a specific response. Attention and
+        gradient methods provide <em>signals</em>, not <em>explanations</em>. For production GenAI systems,
+        combine interpretability signals with evaluation metrics (faithfulness, groundedness) and human review.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 10 -->
+    <div class="section" id="exam-focus">
+      <div class="section-header">
+        <div class="section-num">10</div>
+        <h2>Exam Focus</h2>
+      </div>
+
+      <p>
+        Section 6 of the GCP MLE exam tests your ability to choose the right interpretability tool and
+        configure Vertex AI Explainability. Here are the key patterns:
+      </p>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box"></div>
+          <strong>Choosing the interpretability method</strong>: SHAP for theoretically grounded global + local explanations;
+          LIME for quick local explanations; PDP for understanding feature effects; permutation importance for unbiased
+          feature ranking; Integrated Gradients for neural networks on Vertex AI.
+        </li>
+        <li>
+          <div class="check-box"></div>
+          <strong>Vertex AI Explainability setup</strong>: Know the three methods (Integrated Gradients, XRAI, Sampled Shapley),
+          when to use each, how to configure ExplanationSpec, and that Sampled Shapley works with any model type.
+        </li>
+        <li>
+          <div class="check-box"></div>
+          <strong>Model Cards</strong>: Know what goes in a Model Card (model details, metrics by group, limitations,
+          ethical considerations) and that Vertex AI supports attaching them to the Model Registry.
+        </li>
+        <li>
+          <div class="check-box"></div>
+          <strong>What-If Tool</strong>: Know it provides counterfactual analysis, interactive feature exploration,
+          and fairness metric visualization without writing code.
+        </li>
+        <li>
+          <div class="check-box"></div>
+          <strong>Intrinsic vs post-hoc</strong>: Linear models and decision trees are intrinsically interpretable.
+          Complex models require post-hoc methods. The exam may ask you to recommend a model type when interpretability
+          is a hard requirement.
+        </li>
+        <li>
+          <div class="check-box"></div>
+          <strong>Feature attribution pitfalls</strong>: Permutation importance is biased for correlated features.
+          Impurity-based importance favors high-cardinality features. SHAP is the most theoretically sound but slowest.
+        </li>
+        <li>
+          <div class="check-box"></div>
+          <strong>Audit trail</strong>: Vertex AI Experiments + Model Registry + ML Metadata + Cloud Audit Logs
+          form the complete audit chain from data to deployment.
+        </li>
+      </ul>
+
+      <div class="callout">
+        <div class="callout-label">Decision Framework</div>
+        <p>Need global importance? Use SHAP summary plot or permutation importance. Need local explanation?
+        Use SHAP force plot or LIME. Need visual explanation for images? Use XRAI on Vertex AI. Need
+        no-code exploration? Use What-If Tool. Need documentation? Use Model Cards.</p>
+      </div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous</div>
+        <a href="18-responsible-ai-fairness.html" class="next-btn prev-btn">
+          &larr; 18 &middot; Responsible AI &mdash; Fairness
+        </a>
+      </div>
+      <div style="text-align: right;">
+        <div class="next-label">Next</div>
+        <a href="20-responsible-ai-privacy.html" class="next-btn">
+          20 &middot; Responsible AI &mdash; Privacy &amp; Safety &rarr;
+        </a>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /content-grid -->
+
+</body>
+</html>

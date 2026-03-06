@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Responsible AI — Fairness and Bias — CareerAlign GCP MLE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--phase-found); background: rgba(59,130,246,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-indigo);
+  padding: 6px 14px; border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(99,102,241,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--phase-found); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--phase-found); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--phase-found); flex-shrink: 0; }
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--phase-found); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--phase-found); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--phase-found);
+  background: rgba(59,130,246,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--phase-cloud); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--phase-project); background: rgba(245,158,11,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--phase-found);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--phase-cloud); }
+.callout.warn .callout-label { color: var(--phase-project); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* SVG DIAGRAM */
+.diagram-wrap {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg); padding: 32px;
+  margin: 32px 0;
+}
+.diagram-caption {
+  text-align: center; font-size: 13px; color: var(--text-muted);
+  margin-top: 16px; font-style: italic;
+}
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--phase-found); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(59,130,246,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* CHECKLIST */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px; color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 2px solid var(--phase-found);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.check-box.done { background: var(--phase-found); border-color: var(--phase-found); }
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--phase-found); color: var(--phase-found); transform: translateX(4px); }
+.prev-btn:hover { border-color: var(--phase-prereq); color: var(--phase-prereq); transform: translateX(-4px); }
+.next-phase { font-size: 12px; color: var(--phase-found); font-weight: 500; }
+
+/* FORMULA */
+.formula {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 16px 22px; margin: 20px 0;
+  font-family: var(--font-mono); font-size: 14px; color: var(--accent-cyan);
+  text-align: center; letter-spacing: 0.02em;
+}
+
+/* TAB LABELS */
+.tab-row {
+  display: flex; gap: 8px; margin-bottom: -1px; padding: 0;
+}
+.tab-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  padding: 5px 12px; border-radius: 6px 6px 0 0;
+  background: var(--bg-overlay); color: var(--text-muted);
+  border: 1px solid var(--border-default); border-bottom: none;
+}
+.tab-label.plain { color: var(--phase-cloud); }
+.tab-label.deep  { color: var(--accent-violet); }
+
+/* TABLE */
+table {
+  width: 100%; border-collapse: collapse; margin: 20px 0;
+  font-size: 14px;
+}
+th, td {
+  text-align: left; padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+th {
+  font-family: var(--font-display); font-weight: 600;
+  color: var(--text-primary); background: var(--bg-surface);
+  font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em;
+}
+td { color: var(--text-secondary); }
+tr:hover td { background: var(--bg-surface); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9729; <span>CareerAlign</span> GCP MLE</div>
+  <div class="nav-links">
+    <a href="16-build-deploy-vertex-ai.html">16 &middot; Vertex Deploy</a>
+    <a href="17-generative-ai-apps.html">17 &middot; GenAI Apps</a>
+    <a href="18-responsible-ai-fairness.html" class="active">18 &middot; Responsible AI</a>
+    <a href="19-responsible-ai-interpretability.html">19 &middot; Interpretability</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GCP MLE Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Course 18 &middot; Exam Section 6
+  </div>
+  <h1>Responsible AI &mdash; <em>Fairness and Bias</em></h1>
+  <p class="hero-desc">
+    Building ML systems that are fair, unbiased, and accountable is not optional &mdash; it is a core
+    competency tested on the MLE exam. This module covers bias detection, fairness metrics, mitigation
+    strategies, and Google's responsible AI tooling on Vertex AI.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      AI Principles
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Types of Bias
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Fairness Metrics
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Mitigation Strategies
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      What-If Tool &amp; Model Cards
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-mle/notebooks/18-responsible-ai-fairness.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#principles" class="section">1 &middot; Google AI Principles</a>
+    <a href="#bias-types" class="section">2 &middot; Types of Bias in ML</a>
+    <a href="#bias-data" class="sub">Data Bias</a>
+    <a href="#bias-model" class="sub">Model &amp; Evaluation Bias</a>
+    <a href="#fairness" class="section">3 &middot; Fairness Definitions</a>
+    <a href="#fairness-metrics" class="sub">Metric Comparison</a>
+    <a href="#detection" class="section">4 &middot; Bias Detection</a>
+    <a href="#mitigation" class="section">5 &middot; Bias Mitigation</a>
+    <a href="#mitigation-pre" class="sub">Pre-processing</a>
+    <a href="#mitigation-in" class="sub">In-processing</a>
+    <a href="#mitigation-post" class="sub">Post-processing</a>
+    <a href="#what-if" class="section">6 &middot; What-If Tool</a>
+    <a href="#vertex-fairness" class="section">7 &middot; Fairness on Vertex AI</a>
+    <a href="#cards" class="section">8 &middot; Data &amp; Model Cards</a>
+    <a href="#regulatory" class="section">9 &middot; Regulatory Landscape</a>
+    <a href="#exam-focus" class="section">10 &middot; Exam Focus</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- SECTION 1 -->
+    <div class="section" id="principles">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Google's AI Principles and Responsible AI Framework</h2>
+      </div>
+      <p>
+        Google published its <strong>AI Principles</strong> in 2018, establishing seven objectives
+        that guide all AI development at Google and on Google Cloud. These principles are directly
+        referenced in MLE exam questions about responsible AI decisions.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">1</div>
+            <h4>Be Socially Beneficial</h4>
+          </div>
+          <p>AI should benefit society broadly. Consider the wide range of social and economic factors, and proceed only where benefits substantially outweigh risks.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">2</div>
+            <h4>Avoid Creating or Reinforcing Unfair Bias</h4>
+          </div>
+          <p>Seek to avoid unjust impacts on people, particularly those related to sensitive characteristics such as race, ethnicity, gender, and nationality.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">3</div>
+            <h4>Be Built and Tested for Safety</h4>
+          </div>
+          <p>Design AI systems with appropriate caution. Test rigorously using best practices in AI safety research.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">4</div>
+            <h4>Be Accountable to People</h4>
+          </div>
+          <p>Design AI systems that provide appropriate opportunities for feedback, relevant explanations, and appeal.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">5</div>
+            <h4>Incorporate Privacy Design Principles</h4>
+          </div>
+          <p>Give opportunity for notice and consent, encourage architectures with privacy safeguards, and provide appropriate transparency and control over data use.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">6</div>
+            <h4>Uphold High Standards of Scientific Excellence</h4>
+          </div>
+          <p>Strive for technical excellence and make AI available for uses that accord with these principles.</p>
+        </div>
+      </div>
+
+      <p>
+        Google also defined four AI application areas it <strong>will not pursue</strong>: technologies
+        that cause overall harm, weapons, surveillance violating internationally accepted norms, and
+        technologies that contravene international law and human rights.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Responsible AI Framework</div>
+        <p>Google's Responsible AI practices rest on three pillars: (1) Building AI responsibly from the start, (2) Creating tools for responsible AI (What-If Tool, Model Cards, fairness metrics), and (3) Sharing research and best practices openly.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="section" id="bias-types">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Types of Bias in Machine Learning</h2>
+      </div>
+      <p>
+        Bias can enter an ML system at every stage: data collection, feature engineering, model training,
+        evaluation, and deployment. Understanding the source of bias is the first step to mitigating it.
+      </p>
+
+      <h3 id="bias-data">Data-Related Bias</h3>
+      <table>
+        <tr><th>Bias Type</th><th>Definition</th><th>Example</th></tr>
+        <tr>
+          <td><strong>Historical Bias</strong></td>
+          <td>Training data reflects past societal inequities</td>
+          <td>A hiring model trained on historical data where women were underrepresented in tech roles</td>
+        </tr>
+        <tr>
+          <td><strong>Representation Bias</strong></td>
+          <td>Certain groups are underrepresented in the training data</td>
+          <td>A facial recognition model trained mostly on light-skinned faces performs poorly on darker-skinned faces</td>
+        </tr>
+        <tr>
+          <td><strong>Measurement Bias</strong></td>
+          <td>Features or labels are measured differently across groups</td>
+          <td>Using zip code as a proxy for creditworthiness, which correlates with race due to historical redlining</td>
+        </tr>
+        <tr>
+          <td><strong>Sampling Bias</strong></td>
+          <td>Data collection process systematically excludes certain populations</td>
+          <td>A health study conducted only in urban hospitals misses rural populations</td>
+        </tr>
+      </table>
+
+      <h3 id="bias-model">Model and Evaluation Bias</h3>
+      <table>
+        <tr><th>Bias Type</th><th>Definition</th><th>Example</th></tr>
+        <tr>
+          <td><strong>Aggregation Bias</strong></td>
+          <td>A single model is used for groups with different underlying patterns</td>
+          <td>A diabetes prediction model that doesn't account for different risk factors by ethnicity</td>
+        </tr>
+        <tr>
+          <td><strong>Evaluation Bias</strong></td>
+          <td>Evaluation metrics or benchmark datasets don't represent all groups equally</td>
+          <td>Model accuracy is 95% overall but only 70% for minority groups (hidden by aggregate metrics)</td>
+        </tr>
+        <tr>
+          <td><strong>Deployment Bias</strong></td>
+          <td>A model is used in a context different from what it was designed for</td>
+          <td>A model trained for resume screening is repurposed for performance evaluation</td>
+        </tr>
+      </table>
+
+      <div class="callout warn">
+        <div class="callout-label">Key Insight</div>
+        <p>Bias is rarely introduced intentionally. It is typically a systemic issue rooted in historical data, measurement practices, or unconscious assumptions during system design. Always audit for bias proactively.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div class="section" id="fairness">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Fairness Definitions and Metrics</h2>
+      </div>
+      <p>
+        There is no single definition of "fairness" &mdash; different definitions can even be mathematically
+        incompatible. The right metric depends on the application context and the stakeholders affected.
+      </p>
+
+      <h3 id="fairness-metrics">Core Fairness Metrics</h3>
+      <table>
+        <tr><th>Metric</th><th>Definition</th><th>When to Use</th></tr>
+        <tr>
+          <td><strong>Demographic Parity</strong></td>
+          <td>P(Y&#770;=1 | A=a) = P(Y&#770;=1 | A=b) for all groups</td>
+          <td>When equal positive outcome rates across groups are needed (e.g., loan approval rates)</td>
+        </tr>
+        <tr>
+          <td><strong>Equalized Odds</strong></td>
+          <td>TPR and FPR are equal across groups</td>
+          <td>When both true positives and false positives matter equally (e.g., criminal justice)</td>
+        </tr>
+        <tr>
+          <td><strong>Equal Opportunity</strong></td>
+          <td>TPR is equal across groups (relaxed equalized odds)</td>
+          <td>When correctly identifying positive cases matters most (e.g., disease screening)</td>
+        </tr>
+        <tr>
+          <td><strong>Calibration</strong></td>
+          <td>Predicted probabilities match actual outcomes for each group</td>
+          <td>When the model outputs probabilities used for decision-making (e.g., risk scores)</td>
+        </tr>
+        <tr>
+          <td><strong>Individual Fairness</strong></td>
+          <td>Similar individuals receive similar predictions</td>
+          <td>When fairness should be at the individual, not group, level</td>
+        </tr>
+      </table>
+
+      <div class="formula">
+        Disparate Impact Ratio = P(Y&#770;=1 | unprivileged) / P(Y&#770;=1 | privileged) &mdash; should be &ge; 0.8 (80% rule)
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-label">Impossibility Theorem</div>
+        <p>Chouldechova (2017) proved that calibration, equal FPR, and equal FNR cannot all be satisfied simultaneously when base rates differ between groups. You must choose which fairness criterion matters most for your use case.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 4 -->
+    <div class="section" id="detection">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Bias Detection Techniques</h2>
+      </div>
+      <p>
+        Detecting bias requires going beyond aggregate metrics. Slice-based evaluation is the most
+        important technique: evaluate model performance separately for each demographic group.
+      </p>
+
+      <h3>Slice-Based Evaluation</h3>
+      <p>
+        Instead of reporting a single accuracy number, compute metrics <strong>per group</strong>:
+        accuracy, precision, recall, F1, and AUC for each demographic slice. Look for significant
+        disparities between groups. On Vertex AI, use the Model Evaluation feature to automatically
+        compute slice-based metrics.
+      </p>
+
+      <h3>Confusion Matrix Per Group</h3>
+      <p>
+        Build a separate confusion matrix for each demographic group. Compare true positive rates (TPR),
+        false positive rates (FPR), true negative rates (TNR), and false negative rates (FNR) across
+        groups. Disparities in FPR are especially concerning in high-stakes applications (criminal
+        justice, credit scoring).
+      </p>
+
+      <h3>Disparate Impact Analysis</h3>
+      <p>
+        Calculate the <strong>disparate impact ratio</strong>: the ratio of positive outcome rates
+        between the unprivileged and privileged groups. A ratio below 0.8 (the "80% rule" from US
+        employment law) indicates potential adverse impact and warrants investigation.
+      </p>
+
+      <pre><code><span class="code-comment"># Disparate impact calculation</span>
+<span class="code-keyword">def</span> <span class="code-fn">disparate_impact</span>(y_pred, sensitive_attr, privileged_value, unprivileged_value):
+    privileged_mask = sensitive_attr == privileged_value
+    unprivileged_mask = sensitive_attr == unprivileged_value
+
+    rate_privileged = y_pred[privileged_mask].mean()
+    rate_unprivileged = y_pred[unprivileged_mask].mean()
+
+    <span class="code-keyword">return</span> rate_unprivileged / rate_privileged
+
+<span class="code-comment"># DI >= 0.8 passes the 80% rule</span>
+<span class="code-comment"># DI < 0.8 indicates potential adverse impact</span></code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Vertex AI Model Evaluation</div>
+        <p>Vertex AI Model Evaluation automatically computes fairness metrics when you specify sensitive attributes. Configure feature-based slicing in the evaluation config to get per-group breakdowns without custom code.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 5 -->
+    <div class="section" id="mitigation">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Bias Mitigation Strategies</h2>
+      </div>
+      <p>
+        Mitigation techniques are categorized by <strong>when</strong> they are applied in the ML pipeline:
+        before training (pre-processing), during training (in-processing), or after training (post-processing).
+      </p>
+
+      <h3 id="mitigation-pre">Pre-Processing Techniques</h3>
+      <p>
+        Modify the training data to reduce bias before the model ever sees it.
+      </p>
+      <table>
+        <tr><th>Technique</th><th>How It Works</th><th>Trade-off</th></tr>
+        <tr>
+          <td><strong>Resampling</strong></td>
+          <td>Oversample underrepresented groups or undersample overrepresented groups</td>
+          <td>May reduce total data or create duplicates</td>
+        </tr>
+        <tr>
+          <td><strong>Reweighting</strong></td>
+          <td>Assign higher sample weights to underrepresented groups during training</td>
+          <td>May overfit to minority groups if weights are too aggressive</td>
+        </tr>
+        <tr>
+          <td><strong>Feature Removal</strong></td>
+          <td>Remove sensitive attributes (or proxies) from features</td>
+          <td>Proxies are hard to identify; may reduce model performance</td>
+        </tr>
+        <tr>
+          <td><strong>Data Augmentation</strong></td>
+          <td>Generate synthetic samples for underrepresented groups</td>
+          <td>Synthetic data may not capture real-world complexity</td>
+        </tr>
+      </table>
+
+      <h3 id="mitigation-in">In-Processing Techniques</h3>
+      <p>
+        Modify the training algorithm itself to enforce fairness constraints.
+      </p>
+      <table>
+        <tr><th>Technique</th><th>How It Works</th><th>Trade-off</th></tr>
+        <tr>
+          <td><strong>Fairness Constraints</strong></td>
+          <td>Add a fairness penalty term to the loss function (e.g., demographic parity constraint)</td>
+          <td>May reduce overall accuracy to improve fairness</td>
+        </tr>
+        <tr>
+          <td><strong>Adversarial Debiasing</strong></td>
+          <td>Train an adversary to predict the sensitive attribute from model outputs; penalize the model if the adversary succeeds</td>
+          <td>Complex to implement and tune</td>
+        </tr>
+        <tr>
+          <td><strong>Fair Representation Learning</strong></td>
+          <td>Learn representations that are informative for the task but uninformative about sensitive attributes</td>
+          <td>May lose useful information correlated with sensitive attributes</td>
+        </tr>
+      </table>
+
+      <h3 id="mitigation-post">Post-Processing Techniques</h3>
+      <p>
+        Adjust model outputs after training to satisfy fairness criteria.
+      </p>
+      <table>
+        <tr><th>Technique</th><th>How It Works</th><th>Trade-off</th></tr>
+        <tr>
+          <td><strong>Threshold Adjustment</strong></td>
+          <td>Use different classification thresholds for different groups to equalize TPR or FPR</td>
+          <td>May be legally questionable (different standards for different groups)</td>
+        </tr>
+        <tr>
+          <td><strong>Calibration</strong></td>
+          <td>Re-calibrate predicted probabilities per group so they align with actual outcomes</td>
+          <td>Requires sufficient data per group for reliable calibration</td>
+        </tr>
+        <tr>
+          <td><strong>Reject Option Classification</strong></td>
+          <td>For uncertain predictions near the decision boundary, assign the favorable outcome to the unprivileged group</td>
+          <td>Only affects borderline cases</td>
+        </tr>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>The exam often presents a scenario and asks which mitigation technique to apply. Pre-processing when you can fix the data, in-processing when you control the algorithm, post-processing when you have a fixed model.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 6 -->
+    <div class="section" id="what-if">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Google's What-If Tool</h2>
+      </div>
+      <p>
+        The <strong>What-If Tool (WIT)</strong> is an interactive visual tool for exploring ML model
+        behavior without writing code. It is available in TensorBoard, Jupyter/Colab, and Cloud AI
+        Platform Notebooks.
+      </p>
+
+      <h3>Key Capabilities</h3>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">E</div>
+            <h4>Explore Individual Predictions</h4>
+          </div>
+          <p>Examine how changing individual feature values affects the model's prediction. Great for understanding edge cases and model sensitivity.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">F</div>
+            <h4>Fairness Analysis</h4>
+          </div>
+          <p>Automatically compute fairness metrics (demographic parity, equalized odds) across groups. Visualize disparities with interactive charts.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">C</div>
+            <h4>Counterfactual Analysis</h4>
+          </div>
+          <p>Find the closest data point with a different prediction. Understand what would need to change for a different outcome.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">T</div>
+            <h4>Threshold Tuning</h4>
+          </div>
+          <p>Interactively adjust classification thresholds and see the impact on fairness metrics and confusion matrices in real time.</p>
+        </div>
+      </div>
+
+      <pre><code><span class="code-comment"># Launch What-If Tool in a Jupyter notebook</span>
+<span class="code-keyword">import</span> witwidget
+<span class="code-keyword">from</span> witwidget.notebook.visualization <span class="code-keyword">import</span> WitConfigBuilder, WitWidget
+
+config = WitConfigBuilder(
+    test_examples,          <span class="code-comment"># Your test dataset</span>
+    feature_columns
+).set_model_name(<span class="code-string">"my-model"</span>)
+ .set_target_feature(<span class="code-string">"label"</span>)
+ .set_label_vocab([<span class="code-string">"rejected"</span>, <span class="code-string">"approved"</span>])
+
+WitWidget(config)</code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Exam Note</div>
+        <p>The What-If Tool is a visual exploration tool, not an automated bias fix. It helps you discover bias; you still need to apply mitigation techniques separately. Know the difference.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 7 -->
+    <div class="section" id="vertex-fairness">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>ML Fairness on Vertex AI</h2>
+      </div>
+      <p>
+        Vertex AI integrates fairness into the ML lifecycle through Model Evaluation and Explainability
+        features that operate directly in the managed platform.
+      </p>
+
+      <h3>Model Evaluation with Fairness Metrics</h3>
+      <p>
+        When you run a model evaluation job on Vertex AI, you can specify <strong>slicing specs</strong>
+        to compute metrics per demographic group. The platform automatically generates confusion matrices,
+        AUC-ROC curves, and precision-recall curves for each slice.
+      </p>
+      <pre><code><span class="code-comment"># Configure fairness slicing in Vertex AI evaluation</span>
+<span class="code-keyword">from</span> google.cloud.aiplatform <span class="code-keyword">import</span> ModelEvaluation
+
+evaluation = model.evaluate(
+    test_dataset=test_data,
+    slicing_specs=[
+        {<span class="code-string">"feature"</span>: <span class="code-string">"gender"</span>},
+        {<span class="code-string">"feature"</span>: <span class="code-string">"age_group"</span>},
+        {<span class="code-string">"feature"</span>: <span class="code-string">"ethnicity"</span>}
+    ]
+)</code></pre>
+
+      <h3>Explainability</h3>
+      <p>
+        Vertex AI Explainable AI provides feature attributions that show which features contributed
+        most to each prediction. This helps identify when sensitive attributes (or their proxies)
+        are driving predictions. Methods include:
+      </p>
+      <ul class="checklist">
+        <li><div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><strong>Integrated Gradients</strong> &mdash; attribution method for neural networks</li>
+        <li><div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><strong>XRAI</strong> &mdash; region-based attribution for images</li>
+        <li><div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><strong>Sampled Shapley</strong> &mdash; model-agnostic attribution method</li>
+      </ul>
+    </div>
+
+    <!-- SECTION 8 -->
+    <div class="section" id="cards">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <h2>Data Cards and Model Cards</h2>
+      </div>
+      <p>
+        Documentation is a critical component of responsible AI. <strong>Data Cards</strong> and
+        <strong>Model Cards</strong> are standardized templates for documenting the characteristics,
+        limitations, and intended uses of datasets and models.
+      </p>
+
+      <h3>Model Cards</h3>
+      <p>
+        Introduced by Mitchell et al. (2019) at Google, a Model Card documents:
+      </p>
+      <ul class="checklist">
+        <li><div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><strong>Model Details</strong> &mdash; architecture, version, owner, date</li>
+        <li><div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><strong>Intended Use</strong> &mdash; primary use cases, out-of-scope uses</li>
+        <li><div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><strong>Factors</strong> &mdash; relevant demographic groups and environmental conditions</li>
+        <li><div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><strong>Metrics</strong> &mdash; performance metrics chosen and why, per-group breakdowns</li>
+        <li><div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><strong>Evaluation Data</strong> &mdash; datasets used for evaluation, their characteristics</li>
+        <li><div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><strong>Ethical Considerations</strong> &mdash; known risks, limitations, sensitive use cases</li>
+        <li><div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><strong>Caveats &amp; Recommendations</strong> &mdash; known failure modes and mitigation advice</li>
+      </ul>
+
+      <h3>Data Cards</h3>
+      <p>
+        Data Cards document dataset characteristics: collection methodology, demographic composition,
+        labeling process, known biases, and recommended uses. They help downstream users understand
+        whether a dataset is appropriate for their use case.
+      </p>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>Model Cards and Data Cards are documentation artifacts, not automated tools. The exam may ask what should be included in a Model Card or when to create one (answer: before any model deployment).</p>
+      </div>
+    </div>
+
+    <!-- SECTION 9 -->
+    <div class="section" id="regulatory">
+      <div class="section-header">
+        <div class="section-num">09</div>
+        <h2>Regulatory Considerations</h2>
+      </div>
+      <p>
+        AI regulation is evolving rapidly. ML engineers must be aware of the regulatory landscape
+        to build compliant systems.
+      </p>
+
+      <table>
+        <tr><th>Framework</th><th>Scope</th><th>Key Requirements</th></tr>
+        <tr>
+          <td><strong>EU AI Act</strong></td>
+          <td>European Union</td>
+          <td>Risk-based classification (unacceptable, high, limited, minimal risk). High-risk AI systems require conformity assessments, human oversight, transparency, and bias testing.</td>
+        </tr>
+        <tr>
+          <td><strong>NIST AI RMF</strong></td>
+          <td>United States (voluntary)</td>
+          <td>Framework for managing AI risks across Govern, Map, Measure, and Manage functions. Emphasizes trustworthy AI characteristics: valid, reliable, safe, fair, accountable, transparent, explainable, and privacy-enhanced.</td>
+        </tr>
+        <tr>
+          <td><strong>Canada AIDA</strong></td>
+          <td>Canada</td>
+          <td>Artificial Intelligence and Data Act: requires impact assessments for high-impact AI systems, algorithmic transparency, and bias mitigation.</td>
+        </tr>
+      </table>
+
+      <div class="callout warn">
+        <div class="callout-label">Practical Impact</div>
+        <p>Even if not legally required, following frameworks like NIST AI RMF demonstrates due diligence. For the exam, know that high-risk AI systems require bias testing, documentation (Model Cards), human oversight, and ongoing monitoring.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 10 -->
+    <div class="section" id="exam-focus">
+      <div class="section-header">
+        <div class="section-num">10</div>
+        <h2>Exam Focus</h2>
+      </div>
+      <p>
+        Responsible AI questions on the MLE exam test your ability to identify bias sources, choose
+        appropriate fairness metrics, and select mitigation strategies for specific scenarios.
+      </p>
+
+      <h3>Identifying Bias Sources</h3>
+      <ul class="checklist">
+        <li><div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Model performs well overall but poorly for a specific group &rarr; Representation bias or evaluation bias</li>
+        <li><div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Training data reflects historical inequities &rarr; Historical bias</li>
+        <li><div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Different measurement standards across groups &rarr; Measurement bias</li>
+        <li><div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Model used for a purpose it wasn't designed for &rarr; Deployment bias</li>
+      </ul>
+
+      <h3>Choosing Mitigation Strategy</h3>
+      <table>
+        <tr><th>Scenario</th><th>Strategy</th><th>Technique</th></tr>
+        <tr><td>Imbalanced training data</td><td>Pre-processing</td><td>Resampling or reweighting</td></tr>
+        <tr><td>Need to enforce equal TPR</td><td>In-processing</td><td>Fairness constraints in loss function</td></tr>
+        <tr><td>Fixed model, need equal FPR</td><td>Post-processing</td><td>Group-specific threshold adjustment</td></tr>
+        <tr><td>Proxy features causing bias</td><td>Pre-processing</td><td>Feature removal + proxy detection</td></tr>
+        <tr><td>Need to understand model decisions</td><td>Tooling</td><td>What-If Tool + Explainable AI</td></tr>
+      </table>
+
+      <h3>Fairness Metric Selection</h3>
+      <table>
+        <tr><th>Application</th><th>Recommended Metric</th><th>Rationale</th></tr>
+        <tr><td>Loan approval</td><td>Demographic parity + calibration</td><td>Equal approval rates and accurate risk scores</td></tr>
+        <tr><td>Disease screening</td><td>Equal opportunity (equal TPR)</td><td>Every group deserves equal detection of disease</td></tr>
+        <tr><td>Criminal risk assessment</td><td>Equalized odds</td><td>Both FPR and FNR disparities are harmful</td></tr>
+        <tr><td>Content recommendation</td><td>Individual fairness</td><td>Similar users should get similar recommendations</td></tr>
+        <tr><td>Insurance pricing</td><td>Calibration</td><td>Predicted risk must match actual risk per group</td></tr>
+      </table>
+
+      <div class="callout warn">
+        <div class="callout-label">High-Frequency Exam Topics</div>
+        <p>Google AI Principles, historical vs representation bias, demographic parity vs equalized odds, pre/in/post-processing mitigation, What-If Tool capabilities, Model Cards contents, and the 80% rule for disparate impact &mdash; these appear repeatedly.</p>
+      </div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous</div>
+        <a href="17-generative-ai-apps.html" class="next-btn prev-btn">
+          &larr; 17 &middot; Generative AI Applications
+        </a>
+      </div>
+      <div style="text-align: right;">
+        <div class="next-label">Next</div>
+        <a href="19-responsible-ai-interpretability.html" class="next-btn">
+          19 &middot; Responsible AI &mdash; Interpretability &rarr;
+        </a>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /content-grid -->
+
+</body>
+</html>

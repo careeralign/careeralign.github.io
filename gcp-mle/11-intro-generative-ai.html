@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Introduction to Generative AI — GCP MLE Certification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--phase-found); background: rgba(59,130,246,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-indigo);
+  padding: 6px 14px; border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(99,102,241,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--phase-found); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--phase-found); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--phase-found); flex-shrink: 0; }
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--phase-found); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--phase-found); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--phase-found);
+  background: rgba(59,130,246,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--phase-cloud); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--phase-project); background: rgba(245,158,11,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--phase-found);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--phase-cloud); }
+.callout.warn .callout-label { color: var(--phase-project); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* SVG DIAGRAM */
+.diagram-wrap {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg); padding: 32px;
+  margin: 32px 0;
+}
+.diagram-caption {
+  text-align: center; font-size: 13px; color: var(--text-muted);
+  margin-top: 16px; font-style: italic;
+}
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--phase-found); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(59,130,246,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* CHECKLIST */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px; color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 2px solid var(--phase-found);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.check-box.done { background: var(--phase-found); border-color: var(--phase-found); }
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--phase-found); color: var(--phase-found); transform: translateX(4px); }
+.prev-btn:hover { border-color: var(--phase-prereq); color: var(--phase-prereq); transform: translateX(-4px); }
+.next-phase { font-size: 12px; color: var(--phase-found); font-weight: 500; }
+
+/* FORMULA */
+.formula {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 16px 22px; margin: 20px 0;
+  font-family: var(--font-mono); font-size: 14px; color: var(--accent-cyan);
+  text-align: center; letter-spacing: 0.02em;
+}
+
+/* TAB LABELS */
+.tab-row {
+  display: flex; gap: 8px; margin-bottom: -1px; padding: 0;
+}
+.tab-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  padding: 5px 12px; border-radius: 6px 6px 0 0;
+  background: var(--bg-overlay); color: var(--text-muted);
+  border: 1px solid var(--border-default); border-bottom: none;
+}
+.tab-label.plain { color: var(--phase-cloud); }
+.tab-label.deep  { color: var(--accent-violet); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9889; <span>CareerAlign</span> GCP MLE</div>
+  <div class="nav-links">
+    <a href="01-ml-fundamentals.html">01</a>
+    <a href="02-data-engineering.html">02</a>
+    <a href="03-feature-engineering.html">03</a>
+    <a href="04-ml-model-architecture.html">04</a>
+    <a href="05-ml-pipeline.html">05</a>
+    <a href="06-ml-automation.html">06</a>
+    <a href="07-monitoring.html">07</a>
+    <a href="08-bigquery-ml.html">08</a>
+    <a href="09-vertex-ai.html">09</a>
+    <a href="10-mlops-feature-store.html">10</a>
+    <a href="11-intro-generative-ai.html" class="active">11 &middot; GenAI</a>
+    <a href="12-intro-llms.html">12 &middot; LLMs</a>
+    <a href="13-mlops-generative-ai.html">13</a>
+    <a href="14-responsible-ai.html">14</a>
+    <a href="15-exam-prep.html">15</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GCP MLE Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Course 11 &middot; Section 5: ML on Google Cloud
+  </div>
+  <h1>Introduction to <em>Generative AI</em></h1>
+  <p class="hero-desc">
+    Generative AI is reshaping how we build intelligent systems. This module covers the foundations
+    of generative AI &mdash; what it is, how it differs from traditional ML, the models that power it,
+    and how Google Cloud makes it accessible through Vertex AI. Essential knowledge for the
+    GCP Machine Learning Engineer certification exam.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Generative vs Discriminative AI
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Foundation Models
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Google's GenAI Models
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Vertex AI Studio
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Responsible GenAI
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-mle/notebooks/11-intro-generative-ai.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#what-is-genai" class="section">1 &middot; What Is Generative AI</a>
+    <a href="#genai-vs-disc" class="sub">Generative vs Discriminative</a>
+    <a href="#foundation-models" class="section">2 &middot; Foundation Models</a>
+    <a href="#pretraining" class="sub">Pre-training &amp; Emergence</a>
+    <a href="#genai-types" class="section">3 &middot; Types of Generative Models</a>
+    <a href="#llms" class="sub">LLMs</a>
+    <a href="#diffusion" class="sub">Diffusion, GANs, VAEs</a>
+    <a href="#transformer" class="section">4 &middot; Transformer Refresher</a>
+    <a href="#attention" class="sub">Attention Mechanism</a>
+    <a href="#google-models" class="section">5 &middot; Google's GenAI Models</a>
+    <a href="#gemini" class="sub">Gemini Family</a>
+    <a href="#palm-imagen" class="sub">PaLM, Imagen, Chirp</a>
+    <a href="#vertex-genai" class="section">6 &middot; Vertex AI for GenAI</a>
+    <a href="#model-garden" class="sub">Model Garden &amp; Studio</a>
+    <a href="#applications" class="section">7 &middot; GenAI Applications</a>
+    <a href="#responsible" class="section">8 &middot; Responsible GenAI</a>
+    <a href="#hallucinations" class="sub">Hallucinations &amp; Bias</a>
+    <a href="#exam-focus" class="section">9 &middot; Exam Focus</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1: WHAT IS GENERATIVE AI
+    ════════════════════════════════════════════ -->
+    <section class="section" id="what-is-genai">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>What Is Generative AI</h2>
+      </div>
+
+      <p>
+        <strong>Generative AI</strong> is a branch of artificial intelligence that focuses on creating new content
+        &mdash; text, images, audio, video, code, or structured data &mdash; rather than merely analyzing or classifying
+        existing data. At its core, a generative model learns the underlying probability distribution of its training
+        data and then samples from that distribution to produce novel outputs that are statistically similar to,
+        but not copies of, the training examples.
+      </p>
+      <p>
+        This represents a fundamental shift in AI capabilities. Traditional machine learning systems were primarily
+        <strong>discriminative</strong>: given an input, they produce a label, a score, or a decision boundary.
+        A spam classifier takes an email and outputs "spam" or "not spam." A recommendation engine takes a user
+        profile and outputs a ranked list. These systems consume and categorize &mdash; they do not create.
+      </p>
+
+      <h3 id="genai-vs-disc">Generative vs Discriminative AI</h3>
+
+      <p>
+        The distinction is mathematical. A <strong>discriminative model</strong> learns the conditional probability
+        <code>P(Y|X)</code> &mdash; given input features X, what is the probability of each label Y? It draws a
+        decision boundary in the feature space. A <strong>generative model</strong> learns the joint probability
+        <code>P(X, Y)</code> or the data distribution <code>P(X)</code> itself. Because it models how data is
+        generated, it can produce new samples from that distribution.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">D</div>
+            <h4>Discriminative AI</h4>
+          </div>
+          <p>Learns decision boundaries. Outputs labels, scores, or classifications. Examples: logistic regression, SVMs, image classifiers, spam filters.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">G</div>
+            <h4>Generative AI</h4>
+          </div>
+          <p>Learns data distributions. Outputs new content: text, images, code, audio. Examples: GPT, Gemini, DALL-E, Stable Diffusion, music generation.</p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Exam Tip</div>
+        <p>The exam tests whether you understand <strong>when</strong> to use generative AI vs traditional ML. If the task is classification, regression, or ranking, traditional discriminative models are often simpler and more appropriate. Generative AI shines for content creation, summarization, translation, and open-ended tasks.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2: FOUNDATION MODELS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="foundation-models">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Foundation Models</h2>
+      </div>
+
+      <p>
+        A <strong>foundation model</strong> is a large AI model pre-trained on a broad, diverse dataset at massive
+        scale, designed to be adapted (fine-tuned or prompted) to a wide range of downstream tasks. The term was
+        coined by Stanford's Center for Research on Foundation Models (CRFM) in 2021 to describe the paradigm
+        shift where a single pre-trained model serves as the base for many applications, rather than training
+        a separate model for each task.
+      </p>
+      <p>
+        The key properties of foundation models are <strong>scale</strong>, <strong>self-supervised pre-training</strong>,
+        and <strong>emergence</strong>. Scale refers to both the model size (billions to trillions of parameters)
+        and the training data (terabytes of text, images, code). Self-supervised pre-training means the model
+        learns from unlabeled data using objectives like next-token prediction (for language) or masked image
+        modeling (for vision), avoiding the need for expensive human annotation at scale.
+      </p>
+
+      <h3 id="pretraining">Pre-training and Emergence</h3>
+
+      <p>
+        <strong>Emergence</strong> refers to capabilities that appear in large models but are absent in smaller ones,
+        without being explicitly trained for. A model trained only to predict the next token in text somehow
+        acquires the ability to translate between languages, write code, reason about math, and follow complex
+        instructions. These emergent abilities arise from the interaction of scale, data diversity, and the
+        richness of the pre-training objective.
+      </p>
+      <p>
+        The pre-training process is extraordinarily compute-intensive. Training a frontier model like Gemini
+        or GPT-4 requires thousands of GPUs or TPUs running for weeks to months, costing tens of millions of
+        dollars. This is why foundation models are typically created by large organizations (Google, OpenAI,
+        Meta, Anthropic) and then made available for downstream use through APIs, fine-tuning, or open-weight
+        releases.
+      </p>
+
+      <div class="callout tip">
+        <div class="callout-label">Key Insight</div>
+        <p>Foundation models follow a <strong>pre-train once, adapt many times</strong> paradigm. The enormous upfront investment in pre-training is amortized across thousands of downstream applications. This is why Vertex AI Model Garden exists &mdash; it gives you access to pre-trained foundation models that you adapt to your use case.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3: TYPES OF GENERATIVE MODELS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="genai-types">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Types of Generative Models</h2>
+      </div>
+
+      <h3 id="llms">Large Language Models (LLMs)</h3>
+
+      <p>
+        <strong>Large Language Models</strong> are transformer-based neural networks trained on massive text corpora.
+        They generate text by predicting the next token in a sequence, autoregressively building up responses
+        one token at a time. LLMs are the most impactful category of generative models today, powering
+        applications from chatbots and code assistants to document summarization and question answering.
+      </p>
+      <p>
+        LLMs vary along several dimensions: <strong>parameter count</strong> (from 1B to 1T+), <strong>context window</strong>
+        (the maximum number of tokens they can process at once, from 4K to 1M+), <strong>modality</strong>
+        (text-only vs multimodal), and <strong>training methodology</strong> (base pre-training, instruction tuning,
+        RLHF). Google's Gemini models are multimodal LLMs that natively process text, images, audio, and video.
+      </p>
+
+      <h3 id="diffusion">Diffusion Models, GANs, and VAEs</h3>
+
+      <p>
+        <strong>Diffusion models</strong> generate images (or other data) by learning to reverse a gradual noising
+        process. During training, noise is progressively added to real images until they become pure noise.
+        The model learns to denoise at each step, and at inference time, it starts from random noise and
+        iteratively denoises to produce a coherent image. Google's <strong>Imagen</strong> is a diffusion-based
+        text-to-image model. Diffusion models currently produce the highest-quality images of any generative approach.
+      </p>
+      <p>
+        <strong>Generative Adversarial Networks (GANs)</strong> consist of two networks: a generator that creates
+        fake data and a discriminator that tries to distinguish fake from real. They are trained adversarially
+        until the generator produces outputs indistinguishable from real data. GANs were dominant before diffusion
+        models but suffer from training instability and mode collapse.
+      </p>
+      <p>
+        <strong>Variational Autoencoders (VAEs)</strong> learn a compressed latent representation of data and can
+        generate new samples by decoding random points from this latent space. They provide smooth, interpretable
+        latent spaces but typically produce blurrier outputs than GANs or diffusion models. VAEs remain useful
+        in applications requiring a structured latent space, such as drug discovery and anomaly detection.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">L</div>
+            <h4>LLMs</h4>
+          </div>
+          <p>Autoregressive text generation. Transformer-based. Powers chatbots, code gen, summarization. Examples: Gemini, PaLM, GPT-4, Llama.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">D</div>
+            <h4>Diffusion Models</h4>
+          </div>
+          <p>Iterative denoising for image generation. Highest quality images. Examples: Imagen, Stable Diffusion, DALL-E 3.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">G</div>
+            <h4>GANs</h4>
+          </div>
+          <p>Generator-discriminator adversarial training. Fast inference, but training instability. Legacy approach for images.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">V</div>
+            <h4>VAEs</h4>
+          </div>
+          <p>Encoder-decoder with latent space. Smooth interpolation, structured representations. Used in drug discovery, anomaly detection.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4: TRANSFORMER ARCHITECTURE
+    ════════════════════════════════════════════ -->
+    <section class="section" id="transformer">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Transformer Architecture Refresher</h2>
+      </div>
+
+      <h3 id="attention">Attention and Self-Attention</h3>
+
+      <p>
+        The <strong>Transformer</strong> architecture, introduced in the 2017 paper "Attention Is All You Need,"
+        is the backbone of all modern generative AI models. Its core innovation is the <strong>self-attention mechanism</strong>,
+        which allows every token in a sequence to attend to every other token simultaneously, capturing
+        long-range dependencies without the sequential bottleneck of RNNs.
+      </p>
+      <p>
+        In self-attention, each token is projected into three vectors: <strong>Query (Q)</strong>, <strong>Key (K)</strong>,
+        and <strong>Value (V)</strong>. The attention score between two tokens is computed as the dot product of
+        one's Query with the other's Key, scaled by the square root of the dimension. After softmax normalization,
+        these scores weight the Value vectors to produce a context-aware representation of each token.
+      </p>
+
+      <div class="formula">
+        Attention(Q, K, V) = softmax( Q &middot; K&#7488; / &radic;d_k ) &middot; V
+      </div>
+
+      <p>
+        <strong>Multi-head attention</strong> runs this process in parallel across multiple "heads," each with
+        its own learned projections. Different heads specialize in different types of relationships &mdash;
+        syntactic structure, semantic similarity, positional patterns &mdash; and their outputs are concatenated
+        and projected.
+      </p>
+      <p>
+        The original Transformer has an <strong>encoder-decoder</strong> structure. The encoder processes the
+        input bidirectionally (each token attends to all others). The decoder generates output autoregressively
+        with causal masking (each token only attends to previous tokens). Modern LLMs like Gemini and GPT-4
+        use <strong>decoder-only</strong> architectures with causal self-attention only.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Architecture Variants</div>
+        <p><strong>Encoder-only</strong> (BERT): bidirectional attention, great for classification and embeddings. <strong>Decoder-only</strong> (GPT, Gemini): causal attention, great for generation. <strong>Encoder-decoder</strong> (T5, original Transformer): both halves, great for translation and summarization.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 5: GOOGLE'S GENAI MODELS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="google-models">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Google's Generative AI Models</h2>
+      </div>
+
+      <h3 id="gemini">The Gemini Family</h3>
+
+      <p>
+        <strong>Gemini</strong> is Google's most capable family of multimodal AI models. Gemini models are
+        natively multimodal &mdash; they can process and generate text, images, audio, video, and code within
+        a single model architecture, rather than stitching together separate specialist models. The Gemini family
+        includes multiple sizes optimized for different use cases:
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">U</div>
+            <h4>Gemini Ultra</h4>
+          </div>
+          <p>Largest and most capable. Designed for highly complex tasks requiring advanced reasoning, math, and multimodal understanding.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">P</div>
+            <h4>Gemini Pro</h4>
+          </div>
+          <p>Best balance of performance and efficiency. Suitable for most enterprise tasks. Available with up to 1M token context window.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">F</div>
+            <h4>Gemini Flash</h4>
+          </div>
+          <p>Optimized for speed and cost. Lower latency, lower price per token. Ideal for high-volume, latency-sensitive applications.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">N</div>
+            <h4>Gemini Nano</h4>
+          </div>
+          <p>Designed for on-device deployment. Runs on mobile phones and edge devices without cloud connectivity.</p>
+        </div>
+      </div>
+
+      <h3 id="palm-imagen">PaLM, Imagen, and Chirp</h3>
+
+      <p>
+        <strong>PaLM 2</strong> (Pathways Language Model) was Google's previous flagship LLM before Gemini.
+        It excelled at multilingual tasks, reasoning, and code generation. PaLM 2 variants powered early
+        versions of Bard and Vertex AI text generation. While Gemini has superseded PaLM 2 for most use cases,
+        understanding PaLM 2 is still relevant for exam preparation as it appears in some study materials.
+      </p>
+      <p>
+        <strong>Imagen</strong> is Google's text-to-image diffusion model, available through Vertex AI. It
+        generates photorealistic images from text descriptions and supports image editing capabilities.
+        <strong>Chirp</strong> is Google's speech model powering speech-to-text and text-to-speech capabilities,
+        supporting over 100 languages. Together, these models represent Google's full-stack approach to
+        generative AI across all modalities.
+      </p>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 6: VERTEX AI FOR GENAI
+    ════════════════════════════════════════════ -->
+    <section class="section" id="vertex-genai">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Vertex AI for Generative AI</h2>
+      </div>
+
+      <h3 id="model-garden">Model Garden, Vertex AI Studio, and Prompt Design</h3>
+
+      <p>
+        <strong>Vertex AI Model Garden</strong> is Google Cloud's curated catalog of foundation models. It provides
+        access to Google's own models (Gemini, Imagen, Chirp, Codey) as well as third-party and open-source models
+        (Llama, Mistral, Anthropic's Claude). From Model Garden, you can deploy models to endpoints, access them
+        via API, or fine-tune them on your data.
+      </p>
+      <p>
+        <strong>Vertex AI Studio</strong> (formerly Generative AI Studio) is a web-based IDE for prototyping and
+        testing generative AI applications. It allows you to experiment with prompts, adjust model parameters
+        (temperature, top-k, top-p), test multimodal inputs, compare model outputs side by side, and iterate
+        on prompt design without writing code. Once you have a working prompt, you can export it as API code.
+      </p>
+      <p>
+        <strong>Prompt design</strong> is the practice of crafting effective inputs to get desired outputs from
+        generative models. Key techniques include:
+      </p>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Zero-shot prompting</strong> &mdash; provide only the task description, no examples
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Few-shot prompting</strong> &mdash; include 2-5 input-output examples to guide the model
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Chain-of-thought</strong> &mdash; instruct the model to reason step-by-step before answering
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>System instructions</strong> &mdash; set the model's persona, constraints, and output format
+        </li>
+      </ul>
+
+      <div class="callout tip">
+        <div class="callout-label">Vertex AI Key Concept</div>
+        <p>Vertex AI provides a <strong>unified API</strong> for all generative models. Whether you use Gemini, PaLM, or a third-party model, the SDK interface is consistent. This is important for exam scenarios about model switching and A/B testing.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 7: GENAI APPLICATIONS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="applications">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Generative AI Applications</h2>
+      </div>
+
+      <p>
+        Generative AI enables a broad range of applications across industries. Understanding these application
+        categories is critical for the exam, as questions often present real-world scenarios and ask which
+        approach or Google Cloud service is most appropriate.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">T</div>
+            <h4>Text Generation</h4>
+          </div>
+          <p>Content creation, marketing copy, email drafting, creative writing. Uses Gemini or PaLM via Vertex AI with prompt engineering.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">S</div>
+            <h4>Summarization</h4>
+          </div>
+          <p>Condensing long documents, meeting notes, reports. Extractive vs abstractive summarization. Gemini excels with long context.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">C</div>
+            <h4>Code Generation</h4>
+          </div>
+          <p>Code completion, bug fixing, code explanation, test generation. Codey models and Gemini both support code tasks.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">I</div>
+            <h4>Image Generation</h4>
+          </div>
+          <p>Text-to-image with Imagen. Product photography, design mockups, visual content creation. Supports editing and inpainting.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">M</div>
+            <h4>Multimodal</h4>
+          </div>
+          <p>Processing text + images + video together. Visual question answering, document understanding, video analysis with Gemini.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">Q</div>
+            <h4>Q&amp;A / Search</h4>
+          </div>
+          <p>Grounded question answering over enterprise data. RAG pipelines with Vertex AI Search and embeddings for accurate retrieval.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 8: RESPONSIBLE GENERATIVE AI
+    ════════════════════════════════════════════ -->
+    <section class="section" id="responsible">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <h2>Responsible Generative AI</h2>
+      </div>
+
+      <h3 id="hallucinations">Hallucinations, Bias, and Safety</h3>
+
+      <p>
+        <strong>Hallucination</strong> is the phenomenon where a generative model produces outputs that are
+        fluent and confident but factually incorrect or entirely fabricated. This occurs because LLMs are
+        trained to produce statistically likely text, not to verify truth. A model may generate plausible-sounding
+        citations that do not exist, attribute quotes to the wrong person, or invent statistics. Hallucination
+        is one of the most significant challenges in deploying generative AI in production.
+      </p>
+      <p>
+        <strong>Mitigation strategies</strong> for hallucination include <strong>grounding</strong> (connecting
+        the model to authoritative data sources via retrieval-augmented generation), <strong>citation verification</strong>
+        (requiring the model to cite sources and verifying them), <strong>temperature reduction</strong> (lowering
+        randomness to favor more deterministic outputs), and <strong>human-in-the-loop review</strong> for
+        high-stakes applications.
+      </p>
+      <p>
+        <strong>Bias</strong> in generative models reflects biases present in training data. Models may produce
+        outputs that reinforce stereotypes, underrepresent certain groups, or generate harmful content. Google
+        addresses this through data curation, RLHF with safety-focused reward models, and built-in
+        <strong>safety filters</strong> that block harmful content categories (hate speech, violence,
+        sexually explicit content, dangerous activities).
+      </p>
+      <p>
+        <strong>Google's Responsible AI principles</strong> guide the development and deployment of all GenAI
+        products. These include: AI should be socially beneficial, avoid creating or reinforcing unfair bias,
+        be built and tested for safety, be accountable to people, incorporate privacy design principles,
+        uphold high standards of scientific excellence, and be made available for uses that accord with these
+        principles.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Warning</div>
+        <p>The exam will present scenarios where generative AI is <strong>not the right choice</strong>. If a task requires guaranteed factual accuracy (medical diagnosis, legal compliance), deterministic outputs, or real-time numerical computation, traditional ML or rule-based systems may be more appropriate. Always evaluate whether GenAI adds genuine value vs risk.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 9: EXAM FOCUS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="exam-focus">
+      <div class="section-header">
+        <div class="section-num">09</div>
+        <h2>Exam Focus: GenAI vs Traditional ML</h2>
+      </div>
+
+      <p>
+        The GCP MLE exam tests your ability to select the right approach for a given scenario. This section
+        consolidates the decision framework for choosing between generative AI and traditional ML approaches.
+      </p>
+
+      <h3>When to Use Generative AI</h3>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          The task requires <strong>content creation</strong>: text, code, images, or multimodal outputs
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          The task is <strong>open-ended</strong> with no single correct answer (summarization, brainstorming)
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          You need <strong>natural language understanding</strong> at a level beyond traditional NLP
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          You have <strong>limited labeled data</strong> and can leverage pre-trained knowledge via prompting
+        </li>
+      </ul>
+
+      <h3>When to Use Traditional ML</h3>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          The task is <strong>structured prediction</strong>: classification, regression, ranking, clustering
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          You need <strong>deterministic, reproducible</strong> outputs (fraud detection, credit scoring)
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Latency and cost</strong> constraints make LLM inference impractical at scale
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          You have <strong>abundant labeled data</strong> and a well-defined objective function
+        </li>
+      </ul>
+
+      <div class="callout info">
+        <div class="callout-label">Decision Framework</div>
+        <p>On the exam, always ask: "Does this task require <strong>generating</strong> new content, or <strong>categorizing/predicting</strong> from existing data?" If the former, consider GenAI. If the latter, consider traditional ML first. Also evaluate: cost constraints, latency requirements, accuracy guarantees, and whether the application is customer-facing or internal.</p>
+      </div>
+
+      <h3>Key Google Cloud Services for GenAI</h3>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">G</div>
+            <h4>Vertex AI Model Garden</h4>
+          </div>
+          <p>Browse and deploy foundation models. Access Gemini, PaLM, open-source models, and partner models from a unified catalog.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">S</div>
+            <h4>Vertex AI Studio</h4>
+          </div>
+          <p>Prototype prompts, test models, tune parameters. No-code/low-code interface for rapid GenAI experimentation.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">A</div>
+            <h4>Vertex AI API</h4>
+          </div>
+          <p>Programmatic access to all GenAI models. Python SDK, REST API, gRPC. Supports streaming, async, and batch inference.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">E</div>
+            <h4>Vertex AI Search</h4>
+          </div>
+          <p>Enterprise search with grounding. RAG pipelines that connect Gemini to your data for accurate, cited answers.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous</div>
+        <a href="10-mlops-feature-store.html" class="next-btn prev-btn">
+          &larr; 10 &middot; MLOps &amp; Feature Store
+        </a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next</div>
+        <a href="12-intro-llms.html" class="next-btn">
+          12 &middot; Introduction to LLMs &rarr;
+        </a>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

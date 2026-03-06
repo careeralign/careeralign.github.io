@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>MLOps Feature Store — CareerAlign GCP MLE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--phase-found); background: rgba(59,130,246,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-indigo);
+  padding: 6px 14px; border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(99,102,241,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--phase-found); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--phase-found); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--phase-found); flex-shrink: 0; }
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--phase-found); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--phase-found); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--phase-found);
+  background: rgba(59,130,246,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--phase-cloud); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--phase-project); background: rgba(245,158,11,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--phase-found);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--phase-cloud); }
+.callout.warn .callout-label { color: var(--phase-project); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* SVG DIAGRAM */
+.diagram-wrap {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg); padding: 32px;
+  margin: 32px 0;
+}
+.diagram-caption {
+  text-align: center; font-size: 13px; color: var(--text-muted);
+  margin-top: 16px; font-style: italic;
+}
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--phase-found); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(59,130,246,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* CHECKLIST */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px; color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 2px solid var(--phase-found);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.check-box.done { background: var(--phase-found); border-color: var(--phase-found); }
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--phase-found); color: var(--phase-found); transform: translateX(4px); }
+.prev-btn:hover { border-color: var(--phase-prereq); color: var(--phase-prereq); transform: translateX(-4px); }
+.next-phase { font-size: 12px; color: var(--phase-found); font-weight: 500; }
+
+/* FORMULA */
+.formula {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 16px 22px; margin: 20px 0;
+  font-family: var(--font-mono); font-size: 14px; color: var(--accent-cyan);
+  text-align: center; letter-spacing: 0.02em;
+}
+
+/* TABLE */
+.styled-table {
+  width: 100%; border-collapse: collapse; margin: 20px 0;
+  font-size: 14px;
+}
+.styled-table th, .styled-table td {
+  padding: 12px 16px; text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.styled-table th {
+  font-family: var(--font-display); font-weight: 600; font-size: 12px;
+  color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em;
+  background: var(--bg-surface);
+}
+.styled-table td { color: var(--text-secondary); }
+.styled-table td strong { color: var(--text-primary); }
+.styled-table tr:hover td { background: var(--bg-surface); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9889; <span>CareerAlign</span> GCP MLE</div>
+  <div class="nav-links">
+    <a href="01-intro-ml.html">01</a>
+    <a href="02-launching-ml.html">02</a>
+    <a href="03-tensorflow-vertexai.html">03</a>
+    <a href="04-feature-engineering.html">04</a>
+    <a href="05-ml-in-enterprise.html">05</a>
+    <a href="06-production-ml-systems.html">06</a>
+    <a href="07-ml-pipelines.html">07</a>
+    <a href="08-production-ml-systems.html">08</a>
+    <a href="09-mlops-getting-started.html">09 &middot; MLOps</a>
+    <a href="10-mlops-feature-store.html" class="active">10 &middot; Features</a>
+    <a href="11-intro-generative-ai.html">11</a>
+    <a href="12-responsible-ai.html">12</a>
+    <a href="13-generative-ai-architecture.html">13</a>
+    <a href="14-applying-ml.html">14</a>
+    <a href="15-vertex-ai-pipelines.html">15</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GCP MLE Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Course 10 &middot; MLOps with Vertex AI: Manage Features
+  </div>
+  <h1>Vertex AI <em>Feature Store</em></h1>
+  <p class="hero-desc">
+    Features are the lifeblood of ML models. The Vertex AI Feature Store provides a centralized, managed
+    repository for storing, serving, and monitoring features &mdash; ensuring consistency between training
+    and serving, enabling feature sharing across teams, and solving the critical problem of point-in-time
+    correctness. This module covers the new BigQuery-backed Feature Store architecture mapped to
+    Sections 2 and 4 of the GCP MLE exam.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Feature Store Architecture
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Online vs Offline Serving
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Point-in-Time Correctness
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Feature Monitoring
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      BigQuery Integration
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-mle/notebooks/10-mlops-feature-store.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#architecture" class="section">1 &middot; Feature Store Architecture</a>
+    <a href="#bq-backed" class="sub">BigQuery-Backed Design</a>
+    <a href="#core-concepts" class="sub">Core Concepts</a>
+    <a href="#online-offline" class="section">2 &middot; Online vs Offline Serving</a>
+    <a href="#latency" class="sub">Latency Requirements</a>
+    <a href="#use-cases" class="sub">Use Cases</a>
+    <a href="#operations" class="section">3 &middot; Feature Store Operations</a>
+    <a href="#create-features" class="sub">Create Groups &amp; Features</a>
+    <a href="#ingest" class="sub">Ingest Feature Values</a>
+    <a href="#serve-training" class="sub">Serve for Training</a>
+    <a href="#serve-prediction" class="sub">Serve for Prediction</a>
+    <a href="#monitoring" class="section">4 &middot; Feature Monitoring</a>
+    <a href="#drift" class="sub">Drift Detection</a>
+    <a href="#staleness" class="sub">Staleness Alerts</a>
+    <a href="#point-in-time" class="section">5 &middot; Point-in-Time Correctness</a>
+    <a href="#why-pit" class="sub">Why It Matters</a>
+    <a href="#pit-implementation" class="sub">Implementation</a>
+    <a href="#sharing" class="section">6 &middot; Feature Sharing</a>
+    <a href="#discovery" class="sub">Discovery &amp; Reuse</a>
+    <a href="#governance" class="sub">Governance</a>
+    <a href="#vs-inline" class="section">7 &middot; Feature Store vs Inline</a>
+    <a href="#pipeline-integration" class="section">8 &middot; Pipeline Integration</a>
+    <a href="#bq-vs-legacy" class="section">9 &middot; New vs Legacy Architecture</a>
+    <a href="#exam-focus" class="section">10 &middot; Exam Focus</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1: FEATURE STORE ARCHITECTURE
+    ════════════════════════════════════════════ -->
+    <section class="section" id="architecture">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Feature Store Architecture</h2>
+      </div>
+
+      <p>
+        The Vertex AI Feature Store is a <strong>centralized, managed service</strong> for organizing,
+        storing, and serving ML features. It solves three critical problems: (1) <strong>training-serving
+        skew</strong> &mdash; features computed differently at training vs prediction time, (2) <strong>feature
+        duplication</strong> &mdash; teams rebuilding the same features independently, and (3) <strong>point-in-time
+        correctness</strong> &mdash; using future data that would not have been available at prediction time.
+      </p>
+
+      <h3 id="bq-backed">BigQuery-Backed Design (New Architecture)</h3>
+      <p>
+        The current Vertex AI Feature Store uses <strong>BigQuery as the offline store</strong> and a
+        managed online serving layer for low-latency lookups. Features are defined as views or tables
+        in BigQuery, and the Feature Store manages synchronization between offline and online stores.
+      </p>
+
+      <!-- ARCHITECTURE DIAGRAM -->
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 820 280" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'Space Grotesk', sans-serif">
+          <rect width="820" height="280" fill="#10131e" rx="12"/>
+
+          <defs>
+            <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#3b82f6" opacity="0.7"/>
+            </marker>
+          </defs>
+
+          <!-- Data Sources -->
+          <rect x="20" y="30" width="130" height="50" rx="8" fill="#171c2e" stroke="#232840" stroke-width="1.5"/>
+          <text x="85" y="52" text-anchor="middle" fill="#f97316" font-size="11" font-weight="600">Data Sources</text>
+          <text x="85" y="68" text-anchor="middle" fill="#8e94b5" font-size="9">BigQuery, GCS, Streams</text>
+
+          <!-- Arrow to Feature Store -->
+          <line x1="155" y1="55" x2="195" y2="55" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arr)" opacity="0.7"/>
+
+          <!-- Feature Store Box -->
+          <rect x="200" y="10" width="400" height="260" rx="12" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.4"/>
+          <text x="400" y="32" text-anchor="middle" fill="#3b82f6" font-size="13" font-weight="700">Vertex AI Feature Store</text>
+
+          <!-- Feature Groups -->
+          <rect x="220" y="45" width="160" height="55" rx="8" fill="#171c2e" stroke="#3b82f6" stroke-width="1.5" opacity="0.6"/>
+          <text x="300" y="67" text-anchor="middle" fill="#3b82f6" font-size="11" font-weight="600">Feature Groups</text>
+          <text x="300" y="83" text-anchor="middle" fill="#8e94b5" font-size="9">user_features, txn_features</text>
+
+          <!-- Offline Store -->
+          <rect x="220" y="115" width="160" height="55" rx="8" fill="#171c2e" stroke="#22c55e" stroke-width="1.5" opacity="0.6"/>
+          <text x="300" y="137" text-anchor="middle" fill="#22c55e" font-size="11" font-weight="600">Offline Store</text>
+          <text x="300" y="153" text-anchor="middle" fill="#8e94b5" font-size="9">BigQuery (batch serving)</text>
+
+          <!-- Online Store -->
+          <rect x="420" y="115" width="160" height="55" rx="8" fill="#171c2e" stroke="#f97316" stroke-width="1.5" opacity="0.6"/>
+          <text x="500" y="137" text-anchor="middle" fill="#f97316" font-size="11" font-weight="600">Online Store</text>
+          <text x="500" y="153" text-anchor="middle" fill="#8e94b5" font-size="9">Low-latency (ms)</text>
+
+          <!-- Feature Views -->
+          <rect x="420" y="45" width="160" height="55" rx="8" fill="#171c2e" stroke="#a855f7" stroke-width="1.5" opacity="0.6"/>
+          <text x="500" y="67" text-anchor="middle" fill="#a855f7" font-size="11" font-weight="600">Feature Views</text>
+          <text x="500" y="83" text-anchor="middle" fill="#8e94b5" font-size="9">Combine features for use case</text>
+
+          <!-- Monitoring -->
+          <rect x="310" y="190" width="180" height="55" rx="8" fill="#171c2e" stroke="#ef4444" stroke-width="1.5" opacity="0.6"/>
+          <text x="400" y="212" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="600">Feature Monitoring</text>
+          <text x="400" y="228" text-anchor="middle" fill="#8e94b5" font-size="9">Drift, staleness, distribution</text>
+
+          <!-- Arrows internal -->
+          <line x1="300" y1="100" x2="300" y2="112" stroke="#545a78" stroke-width="1" marker-end="url(#arr)"/>
+          <line x1="380" y1="72" x2="417" y2="72" stroke="#545a78" stroke-width="1" marker-end="url(#arr)"/>
+          <line x1="380" y1="142" x2="417" y2="142" stroke="#545a78" stroke-width="1" marker-end="url(#arr)"/>
+
+          <!-- Training output -->
+          <rect x="640" y="110" width="150" height="50" rx="8" fill="#171c2e" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="715" y="132" text-anchor="middle" fill="#22c55e" font-size="11" font-weight="600">Training Pipeline</text>
+          <text x="715" y="148" text-anchor="middle" fill="#8e94b5" font-size="9">Batch features</text>
+
+          <!-- Prediction output -->
+          <rect x="640" y="40" width="150" height="50" rx="8" fill="#171c2e" stroke="#f97316" stroke-width="1.5"/>
+          <text x="715" y="62" text-anchor="middle" fill="#f97316" font-size="11" font-weight="600">Prediction Service</text>
+          <text x="715" y="78" text-anchor="middle" fill="#8e94b5" font-size="9">Online features (ms)</text>
+
+          <!-- Arrows to consumers -->
+          <line x1="583" y1="142" x2="637" y2="135" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arr)" opacity="0.7"/>
+          <line x1="583" y1="72" x2="637" y2="65" stroke="#f97316" stroke-width="1.5" marker-end="url(#arr)" opacity="0.7"/>
+        </svg>
+        <div class="diagram-caption">Vertex AI Feature Store architecture: BigQuery offline store + managed online store</div>
+      </div>
+
+      <h3 id="core-concepts">Core Concepts</h3>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128230;</div>
+            <h4>Feature Group</h4>
+          </div>
+          <p>A collection of related features backed by a BigQuery table or view. Examples: <code>user_features</code>, <code>transaction_features</code>. Each group has an entity ID column (e.g., <code>user_id</code>) and a timestamp column.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128204;</div>
+            <h4>Feature</h4>
+          </div>
+          <p>An individual column within a feature group. Has a name, data type, and optional description. Examples: <code>avg_transaction_amount_30d</code>, <code>account_age_days</code>, <code>is_verified</code>.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128065;</div>
+            <h4>Feature View</h4>
+          </div>
+          <p>A logical view that combines features from one or more feature groups for a specific use case. Used by both online and offline serving. Defines which features to include and how to join them.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128338;</div>
+            <h4>Feature Online Store</h4>
+          </div>
+          <p>A managed, low-latency serving infrastructure that stores the latest feature values. Supports millisecond-level lookups by entity ID. Automatically synced from the BigQuery offline store.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2: ONLINE VS OFFLINE SERVING
+    ════════════════════════════════════════════ -->
+    <section class="section" id="online-offline">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Online vs Offline Feature Serving</h2>
+      </div>
+
+      <p>
+        Feature Store provides two serving modes, each optimized for different access patterns.
+        Understanding when to use each is critical for the exam.
+      </p>
+
+      <h3 id="latency">Latency Requirements and Architecture</h3>
+
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th>Offline Serving</th>
+            <th>Online Serving</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Storage</strong></td>
+            <td>BigQuery</td>
+            <td>Managed online store (Bigtable-based)</td>
+          </tr>
+          <tr>
+            <td><strong>Latency</strong></td>
+            <td>Seconds to minutes</td>
+            <td>Single-digit milliseconds</td>
+          </tr>
+          <tr>
+            <td><strong>Access pattern</strong></td>
+            <td>Batch reads (entire dataset)</td>
+            <td>Point lookups by entity ID</td>
+          </tr>
+          <tr>
+            <td><strong>Data freshness</strong></td>
+            <td>Historical (all versions)</td>
+            <td>Latest values only</td>
+          </tr>
+          <tr>
+            <td><strong>Use case</strong></td>
+            <td>Training data generation</td>
+            <td>Real-time prediction serving</td>
+          </tr>
+          <tr>
+            <td><strong>Volume</strong></td>
+            <td>Millions to billions of rows</td>
+            <td>Latest row per entity</td>
+          </tr>
+          <tr>
+            <td><strong>Point-in-time support</strong></td>
+            <td>Yes (time-travel queries)</td>
+            <td>No (latest only)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 id="use-cases">When to Use Each Mode</h3>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128202;</div>
+            <h4>Offline Serving (Training)</h4>
+          </div>
+          <p><strong>Use when:</strong> generating training datasets, batch predictions, historical analysis. Feature values are joined with labels using point-in-time correctness. Output is a BigQuery table or export.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9889;</div>
+            <h4>Online Serving (Prediction)</h4>
+          </div>
+          <p><strong>Use when:</strong> real-time inference, fraud detection at transaction time, recommendation systems. Model endpoint calls Feature Store to get latest user/item features in milliseconds.</p>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Alert</div>
+        <p>A common exam question: "A model needs user features at prediction time with latency under 50ms." The answer is <strong>online serving</strong> from Feature Store. If the question mentions batch predictions or training data generation, the answer is <strong>offline serving</strong> from BigQuery.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3: FEATURE STORE OPERATIONS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="operations">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Feature Store Operations</h2>
+      </div>
+
+      <h3 id="create-features">Create Feature Groups and Features</h3>
+      <p>
+        Feature groups are backed by BigQuery tables. You create a feature group by pointing to an
+        existing BigQuery table, then register individual columns as features with metadata.
+      </p>
+
+      <pre><code><span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+<span class="code-keyword">from</span> vertexai.resources.preview <span class="code-keyword">import</span> feature_store
+
+<span class="code-comment"># Initialize</span>
+aiplatform.<span class="code-fn">init</span>(project=<span class="code-string">"my-project"</span>, location=<span class="code-string">"us-central1"</span>)
+
+<span class="code-comment"># Create a Feature Group backed by a BigQuery table</span>
+user_feature_group = feature_store.FeatureGroup.<span class="code-fn">create</span>(
+    name=<span class="code-string">"user_features"</span>,
+    source=feature_store.utils.FeatureGroupBigQuerySource(
+        uri=<span class="code-string">"bq://my-project.features.user_features_table"</span>,
+        entity_id_columns=[<span class="code-string">"user_id"</span>],
+    ),
+    description=<span class="code-string">"User-level features for fraud detection"</span>,
+)
+
+<span class="code-comment"># Register individual features with metadata</span>
+user_feature_group.<span class="code-fn">create_feature</span>(
+    name=<span class="code-string">"avg_transaction_amount_30d"</span>,
+    description=<span class="code-string">"Average transaction amount over last 30 days"</span>,
+)
+user_feature_group.<span class="code-fn">create_feature</span>(
+    name=<span class="code-string">"transaction_count_7d"</span>,
+    description=<span class="code-string">"Number of transactions in last 7 days"</span>,
+)
+user_feature_group.<span class="code-fn">create_feature</span>(
+    name=<span class="code-string">"account_age_days"</span>,
+    description=<span class="code-string">"Days since account creation"</span>,
+)
+user_feature_group.<span class="code-fn">create_feature</span>(
+    name=<span class="code-string">"is_verified"</span>,
+    description=<span class="code-string">"Whether user has completed identity verification"</span>,
+)</code></pre>
+
+      <h3 id="ingest">Ingest Feature Values</h3>
+      <p>
+        Feature values come from <strong>batch ingestion</strong> (BigQuery tables updated by ETL pipelines)
+        or <strong>streaming ingestion</strong> (real-time updates via the API). The BigQuery-backed
+        architecture means batch ingestion is simply updating the underlying BigQuery table.
+      </p>
+
+      <pre><code><span class="code-comment"># Batch ingestion: update the BigQuery source table</span>
+<span class="code-comment"># The Feature Store reads from BigQuery, so updating the table = updating features</span>
+
+<span class="code-comment"># Option 1: BigQuery SQL (most common for batch)</span>
+<span class="code-comment"># CREATE OR REPLACE TABLE features.user_features_table AS</span>
+<span class="code-comment"># SELECT</span>
+<span class="code-comment">#   user_id,</span>
+<span class="code-comment">#   AVG(amount) OVER (PARTITION BY user_id ORDER BY timestamp</span>
+<span class="code-comment">#     ROWS BETWEEN 30 PRECEDING AND CURRENT ROW) AS avg_transaction_amount_30d,</span>
+<span class="code-comment">#   COUNT(*) OVER (PARTITION BY user_id ORDER BY timestamp</span>
+<span class="code-comment">#     ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) AS transaction_count_7d,</span>
+<span class="code-comment">#   DATE_DIFF(CURRENT_DATE(), account_created, DAY) AS account_age_days,</span>
+<span class="code-comment">#   is_verified,</span>
+<span class="code-comment">#   CURRENT_TIMESTAMP() AS feature_timestamp</span>
+<span class="code-comment"># FROM raw_data.transactions</span>
+<span class="code-comment"># JOIN raw_data.users USING (user_id)</span>
+
+<span class="code-comment"># Option 2: Streaming ingestion for real-time features</span>
+<span class="code-comment"># (via the Feature Store write API)</span>
+<span class="code-keyword">from</span> google.cloud.aiplatform_v1beta1 <span class="code-keyword">import</span> FeatureOnlineStoreServiceClient
+
+<span class="code-comment"># client.write_feature_values(</span>
+<span class="code-comment">#     feature_online_store="projects/.../featureOnlineStores/my-store",</span>
+<span class="code-comment">#     feature_values=[{</span>
+<span class="code-comment">#         "entity_id": "user_12345",</span>
+<span class="code-comment">#         "feature_values": {"transaction_count_7d": 42, "is_verified": True}</span>
+<span class="code-comment">#     }],</span>
+<span class="code-comment"># )</span></code></pre>
+
+      <h3 id="serve-training">Serve Features for Training (Offline)</h3>
+      <p>
+        For training, the Feature Store generates a <strong>training dataset</strong> by joining feature
+        values with labels, respecting <strong>point-in-time correctness</strong>. This ensures each training
+        example uses only features that were available at the time of the label.
+      </p>
+
+      <pre><code><span class="code-comment"># Create a Feature View for the fraud detection use case</span>
+fraud_feature_view = feature_store.FeatureView.<span class="code-fn">create</span>(
+    name=<span class="code-string">"fraud_detection_features"</span>,
+    feature_registry_source=feature_store.utils.FeatureViewFeatureRegistrySource(
+        feature_groups={
+            user_feature_group.resource_name: feature_store.utils.FeatureViewFeatureRegistrySource.FeatureGroup(
+                features=[
+                    <span class="code-string">"avg_transaction_amount_30d"</span>,
+                    <span class="code-string">"transaction_count_7d"</span>,
+                    <span class="code-string">"account_age_days"</span>,
+                    <span class="code-string">"is_verified"</span>,
+                ],
+            ),
+        },
+    ),
+)
+
+<span class="code-comment"># Generate training data with point-in-time join</span>
+<span class="code-comment"># Labels table has: entity_id, timestamp, label</span>
+training_data = fraud_feature_view.<span class="code-fn">batch_serve</span>(
+    entity_df=<span class="code-string">"bq://my-project.labels.fraud_labels"</span>,
+    destination_uri=<span class="code-string">"bq://my-project.training.fraud_training_data"</span>,
+)
+<span class="code-comment"># Result: each row has features as-of the label timestamp</span></code></pre>
+
+      <h3 id="serve-prediction">Serve Features for Prediction (Online)</h3>
+      <p>
+        For real-time predictions, the online store provides <strong>millisecond-latency lookups</strong>
+        by entity ID. The prediction service fetches the latest feature values just before calling the model.
+      </p>
+
+      <pre><code><span class="code-comment"># Create an online store for low-latency serving</span>
+online_store = feature_store.FeatureOnlineStore.<span class="code-fn">create</span>(
+    name=<span class="code-string">"fraud-online-store"</span>,
+    feature_online_store_type=feature_store.utils.FeatureOnlineStoreType.BIGTABLE,
+    bigtable_auto_scaling=feature_store.utils.BigtableAutoScaling(
+        min_node_count=<span class="code-num">1</span>,
+        max_node_count=<span class="code-num">3</span>,
+        cpu_utilization_target=<span class="code-num">70</span>,
+    ),
+)
+
+<span class="code-comment"># Sync feature view to online store</span>
+sync_job = online_store.<span class="code-fn">create_feature_view_sync</span>(
+    feature_view=fraud_feature_view,
+)
+
+<span class="code-comment"># Fetch features at prediction time (single-digit ms)</span>
+feature_values = online_store.<span class="code-fn">fetch_feature_values</span>(
+    feature_view=<span class="code-string">"fraud_detection_features"</span>,
+    entity_id=<span class="code-string">"user_12345"</span>,
+)
+<span class="code-comment"># Returns: {"avg_transaction_amount_30d": 450.0, "transaction_count_7d": 12, ...}</span>
+
+<span class="code-comment"># Use these features in your prediction request</span>
+<span class="code-comment"># prediction = endpoint.predict(instances=[feature_values])</span></code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Training-Serving Consistency</div>
+        <p>Feature Store ensures the <strong>same feature definitions</strong> are used for both training (offline) and prediction (online). This eliminates training-serving skew &mdash; one of the most common and hardest-to-debug problems in production ML.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4: FEATURE MONITORING
+    ════════════════════════════════════════════ -->
+    <section class="section" id="monitoring">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Feature Monitoring</h2>
+      </div>
+
+      <p>
+        Feature monitoring detects changes in feature distributions that could degrade model performance.
+        It continuously compares current feature values against a baseline (typically training data
+        distributions).
+      </p>
+
+      <h3 id="drift">Drift Detection</h3>
+      <p>
+        <strong>Feature drift</strong> occurs when the statistical distribution of a feature changes
+        over time. For example, if average transaction amounts increase due to inflation, a model trained
+        on older data may underperform.
+      </p>
+
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Drift Type</th>
+            <th>What Changes</th>
+            <th>Detection Method</th>
+            <th>Impact</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Feature drift</strong></td>
+            <td>Input feature distributions</td>
+            <td>Jensen-Shannon divergence, KL divergence, chi-squared test</td>
+            <td>Model receives inputs it was not trained on</td>
+          </tr>
+          <tr>
+            <td><strong>Prediction drift</strong></td>
+            <td>Model output distributions</td>
+            <td>Distribution comparison of predictions</td>
+            <td>Model behavior is changing</td>
+          </tr>
+          <tr>
+            <td><strong>Concept drift</strong></td>
+            <td>Relationship between features and labels</td>
+            <td>Monitoring prediction accuracy against ground truth</td>
+            <td>Model's learned patterns no longer apply</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <pre><code><span class="code-comment"># Configure feature monitoring on a Feature View</span>
+<span class="code-comment"># Monitoring checks feature distributions against a baseline</span>
+
+monitoring_config = feature_store.FeatureViewMonitoringConfig(
+    snapshot_analysis=feature_store.SnapshotAnalysis(
+        monitoring_interval_days=<span class="code-num">1</span>,  <span class="code-comment"># Check daily</span>
+    ),
+    numerical_threshold_config=feature_store.NumericalThresholdConfig(
+        value=<span class="code-num">0.3</span>,  <span class="code-comment"># Alert if Jensen-Shannon divergence > 0.3</span>
+    ),
+    categorical_threshold_config=feature_store.CategoricalThresholdConfig(
+        value=<span class="code-num">0.3</span>,  <span class="code-comment"># Alert if L-infinity distance > 0.3</span>
+    ),
+)
+
+<span class="code-comment"># Alerts go to Cloud Monitoring, where you can configure</span>
+<span class="code-comment"># notification channels (email, PagerDuty, Pub/Sub)</span></code></pre>
+
+      <h3 id="staleness">Staleness Alerts</h3>
+      <p>
+        Feature <strong>staleness</strong> occurs when feature values are not updated within the expected
+        timeframe. If a daily feature pipeline fails, the Feature Store will serve yesterday's (or older)
+        values, potentially degrading predictions. Staleness monitoring catches these failures.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Monitoring Best Practice</div>
+        <p>Configure monitoring at <strong>two levels</strong>: (1) feature-level drift alerts to catch distribution changes, and (2) pipeline-level staleness alerts to catch ingestion failures. Both can trigger continuous training or alert the on-call engineer.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 5: POINT-IN-TIME CORRECTNESS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="point-in-time">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Point-in-Time Correctness</h2>
+      </div>
+
+      <h3 id="why-pit">Why It Matters</h3>
+      <p>
+        <strong>Point-in-time correctness</strong> is the most critical concept in feature engineering for
+        ML. It means: when constructing training data, each example must use only features that were
+        <strong>available at the time of the label</strong>. Using future data (data leakage) creates
+        artificially high training metrics that do not generalize to production.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Data Leakage Example</div>
+        <p><strong>Scenario:</strong> You are training a fraud model. Transaction X happened on Monday and was labeled as fraud on Wednesday. If your training data includes the user's <code>transaction_count_7d</code> computed on Wednesday (which includes Tuesday's transactions), you are using <strong>future data</strong>. The model cannot access Wednesday's count when making a prediction on Monday. This is data leakage, and it inflates your metrics by 5-15% typically.</p>
+      </div>
+
+      <h3 id="pit-implementation">How Feature Store Handles It</h3>
+      <p>
+        The Feature Store's <code>batch_serve</code> method performs a <strong>point-in-time join</strong>:
+        for each (entity_id, timestamp) pair in your labels table, it looks up the feature values that were
+        current <em>at or before</em> that timestamp. This is also called an <strong>as-of join</strong>
+        or <strong>temporal join</strong>.
+      </p>
+
+      <pre><code><span class="code-comment"># Point-in-time join: how it works</span>
+<span class="code-comment">#</span>
+<span class="code-comment"># Labels table:          Feature table (user_features):</span>
+<span class="code-comment"># user_id | label_ts    | label     user_id | feature_ts  | txn_count_7d</span>
+<span class="code-comment"># u001    | 2025-03-15  | fraud     u001    | 2025-03-10  | 5</span>
+<span class="code-comment"># u001    | 2025-04-20  | legit     u001    | 2025-03-17  | 8</span>
+<span class="code-comment">#                                   u001    | 2025-04-01  | 12</span>
+<span class="code-comment">#                                   u001    | 2025-04-18  | 3</span>
+<span class="code-comment">#</span>
+<span class="code-comment"># Point-in-time result:</span>
+<span class="code-comment"># user_id | label_ts    | label  | txn_count_7d</span>
+<span class="code-comment"># u001    | 2025-03-15  | fraud  | 5     (used 03-10 value, NOT 03-17)</span>
+<span class="code-comment"># u001    | 2025-04-20  | legit  | 3     (used 04-18 value, NOT future)</span>
+<span class="code-comment">#</span>
+<span class="code-comment"># Each row gets the feature value that was latest AT OR BEFORE label_ts</span>
+
+<span class="code-comment"># In BigQuery SQL, this is an ASOF JOIN:</span>
+<span class="code-comment"># SELECT l.*, f.txn_count_7d</span>
+<span class="code-comment"># FROM labels l</span>
+<span class="code-comment"># ASOF JOIN features f</span>
+<span class="code-comment">#   ON l.user_id = f.user_id</span>
+<span class="code-comment">#   AND f.feature_ts <= l.label_ts</span></code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Key Point</div>
+        <p>The exam will test whether you understand point-in-time correctness. Remember: <strong>feature values must be looked up as-of the label timestamp</strong>. Feature Store automates this. Without Feature Store, engineers must implement temporal joins manually, which is error-prone and a common source of data leakage.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 6: FEATURE SHARING
+    ════════════════════════════════════════════ -->
+    <section class="section" id="sharing">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Feature Sharing Across Teams</h2>
+      </div>
+
+      <h3 id="discovery">Discovery and Reuse</h3>
+      <p>
+        Feature Store enables <strong>feature discovery</strong> &mdash; teams can browse existing features
+        before building new ones. This eliminates duplicate work where multiple teams independently compute
+        the same features (e.g., "user age" or "30-day transaction count") with slightly different definitions.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128269;</div>
+            <h4>Discovery</h4>
+          </div>
+          <p>Browse feature groups and features with descriptions, data types, and statistics. Search by name, description, or label. See which teams own which features.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128260;</div>
+            <h4>Reuse</h4>
+          </div>
+          <p>Create Feature Views that combine features from any team's feature groups. One team computes <code>user_age</code>, another team uses it in their model &mdash; same definition, always consistent.</p>
+        </div>
+      </div>
+
+      <h3 id="governance">Governance</h3>
+      <p>
+        Feature governance includes <strong>access control</strong> (IAM policies on feature groups),
+        <strong>lineage tracking</strong> (which models use which features), and <strong>documentation</strong>
+        (descriptions and metadata on every feature). This ensures compliance, auditability, and
+        organizational knowledge retention.
+      </p>
+
+      <pre><code><span class="code-comment"># List all available feature groups (discovery)</span>
+feature_groups = feature_store.FeatureGroup.<span class="code-fn">list</span>()
+
+<span class="code-fn">print</span>(<span class="code-string">f"Available feature groups: {len(feature_groups)}"</span>)
+<span class="code-keyword">for</span> fg <span class="code-keyword">in</span> feature_groups:
+    features = fg.<span class="code-fn">list_features</span>()
+    <span class="code-fn">print</span>(<span class="code-string">f"  {fg.name}: {len(features)} features - {fg.description}"</span>)
+    <span class="code-keyword">for</span> f <span class="code-keyword">in</span> features:
+        <span class="code-fn">print</span>(<span class="code-string">f"    - {f.name}: {f.description}"</span>)</code></pre>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 7: FEATURE STORE VS INLINE
+    ════════════════════════════════════════════ -->
+    <section class="section" id="vs-inline">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Feature Store vs Inline Features</h2>
+      </div>
+
+      <p>
+        Not every feature belongs in a Feature Store. Understanding when to use centralized features
+        vs inline (computed at prediction time) is an important architectural decision.
+      </p>
+
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Criteria</th>
+            <th>Use Feature Store</th>
+            <th>Use Inline Features</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Shared across models</strong></td>
+            <td>Yes &mdash; multiple models use the same feature</td>
+            <td>Feature is specific to one model</td>
+          </tr>
+          <tr>
+            <td><strong>Expensive to compute</strong></td>
+            <td>Yes &mdash; precompute and store (e.g., 30-day aggregates)</td>
+            <td>Cheap to compute on-the-fly</td>
+          </tr>
+          <tr>
+            <td><strong>Requires point-in-time</strong></td>
+            <td>Yes &mdash; Feature Store handles temporal joins</td>
+            <td>Feature does not depend on history</td>
+          </tr>
+          <tr>
+            <td><strong>Governance required</strong></td>
+            <td>Yes &mdash; access control, lineage, auditing</td>
+            <td>No compliance requirements</td>
+          </tr>
+          <tr>
+            <td><strong>Available in request</strong></td>
+            <td>No &mdash; must be looked up by entity ID</td>
+            <td>Yes &mdash; feature comes with the request (e.g., request size)</td>
+          </tr>
+          <tr>
+            <td><strong>Latency tolerance</strong></td>
+            <td>Can tolerate ms-level lookup overhead</td>
+            <td>Ultra-low latency, no external calls</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <div class="callout-label">Rule of Thumb</div>
+        <p><strong>Feature Store</strong> for precomputed entity features (user history, aggregated stats, profile data). <strong>Inline</strong> for request-level features (transaction amount, time of day, device type) that arrive with the prediction request itself.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 8: PIPELINE INTEGRATION
+    ════════════════════════════════════════════ -->
+    <section class="section" id="pipeline-integration">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <h2>Integration with Vertex AI Pipelines</h2>
+      </div>
+
+      <p>
+        Feature Store integrates with Vertex AI Pipelines at two key points in the ML lifecycle:
+        (1) <strong>feature ingestion</strong> &mdash; pipeline steps that compute and write features,
+        and (2) <strong>training data generation</strong> &mdash; pipeline steps that read features
+        with point-in-time joins.
+      </p>
+
+      <pre><code><span class="code-comment"># Feature Store integration in a Vertex AI Pipeline</span>
+<span class="code-keyword">from</span> kfp <span class="code-keyword">import</span> dsl
+
+<span class="code-keyword">@dsl.pipeline</span>(name=<span class="code-string">"fraud-pipeline-with-features"</span>)
+<span class="code-keyword">def</span> <span class="code-fn">fraud_pipeline</span>(project: <span class="code-fn">str</span>):
+    <span class="code-comment"># Step 1: Compute fresh features in BigQuery</span>
+    compute_features_op = bq_query_op(
+        query=<span class="code-string">"CALL features.compute_user_features()"</span>,
+        project=project,
+    )
+
+    <span class="code-comment"># Step 2: Generate training data from Feature Store</span>
+    <span class="code-comment"># Point-in-time join: features + labels</span>
+    generate_training_data_op = feature_store_batch_serve_op(
+        feature_view=<span class="code-string">"fraud_detection_features"</span>,
+        entity_source=<span class="code-string">"bq://project.labels.fraud_labels"</span>,
+        destination=<span class="code-string">"bq://project.training.fraud_data"</span>,
+    ).<span class="code-fn">after</span>(compute_features_op)
+
+    <span class="code-comment"># Step 3: Train model on feature-store-generated data</span>
+    train_op = custom_training_op(
+        training_data=generate_training_data_op.outputs[<span class="code-string">"training_data"</span>],
+    ).<span class="code-fn">after</span>(generate_training_data_op)
+
+    <span class="code-comment"># Step 4: Sync features to online store for serving</span>
+    sync_op = feature_view_sync_op(
+        feature_view=<span class="code-string">"fraud_detection_features"</span>,
+        online_store=<span class="code-string">"fraud-online-store"</span>,
+    ).<span class="code-fn">after</span>(compute_features_op)
+
+    <span class="code-comment"># Step 5: Deploy model (uses online store at prediction time)</span>
+    deploy_op = model_deploy_op(
+        model=train_op.outputs[<span class="code-string">"model"</span>],
+    ).<span class="code-fn">after</span>(train_op, sync_op)  <span class="code-comment"># Wait for both</span></code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Pipeline Pattern</div>
+        <p>Notice the <strong>parallel execution</strong>: feature sync to online store and model training can happen concurrently. Both depend on feature computation, but not on each other. Deployment waits for both to complete. This is a common and efficient pipeline pattern.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 9: NEW VS LEGACY ARCHITECTURE
+    ════════════════════════════════════════════ -->
+    <section class="section" id="bq-vs-legacy">
+      <div class="section-header">
+        <div class="section-num">09</div>
+        <h2>BigQuery Feature Store vs Legacy Feature Store</h2>
+      </div>
+
+      <p>
+        Google has evolved the Feature Store architecture. The <strong>new architecture</strong> (BigQuery-backed)
+        replaces the <strong>legacy architecture</strong> (Featurestore with EntityTypes). Understanding both
+        is useful for the exam, as some older references still use legacy terminology.
+      </p>
+
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Aspect</th>
+            <th>New (BigQuery-Backed)</th>
+            <th>Legacy (Featurestore)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Offline store</strong></td>
+            <td>BigQuery (native)</td>
+            <td>Proprietary storage</td>
+          </tr>
+          <tr>
+            <td><strong>Data model</strong></td>
+            <td>Feature Groups + Feature Views</td>
+            <td>Featurestore &rarr; EntityType &rarr; Feature</td>
+          </tr>
+          <tr>
+            <td><strong>Ingestion</strong></td>
+            <td>BigQuery tables (batch), API (streaming)</td>
+            <td>ImportFeatureValues API</td>
+          </tr>
+          <tr>
+            <td><strong>Offline serving</strong></td>
+            <td>BigQuery SQL / batch_serve</td>
+            <td>BatchReadFeatureValues API</td>
+          </tr>
+          <tr>
+            <td><strong>Online serving</strong></td>
+            <td>FeatureOnlineStore (Bigtable-backed)</td>
+            <td>Built-in online serving</td>
+          </tr>
+          <tr>
+            <td><strong>BigQuery integration</strong></td>
+            <td>Native (features are BQ tables)</td>
+            <td>Export required</td>
+          </tr>
+          <tr>
+            <td><strong>Status</strong></td>
+            <td>Current, recommended</td>
+            <td>Deprecated (migration path available)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Note</div>
+        <p>The exam may reference both architectures. If you see <strong>EntityType</strong> and <strong>Featurestore</strong> (capital F, one word), that is the legacy architecture. If you see <strong>Feature Group</strong> and <strong>Feature View</strong>, that is the new BigQuery-backed architecture. Know both, but recommend the new architecture in design questions.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 10: EXAM FOCUS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="exam-focus">
+      <div class="section-header">
+        <div class="section-num">10</div>
+        <h2>Exam Focus</h2>
+      </div>
+
+      <p>
+        This course maps to <strong>Section 2: Data Processing</strong> (feature engineering, data validation)
+        and <strong>Section 4: ML Model Serving</strong> (online feature serving, training-serving consistency)
+        on the GCP Machine Learning Engineer exam.
+      </p>
+
+      <h3>Key Exam Scenarios</h3>
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Scenario</th>
+            <th>Best Answer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>"Need features with sub-10ms latency at prediction time"</td>
+            <td><strong>Feature Store online serving</strong></td>
+          </tr>
+          <tr>
+            <td>"Need to generate training data without data leakage"</td>
+            <td><strong>Feature Store batch serving with point-in-time joins</strong></td>
+          </tr>
+          <tr>
+            <td>"Feature distributions are changing, model accuracy declining"</td>
+            <td><strong>Feature monitoring with drift detection</strong> + continuous training</td>
+          </tr>
+          <tr>
+            <td>"Multiple teams compute the same features differently"</td>
+            <td><strong>Centralize in Feature Store</strong> for consistency and governance</td>
+          </tr>
+          <tr>
+            <td>"Transaction amount is available in the prediction request"</td>
+            <td><strong>Inline feature</strong> (no Feature Store needed for request-level data)</td>
+          </tr>
+          <tr>
+            <td>"Need historical user behavior features for training"</td>
+            <td><strong>Feature Store offline serving</strong> with BigQuery</td>
+          </tr>
+          <tr>
+            <td>"Training accuracy is much higher than production accuracy"</td>
+            <td>Likely <strong>data leakage</strong> &mdash; check point-in-time correctness</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Key Exam Takeaways</h3>
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"><svg width="10" height="10" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Online serving</strong> = low-latency entity lookups for real-time predictions.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="10" height="10" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Offline serving</strong> = batch feature retrieval with point-in-time joins for training.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="10" height="10" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Point-in-time correctness</strong> prevents data leakage (using future data in training).
+        </li>
+        <li>
+          <div class="check-box done"><svg width="10" height="10" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Use Feature Store for <strong>shared, precomputed entity features</strong>. Use inline for <strong>request-level features</strong>.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="10" height="10" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Feature monitoring detects <strong>drift</strong> (distribution changes) and <strong>staleness</strong> (ingestion failures).
+        </li>
+        <li>
+          <div class="check-box done"><svg width="10" height="10" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          New architecture uses <strong>Feature Groups + Feature Views</strong>; legacy used <strong>Featurestore + EntityTypes</strong>.
+        </li>
+      </ul>
+
+      <!-- NAVIGATION -->
+      <div class="next-section">
+        <div>
+          <div class="next-label">Previous Course</div>
+          <a href="09-mlops-getting-started.html" class="next-btn prev-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            09 &middot; MLOps Getting Started
+          </a>
+        </div>
+        <div style="text-align:right">
+          <div class="next-label">Next Course</div>
+          <a href="11-intro-generative-ai.html" class="next-btn">
+            11 &middot; Intro to Generative AI
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+          <div class="next-phase">Generative AI</div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+</body>
+</html>

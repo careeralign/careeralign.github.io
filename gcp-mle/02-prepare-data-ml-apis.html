@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Prepare Data for ML APIs on Google Cloud — CareerAlign GCP MLE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --accent-green: #22c55e;
+  --accent-amber: #f59e0b;
+  --accent-red:   #ef4444;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-green); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--accent-green); background: rgba(34,197,94,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-green);
+  padding: 6px 14px; border: 1px solid rgba(34,197,94,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(34,197,94,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--accent-green); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero-badges { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(239,68,68,0.10); border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 14px; padding: 3px 12px;
+  font-size: 11px; font-family: var(--font-display); font-weight: 600;
+  color: var(--accent-red); letter-spacing: 0.03em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--accent-green); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--accent-green); flex-shrink: 0; }
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--accent-green); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--accent-green); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+.section ul, .section ol {
+  color: var(--text-secondary); margin: 0 0 16px 24px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section li { margin-bottom: 6px; }
+.section li strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--accent-green);
+  background: rgba(34,197,94,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--accent-green); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--accent-amber); background: rgba(245,158,11,0.07); }
+.callout.exam { border-color: var(--accent-red); background: rgba(239,68,68,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--accent-green);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--accent-green); }
+.callout.warn .callout-label { color: var(--accent-amber); }
+.callout.exam .callout-label { color: var(--accent-red); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* DIAGRAM */
+.diagram-wrap {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg); padding: 32px;
+  margin: 32px 0;
+}
+.diagram-caption {
+  text-align: center; font-size: 13px; color: var(--text-muted);
+  margin-top: 16px; font-style: italic;
+}
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--accent-green); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(34,197,94,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* TABLE */
+.data-table {
+  width: 100%; border-collapse: collapse; margin: 20px 0;
+  font-size: 14px;
+}
+.data-table th {
+  background: var(--bg-elevated); color: var(--text-primary);
+  font-family: var(--font-display); font-weight: 600; font-size: 12px;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 12px 16px; text-align: left;
+  border-bottom: 2px solid var(--border-strong);
+}
+.data-table td {
+  padding: 10px 16px; color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.data-table tr:hover td { background: var(--bg-surface); }
+.data-table td strong { color: var(--text-primary); }
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--accent-green); color: var(--accent-green); transform: translateX(4px); }
+.prev-btn:hover { border-color: var(--text-muted); color: var(--text-muted); transform: translateX(-4px); }
+.next-phase { font-size: 12px; color: var(--accent-green); font-weight: 500; }
+
+/* FORMULA */
+.formula {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 16px 22px; margin: 20px 0;
+  font-family: var(--font-mono); font-size: 14px; color: var(--accent-cyan);
+  text-align: center; letter-spacing: 0.02em;
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9729;&#65039; <span>CareerAlign</span> GCP MLE</div>
+  <div class="nav-links">
+    <a href="01-intro-ai-ml-gcp.html">01 &middot; Intro AI/ML</a>
+    <a href="02-prepare-data-ml-apis.html" class="active">02 &middot; Data Prep</a>
+    <a href="03-big-data-ml-fundamentals.html">03 &middot; Big Data</a>
+    <a href="04-vertex-ai-managed-datasets.html">04 &middot; Datasets</a>
+    <a href="05-feature-engineering.html">05 &middot; Features</a>
+    <a href="06-ml-in-enterprise.html">06 &middot; Enterprise</a>
+    <a href="07-vertex-ai-training.html">07 &middot; Training</a>
+    <a href="08-vertex-ai-custom-training.html">08 &middot; Custom</a>
+    <a href="09-automl.html">09 &middot; AutoML</a>
+    <a href="10-vertex-ai-pipelines.html">10 &middot; Pipelines</a>
+    <a href="11-model-evaluation.html">11 &middot; Eval</a>
+    <a href="12-prediction-serving.html">12 &middot; Serving</a>
+    <a href="13-model-monitoring.html">13 &middot; Monitoring</a>
+    <a href="14-mlops.html">14 &middot; MLOps</a>
+    <a href="15-responsible-ai.html">15 &middot; Resp AI</a>
+    <a href="16-genai-on-gcp.html">16 &middot; GenAI</a>
+    <a href="17-vertex-ai-search.html">17 &middot; Search</a>
+    <a href="18-vector-search.html">18 &middot; Vectors</a>
+    <a href="19-ml-security.html">19 &middot; Security</a>
+    <a href="20-exam-prep.html">20 &middot; Exam</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GCP MLE Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Course 02 &middot; Prepare Data for ML APIs on Google Cloud
+  </div>
+  <div class="hero-badges">
+    <span class="hero-badge">Exam Section 1: Architecting Low-Code ML Solutions</span>
+    <span class="hero-badge">Exam Section 2: Collaborating within and across teams</span>
+  </div>
+  <h1>Data Preparation and <em>Pre-trained ML APIs</em></h1>
+  <p class="hero-desc">
+    Data is the fuel for machine learning. This course covers the GCP data preparation ecosystem &mdash; Dataflow, Dataprep, Dataproc &mdash;
+    and takes a deep dive into Google's pre-trained ML APIs for vision, language, speech, translation, and video intelligence.
+    Learn when to use each tool and how to call every API.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Dataflow (Apache Beam)
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Dataprep &amp; Dataproc
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Vision &amp; NLP APIs
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Speech &amp; Translation
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Video Intelligence
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-mle/notebooks/02-prepare-data-ml-apis.ipynb"
+       target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#pipeline" class="section">1 &middot; Data Preparation Pipeline</a>
+    <a href="#pipeline-why" class="sub">Why Data Prep Matters</a>
+    <a href="#pipeline-stages" class="sub">Pipeline Stages</a>
+    <a href="#dataflow" class="section">2 &middot; Dataflow (Apache Beam)</a>
+    <a href="#dataflow-concepts" class="sub">Pipeline Concepts</a>
+    <a href="#dataflow-code" class="sub">Beam Code Examples</a>
+    <a href="#dataprep" class="section">3 &middot; Dataprep</a>
+    <a href="#dataprep-when" class="sub">When to Use</a>
+    <a href="#dataproc" class="section">4 &middot; Dataproc</a>
+    <a href="#dataproc-when" class="sub">When to Use</a>
+    <a href="#decision" class="section">5 &middot; Decision Guide</a>
+    <a href="#decision-table" class="sub">Dataflow vs Dataprep vs Dataproc</a>
+    <a href="#apis" class="section">6 &middot; Pre-trained ML APIs</a>
+    <a href="#apis-vision" class="sub">Cloud Vision</a>
+    <a href="#apis-nlp" class="sub">Cloud NLP</a>
+    <a href="#apis-speech" class="sub">Speech-to-Text</a>
+    <a href="#apis-translate" class="sub">Translation</a>
+    <a href="#apis-video" class="sub">Video Intelligence</a>
+    <a href="#auth" class="section">7 &middot; Authentication &amp; Quotas</a>
+    <a href="#auth-methods" class="sub">Auth Methods</a>
+    <a href="#examtips" class="section">8 &middot; Exam Tips</a>
+    <a href="#examtips-scenarios" class="sub">Scenario-Based Tips</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1: DATA PREPARATION PIPELINE
+    ════════════════════════════════════════════ -->
+    <section class="section" id="pipeline">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Data Preparation Pipeline on GCP</h2>
+      </div>
+
+      <h3 id="pipeline-why">Why Data Preparation Matters</h3>
+      <p>
+        Data scientists spend <strong>60-80% of their time on data preparation</strong>. The quality of your ML model
+        is bounded by the quality of your data. Garbage in, garbage out.
+      </p>
+      <p>
+        On GCP, data preparation is not a single tool but a <strong>pipeline</strong> of services working together.
+        Choosing the right tool for each stage is critical for cost, performance, and maintainability.
+      </p>
+
+      <h3 id="pipeline-stages">Pipeline Stages</h3>
+
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 800 240" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'Space Grotesk', sans-serif">
+          <rect width="800" height="240" fill="#10131e" rx="12"/>
+          <defs>
+            <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#22c55e" opacity="0.7"/>
+            </marker>
+          </defs>
+
+          <!-- Sources -->
+          <rect x="20" y="30" width="130" height="180" rx="10" fill="#171c2e" stroke="#545a78" stroke-width="1.2" stroke-dasharray="4,3"/>
+          <text x="85" y="55" text-anchor="middle" fill="#8e94b5" font-size="11" font-weight="600">Data Sources</text>
+          <text x="85" y="80" text-anchor="middle" fill="#545a78" font-size="10">Cloud Storage</text>
+          <text x="85" y="98" text-anchor="middle" fill="#545a78" font-size="10">BigQuery</text>
+          <text x="85" y="116" text-anchor="middle" fill="#545a78" font-size="10">Pub/Sub (streaming)</text>
+          <text x="85" y="134" text-anchor="middle" fill="#545a78" font-size="10">Cloud SQL</text>
+          <text x="85" y="152" text-anchor="middle" fill="#545a78" font-size="10">External sources</text>
+
+          <line x1="152" y1="120" x2="185" y2="120" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arr)"/>
+
+          <!-- ETL -->
+          <rect x="187" y="55" width="160" height="130" rx="10" fill="#171c2e" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="267" y="82" text-anchor="middle" fill="#3b82f6" font-size="12" font-weight="600">Transform &amp; Clean</text>
+          <text x="267" y="105" text-anchor="middle" fill="#8e94b5" font-size="10">Dataflow (Beam)</text>
+          <text x="267" y="122" text-anchor="middle" fill="#8e94b5" font-size="10">Dataprep (visual)</text>
+          <text x="267" y="139" text-anchor="middle" fill="#8e94b5" font-size="10">Dataproc (Spark)</text>
+          <text x="267" y="156" text-anchor="middle" fill="#8e94b5" font-size="10">BigQuery SQL</text>
+
+          <line x1="349" y1="120" x2="382" y2="120" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arr)"/>
+
+          <!-- Feature Engineering -->
+          <rect x="384" y="70" width="160" height="100" rx="10" fill="#171c2e" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="464" y="97" text-anchor="middle" fill="#a855f7" font-size="12" font-weight="600">Feature Engineering</text>
+          <text x="464" y="118" text-anchor="middle" fill="#8e94b5" font-size="10">Feature Store</text>
+          <text x="464" y="135" text-anchor="middle" fill="#8e94b5" font-size="10">BigQuery transforms</text>
+          <text x="464" y="152" text-anchor="middle" fill="#8e94b5" font-size="10">Dataflow pipelines</text>
+
+          <line x1="546" y1="120" x2="579" y2="120" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arr)"/>
+
+          <!-- ML Ready -->
+          <rect x="581" y="80" width="180" height="80" rx="10" fill="rgba(34,197,94,0.12)" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="671" y="110" text-anchor="middle" fill="#22c55e" font-size="13" font-weight="700">ML-Ready Data</text>
+          <text x="671" y="130" text-anchor="middle" fill="#8e94b5" font-size="10">Training / Serving / Evaluation</text>
+          <text x="671" y="147" text-anchor="middle" fill="#8e94b5" font-size="10">Vertex AI &middot; BigQuery ML</text>
+        </svg>
+        <div class="diagram-caption">GCP data preparation pipeline: ingest, transform, engineer features, produce ML-ready datasets</div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Key Principle</div>
+        <p>The exam tests your ability to <strong>choose the right data tool for the scenario</strong>. The three main contenders are Dataflow, Dataprep, and Dataproc. Each has a distinct sweet spot &mdash; understanding the boundaries is more important than memorizing syntax.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2: DATAFLOW (APACHE BEAM)
+    ════════════════════════════════════════════ -->
+    <section class="section" id="dataflow">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Dataflow (Apache Beam)</h2>
+      </div>
+
+      <p>
+        <strong>Cloud Dataflow</strong> is Google Cloud's fully managed, serverless service for running
+        <strong>Apache Beam</strong> pipelines. It handles both <strong>batch</strong> and <strong>streaming</strong>
+        data processing with the same programming model.
+      </p>
+
+      <h3 id="dataflow-concepts">Core Pipeline Concepts</h3>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Concept</th>
+            <th>Description</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Pipeline</strong></td>
+            <td>The entire data processing workflow, defined as a DAG of transforms</td>
+            <td><code>pipeline = beam.Pipeline()</code></td>
+          </tr>
+          <tr>
+            <td><strong>PCollection</strong></td>
+            <td>An immutable, distributed dataset. The input and output of every transform.</td>
+            <td>Lines of text, rows of data, images</td>
+          </tr>
+          <tr>
+            <td><strong>Transform (PTransform)</strong></td>
+            <td>An operation on a PCollection. Applied with the <code>|</code> (pipe) operator.</td>
+            <td><code>Map</code>, <code>Filter</code>, <code>GroupByKey</code>, <code>ParDo</code></td>
+          </tr>
+          <tr>
+            <td><strong>Source &amp; Sink</strong></td>
+            <td>Where data enters and leaves the pipeline</td>
+            <td>Read from GCS/BigQuery, write to BigQuery/GCS/Pub/Sub</td>
+          </tr>
+          <tr>
+            <td><strong>Window</strong></td>
+            <td>Groups streaming data into finite chunks by time</td>
+            <td>Fixed windows (every 5 min), sliding windows, session windows</td>
+          </tr>
+          <tr>
+            <td><strong>Watermark</strong></td>
+            <td>Tracks event-time progress to handle late-arriving data</td>
+            <td>Allows processing even when some events arrive out of order</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 id="dataflow-code">Apache Beam Pipeline Example</h3>
+
+      <pre><code><span class="code-comment"># Apache Beam pipeline — runs on Dataflow (or locally for testing)</span>
+<span class="code-keyword">import</span> apache_beam <span class="code-keyword">as</span> beam
+<span class="code-keyword">from</span> apache_beam.options.pipeline_options <span class="code-keyword">import</span> PipelineOptions
+
+<span class="code-comment"># Define pipeline options</span>
+options = PipelineOptions([
+    <span class="code-string">'--runner=DataflowRunner'</span>,        <span class="code-comment"># Use 'DirectRunner' for local testing</span>
+    <span class="code-string">'--project=my-gcp-project'</span>,
+    <span class="code-string">'--region=us-central1'</span>,
+    <span class="code-string">'--temp_location=gs://my-bucket/temp'</span>,
+    <span class="code-string">'--staging_location=gs://my-bucket/staging'</span>,
+])
+
+<span class="code-comment"># Build the pipeline</span>
+<span class="code-keyword">with</span> beam.Pipeline(options=options) <span class="code-keyword">as</span> p:
+    (
+        p
+        | <span class="code-string">'ReadFromBQ'</span> >> beam.io.ReadFromBigQuery(
+            query=<span class="code-string">'SELECT * FROM `project.dataset.table`'</span>,
+            use_standard_sql=<span class="code-keyword">True</span>,
+        )
+        | <span class="code-string">'FilterValid'</span> >> beam.Filter(<span class="code-keyword">lambda</span> row: row[<span class="code-string">'amount'</span>] > <span class="code-num">0</span>)
+        | <span class="code-string">'TransformData'</span> >> beam.Map(
+            <span class="code-keyword">lambda</span> row: {
+                <span class="code-string">'customer_id'</span>: row[<span class="code-string">'customer_id'</span>],
+                <span class="code-string">'amount_normalized'</span>: row[<span class="code-string">'amount'</span>] / <span class="code-num">1000.0</span>,
+                <span class="code-string">'category'</span>: row[<span class="code-string">'category'</span>].lower(),
+            }
+        )
+        | <span class="code-string">'WriteToBQ'</span> >> beam.io.WriteToBigQuery(
+            <span class="code-string">'project:dataset.output_table'</span>,
+            schema=<span class="code-string">'customer_id:STRING,amount_normalized:FLOAT,category:STRING'</span>,
+            write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE,
+        )
+    )</code></pre>
+
+      <pre><code><span class="code-comment"># Streaming pipeline — process events from Pub/Sub in real time</span>
+<span class="code-keyword">with</span> beam.Pipeline(options=options) <span class="code-keyword">as</span> p:
+    (
+        p
+        | <span class="code-string">'ReadPubSub'</span> >> beam.io.ReadFromPubSub(
+            topic=<span class="code-string">'projects/my-project/topics/events'</span>,
+        )
+        | <span class="code-string">'ParseJSON'</span> >> beam.Map(json.loads)
+        | <span class="code-string">'Window5Min'</span> >> beam.WindowInto(
+            beam.window.FixedWindows(<span class="code-num">300</span>)  <span class="code-comment"># 5-minute windows</span>
+        )
+        | <span class="code-string">'GroupByUser'</span> >> beam.GroupByKey()
+        | <span class="code-string">'Aggregate'</span> >> beam.Map(compute_user_stats)
+        | <span class="code-string">'WriteBQ'</span> >> beam.io.WriteToBigQuery(...)
+    )</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Key Advantage</div>
+        <p>Dataflow's killer feature is <strong>unified batch and streaming</strong>. The same Apache Beam code runs as batch (bounded PCollection from GCS/BQ) or streaming (unbounded PCollection from Pub/Sub). No need to maintain two separate pipelines.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Alert</div>
+        <p>When the question mentions <strong>"serverless"</strong> data processing or <strong>"both batch and streaming"</strong>, the answer is almost always <strong>Dataflow</strong>. Dataflow is also the default answer for <strong>ETL/ELT pipelines</strong> unless there is a specific reason to use Spark (existing Spark code, Spark MLlib).</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3: DATAPREP
+    ════════════════════════════════════════════ -->
+    <section class="section" id="dataprep">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Dataprep by Trifacta</h2>
+      </div>
+
+      <p>
+        <strong>Cloud Dataprep</strong> is a visual, no-code data wrangling tool built by Trifacta
+        (now part of Alteryx). It provides an interactive web UI for exploring, cleaning, and
+        transforming data without writing code.
+      </p>
+
+      <h3 id="dataprep-when">When to Use Dataprep</h3>
+
+      <ul>
+        <li><strong>Visual data exploration</strong> &mdash; Dataprep shows data distributions, anomalies, and patterns automatically</li>
+        <li><strong>Non-technical users</strong> &mdash; Business analysts and data stewards who do not write Python or SQL</li>
+        <li><strong>One-off data cleaning</strong> &mdash; Ad-hoc data preparation tasks, not recurring production pipelines</li>
+        <li><strong>Data profiling</strong> &mdash; Quickly understand data quality (nulls, outliers, distributions)</li>
+        <li><strong>Recipe-based transforms</strong> &mdash; Build a sequence of transformation "recipes" that can be saved and reused</li>
+      </ul>
+
+      <p>
+        <strong>Under the hood</strong>, Dataprep generates and executes Dataflow jobs. So it is essentially
+        a visual front-end for Dataflow with AI-assisted suggestions for transforms.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Limitation</div>
+        <p>Dataprep is <strong>not suitable for production streaming pipelines</strong>. It is designed for interactive, ad-hoc data wrangling. For production ETL, use Dataflow directly (code-based). Dataprep also has row count limitations on the visual preview (though the actual execution via Dataflow can handle large datasets).</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4: DATAPROC
+    ════════════════════════════════════════════ -->
+    <section class="section" id="dataproc">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Dataproc (Managed Spark/Hadoop)</h2>
+      </div>
+
+      <p>
+        <strong>Cloud Dataproc</strong> is Google Cloud's managed service for running <strong>Apache Spark</strong>,
+        <strong>Hadoop</strong>, <strong>Flink</strong>, and <strong>Presto</strong> clusters. It provisions clusters in 90 seconds
+        and integrates with GCS, BigQuery, and other GCP services.
+      </p>
+
+      <h3 id="dataproc-when">When to Use Dataproc</h3>
+
+      <ul>
+        <li><strong>Existing Spark/Hadoop code</strong> &mdash; Lift-and-shift from on-premises Hadoop clusters</li>
+        <li><strong>Spark MLlib</strong> &mdash; Distributed ML training using Spark's ML library</li>
+        <li><strong>Complex graph processing</strong> &mdash; GraphX, Spark GraphFrames</li>
+        <li><strong>PySpark/Scala Spark jobs</strong> &mdash; Teams that already know Spark</li>
+        <li><strong>Ephemeral clusters</strong> &mdash; Spin up a cluster for a job, shut it down when done (cost-effective)</li>
+      </ul>
+
+      <pre><code><span class="code-comment"># Create a Dataproc cluster via gcloud CLI</span>
+gcloud dataproc clusters create my-spark-cluster \
+  --region=us-central1 \
+  --master-machine-type=n1-standard-4 \
+  --worker-machine-type=n1-standard-4 \
+  --num-workers=<span class="code-num">2</span> \
+  --image-version=<span class="code-string">"2.1-debian11"</span> \
+  --enable-component-gateway \
+  --optional-components=JUPYTER
+
+<span class="code-comment"># Submit a PySpark job</span>
+gcloud dataproc jobs submit pyspark \
+  gs://my-bucket/scripts/etl_job.py \
+  --cluster=my-spark-cluster \
+  --region=us-central1 \
+  -- --input=gs://my-bucket/raw/ --output=gs://my-bucket/processed/
+
+<span class="code-comment"># Delete cluster when done (ephemeral pattern)</span>
+gcloud dataproc clusters delete my-spark-cluster \
+  --region=us-central1 --quiet</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Ephemeral Clusters</div>
+        <p>The <strong>ephemeral cluster pattern</strong> is a best practice for Dataproc: create a cluster, run the job, delete the cluster. Use <strong>Dataproc Workflow Templates</strong> or <strong>Dataproc Serverless</strong> (Spark Batch) to automate this. You only pay while the cluster is running.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Alert</div>
+        <p>If the question mentions <strong>"existing Spark code"</strong>, <strong>"Hadoop migration"</strong>, or <strong>"Spark MLlib"</strong>, the answer is <strong>Dataproc</strong>. If it mentions <strong>"serverless"</strong> with no existing Spark/Hadoop, the answer is <strong>Dataflow</strong>.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 5: DECISION GUIDE
+    ════════════════════════════════════════════ -->
+    <section class="section" id="decision">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Decision Guide: Dataflow vs Dataprep vs Dataproc</h2>
+      </div>
+
+      <h3 id="decision-table">Comparison Table</h3>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Criteria</th>
+            <th>Dataflow</th>
+            <th>Dataprep</th>
+            <th>Dataproc</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Engine</strong></td>
+            <td>Apache Beam</td>
+            <td>Dataflow (under the hood)</td>
+            <td>Apache Spark / Hadoop</td>
+          </tr>
+          <tr>
+            <td><strong>Management</strong></td>
+            <td>Fully serverless</td>
+            <td>Fully serverless (visual UI)</td>
+            <td>Managed clusters (or serverless Spark)</td>
+          </tr>
+          <tr>
+            <td><strong>Batch</strong></td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td><strong>Streaming</strong></td>
+            <td>Yes (unified model)</td>
+            <td>No</td>
+            <td>Yes (Spark Structured Streaming)</td>
+          </tr>
+          <tr>
+            <td><strong>Coding Required</strong></td>
+            <td>Yes (Python/Java)</td>
+            <td>No (visual UI)</td>
+            <td>Yes (Python/Scala/Java)</td>
+          </tr>
+          <tr>
+            <td><strong>Best For</strong></td>
+            <td>New ETL pipelines, streaming, GCP-native</td>
+            <td>Ad-hoc data wrangling, exploration</td>
+            <td>Existing Spark/Hadoop, Spark MLlib</td>
+          </tr>
+          <tr>
+            <td><strong>Scaling</strong></td>
+            <td>Auto-scales workers</td>
+            <td>Auto-scales (via Dataflow)</td>
+            <td>Manual or autoscaling clusters</td>
+          </tr>
+          <tr>
+            <td><strong>Cost Model</strong></td>
+            <td>Per vCPU-hour + GB-hour</td>
+            <td>Dataflow cost + Trifacta fee</td>
+            <td>Per cluster VM-hour</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 800 220" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'Space Grotesk', sans-serif">
+          <rect width="800" height="220" fill="#10131e" rx="12"/>
+
+          <!-- Decision flow -->
+          <rect x="280" y="15" width="240" height="38" rx="18" fill="rgba(34,197,94,0.15)" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="400" y="39" text-anchor="middle" fill="#22c55e" font-size="12" font-weight="600">Need to process data for ML?</text>
+
+          <!-- Q1 -->
+          <line x1="320" y1="55" x2="160" y2="85" stroke="#545a78" stroke-width="1"/>
+          <text x="220" y="72" fill="#8e94b5" font-size="10">Existing Spark code?</text>
+
+          <line x1="400" y1="55" x2="400" y2="85" stroke="#545a78" stroke-width="1"/>
+          <text x="420" y="72" fill="#8e94b5" font-size="10">No code preference?</text>
+
+          <line x1="480" y1="55" x2="640" y2="85" stroke="#545a78" stroke-width="1"/>
+          <text x="580" y="72" fill="#8e94b5" font-size="10">Non-technical users?</text>
+
+          <!-- Dataproc -->
+          <rect x="70" y="85" width="180" height="70" rx="10" fill="rgba(34,211,238,0.12)" stroke="#22d3ee" stroke-width="1.5"/>
+          <text x="160" y="112" text-anchor="middle" fill="#22d3ee" font-size="13" font-weight="600">Dataproc</text>
+          <text x="160" y="130" text-anchor="middle" fill="#8e94b5" font-size="10">Managed Spark/Hadoop</text>
+          <text x="160" y="145" text-anchor="middle" fill="#545a78" font-size="9">Lift-and-shift, Spark MLlib</text>
+
+          <!-- Dataflow -->
+          <rect x="310" y="85" width="180" height="70" rx="10" fill="rgba(59,130,246,0.12)" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="400" y="112" text-anchor="middle" fill="#3b82f6" font-size="13" font-weight="600">Dataflow</text>
+          <text x="400" y="130" text-anchor="middle" fill="#8e94b5" font-size="10">Serverless Beam</text>
+          <text x="400" y="145" text-anchor="middle" fill="#545a78" font-size="9">Default choice, batch + streaming</text>
+
+          <!-- Dataprep -->
+          <rect x="550" y="85" width="180" height="70" rx="10" fill="rgba(168,85,247,0.12)" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="640" y="112" text-anchor="middle" fill="#a855f7" font-size="13" font-weight="600">Dataprep</text>
+          <text x="640" y="130" text-anchor="middle" fill="#8e94b5" font-size="10">Visual UI (Trifacta)</text>
+          <text x="640" y="145" text-anchor="middle" fill="#545a78" font-size="9">Ad-hoc wrangling, no code</text>
+
+          <!-- Sub note -->
+          <text x="400" y="185" text-anchor="middle" fill="#545a78" font-size="11">Also consider: <tspan fill="#f59e0b">BigQuery SQL</tspan> for in-warehouse transforms, <tspan fill="#22c55e">Vertex AI Pipelines</tspan> for ML orchestration</text>
+          <text x="400" y="205" text-anchor="middle" fill="#545a78" font-size="10">When streaming is needed: Dataflow (preferred) or Dataproc with Spark Structured Streaming</text>
+        </svg>
+        <div class="diagram-caption">Quick decision guide for GCP data processing tools</div>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Decision Rule</div>
+        <p><strong>Default: Dataflow.</strong> Override to Dataproc only if there is existing Spark/Hadoop code or Spark MLlib is needed. Override to Dataprep only if the user is non-technical and the task is ad-hoc exploration. For in-warehouse transforms on structured data already in BigQuery, use BigQuery SQL.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 6: PRE-TRAINED ML APIs
+    ════════════════════════════════════════════ -->
+    <section class="section" id="apis">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Pre-trained ML APIs Deep Dive</h2>
+      </div>
+
+      <p>
+        Google Cloud offers pre-trained ML APIs that require <strong>zero training data and zero ML expertise</strong>.
+        Send data via REST or client library, get structured predictions back. These are the <strong>fastest
+        path to adding ML to an application</strong>.
+      </p>
+
+      <!-- VISION API -->
+      <h3 id="apis-vision">Cloud Vision API</h3>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127991;</div>
+            <h4>Label Detection</h4>
+          </div>
+          <p>Identifies objects, locations, activities, animal species, and products in an image. Returns labels with confidence scores.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128196;</div>
+            <h4>OCR (Text Detection)</h4>
+          </div>
+          <p><code>TEXT_DETECTION</code> for sparse text (signs, menus). <code>DOCUMENT_TEXT_DETECTION</code> for dense documents (pages, articles). Returns text with bounding boxes.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128578;</div>
+            <h4>Face Detection</h4>
+          </div>
+          <p>Detects faces with landmarks (eyes, nose, mouth). Returns joy, sorrow, anger, surprise likelihoods. Does NOT identify individuals (no face recognition).</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128737;</div>
+            <h4>Safe Search</h4>
+          </div>
+          <p>Detects explicit content: adult, violence, racy, spoof, medical. Returns likelihood levels (VERY_UNLIKELY to VERY_LIKELY). Essential for user-generated content moderation.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127963;</div>
+            <h4>Landmark Detection</h4>
+          </div>
+          <p>Identifies famous landmarks (Eiffel Tower, Taj Mahal). Returns name, confidence, geographic coordinates (latitude/longitude).</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127912;</div>
+            <h4>Logo Detection</h4>
+          </div>
+          <p>Identifies logos of well-known companies and brands. Returns logo name, confidence score, and bounding polygon.</p>
+        </div>
+      </div>
+
+      <pre><code><span class="code-comment"># Cloud Vision API — Label Detection (Python)</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> vision
+
+client = vision.ImageAnnotatorClient()
+
+<span class="code-comment"># From a GCS URI</span>
+image = vision.Image(source=vision.ImageSource(
+    image_uri=<span class="code-string">"gs://my-bucket/photo.jpg"</span>
+))
+
+<span class="code-comment"># Or from a URL</span>
+image = vision.Image(source=vision.ImageSource(
+    image_uri=<span class="code-string">"https://example.com/photo.jpg"</span>
+))
+
+response = client.label_detection(image=image, max_results=<span class="code-num">10</span>)
+
+<span class="code-keyword">for</span> label <span class="code-keyword">in</span> response.label_annotations:
+    <span class="code-fn">print</span>(<span class="code-string">f"{label.description}: {label.score:.2%}"</span>)</code></pre>
+
+      <!-- NLP API -->
+      <h3 id="apis-nlp">Cloud Natural Language API</h3>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>What It Returns</th>
+            <th>Use Case</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Sentiment Analysis</strong></td>
+            <td>Score (-1 to +1) and magnitude (0 to &infin;) for document and each sentence</td>
+            <td>Product review analysis, social media monitoring, customer feedback</td>
+          </tr>
+          <tr>
+            <td><strong>Entity Analysis</strong></td>
+            <td>Named entities (PERSON, LOCATION, ORGANIZATION, EVENT, etc.) with salience scores</td>
+            <td>Information extraction, knowledge graph building, content tagging</td>
+          </tr>
+          <tr>
+            <td><strong>Syntax Analysis</strong></td>
+            <td>Part-of-speech tags, dependency parse tree, lemmatization</td>
+            <td>Grammar analysis, text preprocessing, linguistic research</td>
+          </tr>
+          <tr>
+            <td><strong>Content Classification</strong></td>
+            <td>Categories from a taxonomy of 700+ categories (e.g., "/Arts &amp; Entertainment/Music")</td>
+            <td>Content organization, ad targeting, content filtering</td>
+          </tr>
+          <tr>
+            <td><strong>Entity Sentiment</strong></td>
+            <td>Sentiment for each entity mentioned in the text</td>
+            <td>Brand monitoring ("iPhone is great but MacBook is overpriced")</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <pre><code><span class="code-comment"># Cloud NLP API — Sentiment + Entity Analysis</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> language_v1
+
+client = language_v1.LanguageServiceClient()
+document = language_v1.Document(
+    content=<span class="code-string">"Google Cloud's Vertex AI is an excellent ML platform."</span>,
+    type_=language_v1.Document.Type.PLAIN_TEXT,
+)
+
+<span class="code-comment"># Sentiment</span>
+sentiment = client.analyze_sentiment(document=document).document_sentiment
+<span class="code-fn">print</span>(<span class="code-string">f"Sentiment: score={sentiment.score:.2f}, magnitude={sentiment.magnitude:.2f}"</span>)
+
+<span class="code-comment"># Entities</span>
+entities = client.analyze_entities(document=document).entities
+<span class="code-keyword">for</span> entity <span class="code-keyword">in</span> entities:
+    <span class="code-fn">print</span>(<span class="code-string">f"  {entity.name}: {entity.type_.name} (salience={entity.salience:.2f})"</span>)</code></pre>
+
+      <!-- SPEECH API -->
+      <h3 id="apis-speech">Cloud Speech-to-Text</h3>
+
+      <p>
+        Converts audio to text using Google's speech recognition models. Supports <strong>120+ languages</strong>,
+        <strong>streaming recognition</strong> (real-time), and <strong>batch transcription</strong> (long audio files).
+      </p>
+
+      <ul>
+        <li><strong>Synchronous</strong> &mdash; Audio up to 1 minute, immediate response</li>
+        <li><strong>Asynchronous</strong> &mdash; Audio up to 480 minutes, results via polling or callback</li>
+        <li><strong>Streaming</strong> &mdash; Real-time transcription as audio flows in</li>
+      </ul>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Speaker Diarization</strong></td>
+            <td>Identifies different speakers in the audio ("Speaker 1", "Speaker 2")</td>
+          </tr>
+          <tr>
+            <td><strong>Automatic Punctuation</strong></td>
+            <td>Adds periods, commas, question marks to transcription</td>
+          </tr>
+          <tr>
+            <td><strong>Word Timestamps</strong></td>
+            <td>Returns start and end time for each word</td>
+          </tr>
+          <tr>
+            <td><strong>Speech Adaptation</strong></td>
+            <td>Boost recognition of specific words/phrases (industry jargon, product names)</td>
+          </tr>
+          <tr>
+            <td><strong>Multi-channel</strong></td>
+            <td>Transcribe separate audio channels independently (e.g., caller vs agent)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <pre><code><span class="code-comment"># Cloud Speech-to-Text — Transcribe audio from GCS</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> speech
+
+client = speech.SpeechClient()
+
+audio = speech.RecognitionAudio(
+    uri=<span class="code-string">"gs://my-bucket/audio-sample.wav"</span>
+)
+config = speech.RecognitionConfig(
+    encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+    sample_rate_hertz=<span class="code-num">16000</span>,
+    language_code=<span class="code-string">"en-US"</span>,
+    enable_automatic_punctuation=<span class="code-keyword">True</span>,
+    enable_word_time_offsets=<span class="code-keyword">True</span>,
+    diarization_config=speech.SpeakerDiarizationConfig(
+        enable_speaker_diarization=<span class="code-keyword">True</span>,
+        min_speaker_count=<span class="code-num">2</span>,
+        max_speaker_count=<span class="code-num">4</span>,
+    ),
+)
+
+<span class="code-comment"># For audio > 1 min, use long_running_recognize</span>
+operation = client.long_running_recognize(config=config, audio=audio)
+response = operation.result(timeout=<span class="code-num">300</span>)
+
+<span class="code-keyword">for</span> result <span class="code-keyword">in</span> response.results:
+    <span class="code-fn">print</span>(<span class="code-string">f"Transcript: {result.alternatives[0].transcript}"</span>)
+    <span class="code-fn">print</span>(<span class="code-string">f"Confidence: {result.alternatives[0].confidence:.2%}"</span>)</code></pre>
+
+      <!-- TRANSLATION API -->
+      <h3 id="apis-translate">Cloud Translation API</h3>
+
+      <p>
+        Two tiers of translation service:
+      </p>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Basic (v2)</th>
+            <th>Advanced (v3)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Model</strong></td>
+            <td>Google NMT</td>
+            <td>Google NMT + AutoML Translation</td>
+          </tr>
+          <tr>
+            <td><strong>Custom Glossary</strong></td>
+            <td>No</td>
+            <td>Yes &mdash; domain-specific term mapping</td>
+          </tr>
+          <tr>
+            <td><strong>Custom Model</strong></td>
+            <td>No</td>
+            <td>Yes &mdash; train on your parallel corpus</td>
+          </tr>
+          <tr>
+            <td><strong>Batch Translation</strong></td>
+            <td>No</td>
+            <td>Yes &mdash; translate entire documents/files</td>
+          </tr>
+          <tr>
+            <td><strong>Languages</strong></td>
+            <td>100+</td>
+            <td>100+</td>
+          </tr>
+          <tr>
+            <td><strong>Use Case</strong></td>
+            <td>Simple translations, language detection</td>
+            <td>Enterprise, glossaries, domain-specific</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <pre><code><span class="code-comment"># Cloud Translation API v3 (Advanced)</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> translate_v2 <span class="code-keyword">as</span> translate
+
+client = translate.Client()
+
+<span class="code-comment"># Detect language</span>
+detection = client.detect_language(<span class="code-string">"こんにちは世界"</span>)
+<span class="code-fn">print</span>(<span class="code-string">f"Detected: {detection['language']} ({detection['confidence']:.0%})"</span>)
+
+<span class="code-comment"># Translate</span>
+result = client.translate(
+    <span class="code-string">"Machine learning is transforming industries."</span>,
+    target_language=<span class="code-string">"es"</span>,  <span class="code-comment"># Spanish</span>
+)
+<span class="code-fn">print</span>(<span class="code-string">f"Translation: {result['translatedText']}"</span>)</code></pre>
+
+      <!-- VIDEO INTELLIGENCE API -->
+      <h3 id="apis-video">Video Intelligence API</h3>
+
+      <p>
+        Analyzes video content stored in <strong>Cloud Storage</strong>. Processes entire videos and returns
+        time-stamped annotations.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127991;</div>
+            <h4>Label Detection</h4>
+          </div>
+          <p>Identifies objects, actions, and concepts throughout the video with timestamps. Segment-level and shot-level labels.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127910;</div>
+            <h4>Shot Change Detection</h4>
+          </div>
+          <p>Detects scene transitions (cuts, fades, dissolves). Returns start/end timestamps for each shot. Essential for video editing workflows.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128683;</div>
+            <h4>Explicit Content Detection</h4>
+          </div>
+          <p>Frame-by-frame analysis for adult/violent content. Returns likelihood per frame. Required for platforms with user-uploaded video.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128270;</div>
+            <h4>Object Tracking</h4>
+          </div>
+          <p>Tracks objects across frames with bounding boxes. Identifies and follows specific objects through the video timeline.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128221;</div>
+            <h4>Text Detection in Video</h4>
+          </div>
+          <p>OCR on video frames. Detects and extracts text visible in the video (signs, captions, overlays) with timestamps.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128483;</div>
+            <h4>Speech Transcription</h4>
+          </div>
+          <p>Transcribes speech in video to text. Same engine as Speech-to-Text but integrated into the video analysis pipeline.</p>
+        </div>
+      </div>
+
+      <pre><code><span class="code-comment"># Video Intelligence API — Label Detection</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> videointelligence
+
+client = videointelligence.VideoIntelligenceServiceClient()
+
+features = [videointelligence.Feature.LABEL_DETECTION]
+
+operation = client.annotate_video(
+    request={
+        <span class="code-string">"input_uri"</span>: <span class="code-string">"gs://my-bucket/video.mp4"</span>,
+        <span class="code-string">"features"</span>: features,
+    }
+)
+result = operation.result(timeout=<span class="code-num">300</span>)
+
+<span class="code-keyword">for</span> label <span class="code-keyword">in</span> result.annotation_results[<span class="code-num">0</span>].segment_label_annotations:
+    <span class="code-fn">print</span>(<span class="code-string">f"Label: {label.entity.description}"</span>)
+    <span class="code-keyword">for</span> segment <span class="code-keyword">in</span> label.segments:
+        start = segment.segment.start_time_offset.seconds
+        end = segment.segment.end_time_offset.seconds
+        conf = segment.confidence
+        <span class="code-fn">print</span>(<span class="code-string">f"  {start}s - {end}s (confidence: {conf:.2%})"</span>)</code></pre>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Alert: Choosing the Right API</div>
+        <p><strong>"Analyze sentiment of customer reviews"</strong> &rarr; Cloud NLP API (sentiment analysis).<br>
+        <strong>"Extract text from a scanned PDF"</strong> &rarr; Cloud Vision API (DOCUMENT_TEXT_DETECTION) or Document AI.<br>
+        <strong>"Transcribe a meeting recording"</strong> &rarr; Cloud Speech-to-Text (async, with diarization).<br>
+        <strong>"Detect inappropriate content in user-uploaded videos"</strong> &rarr; Video Intelligence API (explicit content detection).<br>
+        <strong>"Translate product descriptions to multiple languages"</strong> &rarr; Cloud Translation API (Advanced if glossary needed).</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 7: AUTHENTICATION & QUOTAS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="auth">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>API Authentication and Quotas</h2>
+      </div>
+
+      <h3 id="auth-methods">Authentication Methods</h3>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>When to Use</th>
+            <th>How</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>API Key</strong></td>
+            <td>Simple API calls, client-side apps</td>
+            <td>Pass key as query parameter or header. <strong>Least secure</strong> &mdash; no identity, only project-level access.</td>
+          </tr>
+          <tr>
+            <td><strong>Service Account</strong></td>
+            <td>Server-to-server, production workloads</td>
+            <td>JSON key file or Workload Identity. IAM roles control access. <strong>Recommended for production</strong>.</td>
+          </tr>
+          <tr>
+            <td><strong>OAuth 2.0</strong></td>
+            <td>User-facing apps, accessing user data</td>
+            <td>User consent flow. Access token + refresh token. Scoped permissions.</td>
+          </tr>
+          <tr>
+            <td><strong>Application Default Credentials (ADC)</strong></td>
+            <td>Development, Compute Engine, GKE</td>
+            <td><code>gcloud auth application-default login</code> or automatic on GCE/GKE. Client libraries use ADC automatically.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <pre><code><span class="code-comment"># Set ADC for local development</span>
+gcloud auth application-default login
+
+<span class="code-comment"># Set service account for production</span>
+<span class="code-keyword">export</span> GOOGLE_APPLICATION_CREDENTIALS=<span class="code-string">"/path/to/service-account-key.json"</span>
+
+<span class="code-comment"># Enable an API</span>
+gcloud services enable vision.googleapis.com
+gcloud services enable language.googleapis.com
+gcloud services enable speech.googleapis.com
+gcloud services enable translate.googleapis.com
+gcloud services enable videointelligence.googleapis.com</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Quota Management</div>
+        <p>Every API has <strong>rate limits</strong> (requests per minute) and <strong>usage quotas</strong> (requests per day/month). Default quotas are generous for development but may need to be increased for production. Check quotas at: <code>Console &gt; IAM &amp; Admin &gt; Quotas</code>. You can request quota increases through the console.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Alert</div>
+        <p>The exam may test authentication best practices. Key points: <strong>never embed API keys in code</strong>, use <strong>service accounts with least-privilege IAM roles</strong> for production, and use <strong>ADC</strong> for development. When running on GCE/GKE, prefer <strong>Workload Identity</strong> over key files.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 8: EXAM TIPS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="examtips">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <h2>Exam Tips &mdash; Scenario-Based Guidance</h2>
+      </div>
+
+      <h3 id="examtips-scenarios">Common Exam Scenarios</h3>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 1: Data Pipeline Tool Selection</div>
+        <p><strong>"A company needs to build a real-time data pipeline that reads from Pub/Sub, transforms events, and writes to BigQuery..."</strong><br>
+        Answer: <strong>Dataflow</strong>. Serverless, supports streaming from Pub/Sub, unified batch/streaming model. This is the textbook Dataflow use case.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 2: Migration from On-Premises</div>
+        <p><strong>"A company has existing PySpark ETL jobs running on an on-premises Hadoop cluster..."</strong><br>
+        Answer: <strong>Dataproc</strong>. Lift-and-shift existing Spark jobs with minimal code changes. Use ephemeral clusters for cost efficiency.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 3: Non-Technical Data Wrangling</div>
+        <p><strong>"A business analyst needs to clean and prepare a CSV dataset for a one-time analysis..."</strong><br>
+        Answer: <strong>Dataprep</strong>. Visual UI, no coding required, AI-assisted suggestions. Perfect for non-technical, ad-hoc tasks.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 4: Choosing the Right API</div>
+        <p><strong>"A media company needs to automatically tag uploaded images with content categories..."</strong><br>
+        Answer: <strong>Cloud Vision API (label detection)</strong>. No training data needed, immediate results. If they need custom labels specific to their domain, upgrade to <strong>AutoML Image</strong>.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 5: Multi-API Pipeline</div>
+        <p><strong>"A call center wants to transcribe calls, analyze sentiment, and extract key entities..."</strong><br>
+        Answer: Pipeline of <strong>Speech-to-Text</strong> (transcription with diarization) &rarr; <strong>Cloud NLP API</strong> (sentiment analysis + entity extraction). These APIs compose naturally in a data pipeline.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 6: Video Content Moderation</div>
+        <p><strong>"A social media platform needs to detect and flag inappropriate video content before publishing..."</strong><br>
+        Answer: <strong>Video Intelligence API</strong> with explicit content detection. Process uploaded videos asynchronously, flag those exceeding the threshold, and queue for human review.</p>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">General Exam Strategy for This Course</div>
+        <p><strong>Two key decision frameworks:</strong><br>
+        (1) <strong>Data tool selection</strong>: Default to Dataflow unless there is a reason for Dataproc (existing Spark) or Dataprep (non-technical, ad-hoc).<br>
+        (2) <strong>API selection</strong>: Match the data type (image, text, audio, video) to the corresponding API. If the pre-trained API's general model is insufficient, escalate to AutoML for a custom model.</p>
+      </div>
+
+      <!-- NAVIGATION -->
+      <div class="next-section">
+        <div>
+          <div class="next-label">Previous Course</div>
+          <a href="01-intro-ai-ml-gcp.html" class="next-btn prev-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            01 &middot; Intro to AI &amp; ML on GCP
+          </a>
+        </div>
+        <div style="text-align:right">
+          <div class="next-label">Next Course</div>
+          <a href="03-big-data-ml-fundamentals.html" class="next-btn">
+            03 &middot; Big Data &amp; ML Fundamentals
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+          <div class="next-phase">Big Data &amp; ML on GCP</div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+</body>
+</html>

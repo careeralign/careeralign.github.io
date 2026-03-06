@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>MLOps for Generative AI — GCP MLE Certification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--phase-cloud); background: rgba(34,197,94,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-indigo);
+  padding: 6px 14px; border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(99,102,241,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--phase-cloud); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--phase-cloud); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--phase-cloud); flex-shrink: 0; }
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--phase-cloud); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--phase-cloud); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--phase-cloud);
+  background: rgba(34,197,94,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--phase-cloud); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--phase-project); background: rgba(245,158,11,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--phase-cloud);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--phase-cloud); }
+.callout.warn .callout-label { color: var(--phase-project); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* SVG DIAGRAM */
+.diagram-wrap {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg); padding: 32px;
+  margin: 32px 0;
+}
+.diagram-caption {
+  text-align: center; font-size: 13px; color: var(--text-muted);
+  margin-top: 16px; font-style: italic;
+}
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--phase-cloud); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(34,197,94,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* CHECKLIST */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px; color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 2px solid var(--phase-cloud);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.check-box.done { background: var(--phase-cloud); border-color: var(--phase-cloud); }
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--phase-cloud); color: var(--phase-cloud); transform: translateX(4px); }
+.prev-btn:hover { border-color: var(--phase-prereq); color: var(--phase-prereq); transform: translateX(-4px); }
+.next-phase { font-size: 12px; color: var(--phase-cloud); font-weight: 500; }
+
+/* FORMULA */
+.formula {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 16px 22px; margin: 20px 0;
+  font-family: var(--font-mono); font-size: 14px; color: var(--accent-cyan);
+  text-align: center; letter-spacing: 0.02em;
+}
+
+/* TABLE */
+.info-table {
+  width: 100%; border-collapse: collapse; margin: 20px 0;
+  font-size: 14px;
+}
+.info-table th, .info-table td {
+  padding: 12px 16px; text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.info-table th {
+  font-family: var(--font-display); font-weight: 600; font-size: 12px;
+  color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em;
+  background: var(--bg-surface);
+}
+.info-table td { color: var(--text-secondary); }
+.info-table td strong { color: var(--text-primary); }
+.info-table tr:hover td { background: var(--bg-surface); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9889; <span>CareerAlign</span> GCP MLE</div>
+  <div class="nav-links">
+    <a href="01-intro-ml-ai.html">01</a>
+    <a href="02-ml-development.html">02</a>
+    <a href="03-data-engineering.html">03</a>
+    <a href="04-feature-engineering.html">04</a>
+    <a href="05-model-training.html">05</a>
+    <a href="06-model-optimization.html">06</a>
+    <a href="07-model-deployment.html">07</a>
+    <a href="08-ml-monitoring.html">08</a>
+    <a href="09-vertex-ai-platform.html">09</a>
+    <a href="10-bigquery-ml.html">10</a>
+    <a href="11-responsible-ai.html">11</a>
+    <a href="12-intro-llms.html">12</a>
+    <a href="13-mlops-generative-ai.html" class="active">13 &middot; GenAI MLOps</a>
+    <a href="14-mlops-model-evaluation.html">14 &middot; Evaluation</a>
+    <a href="15-ml-pipelines-gcp.html">15</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GCP MLE Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Course 13 &middot; Section 5 &middot; MLOps for Generative AI
+  </div>
+  <h1>MLOps for <em>Generative AI</em></h1>
+  <p class="hero-desc">
+    Traditional MLOps pipelines were designed for classical ML models &mdash; tabular data, fixed feature schemas,
+    deterministic outputs. Generative AI upends every assumption. This module covers the end-to-end lifecycle
+    for deploying, monitoring, and iterating on foundation models in production using Vertex AI, from prompt
+    management and fine-tuning operations to RAG pipelines and GenAI-specific monitoring.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      GenAI Lifecycle
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Prompt Management
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Fine-Tuning Ops
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      GenAI Evaluation
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      RAG Operations
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Monitoring &amp; Safety
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="notebooks/13-mlops-generative-ai.ipynb"
+       class="next-btn" target="_blank" rel="noopener" style="font-size:13px; padding:10px 18px;">
+      Open Companion Notebook
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#genai-vs-traditional" class="section">1 &middot; GenAI vs Traditional MLOps</a>
+    <a href="#genai-lifecycle" class="section">2 &middot; GenAI Lifecycle</a>
+    <a href="#prompt-management" class="section">3 &middot; Prompt Management</a>
+    <a href="#prompt-versioning" class="sub">Versioning &amp; Registries</a>
+    <a href="#prompt-testing" class="sub">A/B Testing Prompts</a>
+    <a href="#fine-tuning-ops" class="section">4 &middot; Fine-Tuning Operations</a>
+    <a href="#dataset-prep" class="sub">Dataset Preparation</a>
+    <a href="#sft-vertex" class="sub">SFT on Vertex AI</a>
+    <a href="#rlhf-pipelines" class="sub">RLHF Pipelines</a>
+    <a href="#genai-evaluation" class="section">5 &middot; GenAI Evaluation</a>
+    <a href="#llm-judge" class="sub">LLM-as-Judge</a>
+    <a href="#ragas" class="sub">RAGAS for RAG</a>
+    <a href="#model-governance" class="section">6 &middot; Model Governance</a>
+    <a href="#deployment-patterns" class="section">7 &middot; Deployment Patterns</a>
+    <a href="#monitoring-genai" class="section">8 &middot; Monitoring GenAI</a>
+    <a href="#rag-operations" class="section">9 &middot; RAG Operations</a>
+    <a href="#exam-focus" class="section">10 &middot; Exam Focus</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- SECTION 1 -->
+    <section class="section" id="genai-vs-traditional">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>How GenAI MLOps Differs from Traditional MLOps</h2>
+      </div>
+
+      <p>
+        Traditional MLOps focuses on <strong>training pipelines</strong>: ingest data, engineer features, train a model,
+        validate metrics, deploy an endpoint, and monitor for data drift. GenAI MLOps adds entirely new dimensions
+        that classical pipelines never anticipated.
+      </p>
+
+      <table class="info-table">
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th>Traditional MLOps</th>
+            <th>GenAI MLOps</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Model Origin</strong></td>
+            <td>Train from scratch on your data</td>
+            <td>Start with a foundation model, adapt via prompting or fine-tuning</td>
+          </tr>
+          <tr>
+            <td><strong>Input</strong></td>
+            <td>Structured features with fixed schema</td>
+            <td>Free-form text, images, multi-modal inputs</td>
+          </tr>
+          <tr>
+            <td><strong>Output</strong></td>
+            <td>Deterministic (classification, regression)</td>
+            <td>Non-deterministic, open-ended text generation</td>
+          </tr>
+          <tr>
+            <td><strong>Evaluation</strong></td>
+            <td>Well-defined metrics (accuracy, F1, RMSE)</td>
+            <td>Subjective quality, requires human/LLM-based evaluation</td>
+          </tr>
+          <tr>
+            <td><strong>Versioning</strong></td>
+            <td>Model weights + training data</td>
+            <td>Prompts + model version + retrieval config + system instructions</td>
+          </tr>
+          <tr>
+            <td><strong>Monitoring</strong></td>
+            <td>Data drift, prediction drift</td>
+            <td>Output quality drift, safety violations, cost per query, latency</td>
+          </tr>
+          <tr>
+            <td><strong>Cost Model</strong></td>
+            <td>Fixed compute for serving</td>
+            <td>Per-token pricing, highly variable per request</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <div class="callout-label">Key Insight</div>
+        <p>
+          In GenAI MLOps, <strong>the prompt IS the code</strong>. A one-word change to a system prompt can completely
+          alter model behavior. This means prompt versioning, testing, and rollback are as critical as code deployment.
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section class="section" id="genai-lifecycle">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>The GenAI Lifecycle</h2>
+      </div>
+
+      <p>
+        The GenAI lifecycle is not a simple train-deploy-monitor loop. It is an iterative process with multiple
+        decision points and feedback loops:
+      </p>
+
+      <!-- SVG Diagram: GenAI Lifecycle -->
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 820 200" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'Space Grotesk', sans-serif">
+          <rect width="820" height="200" fill="#10131e" rx="12"/>
+          <defs>
+            <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#22c55e" opacity="0.8"/>
+            </marker>
+          </defs>
+
+          <!-- Step boxes -->
+          <rect x="20" y="60" width="100" height="80" rx="8" fill="#171c2e" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="70" y="95" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="600">Model</text>
+          <text x="70" y="110" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="600">Selection</text>
+
+          <line x1="122" y1="100" x2="148" y2="100" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arr)"/>
+
+          <rect x="150" y="60" width="100" height="80" rx="8" fill="#171c2e" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="200" y="95" text-anchor="middle" fill="#a855f7" font-size="10" font-weight="600">Prompt</text>
+          <text x="200" y="110" text-anchor="middle" fill="#a855f7" font-size="10" font-weight="600">Engineering</text>
+
+          <line x1="252" y1="100" x2="278" y2="100" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arr)"/>
+
+          <rect x="280" y="60" width="100" height="80" rx="8" fill="#171c2e" stroke="#f97316" stroke-width="1.5"/>
+          <text x="330" y="95" text-anchor="middle" fill="#f97316" font-size="10" font-weight="600">Fine-Tuning</text>
+          <text x="330" y="110" text-anchor="middle" fill="#f97316" font-size="10" font-weight="600">(Optional)</text>
+
+          <line x1="382" y1="100" x2="408" y2="100" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arr)"/>
+
+          <rect x="410" y="60" width="100" height="80" rx="8" fill="#171c2e" stroke="#22d3ee" stroke-width="1.5"/>
+          <text x="460" y="95" text-anchor="middle" fill="#22d3ee" font-size="10" font-weight="600">Evaluation</text>
+          <text x="460" y="110" text-anchor="middle" fill="#22d3ee" font-size="10" font-weight="600">&amp; Testing</text>
+
+          <line x1="512" y1="100" x2="538" y2="100" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arr)"/>
+
+          <rect x="540" y="60" width="100" height="80" rx="8" fill="#171c2e" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="590" y="95" text-anchor="middle" fill="#22c55e" font-size="10" font-weight="600">Deployment</text>
+          <text x="590" y="110" text-anchor="middle" fill="#22c55e" font-size="10" font-weight="600">&amp; Serving</text>
+
+          <line x1="642" y1="100" x2="668" y2="100" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arr)"/>
+
+          <rect x="670" y="60" width="130" height="80" rx="8" fill="#171c2e" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="735" y="95" text-anchor="middle" fill="#ef4444" font-size="10" font-weight="600">Monitoring</text>
+          <text x="735" y="110" text-anchor="middle" fill="#ef4444" font-size="10" font-weight="600">&amp; Feedback</text>
+
+          <!-- Feedback arrow -->
+          <path d="M735 142 L735 170 L200 170 L200 142" fill="none" stroke="#545a78" stroke-width="1.2" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+          <text x="470" y="185" text-anchor="middle" fill="#545a78" font-size="9">Iterate: Adjust prompts, retune, update RAG pipeline</text>
+        </svg>
+        <div class="diagram-caption">The GenAI lifecycle is iterative &mdash; monitoring feeds back into prompt engineering and fine-tuning decisions.</div>
+      </div>
+
+      <h3>Stage-by-Stage Decisions</h3>
+
+      <p><strong>Model Selection:</strong> Choose between Gemini models (Pro, Flash, Ultra), open-source models on
+      Model Garden, or third-party models. Consider cost, latency, task complexity, and compliance requirements.
+      Vertex AI Model Garden provides 150+ foundation models.</p>
+
+      <p><strong>Prompt Engineering:</strong> Develop system instructions, few-shot examples, and output formatting.
+      Use Vertex AI Studio for rapid experimentation. Version all prompts in source control.</p>
+
+      <p><strong>Fine-Tuning:</strong> When prompting alone is insufficient. Vertex AI supports supervised fine-tuning (SFT),
+      RLHF, and distillation. Decision: <em>fine-tune only when prompt engineering + RAG cannot achieve required quality.</em></p>
+
+      <p><strong>Evaluation:</strong> Automated metrics (BLEU, ROUGE), LLM-as-judge, human evaluation, and domain-specific
+      rubrics. Vertex AI Gen AI Evaluation Service provides built-in evaluation pipelines.</p>
+
+      <p><strong>Deployment:</strong> Direct API calls (Vertex AI endpoints), cached responses for common queries,
+      distilled models for cost optimization. Use traffic splitting for A/B testing.</p>
+
+      <p><strong>Monitoring:</strong> Output quality drift, safety violations, hallucination rate, cost tracking,
+      and latency monitoring. Set up alerts for quality degradation.</p>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section class="section" id="prompt-management">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Prompt Management</h2>
+      </div>
+
+      <p>
+        Prompts in production systems are not ad-hoc strings. They are <strong>versioned artifacts</strong> that must be
+        managed with the same discipline as code. A prompt management system tracks prompt templates, variables,
+        model configurations, and performance metrics.
+      </p>
+
+      <h3 id="prompt-versioning">Prompt Versioning &amp; Registries</h3>
+
+      <p>
+        A <strong>prompt registry</strong> is a centralized store for all production prompts. Each entry includes the prompt
+        template, the model it was tested with, evaluation scores, and metadata. Think of it as a model registry but
+        for prompts.
+      </p>
+
+      <pre><code><span class="code-comment"># Prompt versioning pattern</span>
+<span class="code-keyword">PROMPT_REGISTRY</span> = {
+    <span class="code-string">"summarize_v1"</span>: {
+        <span class="code-string">"template"</span>: <span class="code-string">"Summarize the following document in {num_sentences} sentences:\n\n{document}"</span>,
+        <span class="code-string">"model"</span>: <span class="code-string">"gemini-2.0-flash"</span>,
+        <span class="code-string">"temperature"</span>: <span class="code-num">0.3</span>,
+        <span class="code-string">"version"</span>: <span class="code-string">"1.0.0"</span>,
+        <span class="code-string">"eval_score"</span>: <span class="code-num">0.87</span>,
+        <span class="code-string">"created"</span>: <span class="code-string">"2025-01-15"</span>,
+    },
+    <span class="code-string">"summarize_v2"</span>: {
+        <span class="code-string">"template"</span>: <span class="code-string">"You are a technical writer. Create a {num_sentences}-sentence summary...\n\n{document}"</span>,
+        <span class="code-string">"model"</span>: <span class="code-string">"gemini-2.0-flash"</span>,
+        <span class="code-string">"temperature"</span>: <span class="code-num">0.2</span>,
+        <span class="code-string">"version"</span>: <span class="code-string">"2.0.0"</span>,
+        <span class="code-string">"eval_score"</span>: <span class="code-num">0.92</span>,
+        <span class="code-string">"created"</span>: <span class="code-string">"2025-02-20"</span>,
+    }
+}</code></pre>
+
+      <h3 id="prompt-testing">A/B Testing Prompts</h3>
+
+      <p>
+        In production, you can route a percentage of traffic to different prompt versions. Vertex AI endpoints
+        support <strong>traffic splitting</strong> natively. For prompt-level A/B testing:
+      </p>
+
+      <ul class="checklist">
+        <li><div class="check-box done"></div>Define a control prompt (current production version)</li>
+        <li><div class="check-box done"></div>Define a treatment prompt (the new version)</li>
+        <li><div class="check-box done"></div>Route 90/10 traffic split using endpoint config or application-level routing</li>
+        <li><div class="check-box done"></div>Collect quality metrics: user feedback, automated eval scores, latency</li>
+        <li><div class="check-box done"></div>Run for statistically significant sample size</li>
+        <li><div class="check-box done"></div>Promote the winner, archive the loser with full metadata</li>
+      </ul>
+
+      <div class="callout tip">
+        <div class="callout-label">Best Practice</div>
+        <p>
+          Store prompts in YAML or JSON files in your Git repository alongside the application code.
+          Use CI/CD to validate prompt changes (run evaluation suite) before deploying.
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 4 -->
+    <section class="section" id="fine-tuning-ops">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Fine-Tuning Operations</h2>
+      </div>
+
+      <h3 id="dataset-prep">Dataset Preparation</h3>
+
+      <p>
+        Fine-tuning Gemini models on Vertex AI requires training data in JSONL format. Each line contains an
+        input-output pair. Quality matters far more than quantity &mdash; 100 high-quality examples often outperform
+        10,000 noisy ones.
+      </p>
+
+      <pre><code><span class="code-comment"># Training data format for supervised fine-tuning</span>
+<span class="code-comment"># Each line in the JSONL file:</span>
+{
+  <span class="code-string">"messages"</span>: [
+    {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: <span class="code-string">"You are a medical coding assistant."</span>},
+    {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: <span class="code-string">"Patient presents with acute bronchitis..."</span>},
+    {<span class="code-string">"role"</span>: <span class="code-string">"model"</span>, <span class="code-string">"content"</span>: <span class="code-string">"ICD-10: J20.9 - Acute bronchitis, unspecified"</span>}
+  ]
+}</code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Dataset Guidelines</div>
+        <p>
+          <strong>Minimum:</strong> 10 examples (Vertex AI). <strong>Recommended:</strong> 100-500 high-quality examples.
+          <strong>Maximum:</strong> 10,000 examples per tuning job. Always hold out 20% for validation. Remove PII before
+          uploading to Cloud Storage.
+        </p>
+      </div>
+
+      <h3 id="sft-vertex">Supervised Fine-Tuning on Vertex AI</h3>
+
+      <p>
+        Vertex AI provides a managed fine-tuning service. You upload training data to Cloud Storage, specify the
+        base model and hyperparameters, and Vertex AI handles the infrastructure. The tuned model is deployed as
+        a new endpoint.
+      </p>
+
+      <pre><code><span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+<span class="code-keyword">from</span> vertexai.tuning <span class="code-keyword">import</span> sft
+
+<span class="code-comment"># Initialize Vertex AI</span>
+aiplatform.<span class="code-fn">init</span>(project=<span class="code-string">"my-project"</span>, location=<span class="code-string">"us-central1"</span>)
+
+<span class="code-comment"># Launch supervised fine-tuning job</span>
+tuning_job = sft.<span class="code-fn">train</span>(
+    source_model=<span class="code-string">"gemini-2.0-flash-001"</span>,
+    train_dataset=<span class="code-string">"gs://my-bucket/train.jsonl"</span>,
+    validation_dataset=<span class="code-string">"gs://my-bucket/val.jsonl"</span>,
+    epochs=<span class="code-num">3</span>,
+    adapter_size=<span class="code-num">4</span>,          <span class="code-comment"># LoRA rank</span>
+    learning_rate_multiplier=<span class="code-num">1.0</span>,
+    tuned_model_display_name=<span class="code-string">"medical-coder-v1"</span>,
+)
+
+<span class="code-comment"># Monitor tuning progress</span>
+<span class="code-keyword">print</span>(tuning_job.state)        <span class="code-comment"># PIPELINE_STATE_RUNNING</span>
+<span class="code-keyword">print</span>(tuning_job.tuned_model)  <span class="code-comment"># Endpoint resource name</span></code></pre>
+
+      <h3 id="rlhf-pipelines">RLHF Pipelines</h3>
+
+      <p>
+        <strong>Reinforcement Learning from Human Feedback (RLHF)</strong> adds a second fine-tuning stage where a reward
+        model learns human preferences. On Vertex AI, RLHF tuning involves:
+      </p>
+
+      <ul class="checklist">
+        <li><div class="check-box done"></div><strong>Step 1:</strong> SFT on instruction-following data</li>
+        <li><div class="check-box done"></div><strong>Step 2:</strong> Collect human preference data (pairwise comparisons)</li>
+        <li><div class="check-box done"></div><strong>Step 3:</strong> Train a reward model on preference data</li>
+        <li><div class="check-box done"></div><strong>Step 4:</strong> Use PPO/DPO to align the model with the reward model</li>
+      </ul>
+
+      <div class="callout warn">
+        <div class="callout-label">Cost Warning</div>
+        <p>
+          Fine-tuning Gemini models incurs significant compute costs. SFT jobs typically cost $2-8 per 1,000 training
+          examples. RLHF is even more expensive. Always start with prompt engineering and RAG before resorting to
+          fine-tuning. Use <code>adapter_size=1</code> for small experiments.
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 5 -->
+    <section class="section" id="genai-evaluation">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>GenAI Evaluation</h2>
+      </div>
+
+      <p>
+        Evaluating generative AI is fundamentally different from evaluating classifiers. There is no single
+        ground truth for open-ended text generation. GenAI evaluation uses a combination of automated metrics,
+        LLM-based judging, and human evaluation.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">A</div>
+            <h4>Automated Metrics</h4>
+          </div>
+          <p>BLEU, ROUGE, perplexity. Fast and reproducible but correlate poorly with human judgment for open-ended tasks.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">J</div>
+            <h4>LLM-as-Judge</h4>
+          </div>
+          <p>Use a strong model (e.g., Gemini Pro) to evaluate a weaker model's outputs. Scalable and increasingly reliable.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">H</div>
+            <h4>Human Evaluation</h4>
+          </div>
+          <p>Gold standard for quality. Expensive and slow but essential for safety-critical and ambiguous tasks.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">R</div>
+            <h4>RAGAS for RAG</h4>
+          </div>
+          <p>Framework for evaluating RAG: faithfulness, answer relevancy, context precision, context recall.</p>
+        </div>
+      </div>
+
+      <h3 id="llm-judge">LLM-as-Judge: Pointwise &amp; Pairwise</h3>
+
+      <p>
+        <strong>Pointwise evaluation</strong> scores a single response on a rubric (e.g., 1-5 scale for relevance).
+        <strong>Pairwise evaluation</strong> compares two responses and selects the better one. Pairwise is more
+        reliable because humans (and LLMs) are better at comparisons than absolute ratings.
+      </p>
+
+      <pre><code><span class="code-comment"># LLM-as-Judge: Pointwise evaluation</span>
+<span class="code-keyword">from</span> vertexai.generative_models <span class="code-keyword">import</span> GenerativeModel
+
+judge = GenerativeModel(<span class="code-string">"gemini-2.0-pro"</span>)
+
+<span class="code-keyword">JUDGE_PROMPT</span> = <span class="code-string">"""Rate the following response on a scale of 1-5 for:
+- Relevance: Does it answer the question?
+- Accuracy: Is the information correct?
+- Completeness: Does it cover all aspects?
+
+Question: {question}
+Response: {response}
+
+Output JSON: {"relevance": X, "accuracy": X, "completeness": X, "reasoning": "..."}"""</span>
+
+result = judge.<span class="code-fn">generate_content</span>(
+    <span class="code-keyword">JUDGE_PROMPT</span>.<span class="code-fn">format</span>(question=q, response=r)
+)</code></pre>
+
+      <h3 id="ragas">RAGAS for RAG Evaluation</h3>
+
+      <p>
+        <strong>RAGAS</strong> (Retrieval-Augmented Generation Assessment) provides four key metrics for evaluating
+        RAG pipelines:
+      </p>
+
+      <table class="info-table">
+        <thead>
+          <tr><th>Metric</th><th>Measures</th><th>Needs</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Faithfulness</strong></td><td>Is the answer grounded in retrieved context?</td><td>Question + Answer + Contexts</td></tr>
+          <tr><td><strong>Answer Relevancy</strong></td><td>Is the answer relevant to the question?</td><td>Question + Answer</td></tr>
+          <tr><td><strong>Context Precision</strong></td><td>Are retrieved chunks relevant to the question?</td><td>Question + Contexts + Ground Truth</td></tr>
+          <tr><td><strong>Context Recall</strong></td><td>Did retrieval find all necessary info?</td><td>Contexts + Ground Truth</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">Vertex AI Gen AI Evaluation</div>
+        <p>
+          Vertex AI provides a built-in <strong>Gen AI Evaluation Service</strong> that supports pointwise and pairwise
+          evaluation with pre-built metrics for summarization, question answering, text generation, and safety.
+          It can be integrated into CI/CD pipelines for automated quality gates.
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 6 -->
+    <section class="section" id="model-governance">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Model Versioning &amp; Governance</h2>
+      </div>
+
+      <p>
+        Foundation models add new governance challenges. You must track not just model weights, but the entire
+        configuration stack: base model version, fine-tuning data, prompt templates, retrieval configuration,
+        and safety filters.
+      </p>
+
+      <h3>What to Version</h3>
+      <ul class="checklist">
+        <li><div class="check-box done"></div><strong>Base model:</strong> e.g., gemini-2.0-flash-001 (the specific version tag)</li>
+        <li><div class="check-box done"></div><strong>Prompt templates:</strong> System instructions, few-shot examples, output schemas</li>
+        <li><div class="check-box done"></div><strong>Fine-tuning artifacts:</strong> Training data hash, hyperparameters, adapter weights</li>
+        <li><div class="check-box done"></div><strong>RAG configuration:</strong> Embedding model, chunk size, overlap, retrieval top-k</li>
+        <li><div class="check-box done"></div><strong>Safety settings:</strong> Content filter thresholds, blocked categories</li>
+        <li><div class="check-box done"></div><strong>Generation config:</strong> Temperature, top-p, top-k, max output tokens</li>
+      </ul>
+
+      <p>
+        Use <strong>Vertex AI Model Registry</strong> to register and track model versions. Each deployment should
+        be a tagged combination of all the above. Use Git tags or semantic versioning for prompt+config bundles.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Governance Risk</div>
+        <p>
+          Google may deprecate or update base model versions. Pin to specific versions (e.g., <code>gemini-2.0-flash-001</code>,
+          not <code>gemini-2.0-flash</code>) in production. Set up alerts for model deprecation notices.
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 7 -->
+    <section class="section" id="deployment-patterns">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Deployment Patterns for GenAI</h2>
+      </div>
+
+      <p>
+        GenAI deployment is more varied than traditional ML deployment. The right pattern depends on latency
+        requirements, cost constraints, and quality needs.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">1</div>
+            <h4>Direct API</h4>
+          </div>
+          <p><strong>Pattern:</strong> Call Gemini API directly via Vertex AI endpoint. <strong>Best for:</strong> Variable workloads, rapid iteration. <strong>Cost:</strong> Per-token pricing.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">2</div>
+            <h4>Distilled Models</h4>
+          </div>
+          <p><strong>Pattern:</strong> Fine-tune a smaller model to mimic a larger one. <strong>Best for:</strong> High-volume, cost-sensitive applications. <strong>Cost:</strong> Lower per-token.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">3</div>
+            <h4>Cached Responses</h4>
+          </div>
+          <p><strong>Pattern:</strong> Cache common queries and responses. Use context caching in Vertex AI. <strong>Best for:</strong> Repetitive queries. <strong>Cost:</strong> Dramatically reduced.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">4</div>
+            <h4>Hybrid Routing</h4>
+          </div>
+          <p><strong>Pattern:</strong> Route simple queries to Flash, complex to Pro. <strong>Best for:</strong> Mixed workloads. <strong>Cost:</strong> Optimized per query complexity.</p>
+        </div>
+      </div>
+
+      <pre><code><span class="code-comment"># Context caching for repeated queries (Vertex AI)</span>
+<span class="code-keyword">from</span> vertexai.generative_models <span class="code-keyword">import</span> GenerativeModel
+<span class="code-keyword">from</span> vertexai <span class="code-keyword">import</span> caching
+
+<span class="code-comment"># Create a cached content object for large context</span>
+cached_content = caching.<span class="code-fn">CachedContent</span>.<span class="code-fn">create</span>(
+    model_name=<span class="code-string">"gemini-2.0-flash-001"</span>,
+    contents=[large_document],
+    ttl=datetime.timedelta(hours=<span class="code-num">1</span>),
+    display_name=<span class="code-string">"product-manual-cache"</span>,
+)
+
+<span class="code-comment"># Use cached content for multiple queries (saves input tokens)</span>
+model = GenerativeModel.<span class="code-fn">from_cached_content</span>(cached_content)
+response = model.<span class="code-fn">generate_content</span>(<span class="code-string">"What is the return policy?"</span>)</code></pre>
+    </section>
+
+    <!-- SECTION 8 -->
+    <section class="section" id="monitoring-genai">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <h2>Monitoring GenAI in Production</h2>
+      </div>
+
+      <p>
+        GenAI monitoring extends far beyond traditional ML monitoring. You cannot simply track prediction drift
+        on a single metric. GenAI monitoring requires a multi-dimensional approach.
+      </p>
+
+      <table class="info-table">
+        <thead>
+          <tr><th>Monitoring Dimension</th><th>What to Track</th><th>Tools</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Output Quality Drift</strong></td>
+            <td>Average eval scores over time, user satisfaction ratings, automated judge scores</td>
+            <td>Vertex AI Continuous Evaluation, custom dashboards</td>
+          </tr>
+          <tr>
+            <td><strong>Safety Monitoring</strong></td>
+            <td>Blocked responses rate, safety filter triggers, toxic output detection</td>
+            <td>Vertex AI safety filters, custom classifiers</td>
+          </tr>
+          <tr>
+            <td><strong>Cost Monitoring</strong></td>
+            <td>Token usage per request, cost per user, daily/monthly spend, budget alerts</td>
+            <td>Cloud Billing, BigQuery export, custom dashboards</td>
+          </tr>
+          <tr>
+            <td><strong>Latency</strong></td>
+            <td>Time to first token (TTFT), total generation time, p50/p95/p99 latencies</td>
+            <td>Cloud Monitoring, OpenTelemetry</td>
+          </tr>
+          <tr>
+            <td><strong>Hallucination Rate</strong></td>
+            <td>Factual accuracy checks, groundedness scoring, citation verification</td>
+            <td>LLM-as-judge pipelines, RAGAS faithfulness</td>
+          </tr>
+          <tr>
+            <td><strong>Usage Patterns</strong></td>
+            <td>Query volume, query types, user segments, peak hours</td>
+            <td>Cloud Logging, BigQuery analytics</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Alert</div>
+        <p>
+          The exam frequently tests GenAI-specific monitoring. Key differentiators from traditional monitoring:
+          (1) you cannot use data drift detection on free-form text the same way,
+          (2) output quality requires LLM-based evaluation not just statistical tests,
+          (3) cost monitoring is critical because of per-token pricing.
+        </p>
+      </div>
+
+      <h3>Setting Up Cost Tracking</h3>
+
+      <pre><code><span class="code-comment"># Cost tracking pattern for GenAI API calls</span>
+<span class="code-keyword">import</span> time
+
+<span class="code-keyword">class</span> <span class="code-fn">GenAICostTracker</span>:
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self):
+        self.total_input_tokens = <span class="code-num">0</span>
+        self.total_output_tokens = <span class="code-num">0</span>
+        self.total_requests = <span class="code-num">0</span>
+
+    <span class="code-keyword">def</span> <span class="code-fn">log_request</span>(self, response):
+        usage = response.usage_metadata
+        self.total_input_tokens += usage.prompt_token_count
+        self.total_output_tokens += usage.candidates_token_count
+        self.total_requests += <span class="code-num">1</span>
+
+    <span class="code-keyword">def</span> <span class="code-fn">estimate_cost</span>(self, input_price_per_1k=<span class="code-num">0.000125</span>, output_price_per_1k=<span class="code-num">0.000375</span>):
+        input_cost = (self.total_input_tokens / <span class="code-num">1000</span>) * input_price_per_1k
+        output_cost = (self.total_output_tokens / <span class="code-num">1000</span>) * output_price_per_1k
+        <span class="code-keyword">return</span> {<span class="code-string">"input_cost"</span>: input_cost, <span class="code-string">"output_cost"</span>: output_cost,
+                <span class="code-string">"total_cost"</span>: input_cost + output_cost}</code></pre>
+    </section>
+
+    <!-- SECTION 9 -->
+    <section class="section" id="rag-operations">
+      <div class="section-header">
+        <div class="section-num">09</div>
+        <h2>RAG Operations</h2>
+      </div>
+
+      <p>
+        RAG (Retrieval-Augmented Generation) pipelines have their own operational concerns that go beyond
+        simple model deployment. Managing a RAG system in production requires continuous maintenance of the
+        chunking pipeline, embedding model, and vector index.
+      </p>
+
+      <h3>Chunking Pipeline Operations</h3>
+      <p>
+        Documents must be split into chunks for embedding and retrieval. The chunking strategy directly impacts
+        retrieval quality. Operational concerns include:
+      </p>
+
+      <ul class="checklist">
+        <li><div class="check-box done"></div><strong>Chunk size tuning:</strong> 256-1024 tokens per chunk, with overlap of 10-20%</li>
+        <li><div class="check-box done"></div><strong>Incremental updates:</strong> When documents change, re-chunk and re-embed only the affected sections</li>
+        <li><div class="check-box done"></div><strong>Metadata enrichment:</strong> Attach source, date, section headers to each chunk for filtering</li>
+        <li><div class="check-box done"></div><strong>Deduplication:</strong> Remove near-duplicate chunks to improve retrieval precision</li>
+      </ul>
+
+      <h3>Embedding Updates &amp; Index Management</h3>
+
+      <p>
+        When you update the embedding model (e.g., from <code>text-embedding-004</code> to a newer version),
+        you must <strong>re-embed all documents</strong>. This is a major operational task:
+      </p>
+
+      <pre><code><span class="code-comment"># Vertex AI Vector Search index management</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+<span class="code-comment"># Create a new index for updated embeddings</span>
+index = aiplatform.<span class="code-fn">MatchingEngineIndex</span>.<span class="code-fn">create_tree_ah_index</span>(
+    display_name=<span class="code-string">"product-docs-v2"</span>,
+    dimensions=<span class="code-num">768</span>,
+    approximate_neighbors_count=<span class="code-num">150</span>,
+    distance_measure_type=<span class="code-string">"DOT_PRODUCT_DISTANCE"</span>,
+    shard_size=<span class="code-string">"SHARD_SIZE_SMALL"</span>,
+)
+
+<span class="code-comment"># Deploy index to an endpoint for real-time queries</span>
+index_endpoint = aiplatform.<span class="code-fn">MatchingEngineIndexEndpoint</span>.<span class="code-fn">create</span>(
+    display_name=<span class="code-string">"product-docs-endpoint"</span>,
+    public_endpoint_enabled=<span class="code-keyword">True</span>,
+)
+index_endpoint.<span class="code-fn">deploy_index</span>(
+    index=index, deployed_index_id=<span class="code-string">"prod_v2"</span>,
+)</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Blue-Green for RAG</div>
+        <p>
+          Use blue-green deployment for RAG index updates: build the new index alongside the old one, run evaluation,
+          then switch traffic. This avoids downtime and allows instant rollback.
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 10 -->
+    <section class="section" id="exam-focus">
+      <div class="section-header">
+        <div class="section-num">10</div>
+        <h2>Exam Focus: Key Takeaways</h2>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Tips - Section 5</div>
+        <p>
+          These are the most frequently tested topics from this module on the GCP MLE certification exam.
+        </p>
+      </div>
+
+      <h3>GenAI-Specific Monitoring</h3>
+      <ul class="checklist">
+        <li><div class="check-box done"></div>Know that GenAI monitoring includes: output quality, safety, cost, latency, and hallucination rate</li>
+        <li><div class="check-box done"></div>Understand that traditional data drift detection does not directly apply to free-text inputs</li>
+        <li><div class="check-box done"></div>LLM-as-judge is the scalable approach for automated quality monitoring</li>
+        <li><div class="check-box done"></div>Cost monitoring is unique to GenAI because of per-token pricing variability</li>
+      </ul>
+
+      <h3>Fine-Tuning vs RAG Decision Framework</h3>
+
+      <table class="info-table">
+        <thead>
+          <tr><th>Scenario</th><th>Best Approach</th><th>Why</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Need domain knowledge</strong></td><td>RAG</td><td>Add documents to retrieval corpus, no training needed</td></tr>
+          <tr><td><strong>Need specific output format</strong></td><td>Fine-Tuning</td><td>SFT teaches the model your desired format</td></tr>
+          <tr><td><strong>Need up-to-date information</strong></td><td>RAG</td><td>Update docs in real time, no retraining</td></tr>
+          <tr><td><strong>Need to reduce hallucination</strong></td><td>RAG</td><td>Ground responses in retrieved documents</td></tr>
+          <tr><td><strong>Need style/tone changes</strong></td><td>Fine-Tuning</td><td>SFT changes how the model writes</td></tr>
+          <tr><td><strong>Need both</strong></td><td>Fine-Tune + RAG</td><td>Fine-tune for style, RAG for knowledge</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Key Exam Signals</h3>
+      <ul class="checklist">
+        <li><div class="check-box done"></div>If the question mentions "latest data" or "real-time information" &rarr; RAG</li>
+        <li><div class="check-box done"></div>If the question mentions "specific format" or "consistent style" &rarr; Fine-tuning</li>
+        <li><div class="check-box done"></div>If the question mentions "monitoring output quality" &rarr; Continuous evaluation + LLM-as-judge</li>
+        <li><div class="check-box done"></div>If the question mentions "cost optimization" &rarr; Context caching, model distillation, or routing to Flash</li>
+        <li><div class="check-box done"></div>If the question mentions "prompt management" &rarr; Version control, prompt registry, A/B testing</li>
+      </ul>
+    </section>
+
+    <!-- NAV -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous</div>
+        <a href="12-intro-llms.html" class="next-btn prev-btn">
+          &larr; 12 &middot; Introduction to LLMs
+        </a>
+      </div>
+      <div style="text-align: right;">
+        <div class="next-label">Next</div>
+        <a href="14-mlops-model-evaluation.html" class="next-btn">
+          14 &middot; Model Evaluation &rarr;
+        </a>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

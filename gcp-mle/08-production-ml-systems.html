@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Production Machine Learning Systems — GCP MLE Certification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--phase-found); background: rgba(59,130,246,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-indigo);
+  padding: 6px 14px; border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(99,102,241,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--phase-found); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--phase-found); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--phase-found); flex-shrink: 0; }
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--phase-found); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--phase-found); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--phase-found);
+  background: rgba(59,130,246,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--phase-cloud); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--phase-project); background: rgba(245,158,11,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--phase-found);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--phase-cloud); }
+.callout.warn .callout-label { color: var(--phase-project); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* SVG DIAGRAM */
+.diagram-wrap {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg); padding: 32px;
+  margin: 32px 0;
+}
+.diagram-caption {
+  text-align: center; font-size: 13px; color: var(--text-muted);
+  margin-top: 16px; font-style: italic;
+}
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--phase-found); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(59,130,246,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* CHECKLIST */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px; color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 2px solid var(--phase-found);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.check-box.done { background: var(--phase-found); border-color: var(--phase-found); }
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--phase-found); color: var(--phase-found); transform: translateX(4px); }
+.prev-btn:hover { border-color: var(--phase-prereq); color: var(--phase-prereq); transform: translateX(-4px); }
+.next-phase { font-size: 12px; color: var(--phase-found); font-weight: 500; }
+
+/* FORMULA */
+.formula {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 16px 22px; margin: 20px 0;
+  font-family: var(--font-mono); font-size: 14px; color: var(--accent-cyan);
+  text-align: center; letter-spacing: 0.02em;
+}
+
+/* TAB LABELS */
+.tab-row {
+  display: flex; gap: 8px; margin-bottom: -1px; padding: 0;
+}
+.tab-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  padding: 5px 12px; border-radius: 6px 6px 0 0;
+  background: var(--bg-overlay); color: var(--text-muted);
+  border: 1px solid var(--border-default); border-bottom: none;
+}
+.tab-label.plain { color: var(--phase-cloud); }
+.tab-label.deep  { color: var(--accent-violet); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9889; <span>CareerAlign</span> GCP MLE</div>
+  <div class="nav-links">
+    <a href="01-intro-to-ml.html">01 &middot; Intro ML</a>
+    <a href="02-launching-ml.html">02 &middot; Launch ML</a>
+    <a href="03-intro-to-tensorflow.html">03 &middot; Intro TF</a>
+    <a href="04-feature-engineering.html">04 &middot; Features</a>
+    <a href="05-ml-in-enterprise.html">05 &middot; Enterprise</a>
+    <a href="06-production-ml.html">06 &middot; Prod ML</a>
+    <a href="07-tensorflow-gcp.html">07 &middot; TF on GCP</a>
+    <a href="08-production-ml-systems.html" class="active">08 &middot; Prod Systems</a>
+    <a href="09-mlops-getting-started.html">09 &middot; MLOps</a>
+    <a href="10-mlops-production.html">10 &middot; MLOps Prod</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GCP MLE Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Course 08 &middot; Production Machine Learning Systems
+  </div>
+  <h1>Designing <em>Production-Grade</em> ML Systems</h1>
+  <p class="hero-desc">
+    Building a model is only the beginning &mdash; running it reliably in production is where the real engineering challenge lives.
+    This module covers the architecture decisions, failure modes, and optimization techniques that separate prototypes from
+    production systems: training-serving skew, distributed training strategies, TPU vs GPU selection,
+    mixed precision training, edge deployment, and debugging degraded models. Maps to Exam Sections 3, 4, and 6.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Training-Serving Skew
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Distributed Training
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      TPU vs GPU
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Mixed Precision
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      System Design Patterns
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-mle/notebooks/08-production-ml-systems.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#architecture" class="section">1 &middot; System Architecture</a>
+    <a href="#static-dynamic" class="sub">Static vs Dynamic</a>
+    <a href="#skew" class="section">2 &middot; Training-Serving Skew</a>
+    <a href="#skew-causes" class="sub">Causes &amp; Prevention</a>
+    <a href="#debt" class="section">3 &middot; Technical Debt</a>
+    <a href="#adaptable" class="section">4 &middot; Adaptable Systems</a>
+    <a href="#concept-drift" class="sub">Concept Drift</a>
+    <a href="#performance" class="section">5 &middot; High-Performance ML</a>
+    <a href="#dist-training" class="sub">Distributed Training</a>
+    <a href="#tpu-gpu" class="sub">TPU vs GPU</a>
+    <a href="#mixed-precision" class="sub">Mixed Precision</a>
+    <a href="#hybrid" class="section">6 &middot; Hybrid &amp; Edge</a>
+    <a href="#troubleshooting" class="section">7 &middot; Troubleshooting</a>
+    <a href="#patterns" class="section">8 &middot; System Design Patterns</a>
+    <a href="#exam" class="section">9 &middot; Exam Focus</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1: SYSTEM ARCHITECTURE
+    ════════════════════════════════════════════ -->
+    <section class="section" id="architecture">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Architecting Production ML Systems</h2>
+      </div>
+
+      <h3 id="static-dynamic">Static vs Dynamic Training &amp; Serving</h3>
+
+      <p>
+        Production ML systems must make two fundamental architecture decisions: <strong>how to train</strong> (static vs dynamic) and <strong>how to serve</strong> (static vs dynamic). These choices cascade through every other design decision.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">ST</div>
+            <h4>Static Training</h4>
+          </div>
+          <p>Train the model once (or periodically) on a fixed dataset, then deploy. Simple, reproducible, easy to validate. Best when data distribution is stable and retraining weekly or monthly is sufficient. Most production systems start here.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">DT</div>
+            <h4>Dynamic Training</h4>
+          </div>
+          <p>Continuously incorporate new data via online learning or frequent retraining. Required when data distribution shifts rapidly (ad click prediction, fraud detection, stock prices). More complex: requires streaming infrastructure, data validation, and rollback mechanisms.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">SS</div>
+            <h4>Static Serving (Batch Prediction)</h4>
+          </div>
+          <p>Pre-compute predictions for all possible inputs and store them in a lookup table (e.g., BigQuery, Bigtable). Low latency at serving time (just a table lookup). Best when the input space is finite and bounded &mdash; e.g., recommend movies for all users nightly.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">DS</div>
+            <h4>Dynamic Serving (Online Prediction)</h4>
+          </div>
+          <p>Compute predictions on-demand as requests arrive. Required when input space is unbounded (free-text queries, new images). Higher infrastructure cost per prediction. Use Vertex AI Endpoints, TF Serving, or custom containers behind a load balancer.</p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Architecture Decision Matrix</div>
+        <p><strong>Static training + static serving</strong>: simplest, use for stable data + bounded inputs (recommendation systems with nightly refresh). <strong>Static training + dynamic serving</strong>: most common production pattern (retrain weekly, serve online). <strong>Dynamic training + dynamic serving</strong>: most complex, for rapidly changing domains (ad bidding, fraud).</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2: TRAINING-SERVING SKEW
+    ════════════════════════════════════════════ -->
+    <section class="section" id="skew">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Training-Serving Skew</h2>
+      </div>
+
+      <h3 id="skew-causes">Causes, Detection, and Prevention</h3>
+
+      <p>
+        <strong>Training-serving skew</strong> is one of the most insidious bugs in production ML. It occurs when the data or feature transformations used during training differ from those used during serving, causing the model to receive inputs it was not trained on. The model may appear healthy in offline evaluation but perform poorly in production.
+      </p>
+
+      <p>
+        <strong>Common causes of training-serving skew:</strong>
+      </p>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Feature transformation code duplication</strong>: training uses Python/Spark for preprocessing, serving reimplements the same logic in Java/C++ (or vice versa). Even tiny differences (rounding, null handling) cause skew.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Stale statistics</strong>: normalization uses training-time mean/std, but data distribution has shifted. Serving data gets normalized with wrong parameters.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Data leakage during training</strong>: features computed using information from the future (e.g., averages that include the label period). Model learns shortcuts that are unavailable at serving time.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Different data sources</strong>: training reads from a data warehouse (cleaned, batch-processed), serving reads from a real-time stream (raw, uncleaned).
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Feature store inconsistency</strong>: training features are point-in-time correct, but serving features use current values, creating temporal leakage.
+        </li>
+      </ul>
+
+      <p>
+        <strong>Prevention strategies:</strong>
+      </p>
+
+      <p>
+        Use a <strong>shared preprocessing layer</strong>. The single most effective prevention is to embed preprocessing into the model itself using <code>tf.Transform</code> (TFX) or Keras preprocessing layers. This guarantees identical transformations during training and serving because the same code path executes in both environments.
+      </p>
+
+      <p>
+        Use a <strong>Feature Store</strong> (Vertex AI Feature Store). Feature stores provide a single source of truth for feature values, ensuring that training and serving use the same feature computation logic and the same feature values.
+      </p>
+
+<pre><code><span class="code-comment"># Prevent skew: embed preprocessing in the model</span>
+preprocessing = tf.keras.<span class="code-fn">Sequential</span>([
+    tf.keras.layers.<span class="code-fn">Normalization</span>(axis=-<span class="code-num">1</span>),   <span class="code-comment"># Learned mean/std</span>
+    tf.keras.layers.<span class="code-fn">CategoryEncoding</span>(num_tokens=<span class="code-num">100</span>),
+])
+preprocessing.<span class="code-fn">adapt</span>(training_data)  <span class="code-comment"># Compute statistics from training data</span>
+
+<span class="code-comment"># Full model with preprocessing baked in</span>
+model = tf.keras.<span class="code-fn">Sequential</span>([
+    preprocessing,               <span class="code-comment"># Same transforms at train + serve</span>
+    tf.keras.layers.<span class="code-fn">Dense</span>(<span class="code-num">128</span>, activation=<span class="code-string">"relu"</span>),
+    tf.keras.layers.<span class="code-fn">Dense</span>(<span class="code-num">1</span>)
+])
+<span class="code-comment"># SavedModel includes preprocessing — no separate serving code needed</span>
+</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Alert</div>
+        <p>Training-serving skew is one of the most heavily tested topics on the MLE exam. The key answer pattern is: <strong>use tf.Transform or Keras preprocessing layers to share the same transformation code between training and serving</strong>. This eliminates the root cause (code duplication) rather than patching symptoms.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3: TECHNICAL DEBT
+    ════════════════════════════════════════════ -->
+    <section class="section" id="debt">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Data Dependencies &amp; Technical Debt</h2>
+      </div>
+
+      <p>
+        The seminal Google paper "Hidden Technical Debt in Machine Learning Systems" (2015) argues that ML systems have all the maintenance problems of traditional software <strong>plus</strong> a set of ML-specific issues. The actual model code is often a tiny fraction of the total system &mdash; the surrounding infrastructure (data collection, feature extraction, configuration, monitoring) is far larger and harder to maintain.
+      </p>
+
+      <p>
+        <strong>Data dependencies</strong> are the ML equivalent of code dependencies, but harder to track. If a feature comes from an upstream system and that system changes its data format, units, or semantics, your model silently receives different inputs. There is no compiler to catch this. Key antipatterns to avoid:
+      </p>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Unstable data dependencies</strong>: features from systems you do not own that may change without notice. Mitigate with data contracts and schema validation (TFDV).
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Underutilized features</strong>: features added during experimentation that provide marginal value but increase complexity. Regularly audit feature importance and remove low-value features.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Feedback loops</strong>: model predictions influence future training data (e.g., recommendation models show what the model predicts users want, creating a self-reinforcing loop). Detect with holdout experiments and randomized exploration.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Pipeline jungles</strong>: tangled data preparation code that grows organically. Refactor into clean, tested, versioned pipeline stages with TFX or Vertex AI Pipelines.
+        </li>
+      </ul>
+
+      <div class="callout tip">
+        <div class="callout-label">Key Principle</div>
+        <p>The code for the ML model itself is typically less than 5% of the total production system. Data validation, feature engineering, monitoring, serving infrastructure, and configuration management make up the remaining 95%. The exam tests whether you understand this reality and can identify which infrastructure component to add when a system is failing.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4: ADAPTABLE SYSTEMS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="adaptable">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Designing Adaptable ML Systems</h2>
+      </div>
+
+      <h3 id="concept-drift">Concept Drift &amp; Data Drift</h3>
+
+      <p>
+        Production models degrade over time because the world changes. There are two distinct forms of change that must be monitored and addressed:
+      </p>
+
+      <p>
+        <strong>Data drift</strong> (also called covariate shift) occurs when the statistical distribution of input features changes, even though the underlying relationship between features and labels remains the same. Example: a model trained on summer traffic patterns receives winter data with different driving behaviors. Detection: compare feature distributions between training data and recent serving data using statistical tests (KS test, PSI, chi-squared).
+      </p>
+
+      <p>
+        <strong>Concept drift</strong> occurs when the relationship between inputs and outputs changes. The same features now predict different outcomes. Example: a fraud model trained on pre-pandemic transaction patterns fails post-pandemic because legitimate purchasing behavior has changed. Detection: monitor prediction performance metrics (accuracy, AUC) over time using labeled serving data.
+      </p>
+
+      <p>
+        <strong>Mitigation strategies:</strong>
+      </p>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Scheduled retraining</strong>: retrain on recent data at fixed intervals (daily, weekly). Simple but effective for gradual drift.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Triggered retraining</strong>: automatically retrain when monitoring detects significant drift (TFDV schema violations, performance below threshold).
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Windowed training</strong>: train only on recent data (e.g., last 30 days) to keep the model adapted to current patterns. Risk: lose rare events.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Continuous evaluation</strong>: compare model predictions against actual outcomes and alert on degradation. Vertex AI Model Monitoring provides this out of the box.
+        </li>
+      </ul>
+
+      <div class="callout info">
+        <div class="callout-label">Exam Tip</div>
+        <p>The exam will describe a scenario where model performance degrades over time and ask you to identify whether it is data drift or concept drift, and what the appropriate mitigation is. Key distinction: data drift = same relationship, different inputs. Concept drift = relationship itself has changed.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 5: HIGH-PERFORMANCE ML
+    ════════════════════════════════════════════ -->
+    <section class="section" id="performance">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>High-Performance ML Systems</h2>
+      </div>
+
+      <h3 id="dist-training">Distributed Training: Data vs Model Parallelism</h3>
+
+      <p>
+        <strong>Data parallelism</strong> is the most common approach: the model is replicated on each device, each replica processes a different mini-batch, and gradients are averaged across replicas via all-reduce. Total throughput scales linearly with device count (ideally). This is what <code>MirroredStrategy</code> and <code>MultiWorkerMirroredStrategy</code> implement.
+      </p>
+
+      <p>
+        <strong>Model parallelism</strong> splits the model itself across devices. Layer 1-24 on GPU 0, layers 25-48 on GPU 1, etc. Required when the model is too large to fit on a single device (e.g., GPT-3 at 175B parameters requires ~350GB in float16 &mdash; no single GPU has this). More complex to implement, lower GPU utilization due to pipeline bubbles. Pipeline parallelism (e.g., GPipe) mitigates this by splitting mini-batches into micro-batches.
+      </p>
+
+      <div class="callout tip">
+        <div class="callout-label">Decision Guide</div>
+        <p><strong>Data parallelism</strong>: model fits on one GPU, need faster training. Scale to 8-256 GPUs easily. <strong>Model parallelism</strong>: model does not fit on one GPU. Use with very large models (10B+ parameters). <strong>Hybrid</strong>: model parallelism across nodes + data parallelism within each node. This is how GPT-4 and Gemini are trained.</p>
+      </div>
+
+      <h3 id="tpu-gpu">TPU vs GPU: When to Use Each</h3>
+
+      <p>
+        Google Cloud offers both <strong>GPUs</strong> (NVIDIA A100, V100, T4, L4) and <strong>TPUs</strong> (v2, v3, v4, v5e) for training and inference. The choice depends on your workload characteristics.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">GPU</div>
+            <h4>Choose GPU When</h4>
+          </div>
+          <p>
+            Custom CUDA kernels needed. Non-TensorFlow frameworks (PyTorch natively). Small to medium models. Need flexibility for diverse workloads (training + inference + preprocessing). Models with many custom ops or dynamic control flow. Need NVIDIA-specific libraries (cuDNN, TensorRT).
+          </p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">TPU</div>
+            <h4>Choose TPU When</h4>
+          </div>
+          <p>
+            Large-batch training (TPUs excel with large batches). Models dominated by matrix multiplications (dense layers, attention). TensorFlow or JAX framework. Need very high throughput for training. Cost efficiency matters for large-scale training. Models that can use bfloat16 precision.
+          </p>
+        </div>
+      </div>
+
+      <p>
+        <strong>TPU-specific considerations:</strong>
+      </p>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          TPUs use <strong>bfloat16</strong> natively for matrix multiplications. This is different from IEEE float16 &mdash; bfloat16 has the same exponent range as float32 but fewer mantissa bits, making it more numerically stable for training.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Batch size should be a <strong>multiple of 8</strong> (one per TPU core) and ideally a multiple of 128 for optimal memory layout.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Avoid <strong>Python-side data processing</strong> in tf.data map functions. TPUs cannot execute Python operations efficiently. Use pure TF ops.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Use <strong>tf.data pipelines</strong> (not NumPy arrays or generators). TPUs require efficient data streaming from GCS.
+        </li>
+      </ul>
+
+      <h3 id="mixed-precision">Mixed Precision Training</h3>
+
+      <p>
+        <strong>Mixed precision training</strong> uses both float16 (or bfloat16) and float32 during training. Most computations (forward pass, backward pass) use float16 for speed and memory savings, while critical operations (loss computation, gradient accumulation, weight updates) use float32 for numerical stability.
+      </p>
+
+      <p>
+        Benefits: <strong>2x memory reduction</strong> (enabling larger batch sizes or models), <strong>2-3x training speedup</strong> on modern GPUs (V100, A100 with Tensor Cores), with minimal accuracy loss.
+      </p>
+
+<pre><code><span class="code-comment"># Enable mixed precision globally</span>
+tf.keras.mixed_precision.<span class="code-fn">set_global_policy</span>(<span class="code-string">"mixed_float16"</span>)
+
+<span class="code-comment"># Build model — layers automatically use float16 for compute</span>
+model = tf.keras.<span class="code-fn">Sequential</span>([
+    tf.keras.layers.<span class="code-fn">Dense</span>(<span class="code-num">256</span>, activation=<span class="code-string">"relu"</span>),
+    tf.keras.layers.<span class="code-fn">Dense</span>(<span class="code-num">128</span>, activation=<span class="code-string">"relu"</span>),
+    <span class="code-comment"># Final layer should output float32 for numerical stability</span>
+    tf.keras.layers.<span class="code-fn">Dense</span>(<span class="code-num">10</span>, dtype=<span class="code-string">"float32"</span>)
+])
+
+<span class="code-comment"># Optimizer with loss scaling to prevent float16 underflow</span>
+optimizer = tf.keras.optimizers.<span class="code-fn">Adam</span>(learning_rate=<span class="code-num">1e-3</span>)
+<span class="code-comment"># In TF 2.x, loss scaling is handled automatically by Keras</span>
+
+model.<span class="code-fn">compile</span>(optimizer=optimizer, loss=<span class="code-string">"sparse_categorical_crossentropy"</span>)
+</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Mixed Precision Gotcha</div>
+        <p>The <strong>final (output) layer must produce float32</strong> to prevent softmax numerical issues. Use <code>dtype="float32"</code> on the last Dense layer, or use a separate <code>tf.keras.layers.Activation("softmax", dtype="float32")</code> layer. Loss scaling is handled automatically in TF 2.x but was manual in earlier versions.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 6: HYBRID & EDGE
+    ════════════════════════════════════════════ -->
+    <section class="section" id="hybrid">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Hybrid ML Systems &amp; Edge Deployment</h2>
+      </div>
+
+      <p>
+        Not all inference can happen in the cloud. Latency requirements, connectivity limitations, privacy constraints, or cost considerations may require running models <strong>on-device</strong> (edge) or in a <strong>hybrid</strong> cloud + on-prem architecture.
+      </p>
+
+      <p>
+        <strong>TensorFlow Lite</strong> is the primary framework for on-device inference. The workflow is: train a full model in TensorFlow &rarr; convert to TFLite format &rarr; optimize (quantize/prune) &rarr; deploy to device.
+      </p>
+
+<pre><code><span class="code-comment"># Convert Keras model to TF Lite</span>
+converter = tf.lite.<span class="code-fn">TFLiteConverter</span>.from_keras_model(model)
+
+<span class="code-comment"># Post-training quantization — reduces model size by ~4x</span>
+converter.optimizations = [tf.lite.Optimize.DEFAULT]
+
+<span class="code-comment"># Optional: full integer quantization for maximum speed</span>
+converter.target_spec.supported_types = [tf.int8]
+<span class="code-keyword">def</span> <span class="code-fn">representative_dataset</span>():
+    <span class="code-keyword">for</span> data <span class="code-keyword">in</span> calibration_data.<span class="code-fn">batch</span>(<span class="code-num">1</span>).<span class="code-fn">take</span>(<span class="code-num">100</span>):
+        <span class="code-keyword">yield</span> [data]
+converter.representative_dataset = representative_dataset
+
+tflite_model = converter.<span class="code-fn">convert</span>()
+
+<span class="code-comment"># Save the quantized model</span>
+<span class="code-keyword">with</span> <span class="code-fn">open</span>(<span class="code-string">"model.tflite"</span>, <span class="code-string">"wb"</span>) <span class="code-keyword">as</span> f:
+    f.<span class="code-fn">write</span>(tflite_model)
+</code></pre>
+
+      <p>
+        <strong>Hybrid architectures</strong> combine cloud-based training with edge inference, or split inference between edge and cloud. Common patterns include: edge device runs a lightweight model for initial filtering, sends uncertain cases to a larger cloud model for final prediction. This reduces latency and bandwidth while maintaining accuracy on difficult cases.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Edge Deployment Considerations</div>
+        <p><strong>Quantization</strong>: float32 &rarr; int8 reduces model size by 4x and speeds inference on CPUs without Tensor Cores. <strong>Pruning</strong>: removes low-magnitude weights, creating sparse models. <strong>Knowledge distillation</strong>: train a small "student" model to mimic a large "teacher" model. Combine all three for maximum compression.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 7: TROUBLESHOOTING
+    ════════════════════════════════════════════ -->
+    <section class="section" id="troubleshooting">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Troubleshooting Production ML Systems</h2>
+      </div>
+
+      <p>
+        Production ML systems fail in ways that are subtler and harder to debug than traditional software. The model may still return predictions &mdash; they are just wrong. Key troubleshooting areas:
+      </p>
+
+      <h3>Data Quality Issues</h3>
+      <p>
+        <strong>Symptoms</strong>: sudden accuracy drop, unexpected prediction distributions, NaN losses during retraining. <strong>Root causes</strong>: upstream schema changes, missing values where none existed before, duplicated records, label corruption, stale feature store. <strong>Tools</strong>: TensorFlow Data Validation (TFDV) for schema monitoring, Great Expectations for data testing, Vertex AI Model Monitoring for serving-time data validation.
+      </p>
+
+      <h3>Model Performance Degradation</h3>
+      <p>
+        <strong>Symptoms</strong>: gradual accuracy decline over days/weeks, A/B test metrics dropping. <strong>Root causes</strong>: concept drift (world has changed), data drift (input distribution shifted), training-serving skew introduced by a code change. <strong>Diagnosis</strong>: compare current serving data distribution with training data distribution, check feature importance shifts, examine recent code changes to preprocessing.
+      </p>
+
+      <h3>Latency &amp; Throughput Problems</h3>
+      <p>
+        <strong>Symptoms</strong>: P99 latency exceeding SLO, prediction timeouts, queueing. <strong>Root causes</strong>: model too large for available hardware, inefficient preprocessing at serving time, cold starts on autoscaled endpoints, network bottlenecks fetching features. <strong>Solutions</strong>: model optimization (quantization, pruning, distillation), GPU/TPU acceleration, precompute features, horizontal scaling, batch prediction for non-latency-sensitive use cases.
+      </p>
+
+      <h3>Memory &amp; Compute Optimization</h3>
+      <p>
+        <strong>Symptoms</strong>: OOM errors during training or serving, GPU memory fragmentation, slow batch processing. <strong>Solutions</strong>: mixed precision training (halves memory), gradient accumulation (simulate large batches), model sharding, reduce batch size, optimize tf.data pipeline memory usage (<code>.cache(filename)</code> for disk-based caching).
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Debugging Checklist</div>
+        <p>When a production model fails: (1) Check data quality first &mdash; 90% of production ML issues are data problems. (2) Compare training and serving feature distributions. (3) Check for code changes in preprocessing pipeline. (4) Verify model version and rollback if recent deployment. (5) Monitor infrastructure metrics (latency, memory, GPU utilization). (6) Check for upstream dependency changes.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 8: SYSTEM DESIGN PATTERNS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="patterns">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <h2>System Design Patterns</h2>
+      </div>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">B</div>
+            <h4>Batch Prediction Pipeline</h4>
+          </div>
+          <p>
+            Run predictions on large datasets offline. Pattern: Cloud Scheduler triggers a Vertex AI Pipeline that reads from BigQuery, runs <code>model.predict()</code> on batches, writes results back to BigQuery/GCS. Best for: nightly recommendations, periodic risk scoring, report generation. Use Dataflow or Vertex AI Batch Prediction.
+          </p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">R</div>
+            <h4>Real-Time Serving</h4>
+          </div>
+          <p>
+            Serve predictions on-demand with low latency. Pattern: Vertex AI Endpoint (or Cloud Run with TF Serving) behind a load balancer, with autoscaling based on GPU utilization or QPS. Features fetched from Feature Store at prediction time. Use for: search ranking, fraud detection, chatbot responses.
+          </p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">AB</div>
+            <h4>A/B Testing Infrastructure</h4>
+          </div>
+          <p>
+            Compare model versions in production. Pattern: traffic splitting at the endpoint level (90/10 split between champion and challenger). Log predictions and outcomes for both models. Run statistical significance tests on business metrics. Vertex AI Endpoints support traffic splitting natively.
+          </p>
+        </div>
+      </div>
+
+<pre><code><span class="code-comment"># Batch prediction pipeline pattern</span>
+<span class="code-keyword">import</span> pandas <span class="code-keyword">as</span> pd
+
+<span class="code-comment"># Load batch data</span>
+df = pd.<span class="code-fn">read_gbq</span>(<span class="code-string">"SELECT * FROM my_dataset.scoring_table"</span>)
+
+<span class="code-comment"># Predict in batches (memory-efficient)</span>
+BATCH_SIZE = <span class="code-num">10000</span>
+results = []
+<span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-fn">range</span>(<span class="code-num">0</span>, <span class="code-fn">len</span>(df), BATCH_SIZE):
+    batch = df.<span class="code-fn">iloc</span>[i:i+BATCH_SIZE]
+    features = batch[feature_columns].values
+    preds = model.<span class="code-fn">predict</span>(features, batch_size=<span class="code-num">256</span>)
+    results.<span class="code-fn">append</span>(preds)
+
+<span class="code-comment"># Write predictions back</span>
+df[<span class="code-string">"prediction"</span>] = np.<span class="code-fn">concatenate</span>(results)
+df.<span class="code-fn">to_gbq</span>(<span class="code-string">"my_dataset.predictions"</span>, if_exists=<span class="code-string">"replace"</span>)
+
+<span class="code-comment"># Vertex AI Batch Prediction (managed)</span>
+<span class="code-comment"># batch_prediction_job = model.batch_predict(</span>
+<span class="code-comment">#     job_display_name="nightly-scoring",</span>
+<span class="code-comment">#     gcs_source="gs://bucket/input.jsonl",</span>
+<span class="code-comment">#     gcs_destination_prefix="gs://bucket/output/",</span>
+<span class="code-comment">#     machine_type="n1-standard-4",</span>
+<span class="code-comment">#     accelerator_type="NVIDIA_TESLA_T4",</span>
+<span class="code-comment">#     accelerator_count=1,</span>
+<span class="code-comment"># )</span>
+</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Pattern Selection</div>
+        <p><strong>Batch prediction</strong>: latency not critical, large input volume, periodic (nightly/hourly). <strong>Online prediction</strong>: low latency required, user-facing, unbounded input space. <strong>A/B testing</strong>: always use for model updates in production &mdash; never deploy a new model without comparing against the current champion on real traffic.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 9: EXAM FOCUS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="exam">
+      <div class="section-header">
+        <div class="section-num">09</div>
+        <h2>Exam Focus Areas</h2>
+      </div>
+
+      <p>
+        This section summarizes the key concepts from Course 08 that are most likely to appear on the GCP Professional Machine Learning Engineer exam, mapping to <strong>Section 3</strong> (Scaling prototypes), <strong>Section 4</strong> (Serving &amp; scaling models), and <strong>Section 6</strong> (ML solutions monitoring).
+      </p>
+
+      <h3>Training Strategy Selection</h3>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Data parallelism</strong> (MirroredStrategy): model fits on one GPU, need faster training. Most common.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Model parallelism</strong>: model too large for single GPU (&gt;10B parameters). Split across devices.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Mixed precision</strong>: 2x memory reduction, 2-3x speedup on A100/V100. Always enable on modern hardware.
+        </li>
+      </ul>
+
+      <h3>TPU vs GPU Scenarios</h3>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>TPU</strong>: large-batch training, TensorFlow/JAX, matrix-heavy models, cost-efficient at scale.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>GPU</strong>: PyTorch, custom CUDA ops, small/medium models, diverse workloads, inference serving.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          TPU batch size must be a multiple of 8. Use bfloat16. Avoid Python-side preprocessing.
+        </li>
+      </ul>
+
+      <h3>Debugging Production Issues</h3>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Training-serving skew</strong>: use tf.Transform or Keras preprocessing layers. Single transformation code path.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Data drift</strong>: feature distribution changed. Retrain on recent data. Monitor with TFDV/Vertex AI Model Monitoring.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Concept drift</strong>: real-world relationship changed. Monitor prediction metrics. Retrain with new labeled data.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Latency issues</strong>: quantize model, use GPU serving, cache features, batch non-critical predictions.
+        </li>
+      </ul>
+
+      <div class="callout warn">
+        <div class="callout-label">High-Frequency Exam Topics</div>
+        <p>Training-serving skew prevention (tf.Transform), data drift vs concept drift distinction, TPU vs GPU selection criteria, mixed precision output layer (must be float32), batch vs online serving decision, and A/B testing for model deployment are the most frequently tested topics from this module.</p>
+      </div>
+
+      <!-- NAVIGATION -->
+      <div class="next-section">
+        <div>
+          <div class="next-label">Previous Module</div>
+          <a href="07-tensorflow-gcp.html" class="next-btn prev-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            07 &middot; TensorFlow on GCP
+          </a>
+        </div>
+        <div style="text-align:right">
+          <div class="next-label">Next Module</div>
+          <a href="09-mlops-getting-started.html" class="next-btn">
+            09 &middot; MLOps: Getting Started
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+          <div class="next-phase">MLOps &amp; Automation</div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+</body>
+</html>

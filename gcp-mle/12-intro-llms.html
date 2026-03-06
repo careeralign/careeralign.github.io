@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Introduction to Large Language Models — GCP MLE Certification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--phase-found); background: rgba(59,130,246,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-indigo);
+  padding: 6px 14px; border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(99,102,241,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--phase-found); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--phase-found); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--phase-found); flex-shrink: 0; }
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--phase-found); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--phase-found); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--phase-found);
+  background: rgba(59,130,246,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--phase-cloud); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--phase-project); background: rgba(245,158,11,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--phase-found);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--phase-cloud); }
+.callout.warn .callout-label { color: var(--phase-project); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* SVG DIAGRAM */
+.diagram-wrap {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg); padding: 32px;
+  margin: 32px 0;
+}
+.diagram-caption {
+  text-align: center; font-size: 13px; color: var(--text-muted);
+  margin-top: 16px; font-style: italic;
+}
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--phase-found); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(59,130,246,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* CHECKLIST */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px; color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 2px solid var(--phase-found);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.check-box.done { background: var(--phase-found); border-color: var(--phase-found); }
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--phase-found); color: var(--phase-found); transform: translateX(4px); }
+.prev-btn:hover { border-color: var(--phase-prereq); color: var(--phase-prereq); transform: translateX(-4px); }
+.next-phase { font-size: 12px; color: var(--phase-found); font-weight: 500; }
+
+/* FORMULA */
+.formula {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 16px 22px; margin: 20px 0;
+  font-family: var(--font-mono); font-size: 14px; color: var(--accent-cyan);
+  text-align: center; letter-spacing: 0.02em;
+}
+
+/* TAB LABELS */
+.tab-row {
+  display: flex; gap: 8px; margin-bottom: -1px; padding: 0;
+}
+.tab-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  padding: 5px 12px; border-radius: 6px 6px 0 0;
+  background: var(--bg-overlay); color: var(--text-muted);
+  border: 1px solid var(--border-default); border-bottom: none;
+}
+.tab-label.plain { color: var(--phase-cloud); }
+.tab-label.deep  { color: var(--accent-violet); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9889; <span>CareerAlign</span> GCP MLE</div>
+  <div class="nav-links">
+    <a href="01-ml-fundamentals.html">01</a>
+    <a href="02-data-engineering.html">02</a>
+    <a href="03-feature-engineering.html">03</a>
+    <a href="04-ml-model-architecture.html">04</a>
+    <a href="05-ml-pipeline.html">05</a>
+    <a href="06-ml-automation.html">06</a>
+    <a href="07-monitoring.html">07</a>
+    <a href="08-bigquery-ml.html">08</a>
+    <a href="09-vertex-ai.html">09</a>
+    <a href="10-mlops-feature-store.html">10</a>
+    <a href="11-intro-generative-ai.html">11 &middot; GenAI</a>
+    <a href="12-intro-llms.html" class="active">12 &middot; LLMs</a>
+    <a href="13-mlops-generative-ai.html">13</a>
+    <a href="14-responsible-ai.html">14</a>
+    <a href="15-exam-prep.html">15</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GCP MLE Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Course 12 &middot; Section 5: ML on Google Cloud
+  </div>
+  <h1>Introduction to <em>Large Language Models</em></h1>
+  <p class="hero-desc">
+    Large Language Models are the engines behind modern generative AI. This module goes deep into
+    how LLMs work &mdash; from pre-training objectives and emergent capabilities to fine-tuning strategies,
+    evaluation metrics, and inference optimization. Master the concepts needed to select, tune, and
+    deploy LLMs effectively on Google Cloud for the MLE certification exam.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      LLM Fundamentals
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Fine-Tuning &amp; PEFT
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Google's LLMs
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Evaluation Metrics
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Inference Optimization
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-mle/notebooks/12-intro-llms.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#fundamentals" class="section">1 &middot; LLM Fundamentals</a>
+    <a href="#params-tokens" class="sub">Parameters &amp; Tokens</a>
+    <a href="#training" class="section">2 &middot; LLM Training</a>
+    <a href="#pretraining-obj" class="sub">Pre-training Objectives</a>
+    <a href="#emergent" class="section">3 &middot; Emergent Capabilities</a>
+    <a href="#icl-cot" class="sub">In-Context Learning &amp; CoT</a>
+    <a href="#tuning" class="section">4 &middot; Tuning Approaches</a>
+    <a href="#prompt-vs-finetune" class="sub">Prompt Eng vs Fine-Tuning</a>
+    <a href="#peft" class="section">5 &middot; Parameter-Efficient Fine-Tuning</a>
+    <a href="#lora" class="sub">LoRA &amp; QLoRA</a>
+    <a href="#google-llms" class="section">6 &middot; Google's LLMs</a>
+    <a href="#gemini-models" class="sub">Gemini &amp; Gemma</a>
+    <a href="#evaluation" class="section">7 &middot; LLM Evaluation</a>
+    <a href="#metrics" class="sub">Metrics &amp; Benchmarks</a>
+    <a href="#limitations" class="section">8 &middot; LLM Limitations</a>
+    <a href="#inference-opt" class="section">9 &middot; Inference Optimization</a>
+    <a href="#quantization" class="sub">Quantization &amp; Distillation</a>
+    <a href="#exam-focus" class="section">10 &middot; Exam Focus</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1: LLM FUNDAMENTALS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="fundamentals">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>LLM Fundamentals</h2>
+      </div>
+
+      <h3 id="params-tokens">Parameters, Tokens, Context Window, and Pre-training</h3>
+
+      <p>
+        A <strong>Large Language Model (LLM)</strong> is a neural network with billions of learned parameters
+        trained on vast text corpora to understand and generate human language. The term "large" refers to both
+        the parameter count (typically 1 billion to over 1 trillion) and the training data volume (terabytes
+        of text from books, websites, code repositories, and other sources).
+      </p>
+      <p>
+        <strong>Parameters</strong> are the learned weights of the neural network. Each parameter is a floating-point
+        number that the model adjusts during training. More parameters generally means more capacity to store
+        knowledge and capture nuanced patterns, but also means more compute for training and inference, more
+        memory, and higher cost. A 70B parameter model in FP16 requires approximately 140 GB of GPU memory
+        just for the weights.
+      </p>
+      <p>
+        <strong>Tokens</strong> are the atomic units of text that LLMs process. Rather than working with whole words,
+        LLMs use subword tokenization (BPE, SentencePiece, or WordPiece) that breaks text into pieces. Common
+        words remain whole ("the", "is"), while rare words are split into subword pieces ("un" + "believ" + "able").
+        A rough approximation is that 1 token equals approximately 4 characters or 0.75 words in English.
+      </p>
+      <p>
+        The <strong>context window</strong> is the maximum number of tokens the model can process in a single
+        forward pass. This includes both the input prompt and the generated output. Early models had 2K-4K
+        context windows; Gemini 1.5 Pro supports up to 1 million tokens. A larger context window allows the
+        model to process entire books, long codebases, or extensive conversation histories, but requires
+        quadratically more computation in standard attention (though modern architectures use efficient
+        attention variants).
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Scale Reference</div>
+        <p><strong>Gemini 1.5 Pro</strong>: ~1M token context window. <strong>GPT-4</strong>: 128K tokens. <strong>Llama 3</strong>: 8K-128K tokens. <strong>Gemma 2</strong>: 8K tokens. The context window is a critical factor in model selection for tasks requiring long input documents.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2: LLM TRAINING
+    ════════════════════════════════════════════ -->
+    <section class="section" id="training">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>LLM Training</h2>
+      </div>
+
+      <h3 id="pretraining-obj">Pre-training Objectives</h3>
+
+      <p>
+        LLMs are pre-trained using self-supervised learning objectives that require no human-labeled data.
+        The two dominant pre-training objectives are <strong>next-token prediction</strong> (causal language modeling)
+        and <strong>masked language modeling</strong>.
+      </p>
+      <p>
+        <strong>Next-token prediction</strong> (used by GPT, Gemini, Llama) trains the model to predict the next
+        token in a sequence given all preceding tokens. The model reads text left-to-right with causal masking,
+        so each token can only attend to tokens before it. This objective is remarkably effective: by forcing
+        the model to predict the next word across trillions of tokens of diverse text, it learns grammar, facts,
+        reasoning patterns, code structure, and much more. The loss function is cross-entropy between the
+        predicted probability distribution and the actual next token.
+      </p>
+
+      <div class="formula">
+        L = - (1/T) &sum;(t=1 to T) log P(x_t | x_1, ..., x_(t-1); &theta;)
+      </div>
+
+      <p>
+        <strong>Masked language modeling</strong> (used by BERT, RoBERTa) randomly masks 15% of input tokens and
+        trains the model to predict the masked tokens using bidirectional context (both left and right). This
+        produces excellent representations for understanding tasks (classification, NER, similarity) but is not
+        directly suited for generation since it sees context from both directions.
+      </p>
+      <p>
+        <strong>Compute requirements</strong> for pre-training are enormous. The Chinchilla scaling law suggests
+        that optimal training uses approximately 20 tokens per parameter. A 70B model should be trained on
+        approximately 1.4 trillion tokens. This requires thousands of GPUs/TPUs running for weeks, with total
+        compute measured in millions of GPU-hours and costing tens of millions of dollars. This is why
+        pre-training is done by large organizations, and downstream users focus on fine-tuning or prompting.
+      </p>
+
+      <div class="callout tip">
+        <div class="callout-label">Training Pipeline</div>
+        <p>The full LLM training pipeline: (1) <strong>Pre-training</strong> on raw text (self-supervised). (2) <strong>Supervised fine-tuning (SFT)</strong> on instruction-response pairs. (3) <strong>RLHF or DPO</strong> alignment using human preference data. Steps 2 and 3 transform a raw text predictor into a helpful, harmless assistant.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3: EMERGENT CAPABILITIES
+    ════════════════════════════════════════════ -->
+    <section class="section" id="emergent">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Emergent Capabilities</h2>
+      </div>
+
+      <h3 id="icl-cot">In-Context Learning, Reasoning, and Chain-of-Thought</h3>
+
+      <p>
+        <strong>Emergent capabilities</strong> are abilities that appear in large models but are absent or minimal
+        in smaller ones, without being explicitly trained for. These capabilities emerge from the combination
+        of massive scale, diverse training data, and the richness of the language modeling objective.
+      </p>
+      <p>
+        <strong>In-context learning (ICL)</strong> is the ability of LLMs to learn new tasks from examples provided
+        in the prompt, without any parameter updates. You provide a few input-output examples in the prompt,
+        and the model generalizes to produce correct outputs for new inputs. This is remarkable because the
+        model was never trained on your specific task &mdash; it infers the pattern from the examples alone.
+        ICL works because the pre-training data contains many implicit "tasks" (translation, summarization,
+        Q&A patterns), and the model learns a general task-inference mechanism.
+      </p>
+      <p>
+        <strong>Chain-of-thought (CoT) reasoning</strong> is the phenomenon where prompting a model to "think
+        step by step" before answering dramatically improves accuracy on reasoning tasks (math, logic,
+        multi-step problems). Without CoT, a model might jump directly to an answer and get it wrong.
+        With CoT, the model generates intermediate reasoning steps that guide it to the correct answer.
+        This works because the model has seen step-by-step solutions in its training data and can replicate
+        the pattern when prompted to do so.
+      </p>
+      <p>
+        Other emergent capabilities include <strong>instruction following</strong> (understanding and executing
+        complex natural language instructions), <strong>code generation</strong> (writing correct programs
+        from descriptions), <strong>multilingual transfer</strong> (performing tasks in languages it saw
+        less of during training), and <strong>analogical reasoning</strong> (identifying patterns and applying
+        them to new situations).
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Important Nuance</div>
+        <p>Emergence does not mean the model "understands" in a human sense. It means the model produces outputs that <strong>appear to demonstrate understanding</strong> because its statistical patterns are rich enough to capture complex reasoning structures. The exam may test whether you understand this distinction.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4: TUNING APPROACHES
+    ════════════════════════════════════════════ -->
+    <section class="section" id="tuning">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Tuning Approaches</h2>
+      </div>
+
+      <h3 id="prompt-vs-finetune">Prompt Engineering, Fine-Tuning, RLHF, and DPO</h3>
+
+      <p>
+        There are multiple ways to adapt a pre-trained LLM to a specific task. The choice depends on your
+        data availability, compute budget, latency requirements, and how far the base model's behavior is
+        from your desired behavior.
+      </p>
+
+      <p>
+        <strong>Prompt engineering</strong> is the simplest approach: you craft the input prompt to elicit
+        the desired behavior without modifying the model's weights. Techniques include zero-shot prompting,
+        few-shot prompting, chain-of-thought, system instructions, and structured output formats. Prompt
+        engineering is fast, requires no training data or compute beyond inference, and works well when the
+        base model already has the knowledge needed for the task.
+      </p>
+      <p>
+        <strong>Fine-tuning</strong> updates the model's weights on a task-specific dataset. Supervised fine-tuning
+        (SFT) trains the model on input-output pairs: (instruction, desired response). This teaches the model
+        your specific domain, style, format, or task structure. Fine-tuning requires labeled data (hundreds to
+        thousands of examples), training compute (GPU hours), and careful hyperparameter tuning to avoid
+        catastrophic forgetting of the base model's general capabilities.
+      </p>
+      <p>
+        <strong>RLHF (Reinforcement Learning from Human Feedback)</strong> is the alignment technique used to
+        make LLMs helpful, harmless, and honest. After SFT, human evaluators rank multiple model outputs
+        for the same prompt. These rankings train a reward model that predicts human preference. The LLM
+        is then fine-tuned using reinforcement learning (PPO) to maximize the reward model's score. RLHF
+        is what transforms a raw text predictor into a conversational assistant.
+      </p>
+      <p>
+        <strong>DPO (Direct Preference Optimization)</strong> is a simpler alternative to RLHF that eliminates
+        the need for a separate reward model and RL training loop. DPO directly optimizes the LLM on
+        preference pairs (preferred response vs rejected response) using a modified cross-entropy loss.
+        It is computationally simpler, more stable, and increasingly preferred for alignment.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">P</div>
+            <h4>Prompt Engineering</h4>
+          </div>
+          <p>No training needed. Fast iteration. Works when base model has the right knowledge. Limited for domain-specific or format-specific needs.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">F</div>
+            <h4>Fine-Tuning (SFT)</h4>
+          </div>
+          <p>Updates model weights. Requires labeled data and compute. Best for domain adaptation, style/format control, and consistent behavior.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">R</div>
+            <h4>RLHF</h4>
+          </div>
+          <p>Aligns model to human preferences. Requires reward model + RL loop. Complex but powerful for safety and helpfulness alignment.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">D</div>
+            <h4>DPO</h4>
+          </div>
+          <p>Simpler alignment via preference pairs. No reward model needed. More stable training. Increasingly popular alternative to RLHF.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 5: PARAMETER-EFFICIENT FINE-TUNING
+    ════════════════════════════════════════════ -->
+    <section class="section" id="peft">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Parameter-Efficient Fine-Tuning (PEFT)</h2>
+      </div>
+
+      <h3 id="lora">LoRA, QLoRA, and Adapter Tuning</h3>
+
+      <p>
+        Full fine-tuning updates all parameters of a model, which for a 70B parameter model means storing
+        and updating 70 billion weights plus optimizer states &mdash; requiring hundreds of GBs of GPU memory.
+        <strong>Parameter-efficient fine-tuning (PEFT)</strong> methods update only a small fraction of parameters
+        while keeping the rest frozen, dramatically reducing compute and memory requirements.
+      </p>
+      <p>
+        <strong>LoRA (Low-Rank Adaptation)</strong> is the most widely used PEFT method. Instead of updating
+        a full weight matrix W (of dimension d x d), LoRA adds two small matrices A (d x r) and B (r x d),
+        where r (the rank) is much smaller than d (typically 8-64). The effective weight becomes W + BA, so
+        the model learns a low-rank perturbation to its original weights. Only A and B are trained, reducing
+        trainable parameters by 100-1000x. At inference time, BA can be merged into W with zero additional
+        latency.
+      </p>
+
+      <div class="formula">
+        W' = W + BA, where B &isin; R^(d&times;r), A &isin; R^(r&times;d), r &lt;&lt; d
+      </div>
+
+      <p>
+        <strong>QLoRA</strong> extends LoRA by quantizing the frozen base model to 4-bit precision, reducing
+        memory by another 4x. The LoRA adapters remain in higher precision (FP16 or BF16) for training
+        stability. QLoRA enables fine-tuning a 65B parameter model on a single 48GB GPU &mdash; a task that
+        would require multiple high-end GPUs with full fine-tuning.
+      </p>
+      <p>
+        <strong>Adapter tuning</strong> inserts small trainable "adapter" modules between the frozen layers
+        of a pre-trained model. Each adapter is a bottleneck layer (down-projection, nonlinearity, up-projection)
+        with a residual connection. Only the adapter parameters are trained. Adapters were an early PEFT
+        method and remain useful, though LoRA has largely superseded them due to zero additional inference latency.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Vertex AI PEFT</div>
+        <p>Vertex AI supports <strong>supervised tuning</strong> of Gemini and PaLM models with built-in PEFT. You provide training data in JSONL format, and Vertex AI handles the LoRA/adapter configuration automatically. This is the recommended approach for the exam &mdash; you do not need to configure LoRA rank manually on Vertex AI.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 6: GOOGLE'S LLMS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="google-llms">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Google's LLMs</h2>
+      </div>
+
+      <h3 id="gemini-models">Gemini, PaLM 2, and Gemma</h3>
+
+      <p>
+        Google offers a spectrum of LLMs for different use cases, from the most capable frontier models
+        to lightweight open-source models designed for efficiency and customization.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">P</div>
+            <h4>Gemini 1.5 Pro</h4>
+          </div>
+          <p>Flagship multimodal model. Up to 1M token context window. Best quality for complex reasoning, long documents, multimodal tasks. Higher cost and latency.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">F</div>
+            <h4>Gemini 1.5 Flash</h4>
+          </div>
+          <p>Speed-optimized variant. Lower latency, lower cost. Excellent quality for most tasks. Ideal for high-volume production workloads where speed matters.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">2</div>
+            <h4>PaLM 2</h4>
+          </div>
+          <p>Previous-generation LLM. Strong multilingual and reasoning capabilities. Being superseded by Gemini but still available on Vertex AI.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">G</div>
+            <h4>Gemma (Open Models)</h4>
+          </div>
+          <p>Open-weight models (2B, 7B, 27B). Built from Gemini research. Free for commercial use. Can be self-hosted, fine-tuned, and customized without API costs.</p>
+        </div>
+      </div>
+
+      <p>
+        <strong>Gemini 1.5 Pro</strong> is Google's most capable model, designed for tasks requiring deep
+        reasoning, long-context understanding (up to 1M tokens), and multimodal processing. Its 1M context
+        window allows processing entire codebases, full-length books, or hours of video in a single prompt.
+      </p>
+      <p>
+        <strong>Gemini 1.5 Flash</strong> is optimized for speed and efficiency while maintaining high quality.
+        It is 5-10x faster than Pro and significantly cheaper per token. For most production workloads,
+        Flash provides the best cost-performance tradeoff.
+      </p>
+      <p>
+        <strong>Gemma</strong> is Google's family of open-weight models, ranging from 2B to 27B parameters.
+        Gemma models are derived from the same research as Gemini but are designed for self-hosting and
+        customization. They can be deployed on GKE, Cloud Run, or any infrastructure, fine-tuned with your
+        data, and used without per-token API costs. Gemma is ideal when you need full control, data privacy,
+        or offline deployment.
+      </p>
+
+      <div class="callout tip">
+        <div class="callout-label">Model Selection for the Exam</div>
+        <p>The exam will present scenarios requiring model selection. Key decision factors: <strong>Gemini Pro</strong> for maximum quality and long context. <strong>Gemini Flash</strong> for speed and cost at scale. <strong>Gemma</strong> for self-hosting, data privacy, customization, and offline deployment. <strong>PaLM 2</strong> is a valid answer only for legacy scenarios.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 7: LLM EVALUATION
+    ════════════════════════════════════════════ -->
+    <section class="section" id="evaluation">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>LLM Evaluation</h2>
+      </div>
+
+      <h3 id="metrics">Metrics and Benchmarks</h3>
+
+      <p>
+        Evaluating LLMs is fundamentally different from evaluating traditional ML models. There is often
+        no single "correct" answer, and quality is multidimensional (accuracy, fluency, relevance, safety,
+        format compliance). Multiple complementary evaluation approaches are used.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">P</div>
+            <h4>Perplexity</h4>
+          </div>
+          <p>Measures how well the model predicts text. Lower is better. Perplexity = exp(-average log likelihood). Good for comparing base models, less useful for task-specific evaluation.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">B</div>
+            <h4>BLEU</h4>
+          </div>
+          <p>Measures n-gram overlap between generated and reference text. Originally for machine translation. Score 0-1, higher is better. Precision-focused metric.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">R</div>
+            <h4>ROUGE</h4>
+          </div>
+          <p>Measures recall of n-grams from reference text. Used primarily for summarization. Variants: ROUGE-1 (unigrams), ROUGE-2 (bigrams), ROUGE-L (longest common subsequence).</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">H</div>
+            <h4>Human Evaluation</h4>
+          </div>
+          <p>Gold standard for quality assessment. Human raters judge fluency, relevance, accuracy, helpfulness. Expensive and slow but most reliable for subjective quality.</p>
+        </div>
+      </div>
+
+      <p>
+        <strong>Benchmarks</strong> provide standardized evaluation across models. Common benchmarks include
+        <strong>MMLU</strong> (massive multitask language understanding &mdash; 57 subjects from STEM to humanities),
+        <strong>HumanEval</strong> (code generation correctness), <strong>GSM8K</strong> (grade school math reasoning),
+        and <strong>TruthfulQA</strong> (factual accuracy and resistance to common misconceptions).
+      </p>
+      <p>
+        <strong>Vertex AI Model Evaluation</strong> provides built-in evaluation tools. You can evaluate
+        generative models against ground-truth datasets, compute BLEU/ROUGE scores automatically, and
+        use model-based evaluation (using a strong model like Gemini Pro to judge the quality of a weaker
+        model's outputs). This "LLM-as-judge" approach is increasingly popular as it scales better than
+        human evaluation while maintaining reasonable correlation with human judgments.
+      </p>
+
+      <div class="formula">
+        Perplexity = exp( -(1/T) &sum;(t=1 to T) log P(x_t | x_&lt;t) )
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 8: LLM LIMITATIONS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="limitations">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <h2>LLM Limitations</h2>
+      </div>
+
+      <p>
+        Understanding LLM limitations is critical for the exam, which frequently tests your ability to
+        identify when LLMs are <strong>not</strong> the right solution or when additional mitigations are needed.
+      </p>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Hallucination</strong> &mdash; Models generate plausible but factually incorrect content. They cannot verify their own outputs against ground truth. Mitigate with RAG, grounding, and verification pipelines.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Reasoning errors</strong> &mdash; Despite impressive performance, LLMs make systematic errors on multi-step reasoning, arithmetic, and logical deduction. Chain-of-thought helps but does not eliminate errors.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Context window limits</strong> &mdash; Even with 1M token windows, models may struggle with information retrieval from the middle of very long contexts ("lost in the middle" phenomenon).
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Knowledge cutoff</strong> &mdash; Models only know information from their training data. They cannot access real-time information without grounding/RAG.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Cost and latency</strong> &mdash; Large models are expensive to run at scale. Token costs accumulate quickly for high-volume applications. Latency may be unacceptable for real-time systems.
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <strong>Non-determinism</strong> &mdash; With temperature > 0, outputs vary between identical requests. This is problematic for applications requiring reproducibility.
+        </li>
+      </ul>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Pattern</div>
+        <p>The exam frequently presents scenarios where an LLM is being used for a task better suited to traditional ML (e.g., real-time fraud scoring, deterministic classification with strict latency SLAs). Always evaluate whether the task truly benefits from generative capabilities or whether a simpler, cheaper, faster model would suffice.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 9: INFERENCE OPTIMIZATION
+    ════════════════════════════════════════════ -->
+    <section class="section" id="inference-opt">
+      <div class="section-header">
+        <div class="section-num">09</div>
+        <h2>Inference Optimization</h2>
+      </div>
+
+      <h3 id="quantization">Quantization, Distillation, and Speculative Decoding</h3>
+
+      <p>
+        LLM inference is expensive: generating tokens requires running the entire model for each token,
+        and latency scales with model size. Several optimization techniques reduce cost and latency
+        while preserving most of the model's quality.
+      </p>
+      <p>
+        <strong>Quantization</strong> reduces the precision of model weights from FP32/FP16 to INT8 or INT4.
+        This shrinks model size by 2-4x, reduces memory bandwidth requirements, and enables faster inference
+        on GPUs and TPUs. Modern quantization methods (GPTQ, AWQ, GGUF) can quantize to 4-bit with minimal
+        quality loss. On Vertex AI, Google's serving infrastructure automatically applies optimized quantization.
+      </p>
+      <p>
+        <strong>Knowledge distillation</strong> trains a smaller "student" model to mimic the outputs of a
+        larger "teacher" model. Rather than training the student on raw data, you train it on the teacher's
+        soft probability distributions over tokens, which contain richer information than hard labels alone.
+        The student captures much of the teacher's capability in a fraction of the parameters. Google's
+        Gemini Flash is essentially a distilled version of Gemini Pro.
+      </p>
+      <p>
+        <strong>Speculative decoding</strong> uses a small, fast "draft" model to generate candidate tokens,
+        which are then verified in parallel by the large model. The large model accepts tokens where it agrees
+        with the draft model and rejects (and regenerates) where it disagrees. Since the draft model is much
+        faster, and the large model can verify multiple tokens in a single forward pass, this achieves
+        2-3x speedup with no quality loss. The output is mathematically identical to the large model alone.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">Q</div>
+            <h4>Quantization</h4>
+          </div>
+          <p>Reduce weight precision (FP16 to INT4). 2-4x memory reduction. Minimal quality loss with modern methods. Applied automatically on Vertex AI.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">D</div>
+            <h4>Distillation</h4>
+          </div>
+          <p>Train small model to mimic large model. Significant size reduction. Requires training compute upfront. Examples: Gemini Flash, Gemma.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">S</div>
+            <h4>Speculative Decoding</h4>
+          </div>
+          <p>Draft model + verification. 2-3x speedup. Zero quality loss. Requires a compatible small-large model pair.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 10: EXAM FOCUS
+    ════════════════════════════════════════════ -->
+    <section class="section" id="exam-focus">
+      <div class="section-header">
+        <div class="section-num">10</div>
+        <h2>Exam Focus: Fine-Tuning vs Prompt Engineering</h2>
+      </div>
+
+      <p>
+        One of the most frequently tested topics is knowing when to use prompt engineering versus fine-tuning.
+        This decision tree will help you on exam day:
+      </p>
+
+      <h3>Use Prompt Engineering When:</h3>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          The base model <strong>already knows</strong> the domain (general knowledge, common tasks)
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          You need to <strong>iterate quickly</strong> without training infrastructure
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          You have <strong>no training data</strong> or very limited examples
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          The task can be solved with <strong>few-shot examples</strong> in the prompt
+        </li>
+      </ul>
+
+      <h3>Use Fine-Tuning When:</h3>
+
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          The model needs <strong>domain-specific knowledge</strong> not in pre-training data (medical, legal, proprietary)
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          You need <strong>consistent output format</strong> or style that prompting cannot reliably achieve
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          You have <strong>hundreds+ labeled examples</strong> of desired input-output pairs
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Prompt engineering results are <strong>not meeting quality targets</strong> despite optimization
+        </li>
+        <li>
+          <div class="check-box done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          You want to <strong>reduce token usage</strong> (fine-tuned models need shorter prompts)
+        </li>
+      </ul>
+
+      <h3>Model Selection Decision Matrix</h3>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">1</div>
+            <h4>Maximum Quality</h4>
+          </div>
+          <p>Choose <strong>Gemini Pro</strong>. Accepts highest cost and latency for best reasoning, long context, and multimodal capability.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">2</div>
+            <h4>Speed &amp; Cost at Scale</h4>
+          </div>
+          <p>Choose <strong>Gemini Flash</strong>. Best cost-performance ratio for production workloads. Still high quality for most tasks.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">3</div>
+            <h4>Self-Hosted / Private</h4>
+          </div>
+          <p>Choose <strong>Gemma</strong>. Open weights, no API costs, full data control. Deploy on GKE, Cloud Run, or on-premises.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">4</div>
+            <h4>Simple Classification</h4>
+          </div>
+          <p>Consider <strong>traditional ML</strong> (AutoML, BigQuery ML). Faster, cheaper, deterministic. No need for generative capabilities.</p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Exam Strategy</div>
+        <p>The exam always rewards the <strong>simplest effective solution</strong>. Start with prompt engineering. If that fails, try fine-tuning. If you need full control, use open models. If the task does not require generation, skip LLMs entirely and use traditional ML. Cost-effectiveness and operational simplicity are valued over technical sophistication.</p>
+      </div>
+    </section>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous</div>
+        <a href="11-intro-generative-ai.html" class="next-btn prev-btn">
+          &larr; 11 &middot; Intro to Generative AI
+        </a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next</div>
+        <a href="13-mlops-generative-ai.html" class="next-btn">
+          13 &middot; MLOps for GenAI &rarr;
+        </a>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Build &amp; Deploy ML Solutions on Vertex AI — CareerAlign GCP MLE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --phase-prereq:    #64748b;
+  --phase-found:     #3b82f6;
+  --phase-api:       #06b6d4;
+  --phase-rag:       #f97316;
+  --phase-agent:     #a855f7;
+  --phase-quality:   #ef4444;
+  --phase-cloud:     #22c55e;
+  --phase-project:   #f59e0b;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 24px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--phase-found); background: rgba(59,130,246,0.15); }
+.nav-home {
+  font-size: 12.5px; font-weight: 600; color: var(--accent-indigo);
+  padding: 6px 14px; border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto;
+}
+.nav-home:hover { background: rgba(99,102,241,0.1); }
+
+/* HERO */
+.hero {
+  padding: 70px 60px 50px;
+  max-width: 1400px; margin: 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 20px; padding: 5px 14px; margin-bottom: 22px;
+  font-size: 12.5px; font-family: var(--font-display); font-weight: 600;
+  color: var(--phase-found); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700; line-height: 1.15; color: var(--text-primary);
+  max-width: 820px; margin-bottom: 20px;
+}
+.hero h1 em { font-style: normal; color: var(--phase-found); }
+.hero-desc {
+  font-size: 1.1rem; color: var(--text-secondary); max-width: 760px;
+  line-height: 1.75; margin-bottom: 36px;
+}
+.hero-checklist {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.hero-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 8px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+.hero-pill svg { color: var(--phase-found); flex-shrink: 0; }
+
+/* CONTENT */
+.content-grid {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 60px 80px;
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 0; align-items: start;
+}
+.toc {
+  position: sticky; top: 78px;
+  padding: 32px 0 32px 0;
+  border-right: 1px solid var(--border-subtle);
+  margin-right: 48px;
+}
+.toc-title {
+  font-size: 11px; font-family: var(--font-display); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+  display: block; font-size: 13px; color: var(--text-secondary);
+  padding: 6px 0; transition: color .2s;
+  border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px;
+}
+.toc a:hover { color: var(--text-primary); border-left-color: var(--phase-found); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+/* SECTION */
+.section { margin-bottom: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--phase-found); flex-shrink: 0;
+}
+.section h2 {
+  font-family: var(--font-display); font-size: 1.55rem;
+  font-weight: 700; color: var(--text-primary);
+}
+.section h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--text-primary);
+  margin: 28px 0 12px;
+}
+.section p {
+  color: var(--text-secondary); margin-bottom: 16px;
+  font-size: 1rem; line-height: 1.8;
+}
+.section p strong { color: var(--text-primary); font-weight: 600; }
+
+/* CALLOUT */
+.callout {
+  border-left: 3px solid var(--phase-found);
+  background: rgba(59,130,246,0.07);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px; margin: 20px 0;
+}
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip  { border-color: var(--phase-cloud); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--phase-project); background: rgba(245,158,11,0.07); }
+.callout-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; color: var(--phase-found);
+}
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label  { color: var(--phase-cloud); }
+.callout.warn .callout-label { color: var(--phase-project); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* CODE */
+pre {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 20px 24px;
+  overflow-x: auto; margin: 20px 0;
+}
+code {
+  font-family: var(--font-mono); font-size: 13.5px;
+  color: var(--accent-cyan); line-height: 1.65;
+}
+:not(pre) > code {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: 5px; padding: 2px 7px; font-size: 13px;
+}
+.code-comment { color: var(--text-muted); }
+.code-keyword { color: #c084fc; }
+.code-string  { color: #86efac; }
+.code-fn      { color: #67e8f9; }
+.code-num     { color: #fca5a5; }
+
+/* SVG DIAGRAM */
+.diagram-wrap {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg); padding: 32px;
+  margin: 32px 0;
+}
+.diagram-caption {
+  text-align: center; font-size: 13px; color: var(--text-muted);
+  margin-top: 16px; font-style: italic;
+}
+
+/* SKILL GRID */
+.skill-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin: 24px 0;
+}
+.skill-card {
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius); padding: 20px 22px;
+  transition: border-color .2s;
+}
+.skill-card:hover { border-color: var(--phase-found); }
+.skill-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.skill-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(59,130,246,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.skill-card h4 {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 600; color: var(--text-primary);
+}
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+/* CHECKLIST */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px; color: var(--text-secondary);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 2px solid var(--phase-found);
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.check-box.done { background: var(--phase-found); border-color: var(--phase-found); }
+
+/* NEXT PAGE */
+.next-section {
+  margin-top: 70px; padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 22px;
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--text-primary); transition: all .2s;
+}
+.next-btn:hover { border-color: var(--phase-found); color: var(--phase-found); transform: translateX(4px); }
+.prev-btn:hover { border-color: var(--phase-prereq); color: var(--phase-prereq); transform: translateX(-4px); }
+.next-phase { font-size: 12px; color: var(--phase-found); font-weight: 500; }
+
+/* FORMULA */
+.formula {
+  background: var(--bg-elevated); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 16px 22px; margin: 20px 0;
+  font-family: var(--font-mono); font-size: 14px; color: var(--accent-cyan);
+  text-align: center; letter-spacing: 0.02em;
+}
+
+/* TAB LABELS */
+.tab-row {
+  display: flex; gap: 8px; margin-bottom: -1px; padding: 0;
+}
+.tab-label {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  padding: 5px 12px; border-radius: 6px 6px 0 0;
+  background: var(--bg-overlay); color: var(--text-muted);
+  border: 1px solid var(--border-default); border-bottom: none;
+}
+.tab-label.plain { color: var(--phase-cloud); }
+.tab-label.deep  { color: var(--accent-violet); }
+
+/* TABLE */
+table {
+  width: 100%; border-collapse: collapse; margin: 20px 0;
+  font-size: 14px;
+}
+th, td {
+  text-align: left; padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+th {
+  font-family: var(--font-display); font-weight: 600;
+  color: var(--text-primary); background: var(--bg-surface);
+  font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em;
+}
+td { color: var(--text-secondary); }
+tr:hover td { background: var(--bg-surface); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9729; <span>CareerAlign</span> GCP MLE</div>
+  <div class="nav-links">
+    <a href="14-mlops-model-evaluation.html">14 &middot; MLOps Eval</a>
+    <a href="15-ml-pipelines-gcp.html">15 &middot; Pipelines</a>
+    <a href="16-build-deploy-vertex-ai.html" class="active">16 &middot; Vertex Deploy</a>
+    <a href="17-generative-ai-apps.html">17 &middot; GenAI Apps</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GCP MLE Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Course 16 &middot; Exam Sections 1, 3, 4, 6
+  </div>
+  <h1>Build &amp; Deploy ML Solutions on <em>Vertex AI</em></h1>
+  <p class="hero-desc">
+    From AutoML to custom training, from online endpoints to batch prediction &mdash; this module covers
+    the full lifecycle of building, deploying, and monitoring ML models on Vertex AI. Learn when to use
+    AutoML versus custom containers, how to configure endpoints for production traffic, and how to set up
+    model monitoring to catch drift before it impacts your business.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      AutoML Training
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Custom Training
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Model Deployment
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Model Monitoring
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Cost Optimization
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-mle/notebooks/16-build-deploy-vertex-ai.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#automl" class="section">1 &middot; Vertex AI AutoML</a>
+    <a href="#automl-types" class="sub">Data Types</a>
+    <a href="#automl-training" class="sub">Training Config</a>
+    <a href="#automl-config" class="section">2 &middot; AutoML Training Config</a>
+    <a href="#custom-training" class="section">3 &middot; Custom Training</a>
+    <a href="#prebuilt-vs-custom" class="sub">Pre-built vs Custom</a>
+    <a href="#custom-config" class="section">4 &middot; Custom Job Config</a>
+    <a href="#deployment" class="section">5 &middot; Model Deployment</a>
+    <a href="#online-endpoints" class="sub">Online Endpoints</a>
+    <a href="#batch-prediction" class="sub">Batch Prediction</a>
+    <a href="#endpoint-mgmt" class="section">6 &middot; Endpoint Management</a>
+    <a href="#monitoring" class="section">7 &middot; Model Monitoring</a>
+    <a href="#vertex-pipelines" class="section">8 &middot; Vertex Pipelines E2E</a>
+    <a href="#bqml-vertex" class="section">9 &middot; BQML to Vertex</a>
+    <a href="#cost" class="section">10 &middot; Cost Optimization</a>
+    <a href="#exam-focus" class="section">11 &middot; Exam Focus</a>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- SECTION 1 -->
+    <div class="section" id="automl">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Vertex AI AutoML</h2>
+      </div>
+
+      <p>
+        AutoML lets you train high-quality models <strong>without writing model code</strong>. You provide
+        a labeled dataset, select an objective (classification, regression, object detection, etc.),
+        and AutoML handles architecture search, hyperparameter tuning, and model selection.
+      </p>
+
+      <h3 id="automl-types">Supported Data Types</h3>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">T</div>
+            <h4>Tabular</h4>
+          </div>
+          <p>Classification and regression on structured data. Sources: BigQuery, CSV, Dataframe.
+          Supports feature importance, time-series forecasting, and automatic feature engineering.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">I</div>
+            <h4>Image</h4>
+          </div>
+          <p>Classification (single-label, multi-label), object detection, and image segmentation.
+          Supports import from GCS with labels in JSONL format or Vertex AI managed datasets.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">X</div>
+            <h4>Text</h4>
+          </div>
+          <p>Classification, entity extraction, and sentiment analysis. Supports plain text and
+          documents. Integrates with Document AI for structured document processing.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">V</div>
+            <h4>Video</h4>
+          </div>
+          <p>Classification, object tracking, and action recognition. Requires video data in GCS.
+          Outputs temporal annotations for each detected object or action.</p>
+        </div>
+      </div>
+
+      <h3 id="automl-training">End-to-End AutoML Workflow</h3>
+      <p>
+        The AutoML workflow follows a consistent pattern across all data types:
+        (1) Create a managed dataset, (2) Import labeled data, (3) Configure training (objective,
+        budget, column types), (4) Launch training, (5) Evaluate model metrics, (6) Deploy to endpoint.
+      </p>
+
+      <pre><code><span class="code-comment"># AutoML tabular classification — end to end</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+aiplatform.init(project=<span class="code-string">"my-project"</span>, location=<span class="code-string">"us-central1"</span>)
+
+<span class="code-comment"># Step 1: Create dataset</span>
+dataset = aiplatform.TabularDataset.create(
+    display_name=<span class="code-string">"fraud-detection-data"</span>,
+    bq_source=<span class="code-string">"bq://my-project.ml_data.fraud_features"</span>,
+)
+
+<span class="code-comment"># Step 2: Train AutoML model</span>
+job = aiplatform.AutoMLTabularTrainingJob(
+    display_name=<span class="code-string">"fraud-automl-v1"</span>,
+    optimization_prediction_type=<span class="code-string">"classification"</span>,
+    optimization_objective=<span class="code-string">"maximize-au-prc"</span>,  <span class="code-comment"># AUC-PR for imbalanced data</span>
+    column_transformations=[
+        {<span class="code-string">"numeric"</span>: {<span class="code-string">"column_name"</span>: <span class="code-string">"amount"</span>}},
+        {<span class="code-string">"categorical"</span>: {<span class="code-string">"column_name"</span>: <span class="code-string">"merchant_category"</span>}},
+        {<span class="code-string">"timestamp"</span>: {<span class="code-string">"column_name"</span>: <span class="code-string">"transaction_time"</span>}},
+    ],
+)
+
+model = job.run(
+    dataset=dataset,
+    target_column=<span class="code-string">"is_fraud"</span>,
+    budget_milli_node_hours=<span class="code-num">2000</span>,  <span class="code-comment"># 2 node-hours budget</span>
+    training_fraction_split=<span class="code-num">0.8</span>,
+    validation_fraction_split=<span class="code-num">0.1</span>,
+    test_fraction_split=<span class="code-num">0.1</span>,
+)</code></pre>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="section" id="automl-config">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>AutoML Training Configuration</h2>
+      </div>
+
+      <h3>Data Splits</h3>
+      <p>
+        Vertex AI supports three split strategies: <strong>random</strong> (default, good for i.i.d. data),
+        <strong>chronological</strong> (for time-series, uses a timestamp column), and
+        <strong>manual</strong> (you assign each row to train/validation/test via a column).
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Warning</div>
+        <p>For time-series data, always use <strong>chronological splitting</strong> to prevent data leakage.
+        Random splitting on time-dependent data means the model sees "future" data during training.</p>
+      </div>
+
+      <h3>Training Budget</h3>
+      <p>
+        <code>budget_milli_node_hours</code> controls how many node-hours AutoML searches for the best model.
+        Higher budgets produce better models but cost more. For tabular, <strong>1000 milli-node-hours
+        (1 node-hour)</strong> is the minimum; production models typically use 2000-8000.
+      </p>
+
+      <h3>Optimization Objectives</h3>
+      <table>
+        <tr>
+          <th>Objective</th>
+          <th>Task</th>
+          <th>When to Use</th>
+        </tr>
+        <tr>
+          <td><code>maximize-au-roc</code></td>
+          <td>Classification</td>
+          <td>Balanced classes, general binary classification</td>
+        </tr>
+        <tr>
+          <td><code>maximize-au-prc</code></td>
+          <td>Classification</td>
+          <td>Imbalanced classes (fraud, rare events)</td>
+        </tr>
+        <tr>
+          <td><code>minimize-log-loss</code></td>
+          <td>Classification</td>
+          <td>When probability calibration matters</td>
+        </tr>
+        <tr>
+          <td><code>minimize-rmse</code></td>
+          <td>Regression</td>
+          <td>General regression, sensitive to outliers</td>
+        </tr>
+        <tr>
+          <td><code>minimize-mae</code></td>
+          <td>Regression</td>
+          <td>Robust to outliers</td>
+        </tr>
+        <tr>
+          <td><code>minimize-rmsle</code></td>
+          <td>Regression</td>
+          <td>Relative errors matter more than absolute</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div class="section" id="custom-training">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Vertex AI Custom Training</h2>
+      </div>
+
+      <p>
+        When AutoML does not meet your requirements &mdash; custom architectures, specific frameworks
+        (PyTorch, JAX, XGBoost), or full control over training logic &mdash; use custom training jobs.
+      </p>
+
+      <h3 id="prebuilt-vs-custom">Pre-built Containers vs Custom Containers</h3>
+
+      <table>
+        <tr>
+          <th>Aspect</th>
+          <th>Pre-built Container</th>
+          <th>Custom Container</th>
+        </tr>
+        <tr>
+          <td>Use case</td>
+          <td>TensorFlow, PyTorch, XGBoost, scikit-learn</td>
+          <td>Any framework, custom C++ code, special dependencies</td>
+        </tr>
+        <tr>
+          <td>Setup</td>
+          <td>Provide a Python training script; container has framework pre-installed</td>
+          <td>Build and push a Docker image to Artifact Registry</td>
+        </tr>
+        <tr>
+          <td>GPU drivers</td>
+          <td>Pre-installed and tested by Google</td>
+          <td>You must include GPU drivers in your image</td>
+        </tr>
+        <tr>
+          <td>Maintenance</td>
+          <td>Google maintains and patches the container</td>
+          <td>You maintain the image</td>
+        </tr>
+        <tr>
+          <td>Flexibility</td>
+          <td>Limited to supported frameworks and versions</td>
+          <td>Full control over everything</td>
+        </tr>
+      </table>
+
+      <pre><code><span class="code-comment"># Custom training with a pre-built container</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+job = aiplatform.CustomTrainingJob(
+    display_name=<span class="code-string">"pytorch-fraud-model"</span>,
+    script_path=<span class="code-string">"trainer/task.py"</span>,
+    container_uri=<span class="code-string">"us-docker.pkg.dev/vertex-ai/training/pytorch-gpu.2-1:latest"</span>,
+    requirements=[<span class="code-string">"transformers==4.35.0"</span>, <span class="code-string">"wandb"</span>],
+    model_serving_container_image_uri=<span class="code-string">"us-docker.pkg.dev/vertex-ai/prediction/pytorch-gpu.2-1:latest"</span>,
+)
+
+model = job.run(
+    replica_count=<span class="code-num">1</span>,
+    machine_type=<span class="code-string">"n1-standard-8"</span>,
+    accelerator_type=<span class="code-string">"NVIDIA_TESLA_T4"</span>,
+    accelerator_count=<span class="code-num">1</span>,
+    args=[<span class="code-string">"--epochs"</span>, <span class="code-string">"10"</span>, <span class="code-string">"--batch_size"</span>, <span class="code-string">"32"</span>],
+)</code></pre>
+
+      <pre><code><span class="code-comment"># Custom training with a custom container</span>
+job = aiplatform.CustomContainerTrainingJob(
+    display_name=<span class="code-string">"custom-jax-model"</span>,
+    container_uri=<span class="code-string">"us-central1-docker.pkg.dev/my-project/ml-images/jax-trainer:v1"</span>,
+    model_serving_container_image_uri=<span class="code-string">"us-central1-docker.pkg.dev/my-project/ml-images/jax-server:v1"</span>,
+)
+
+model = job.run(
+    replica_count=<span class="code-num">1</span>,
+    machine_type=<span class="code-string">"a2-highgpu-1g"</span>,  <span class="code-comment"># A100 GPU</span>
+    args=[<span class="code-string">"--config"</span>, <span class="code-string">"gs://my-bucket/config.yaml"</span>],
+)</code></pre>
+    </div>
+
+    <!-- SECTION 4 -->
+    <div class="section" id="custom-config">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Custom Training Job Configuration</h2>
+      </div>
+
+      <h3>Machine Types and Accelerators</h3>
+      <table>
+        <tr>
+          <th>Machine Type</th>
+          <th>vCPUs</th>
+          <th>Memory</th>
+          <th>Use Case</th>
+        </tr>
+        <tr>
+          <td><code>n1-standard-4</code></td>
+          <td>4</td>
+          <td>15 GB</td>
+          <td>Small models, preprocessing</td>
+        </tr>
+        <tr>
+          <td><code>n1-standard-16</code></td>
+          <td>16</td>
+          <td>60 GB</td>
+          <td>Medium models, scikit-learn, XGBoost</td>
+        </tr>
+        <tr>
+          <td><code>n1-highmem-32</code></td>
+          <td>32</td>
+          <td>208 GB</td>
+          <td>Large datasets in memory</td>
+        </tr>
+        <tr>
+          <td><code>a2-highgpu-1g</code></td>
+          <td>12</td>
+          <td>85 GB + A100</td>
+          <td>Deep learning, LLM fine-tuning</td>
+        </tr>
+      </table>
+
+      <h3>GPU Options</h3>
+      <table>
+        <tr>
+          <th>Accelerator</th>
+          <th>Memory</th>
+          <th>Best For</th>
+        </tr>
+        <tr>
+          <td><code>NVIDIA_TESLA_T4</code></td>
+          <td>16 GB</td>
+          <td>Cost-effective training, inference</td>
+        </tr>
+        <tr>
+          <td><code>NVIDIA_TESLA_V100</code></td>
+          <td>16 GB</td>
+          <td>General deep learning training</td>
+        </tr>
+        <tr>
+          <td><code>NVIDIA_TESLA_A100</code></td>
+          <td>40/80 GB</td>
+          <td>Large model training, mixed precision</td>
+        </tr>
+        <tr>
+          <td><code>TPU_V3</code></td>
+          <td>128 GB HBM</td>
+          <td>TensorFlow/JAX at scale (pods)</td>
+        </tr>
+      </table>
+
+      <h3>Distributed Training</h3>
+      <p>
+        Vertex AI supports distributed training out of the box. Configure a <strong>worker pool spec</strong>
+        with multiple replicas. The service handles node provisioning, communication setup (NCCL for GPUs),
+        and environment variables (<code>TF_CONFIG</code>, <code>MASTER_ADDR</code>/<code>MASTER_PORT</code>
+        for PyTorch).
+      </p>
+
+      <pre><code><span class="code-comment"># Distributed training: 1 chief + 3 workers</span>
+job = aiplatform.CustomJob(
+    display_name=<span class="code-string">"distributed-training"</span>,
+    worker_pool_specs=[
+        {  <span class="code-comment"># Chief (worker pool 0)</span>
+            <span class="code-string">"machine_spec"</span>: {
+                <span class="code-string">"machine_type"</span>: <span class="code-string">"n1-standard-8"</span>,
+                <span class="code-string">"accelerator_type"</span>: <span class="code-string">"NVIDIA_TESLA_V100"</span>,
+                <span class="code-string">"accelerator_count"</span>: <span class="code-num">2</span>,
+            },
+            <span class="code-string">"replica_count"</span>: <span class="code-num">1</span>,
+            <span class="code-string">"container_spec"</span>: {
+                <span class="code-string">"image_uri"</span>: <span class="code-string">"us-docker.pkg.dev/vertex-ai/training/tf-gpu.2-14:latest"</span>,
+                <span class="code-string">"command"</span>: [<span class="code-string">"python"</span>, <span class="code-string">"trainer/task.py"</span>],
+            },
+        },
+        {  <span class="code-comment"># Workers (worker pool 1)</span>
+            <span class="code-string">"machine_spec"</span>: {
+                <span class="code-string">"machine_type"</span>: <span class="code-string">"n1-standard-8"</span>,
+                <span class="code-string">"accelerator_type"</span>: <span class="code-string">"NVIDIA_TESLA_V100"</span>,
+                <span class="code-string">"accelerator_count"</span>: <span class="code-num">2</span>,
+            },
+            <span class="code-string">"replica_count"</span>: <span class="code-num">3</span>,
+            <span class="code-string">"container_spec"</span>: {
+                <span class="code-string">"image_uri"</span>: <span class="code-string">"us-docker.pkg.dev/vertex-ai/training/tf-gpu.2-14:latest"</span>,
+                <span class="code-string">"command"</span>: [<span class="code-string">"python"</span>, <span class="code-string">"trainer/task.py"</span>],
+            },
+        },
+    ],
+)
+job.run()</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>For distributed TensorFlow, Vertex AI automatically sets <code>TF_CONFIG</code> with cluster
+        info. For PyTorch, it sets <code>MASTER_ADDR</code>, <code>MASTER_PORT</code>, <code>WORLD_SIZE</code>,
+        and <code>RANK</code>. Your training script must use these environment variables.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 5 -->
+    <div class="section" id="deployment">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Model Deployment</h2>
+      </div>
+
+      <h3 id="online-endpoints">Online Endpoints</h3>
+      <p>
+        Online endpoints serve real-time predictions with low latency. Vertex AI offers two types:
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">D</div>
+            <h4>Dedicated Endpoints</h4>
+          </div>
+          <p>Always-on VMs with configurable machine type and accelerator. You control replica count
+          and auto-scaling. Best for production workloads with predictable traffic patterns.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">S</div>
+            <h4>Serverless Endpoints</h4>
+          </div>
+          <p>Fully managed, pay-per-prediction. No infrastructure config required. Vertex AI handles
+          scaling. Best for bursty or unpredictable traffic, or getting started quickly.</p>
+        </div>
+      </div>
+
+      <pre><code><span class="code-comment"># Deploy a model to a dedicated endpoint</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+<span class="code-comment"># Create endpoint</span>
+endpoint = aiplatform.Endpoint.create(
+    display_name=<span class="code-string">"fraud-detection-endpoint"</span>,
+)
+
+<span class="code-comment"># Deploy model to endpoint</span>
+model = aiplatform.Model(<span class="code-string">"projects/my-project/locations/us-central1/models/123456"</span>)
+
+model.deploy(
+    endpoint=endpoint,
+    deployed_model_display_name=<span class="code-string">"fraud-model-v1"</span>,
+    machine_type=<span class="code-string">"n1-standard-4"</span>,
+    min_replica_count=<span class="code-num">1</span>,
+    max_replica_count=<span class="code-num">5</span>,
+    accelerator_type=<span class="code-string">"NVIDIA_TESLA_T4"</span>,
+    accelerator_count=<span class="code-num">1</span>,
+    traffic_percentage=<span class="code-num">100</span>,
+)
+
+<span class="code-comment"># Make a prediction</span>
+response = endpoint.predict(instances=[
+    {<span class="code-string">"amount"</span>: <span class="code-num">150.0</span>, <span class="code-string">"merchant_category"</span>: <span class="code-string">"electronics"</span>, <span class="code-string">"hour"</span>: <span class="code-num">23</span>}
+])
+print(response.predictions)</code></pre>
+
+      <h3 id="batch-prediction">Batch Prediction</h3>
+      <p>
+        For large-scale offline scoring (millions of rows), use batch prediction. Input data comes from
+        BigQuery, GCS (JSONL, CSV, TFRecord), and results are written to BigQuery or GCS. Batch prediction
+        auto-scales compute and is more cost-effective than online endpoints for bulk processing.
+      </p>
+
+      <pre><code><span class="code-comment"># Batch prediction from BigQuery</span>
+batch_job = model.batch_predict(
+    job_display_name=<span class="code-string">"fraud-batch-scoring"</span>,
+    bigquery_source=<span class="code-string">"bq://my-project.ml_data.new_transactions"</span>,
+    bigquery_destination_prefix=<span class="code-string">"bq://my-project.ml_data"</span>,
+    instances_format=<span class="code-string">"bigquery"</span>,
+    predictions_format=<span class="code-string">"bigquery"</span>,
+    machine_type=<span class="code-string">"n1-standard-4"</span>,
+    max_replica_count=<span class="code-num">10</span>,
+    starting_replica_count=<span class="code-num">2</span>,
+)</code></pre>
+    </div>
+
+    <!-- SECTION 6 -->
+    <div class="section" id="endpoint-mgmt">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Endpoint Management</h2>
+      </div>
+
+      <h3>Traffic Splitting</h3>
+      <p>
+        A single endpoint can host <strong>multiple deployed models</strong>. You control what percentage
+        of traffic goes to each model. This enables A/B testing and canary deployments.
+      </p>
+
+      <pre><code><span class="code-comment"># Deploy two models with traffic splitting</span>
+<span class="code-comment"># Model A: existing model (90% traffic)</span>
+<span class="code-comment"># Model B: new candidate (10% traffic)</span>
+
+endpoint.deploy(
+    model=model_v2,
+    deployed_model_display_name=<span class="code-string">"fraud-model-v2"</span>,
+    machine_type=<span class="code-string">"n1-standard-4"</span>,
+    min_replica_count=<span class="code-num">1</span>,
+    max_replica_count=<span class="code-num">3</span>,
+    traffic_percentage=<span class="code-num">10</span>,  <span class="code-comment"># 10% canary</span>
+)
+
+<span class="code-comment"># Update traffic split after validation</span>
+endpoint.update(traffic_split={
+    <span class="code-string">"deployed-model-id-v1"</span>: <span class="code-num">50</span>,
+    <span class="code-string">"deployed-model-id-v2"</span>: <span class="code-num">50</span>,
+})</code></pre>
+
+      <h3>Canary Deployment Pattern</h3>
+      <p>
+        A typical canary rollout: (1) Deploy new model with 5-10% traffic, (2) Monitor error rates
+        and latency for 24-48 hours, (3) If metrics are stable, increase to 50%, (4) After further
+        validation, shift to 100%, (5) Undeploy the old model.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">A/B Testing vs Canary</div>
+        <p><strong>A/B testing</strong> runs two models simultaneously to compare business metrics
+        (click-through, conversion). <strong>Canary</strong> gradually shifts traffic to validate
+        operational stability (latency, errors) before full rollout. Both use traffic splitting.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 7 -->
+    <div class="section" id="monitoring">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Model Monitoring on Endpoints</h2>
+      </div>
+
+      <p>
+        Models degrade over time as the real world changes. Vertex AI Model Monitoring continuously
+        analyzes prediction requests and alerts you when data distributions shift beyond configured
+        thresholds.
+      </p>
+
+      <h3>Types of Drift</h3>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">P</div>
+            <h4>Prediction Drift</h4>
+          </div>
+          <p>The distribution of model predictions changes over time. Example: a fraud model starts
+          predicting fraud for 20% of transactions instead of the baseline 2%. Detected by comparing
+          recent predictions against a baseline distribution.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">F</div>
+            <h4>Feature Skew</h4>
+          </div>
+          <p>The distribution of input features at serving time differs from training data. Example:
+          a new merchant category appears that was not in training data. This is
+          <strong>training-serving skew</strong>.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">A</div>
+            <h4>Attribution Drift</h4>
+          </div>
+          <p>Feature importance changes over time. A feature that was the top predictor during training
+          becomes less important at serving time, suggesting the model's reasoning is no longer
+          aligned with current data patterns.</p>
+        </div>
+      </div>
+
+      <pre><code><span class="code-comment"># Configure model monitoring on an endpoint</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+<span class="code-comment"># Create monitoring job</span>
+monitoring_job = aiplatform.ModelDeploymentMonitoringJob.create(
+    display_name=<span class="code-string">"fraud-model-monitoring"</span>,
+    endpoint=endpoint,
+    logging_sampling_strategy={
+        <span class="code-string">"random_sample_config"</span>: {<span class="code-string">"sample_rate"</span>: <span class="code-num">0.8</span>}  <span class="code-comment"># sample 80% of requests</span>
+    },
+    monitoring_frequency=<span class="code-num">1</span>,  <span class="code-comment"># hours between analysis runs</span>
+    monitoring_config={
+        <span class="code-string">"skew_detection_config"</span>: {
+            <span class="code-string">"data_source"</span>: <span class="code-string">"bq://my-project.ml_data.training_data"</span>,
+            <span class="code-string">"skew_thresholds"</span>: {
+                <span class="code-string">"amount"</span>: {<span class="code-string">"value"</span>: <span class="code-num">0.3</span>},
+                <span class="code-string">"merchant_category"</span>: {<span class="code-string">"value"</span>: <span class="code-num">0.3</span>},
+            },
+        },
+        <span class="code-string">"drift_detection_config"</span>: {
+            <span class="code-string">"drift_thresholds"</span>: {
+                <span class="code-string">"amount"</span>: {<span class="code-string">"value"</span>: <span class="code-num">0.3</span>},
+                <span class="code-string">"merchant_category"</span>: {<span class="code-string">"value"</span>: <span class="code-num">0.3</span>},
+            },
+        },
+    },
+    alert_config={
+        <span class="code-string">"email_alert_config"</span>: {
+            <span class="code-string">"user_emails"</span>: [<span class="code-string">"ml-team@company.com"</span>]
+        }
+    },
+)</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Alert</div>
+        <p>The exam tests the distinction between <strong>skew</strong> (training vs serving distribution mismatch)
+        and <strong>drift</strong> (serving distribution changes over time). Skew needs training data as baseline;
+        drift uses recent predictions as baseline.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 8 -->
+    <div class="section" id="vertex-pipelines">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <h2>Vertex AI Pipelines for End-to-End Workflows</h2>
+      </div>
+
+      <p>
+        Vertex AI Pipelines ties together training, evaluation, and deployment into a single automated
+        workflow. Google provides <strong>pre-built pipeline components</strong> for common operations.
+      </p>
+
+      <pre><code><span class="code-comment"># End-to-end pipeline: AutoML train -> evaluate -> deploy</span>
+<span class="code-keyword">from</span> kfp <span class="code-keyword">import</span> dsl
+<span class="code-keyword">from</span> google_cloud_pipeline_components.v1.automl.training_job <span class="code-keyword">import</span> (
+    AutoMLTabularTrainingJobRunOp
+)
+<span class="code-keyword">from</span> google_cloud_pipeline_components.v1.endpoint <span class="code-keyword">import</span> (
+    EndpointCreateOp, ModelDeployOp
+)
+
+<span class="code-fn">@dsl.pipeline</span>(name=<span class="code-string">"automl-train-deploy"</span>)
+<span class="code-keyword">def</span> <span class="code-fn">automl_pipeline</span>(project: str, location: str):
+    <span class="code-comment"># Train</span>
+    training_op = AutoMLTabularTrainingJobRunOp(
+        project=project,
+        display_name=<span class="code-string">"fraud-automl"</span>,
+        optimization_prediction_type=<span class="code-string">"classification"</span>,
+        dataset=<span class="code-string">"projects/.../datasets/..."</span>,
+        target_column=<span class="code-string">"is_fraud"</span>,
+        budget_milli_node_hours=<span class="code-num">2000</span>,
+    )
+
+    <span class="code-comment"># Create endpoint</span>
+    endpoint_op = EndpointCreateOp(
+        project=project,
+        display_name=<span class="code-string">"fraud-endpoint"</span>,
+    )
+
+    <span class="code-comment"># Deploy model to endpoint</span>
+    deploy_op = ModelDeployOp(
+        model=training_op.outputs[<span class="code-string">"model"</span>],
+        endpoint=endpoint_op.outputs[<span class="code-string">"endpoint"</span>],
+        dedicated_resources_machine_type=<span class="code-string">"n1-standard-4"</span>,
+        dedicated_resources_min_replica_count=<span class="code-num">1</span>,
+        dedicated_resources_max_replica_count=<span class="code-num">3</span>,
+    )</code></pre>
+    </div>
+
+    <!-- SECTION 9 -->
+    <div class="section" id="bqml-vertex">
+      <div class="section-header">
+        <div class="section-num">09</div>
+        <h2>BigQuery ML to Vertex AI Endpoint</h2>
+      </div>
+
+      <p>
+        BigQuery ML lets you train models using SQL. Once trained, you can <strong>export a BQML model</strong>
+        and deploy it to a Vertex AI Endpoint for low-latency online serving.
+      </p>
+
+      <pre><code><span class="code-comment">-- Step 1: Train in BigQuery ML</span>
+<span class="code-keyword">CREATE OR REPLACE</span> MODEL `my_project.ml_data.fraud_model`
+OPTIONS(
+  model_type=<span class="code-string">'BOOSTED_TREE_CLASSIFIER'</span>,
+  input_label_cols=[<span class="code-string">'is_fraud'</span>],
+  max_iterations=<span class="code-num">50</span>,
+  learn_rate=<span class="code-num">0.1</span>
+) <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> `my_project.ml_data.training_features`;</code></pre>
+
+      <pre><code><span class="code-comment"># Step 2: Export BQML model to Vertex AI Model Registry</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> aiplatform
+
+<span class="code-comment"># Register BQML model in Vertex AI</span>
+model = aiplatform.Model.upload(
+    display_name=<span class="code-string">"bqml-fraud-model"</span>,
+    artifact_uri=<span class="code-string">"bq://my-project.ml_data.fraud_model"</span>,
+    serving_container_image_uri=<span class="code-string">"us-docker.pkg.dev/vertex-ai/prediction/tf2-cpu.2-14:latest"</span>,
+)
+
+<span class="code-comment"># Step 3: Deploy to endpoint</span>
+endpoint = model.deploy(
+    machine_type=<span class="code-string">"n1-standard-4"</span>,
+    min_replica_count=<span class="code-num">1</span>,
+    max_replica_count=<span class="code-num">3</span>,
+)</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">When to Use BQML + Vertex</div>
+        <p>This pattern works best when your data team builds models in SQL and your ML engineering team
+        handles deployment. BQML supports boosted trees, DNNs, linear models, and ARIMA+. For complex
+        architectures, use custom training instead.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 10 -->
+    <div class="section" id="cost">
+      <div class="section-header">
+        <div class="section-num">10</div>
+        <h2>Cost Optimization</h2>
+      </div>
+
+      <h3>Auto-scaling Configuration</h3>
+      <p>
+        The most important cost lever for online endpoints is <strong>auto-scaling</strong>. Set
+        <code>min_replica_count</code> to handle baseline traffic and <code>max_replica_count</code>
+        for peak loads. Vertex AI scales based on CPU utilization, GPU utilization, or request count.
+      </p>
+
+      <table>
+        <tr>
+          <th>Strategy</th>
+          <th>Configuration</th>
+          <th>Trade-off</th>
+        </tr>
+        <tr>
+          <td><strong>Scale to zero</strong></td>
+          <td><code>min_replica_count=0</code></td>
+          <td>Zero cost when idle, but cold start latency (30-60s)</td>
+        </tr>
+        <tr>
+          <td><strong>Always warm</strong></td>
+          <td><code>min_replica_count=1</code></td>
+          <td>Constant baseline cost, no cold start</td>
+        </tr>
+        <tr>
+          <td><strong>Production</strong></td>
+          <td><code>min=2, max=10</code></td>
+          <td>High availability (multi-replica), scales with traffic</td>
+        </tr>
+      </table>
+
+      <h3>Additional Cost Strategies</h3>
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"></div>
+          <strong>Batch prediction</strong> for non-real-time workloads &mdash; cheaper than keeping endpoints alive
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>Spot/preemptible VMs</strong> for training jobs (<code>scheduling={"disable_retries": false}</code>)
+          &mdash; 60-91% cheaper, but can be preempted
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>Right-size machine types</strong> &mdash; profile your model to find the cheapest machine
+          that meets latency SLOs
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>Pipeline caching</strong> &mdash; avoid re-running unchanged pipeline steps
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>Model compression</strong> &mdash; quantization and distillation reduce serving cost by
+          requiring smaller machines
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>Regional selection</strong> &mdash; us-central1 is often cheapest for Vertex AI resources
+        </li>
+      </ul>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Pattern</div>
+        <p>Cost questions often present a scenario with constraints (latency SLO, budget, traffic pattern)
+        and ask you to pick the optimal deployment config. Always consider: is the traffic predictable?
+        Can you tolerate cold starts? Is batch prediction sufficient?</p>
+      </div>
+    </div>
+
+    <!-- SECTION 11 -->
+    <div class="section" id="exam-focus">
+      <div class="section-header">
+        <div class="section-num">11</div>
+        <h2>Exam Focus</h2>
+      </div>
+
+      <h3>AutoML vs Custom Training</h3>
+      <div class="callout">
+        <div class="callout-label">Decision Framework</div>
+        <p><strong>Use AutoML when:</strong> You have labeled data, a standard task (classification,
+        regression, object detection), limited ML engineering resources, or need a quick baseline. <br>
+        <strong>Use custom training when:</strong> You need a specific architecture, custom loss function,
+        unsupported framework, or full control over the training loop.</p>
+      </div>
+
+      <h3>Deployment Strategy Selection</h3>
+      <ul class="checklist">
+        <li>
+          <div class="check-box done"></div>
+          <strong>Real-time, low latency (&lt;100ms)?</strong> Dedicated online endpoint with GPU
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>Real-time, variable traffic?</strong> Dedicated endpoint with auto-scaling (min=1)
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>Occasional requests, cost-sensitive?</strong> Serverless endpoint or scale-to-zero
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>Millions of predictions, not real-time?</strong> Batch prediction
+        </li>
+        <li>
+          <div class="check-box done"></div>
+          <strong>Multiple model versions in production?</strong> Traffic splitting on endpoint
+        </li>
+      </ul>
+
+      <h3>Monitoring Setup</h3>
+      <p>
+        For the exam, know that model monitoring requires: (1) a <strong>training dataset</strong> as
+        baseline for skew detection, (2) <strong>sampling rate</strong> configuration (how much prediction
+        traffic to log), (3) <strong>alert thresholds</strong> for each feature, and (4)
+        <strong>notification channels</strong> (email, Cloud Monitoring).
+      </p>
+
+      <div class="callout tip">
+        <div class="callout-label">Key Exam Patterns</div>
+        <p>When the exam describes model performance degradation after deployment: the answer is almost
+        always "set up model monitoring for prediction drift and feature skew" &mdash; not "retrain immediately"
+        or "add more training data." Monitoring gives you the signal; retraining is the response.</p>
+      </div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous</div>
+        <a href="15-ml-pipelines-gcp.html" class="next-btn prev-btn">
+          &larr; 15 &middot; ML Pipelines on GCP
+        </a>
+      </div>
+      <div style="text-align: right;">
+        <div class="next-label">Next</div>
+        <a href="17-generative-ai-apps.html" class="next-btn">
+          17 &middot; Generative AI Apps &rarr;
+        </a>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /content-grid -->
+
+</body>
+</html>
