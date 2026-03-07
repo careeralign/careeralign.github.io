@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Managing Implementation — CareerAlign GCP PCA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #a855f7;
+  --page-color-04: rgba(168,85,247,0.04);
+  --page-color-07: rgba(168,85,247,0.07);
+  --page-color-12: rgba(168,85,247,0.12);
+  --page-color-15: rgba(168,85,247,0.15);
+  --page-color-25: rgba(168,85,247,0.25);
+  --page-color-30: rgba(168,85,247,0.3);
+}
+:root {
+  --bg-base:#0b0d14;--bg-surface:#10131e;--bg-elevated:#171c2e;--bg-overlay:#1e2438;
+  --border-subtle:#1a1f34;--border-default:#232840;--border-strong:#2e3554;
+  --text-primary:#e6e8f4;--text-secondary:#8e94b5;--text-muted:#545a78;
+  --accent-indigo:#6366f1;--accent-cyan:#22d3ee;--accent-violet:#a855f7;
+  --accent-green:#22c55e;--accent-amber:#f59e0b;--accent-red:#ef4444;
+  --font-display:'Space Grotesk',sans-serif;--font-body:'Nunito',sans-serif;--font-mono:'JetBrains Mono',monospace;
+  --radius:12px;--radius-sm:8px;--radius-lg:18px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{background:var(--bg-base);color:var(--text-primary);font-family:var(--font-body);font-size:16px;line-height:1.7;min-height:100vh}
+a{color:inherit;text-decoration:none}img,svg{display:block}
+.nav{position:sticky;top:0;z-index:100;background:rgba(11,13,20,0.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border-subtle);padding:0 32px;display:flex;align-items:center;height:58px;gap:24px}
+.nav-logo{font-family:var(--font-display);font-weight:700;font-size:17px;color:var(--text-primary);display:flex;align-items:center;gap:9px;white-space:nowrap}.nav-logo span{color:var(--page-color)}
+.nav-links{display:flex;gap:6px;flex:1;flex-wrap:wrap;overflow:hidden}.nav-links a{font-size:12px;font-weight:500;color:var(--text-muted);padding:4px 8px;border-radius:6px;transition:all .2s;white-space:nowrap}.nav-links a:hover{color:var(--text-primary);background:var(--bg-elevated)}.nav-links a.active{color:var(--page-color);background:var(--page-color-15)}
+.nav-home{font-size:12.5px;font-weight:600;color:var(--page-color);padding:6px 14px;border:1px solid var(--page-color-30);border-radius:7px;transition:all .2s;white-space:nowrap;margin-left:auto}.nav-home:hover{background:var(--page-color-12)}
+.hero{padding:70px 60px 50px;max-width:1400px;margin:0 auto;border-bottom:1px solid var(--border-subtle)}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:var(--page-color-12);border:1px solid var(--page-color-25);border-radius:20px;padding:5px 14px;margin-bottom:22px;font-size:12.5px;font-family:var(--font-display);font-weight:600;color:var(--page-color);letter-spacing:0.04em;text-transform:uppercase}
+.hero h1{font-family:var(--font-display);font-size:clamp(2.2rem,4vw,3.4rem);font-weight:700;line-height:1.15;color:var(--text-primary);max-width:820px;margin-bottom:20px}.hero h1 em{font-style:normal;color:var(--page-color)}
+.hero-desc{font-size:1.1rem;color:var(--text-secondary);max-width:760px;line-height:1.75;margin-bottom:36px}
+.hero-checklist{display:flex;gap:12px;flex-wrap:wrap}.hero-pill{display:flex;align-items:center;gap:7px;background:var(--bg-surface);border:1px solid var(--border-default);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--text-secondary)}.hero-pill svg{color:var(--page-color);flex-shrink:0}
+.content-grid{max-width:1400px;margin:0 auto;padding:0 60px 80px;display:grid;grid-template-columns:260px 1fr;gap:0;align-items:start}
+.toc{position:sticky;top:78px;padding:32px 0;border-right:1px solid var(--border-subtle);margin-right:48px}.toc-title{font-size:11px;font-family:var(--font-display);font-weight:700;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-subtle)}.toc a{display:block;font-size:13px;color:var(--text-secondary);padding:6px 0;transition:color .2s;border-left:2px solid transparent;padding-left:12px;margin-left:-2px}.toc a:hover{color:var(--text-primary);border-left-color:var(--page-color)}.toc a.section{font-weight:600;color:var(--text-primary);font-size:12.5px;margin-top:8px}.toc a.sub{padding-left:24px;font-size:12px}
+.main{padding:40px 0}
+.section{margin-bottom:60px}.section-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border-subtle)}.section-num{width:36px;height:36px;border-radius:50%;background:var(--page-color-15);border:1px solid var(--page-color-30);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--page-color);flex-shrink:0}
+.section h2{font-family:var(--font-display);font-size:1.55rem;font-weight:700;color:var(--text-primary)}.section h3{font-family:var(--font-display);font-size:1.15rem;font-weight:600;color:var(--text-primary);margin:28px 0 12px}.section p{color:var(--text-secondary);margin-bottom:16px;font-size:1rem;line-height:1.8}.section p strong{color:var(--text-primary);font-weight:600}.section ul,.section ol{color:var(--text-secondary);margin:0 0 16px 24px;font-size:1rem;line-height:1.8}.section li{margin-bottom:6px}.section li strong{color:var(--text-primary);font-weight:600}
+.callout{border-left:3px solid var(--page-color);background:var(--page-color-07);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:16px 20px;margin:20px 0}.callout.info{border-color:var(--accent-indigo);background:rgba(99,102,241,0.07)}.callout.tip{border-color:var(--page-color);background:var(--page-color-07)}.callout.warn{border-color:var(--accent-amber);background:rgba(245,158,11,0.07)}.callout.exam{border-color:var(--accent-red);background:rgba(239,68,68,0.07)}
+.callout-label{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;color:var(--page-color)}.callout.info .callout-label{color:var(--accent-indigo)}.callout.warn .callout-label{color:var(--accent-amber)}.callout.exam .callout-label{color:var(--accent-red)}.callout p{margin:0;color:var(--text-secondary);font-size:0.95rem}
+pre{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:20px 24px;overflow-x:auto;margin:20px 0}code{font-family:var(--font-mono);font-size:13.5px;color:var(--accent-cyan);line-height:1.65}:not(pre)>code{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:5px;padding:2px 7px;font-size:13px}
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:24px 0}.skill-card{background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--radius);padding:20px 22px;transition:border-color .2s}.skill-card:hover{border-color:var(--page-color)}.skill-card-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}.skill-icon{width:32px;height:32px;border-radius:8px;background:var(--page-color-15);display:flex;align-items:center;justify-content:center;font-size:15px}.skill-card h4{font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--text-primary)}.skill-card p{font-size:13px;color:var(--text-secondary);margin:0;line-height:1.6}
+.data-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}.data-table th{background:var(--bg-elevated);color:var(--text-primary);font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:0.04em;text-transform:uppercase;padding:12px 16px;text-align:left;border-bottom:2px solid var(--border-strong)}.data-table td{padding:10px 16px;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle)}.data-table tr:hover td{background:var(--bg-surface)}.data-table td strong{color:var(--text-primary)}
+.comp-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:13.5px}.comp-table th{background:var(--bg-elevated);color:var(--text-primary);font-family:var(--font-display);font-weight:600;font-size:11.5px;letter-spacing:0.04em;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:2px solid var(--border-strong)}.comp-table td{padding:9px 14px;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle)}.comp-table tr:hover td{background:var(--bg-surface)}.comp-table td strong{color:var(--text-primary)}
+.next-section{margin-top:70px;padding-top:40px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center}.next-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;font-family:var(--font-display)}.next-btn{display:inline-flex;align-items:center;gap:10px;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:var(--radius);padding:14px 22px;font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--text-primary);transition:all .2s}.next-btn:hover{border-color:var(--page-color);color:var(--page-color);transform:translateX(4px)}.prev-btn:hover{border-color:var(--text-muted);color:var(--text-muted);transform:translateX(-4px)}.next-phase{font-size:12px;color:var(--page-color);font-weight:500}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">&#9729;&#65039; <span>CareerAlign</span> GCP PCA</div>
+  <div class="nav-links">
+    <a href="01-designing-cloud-solutions.html">01 &middot; Design</a>
+    <a href="02-provisioning-infrastructure.html">02 &middot; Provision</a>
+    <a href="03-security-compliance.html">03 &middot; Security</a>
+    <a href="04-analyzing-optimizing.html">04 &middot; Optimize</a>
+    <a href="05-managing-implementation.html" class="active">05 &middot; Implement</a>
+    <a href="06-operations-excellence.html">06 &middot; Operations</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; PCA Hub</a>
+</nav>
+
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Section 05 &middot; Managing Implementation (~12.5%)
+  </div>
+  <h1>Managing <em>Implementation</em></h1>
+  <p class="hero-desc">
+    Deployment strategies, API management with Apigee, testing frameworks, Gemini Cloud Assist,
+    Cloud SDKs, and Infrastructure as Code with Terraform.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Terraform &amp; IaC</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Apigee API Management</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Deployment Strategies</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Gemini Cloud Assist</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Cloud SDKs</div>
+  </div>
+  <div style="margin-top:20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-pca/notebooks/05-managing-implementation.ipynb" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"> Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#terraform" class="section">1 &middot; Terraform &amp; IaC</a>
+    <a href="#terraform-state" class="sub">State Management</a>
+    <a href="#terraform-modules" class="sub">Module Patterns</a>
+    <a href="#terraform-cicd" class="sub">Terraform in CI/CD</a>
+    <a href="#apigee" class="section">2 &middot; Apigee API Management</a>
+    <a href="#apigee-arch" class="sub">Architecture</a>
+    <a href="#apigee-policies" class="sub">Policies &amp; Features</a>
+    <a href="#deployment" class="section">3 &middot; Deployment Strategies</a>
+    <a href="#deployment-types" class="sub">Strategy Comparison</a>
+    <a href="#deployment-rollback" class="sub">Rollback Patterns</a>
+    <a href="#gemini" class="section">4 &middot; Gemini Cloud Assist</a>
+    <a href="#gemini-capabilities" class="sub">Capabilities</a>
+    <a href="#sdks" class="section">5 &middot; Cloud SDKs &amp; Tools</a>
+    <a href="#sdks-gcloud" class="sub">gcloud Deep Dive</a>
+    <a href="#sdks-client" class="sub">Client Libraries</a>
+    <a href="#testing" class="section">6 &middot; Testing Frameworks</a>
+    <a href="#examtips" class="section">7 &middot; Exam Tips</a>
+  </aside>
+
+  <main class="main">
+
+    <!-- SECTION 1: Terraform -->
+    <section class="section" id="terraform">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Terraform and Infrastructure as Code</h2>
+      </div>
+
+      <h3 id="terraform-state">State Management</h3>
+      <p>
+        Terraform state tracks the mapping between configuration and real infrastructure. On GCP, the recommended
+        backend is <strong>Google Cloud Storage</strong> with state locking.
+      </p>
+
+      <pre><code><span class="code-comment"># Backend configuration — GCS with state locking</span>
+<span class="code-keyword">terraform</span> {
+  <span class="code-keyword">backend</span> <span class="code-string">"gcs"</span> {
+    bucket  = <span class="code-string">"my-project-tf-state"</span>
+    prefix  = <span class="code-string">"terraform/production"</span>
+  }
+
+  required_providers {
+    google = {
+      source  = <span class="code-string">"hashicorp/google"</span>
+      version = <span class="code-string">"~> 5.0"</span>
+    }
+  }
+}
+
+<span class="code-keyword">provider</span> <span class="code-string">"google"</span> {
+  project = <span class="code-string">"my-project-id"</span>
+  region  = <span class="code-string">"us-central1"</span>
+}</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Best Practice</div>
+        <p><strong>Never store Terraform state locally in production.</strong> Use a GCS backend with versioning enabled on the bucket. This enables team collaboration, state locking (prevents concurrent modifications), and state recovery from accidental corruption.</p>
+      </div>
+
+      <h3 id="terraform-modules">Module Patterns</h3>
+      <p>
+        Google provides <strong>Cloud Foundation Toolkit (CFT)</strong> modules &mdash; production-ready, opinionated
+        Terraform modules for common GCP patterns.
+      </p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>CFT Module</th><th>Purpose</th><th>Key Features</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>project-factory</strong></td><td>Create and configure projects</td><td>Billing, APIs, Shared VPC, IAM, labels</td></tr>
+          <tr><td><strong>network</strong></td><td>VPC, subnets, routes, firewalls</td><td>Shared VPC support, NAT, Private Google Access</td></tr>
+          <tr><td><strong>kubernetes-engine</strong></td><td>GKE clusters and node pools</td><td>Autopilot/Standard, Workload Identity, private clusters</td></tr>
+          <tr><td><strong>cloud-storage</strong></td><td>Buckets with best practices</td><td>Versioning, lifecycle, CMEK, uniform access</td></tr>
+          <tr><td><strong>sql-db</strong></td><td>Cloud SQL instances</td><td>HA, backups, private IP, CMEK</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="terraform-cicd">Terraform in CI/CD</h3>
+
+      <pre><code><span class="code-comment"># cloudbuild.yaml — Terraform plan + apply pipeline</span>
+steps:
+  - id: 'tf-init'
+    name: 'hashicorp/terraform:1.7'
+    args: ['init']
+    dir: 'infrastructure/'
+
+  - id: 'tf-validate'
+    name: 'hashicorp/terraform:1.7'
+    args: ['validate']
+    dir: 'infrastructure/'
+
+  - id: 'tf-plan'
+    name: 'hashicorp/terraform:1.7'
+    args: ['plan', '-out=tfplan']
+    dir: 'infrastructure/'
+
+  <span class="code-comment"># Apply only on main branch</span>
+  - id: 'tf-apply'
+    name: 'hashicorp/terraform:1.7'
+    args: ['apply', '-auto-approve', 'tfplan']
+    dir: 'infrastructure/'</code></pre>
+    </section>
+
+    <!-- SECTION 2: Apigee -->
+    <section class="section" id="apigee">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Apigee API Management</h2>
+      </div>
+
+      <h3 id="apigee-arch">Architecture</h3>
+      <p>
+        <strong>Apigee</strong> is Google Cloud's full-lifecycle API management platform. It sits between API consumers
+        and backend services, providing security, analytics, monetization, and developer portal capabilities.
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr><th>Apigee Tier</th><th>Deployment</th><th>Best For</th><th>Key Difference</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Apigee X</strong></td><td>Google-managed, VPC-peered</td><td>Enterprise API programs</td><td>Full feature set, global distribution</td></tr>
+          <tr><td><strong>Apigee Hybrid</strong></td><td>Runtime on your K8s, management in cloud</td><td>Data residency, on-prem backends</td><td>Runtime runs in your GKE/Anthos cluster</td></tr>
+          <tr><td><strong>API Gateway</strong></td><td>Serverless, fully managed</td><td>Simple APIs, Cloud Run/Functions backends</td><td>Lightweight, OpenAPI spec-based</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="apigee-policies">Policies and Features</h3>
+      <ul>
+        <li><strong>OAuth 2.0 / API Keys</strong> &mdash; Authentication and authorization for API consumers.</li>
+        <li><strong>Quota / Spike Arrest</strong> &mdash; Rate limiting to protect backends. Quota is per-consumer, spike arrest is per-proxy.</li>
+        <li><strong>Response Caching</strong> &mdash; Cache backend responses to reduce latency and backend load.</li>
+        <li><strong>Message Transformation</strong> &mdash; JSON-to-XML, field masking, header manipulation.</li>
+        <li><strong>Analytics</strong> &mdash; API traffic metrics, error rates, latency percentiles, developer adoption.</li>
+        <li><strong>Developer Portal</strong> &mdash; Self-service portal for API consumers to discover, register, and test APIs.</li>
+        <li><strong>Monetization</strong> &mdash; Billing plans for API usage (freemium, pay-per-call, tiered).</li>
+      </ul>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Tip</div>
+        <p><strong>Apigee vs API Gateway:</strong> Use <strong>API Gateway</strong> for simple serverless APIs (Cloud Run, Cloud Functions) with basic authentication and rate limiting. Use <strong>Apigee</strong> when you need a full API program with developer portal, monetization, advanced analytics, or complex policy chains.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Deployment -->
+    <section class="section" id="deployment">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Deployment Strategies</h2>
+      </div>
+
+      <h3 id="deployment-types">Strategy Comparison</h3>
+
+      <table class="comp-table">
+        <thead>
+          <tr><th>Strategy</th><th>How It Works</th><th>Risk</th><th>Rollback Speed</th><th>GCP Support</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Rolling Update</strong></td>
+            <td>Gradually replace instances</td>
+            <td>Medium</td>
+            <td>Medium (reverse roll)</td>
+            <td>GKE, MIGs</td>
+          </tr>
+          <tr>
+            <td><strong>Blue/Green</strong></td>
+            <td>Full parallel environment, switch traffic</td>
+            <td>Low</td>
+            <td>Instant (switch back)</td>
+            <td>Cloud Run revisions, GKE</td>
+          </tr>
+          <tr>
+            <td><strong>Canary</strong></td>
+            <td>Small % of traffic to new version</td>
+            <td>Lowest</td>
+            <td>Instant (route to old)</td>
+            <td>Cloud Deploy, Cloud Run, GKE</td>
+          </tr>
+          <tr>
+            <td><strong>Recreate</strong></td>
+            <td>Kill old, start new (downtime)</td>
+            <td>Highest</td>
+            <td>Slow (redeploy old)</td>
+            <td>Basic K8s deployment</td>
+          </tr>
+          <tr>
+            <td><strong>A/B Testing</strong></td>
+            <td>Route by user attributes (not random)</td>
+            <td>Low</td>
+            <td>Instant (route change)</td>
+            <td>Istio/Anthos Service Mesh, Cloud Run</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 id="deployment-rollback">Rollback Patterns</h3>
+
+      <pre><code><span class="code-comment"># Cloud Run — instant rollback to previous revision</span>
+gcloud run services update-traffic my-api \
+    --to-revisions=my-api-00005-abc=100 \
+    --region=us-central1
+
+<span class="code-comment"># GKE — rollback a deployment</span>
+kubectl rollout undo deployment/my-app
+kubectl rollout status deployment/my-app
+
+<span class="code-comment"># Cloud Deploy — rollback a release</span>
+gcloud deploy rollbacks create my-rollback \
+    --delivery-pipeline=my-pipeline \
+    --release=release-001 \
+    --region=us-central1</code></pre>
+    </section>
+
+    <!-- SECTION 4: Gemini Cloud Assist -->
+    <section class="section" id="gemini">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Gemini Cloud Assist</h2>
+      </div>
+
+      <h3 id="gemini-capabilities">Capabilities</h3>
+      <p>
+        <strong>Gemini Cloud Assist</strong> is an AI-powered assistant integrated into the Google Cloud Console.
+        It helps architects and operators with natural-language queries about their infrastructure.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">&#128172;</div><h4>Natural Language Queries</h4></div>
+          <p>Ask questions about your GCP resources in plain English. "Which VMs are over-provisioned?" or "Show me the firewall rules for project-x."</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">&#128736;</div><h4>Troubleshooting</h4></div>
+          <p>Diagnose issues with network connectivity, permission errors, and service misconfigurations. Suggests remediation steps.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">&#128221;</div><h4>Code Generation</h4></div>
+          <p>Generate gcloud commands, Terraform configurations, and Cloud Build pipelines from natural-language descriptions.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">&#128200;</div><h4>Cost Insights</h4></div>
+          <p>Analyze spending patterns, identify optimization opportunities, and explain billing line items in context.</p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Architecture Role</div>
+        <p><strong>Gemini Cloud Assist is an operational tool, not an architecture replacement.</strong> It accelerates implementation by generating configurations and troubleshooting issues, but architecture decisions still require human judgment about trade-offs, compliance, and business requirements.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 5: SDKs -->
+    <section class="section" id="sdks">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Cloud SDKs and Tools</h2>
+      </div>
+
+      <h3 id="sdks-gcloud">gcloud Deep Dive</h3>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Tool</th><th>Purpose</th><th>Key Commands</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>gcloud</strong></td><td>Primary CLI for GCP resources</td><td><code>gcloud compute</code>, <code>gcloud container</code>, <code>gcloud run</code></td></tr>
+          <tr><td><strong>gsutil / gcloud storage</strong></td><td>Cloud Storage operations</td><td><code>gsutil cp</code>, <code>gcloud storage cp</code></td></tr>
+          <tr><td><strong>bq</strong></td><td>BigQuery operations</td><td><code>bq query</code>, <code>bq mk</code>, <code>bq load</code></td></tr>
+          <tr><td><strong>kubectl</strong></td><td>Kubernetes cluster management</td><td><code>kubectl apply</code>, <code>kubectl get</code></td></tr>
+          <tr><td><strong>terraform</strong></td><td>Infrastructure as Code</td><td><code>terraform plan</code>, <code>terraform apply</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="sdks-client">Client Libraries</h3>
+      <p>
+        Google Cloud provides idiomatic client libraries for Python, Java, Go, Node.js, C#, Ruby, and PHP.
+        These are preferred over REST API calls for application integration.
+      </p>
+
+      <pre><code><span class="code-comment"># Python — Cloud Storage client library</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> storage
+
+client = storage.Client(project=<span class="code-string">"my-project"</span>)
+bucket = client.bucket(<span class="code-string">"my-bucket"</span>)
+blob = bucket.blob(<span class="code-string">"data/report.csv"</span>)
+blob.upload_from_filename(<span class="code-string">"/tmp/report.csv"</span>)
+
+<span class="code-comment"># Python — BigQuery client library</span>
+<span class="code-keyword">from</span> google.cloud <span class="code-keyword">import</span> bigquery
+
+client = bigquery.Client(project=<span class="code-string">"my-project"</span>)
+query = <span class="code-string">"""
+    SELECT name, COUNT(*) as count
+    FROM `my-project.my_dataset.my_table`
+    GROUP BY name ORDER BY count DESC LIMIT 10
+"""</span>
+results = client.query(query).result()
+<span class="code-keyword">for</span> row <span class="code-keyword">in</span> results:
+    print(f<span class="code-string">"{row.name}: {row.count}"</span>)</code></pre>
+    </section>
+
+    <!-- SECTION 6: Testing -->
+    <section class="section" id="testing">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Testing Frameworks</h2>
+      </div>
+
+      <p>
+        For the PCA exam, understand the testing pyramid and how it applies to cloud architectures:
+      </p>
+
+      <ul>
+        <li><strong>Infrastructure Tests</strong> &mdash; Validate Terraform plans with <code>terraform validate</code>, policy checks with Sentinel or OPA/Gatekeeper, and drift detection.</li>
+        <li><strong>Container Image Scanning</strong> &mdash; Artifact Registry automatically scans for CVEs. Binary Authorization enforces that only scanned images deploy to GKE.</li>
+        <li><strong>Integration Testing</strong> &mdash; Test service interactions in a staging environment that mirrors production. Cloud Build can orchestrate multi-service test suites.</li>
+        <li><strong>Smoke Testing</strong> &mdash; Post-deployment health checks to verify the new version serves traffic correctly before promoting.</li>
+      </ul>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Tip</div>
+        <p><strong>Binary Authorization</strong> is the exam-favorite answer for "ensure only trusted containers run in GKE." It requires container images to be signed by trusted attestors before deployment. Combined with Artifact Registry vulnerability scanning, it forms a complete supply chain security solution.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 7: Exam Tips -->
+    <section class="section" id="examtips">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Exam Tips</h2>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 1</div>
+        <p><strong>"A company wants to manage their cloud infrastructure as code with proper state management, team collaboration, and CI/CD..."</strong><br>
+        Answer: <strong>Terraform</strong> with GCS backend for state, Cloud Build for CI/CD pipeline (plan on PR, apply on merge to main), Cloud Foundation Toolkit modules for standardized resource creation.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 2</div>
+        <p><strong>"An enterprise wants to expose internal APIs to partners with rate limiting, authentication, and a developer portal..."</strong><br>
+        Answer: <strong>Apigee X</strong>. Full API management with OAuth 2.0, quota policies, response caching, analytics, and a developer portal. API Gateway is too basic for this use case.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 3</div>
+        <p><strong>"A team wants to deploy a new version of their Cloud Run service with minimal risk..."</strong><br>
+        Answer: <strong>Canary deployment</strong> using Cloud Run traffic splitting. Deploy the new revision, route 10% of traffic to it, monitor error rates and latency in Cloud Monitoring, then gradually increase to 100%. Use <code>gcloud run services update-traffic</code> for instant rollback.</p>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">General Strategy</div>
+        <p><strong>Implementation questions test your ability to execute, not just design.</strong> Know the specific gcloud commands, Terraform patterns, and deployment configurations. The exam may present code snippets and ask you to identify errors or choose the correct configuration.</p>
+      </div>
+    </section>
+
+    <!-- NAVIGATION -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Section</div>
+        <a href="04-analyzing-optimizing.html" class="next-btn prev-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          04 &middot; Analyzing and Optimizing
+        </a>
+      </div>
+      <div style="text-align:right">
+        <div class="next-label">Next Section</div>
+        <a href="06-operations-excellence.html" class="next-btn">
+          06 &middot; Operations Excellence
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+        <div class="next-phase">Operations Excellence</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

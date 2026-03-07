@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Preparing and Using Data for Analysis — CareerAlign GCP PDE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #f97316;
+  --page-color-04: rgba(249,115,22,0.04);
+  --page-color-07: rgba(249,115,22,0.07);
+  --page-color-12: rgba(249,115,22,0.12);
+  --page-color-15: rgba(249,115,22,0.15);
+  --page-color-25: rgba(249,115,22,0.25);
+  --page-color-30: rgba(249,115,22,0.3);
+
+  --bg-base:#0b0d14;--bg-surface:#10131e;--bg-elevated:#171c2e;--bg-overlay:#1e2438;
+  --border-subtle:#1a1f34;--border-default:#232840;--border-strong:#2e3554;
+  --text-primary:#e6e8f4;--text-secondary:#8e94b5;--text-muted:#545a78;
+  --accent-indigo:#6366f1;--accent-cyan:#22d3ee;--accent-violet:#a855f7;
+  --accent-green:#22c55e;--accent-amber:#f59e0b;--accent-red:#ef4444;
+  --font-display:'Space Grotesk',sans-serif;--font-body:'Nunito',sans-serif;--font-mono:'JetBrains Mono',monospace;
+  --radius:12px;--radius-sm:8px;--radius-lg:18px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{background:var(--bg-base);color:var(--text-primary);font-family:var(--font-body);font-size:16px;line-height:1.7;min-height:100vh}
+a{color:inherit;text-decoration:none}img,svg{display:block}
+.nav{position:sticky;top:0;z-index:100;background:rgba(11,13,20,0.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border-subtle);padding:0 32px;display:flex;align-items:center;height:58px;gap:24px}
+.nav-logo{font-family:var(--font-display);font-weight:700;font-size:17px;color:var(--text-primary);display:flex;align-items:center;gap:9px;white-space:nowrap}.nav-logo span{color:var(--page-color)}
+.nav-links{display:flex;gap:6px;flex:1;flex-wrap:wrap;overflow:hidden}
+.nav-links a{font-size:12px;font-weight:500;color:var(--text-muted);padding:4px 8px;border-radius:6px;transition:all .2s;white-space:nowrap}
+.nav-links a:hover{color:var(--text-primary);background:var(--bg-elevated)}.nav-links a.active{color:var(--page-color);background:var(--page-color-15)}
+.nav-home{font-size:12.5px;font-weight:600;color:var(--page-color);padding:6px 14px;border:1px solid var(--page-color-30);border-radius:7px;transition:all .2s;white-space:nowrap;margin-left:auto}.nav-home:hover{background:var(--page-color-12)}
+.hero{padding:70px 60px 50px;max-width:1400px;margin:0 auto;border-bottom:1px solid var(--border-subtle)}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:var(--page-color-12);border:1px solid var(--page-color-25);border-radius:20px;padding:5px 14px;margin-bottom:22px;font-size:12.5px;font-family:var(--font-display);font-weight:600;color:var(--page-color);letter-spacing:0.04em;text-transform:uppercase}
+.hero h1{font-family:var(--font-display);font-size:clamp(2.2rem,4vw,3.4rem);font-weight:700;line-height:1.15;color:var(--text-primary);max-width:820px;margin-bottom:20px}.hero h1 em{font-style:normal;color:var(--page-color)}
+.hero-desc{font-size:1.1rem;color:var(--text-secondary);max-width:760px;line-height:1.75;margin-bottom:36px}
+.hero-checklist{display:flex;gap:12px;flex-wrap:wrap}
+.hero-pill{display:flex;align-items:center;gap:7px;background:var(--bg-surface);border:1px solid var(--border-default);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--text-secondary)}.hero-pill svg{color:var(--page-color);flex-shrink:0}
+.content-grid{max-width:1400px;margin:0 auto;padding:0 60px 80px;display:grid;grid-template-columns:260px 1fr;gap:0;align-items:start}
+.toc{position:sticky;top:78px;padding:32px 0;border-right:1px solid var(--border-subtle);margin-right:48px}
+.toc-title{font-size:11px;font-family:var(--font-display);font-weight:700;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-subtle)}
+.toc a{display:block;font-size:13px;color:var(--text-secondary);padding:6px 0;transition:color .2s;border-left:2px solid transparent;padding-left:12px;margin-left:-2px}
+.toc a:hover{color:var(--text-primary);border-left-color:var(--page-color)}
+.toc a.section{font-weight:600;color:var(--text-primary);font-size:12.5px;margin-top:8px}.toc a.sub{padding-left:24px;font-size:12px}
+.main{padding:40px 0}.section{margin-bottom:60px}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border-subtle)}
+.section-num{width:36px;height:36px;border-radius:50%;background:var(--page-color-15);border:1px solid var(--page-color-30);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--page-color);flex-shrink:0}
+.section h2{font-family:var(--font-display);font-size:1.55rem;font-weight:700;color:var(--text-primary)}
+.section h3{font-family:var(--font-display);font-size:1.15rem;font-weight:600;color:var(--text-primary);margin:28px 0 12px}
+.section p{color:var(--text-secondary);margin-bottom:16px;font-size:1rem;line-height:1.8}.section p strong{color:var(--text-primary);font-weight:600}
+.section ul,.section ol{color:var(--text-secondary);margin:0 0 16px 24px;font-size:1rem;line-height:1.8}.section li{margin-bottom:6px}.section li strong{color:var(--text-primary);font-weight:600}
+.callout{border-left:3px solid var(--page-color);background:var(--page-color-07);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:16px 20px;margin:20px 0}
+.callout.info{border-color:var(--accent-indigo);background:rgba(99,102,241,0.07)}.callout.tip{border-color:var(--accent-green);background:rgba(34,197,94,0.07)}.callout.warn{border-color:var(--accent-amber);background:rgba(245,158,11,0.07)}.callout.exam{border-color:var(--accent-red);background:rgba(239,68,68,0.07)}
+.callout-label{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;color:var(--page-color)}
+.callout.info .callout-label{color:var(--accent-indigo)}.callout.tip .callout-label{color:var(--accent-green)}.callout.warn .callout-label{color:var(--accent-amber)}.callout.exam .callout-label{color:var(--accent-red)}
+.callout p{margin:0;color:var(--text-secondary);font-size:0.95rem}
+pre{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:20px 24px;overflow-x:auto;margin:20px 0}
+code{font-family:var(--font-mono);font-size:13.5px;color:var(--accent-cyan);line-height:1.65}
+:not(pre)>code{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:5px;padding:2px 7px;font-size:13px}
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:24px 0}
+.skill-card{background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--radius);padding:20px 22px;transition:border-color .2s}.skill-card:hover{border-color:var(--page-color)}
+.skill-card h4{font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px}.skill-card p{font-size:13px;color:var(--text-secondary);margin:0;line-height:1.6}
+.data-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}
+.data-table th{background:var(--bg-elevated);color:var(--text-primary);font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:0.04em;text-transform:uppercase;padding:12px 16px;text-align:left;border-bottom:2px solid var(--border-strong)}
+.data-table td{padding:10px 16px;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle)}.data-table tr:hover td{background:var(--bg-surface)}.data-table td strong{color:var(--text-primary)}
+.next-section{margin-top:70px;padding-top:40px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center}
+.next-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;font-family:var(--font-display)}
+.next-btn{display:inline-flex;align-items:center;gap:10px;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:var(--radius);padding:14px 22px;font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--text-primary);transition:all .2s}
+.next-btn:hover{border-color:var(--page-color);color:var(--page-color);transform:translateX(4px)}.prev-btn:hover{transform:translateX(-4px)}
+.footer{max-width:1400px;margin:0 auto;padding:40px 60px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;font-size:13px;color:var(--text-muted)}
+@media(max-width:900px){.content-grid{grid-template-columns:1fr;padding:0 20px 40px}.toc{display:none}.hero{padding:40px 20px 30px}.nav-links{display:none}.footer{flex-direction:column;gap:8px;padding:30px 20px}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">&#9729;&#65039; <span>CareerAlign</span> GCP PDE</div>
+  <div class="nav-links">
+    <a href="01-designing-data-systems.html">01 &middot; Designing Systems</a>
+    <a href="02-ingesting-processing-data.html">02 &middot; Ingesting Data</a>
+    <a href="03-storing-the-data.html">03 &middot; Storing Data</a>
+    <a href="04-preparing-using-data.html" class="active">04 &middot; Preparing Data</a>
+    <a href="05-maintaining-data-workloads.html">05 &middot; Maintaining</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; PDE Hub</a>
+</nav>
+
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Section 04 &middot; Preparing and Using Data for Analysis
+  </div>
+  <h1>Preparing Data for <em>Analysis and ML</em></h1>
+  <p class="hero-desc">
+    Covers roughly 15% of the exam. Data visualization with BI Engine, preparing data for AI/ML with
+    BigQuery ML, embeddings and RAG patterns, data sharing with Analytics Hub, and protecting
+    sensitive data with Cloud DLP and data masking.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> BI Engine &amp; Visualization</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> BigQuery ML</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Analytics Hub</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> DLP &amp; Data Masking</div>
+  </div>
+  <div style="margin-top:20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-pde/notebooks/04-preparing-using-data.ipynb" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"> Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#visualization" class="section">1 &middot; Data Visualization</a>
+    <a href="#biengine" class="sub">BI Engine</a>
+    <a href="#matviews" class="sub">Materialized Views for BI</a>
+    <a href="#looker" class="sub">Looker &amp; Looker Studio</a>
+    <a href="#bqml" class="section">2 &middot; BigQuery ML</a>
+    <a href="#bqml-models" class="sub">Model Types</a>
+    <a href="#bqml-workflow" class="sub">ML Workflow in SQL</a>
+    <a href="#bqml-transform" class="sub">TRANSFORM Clause</a>
+    <a href="#aiml" class="section">3 &middot; AI/ML Data Preparation</a>
+    <a href="#embeddings" class="sub">Embeddings &amp; Vectors</a>
+    <a href="#rag" class="sub">RAG Patterns</a>
+    <a href="#sharing" class="section">4 &middot; Data Sharing</a>
+    <a href="#analyticshub" class="sub">Analytics Hub</a>
+    <a href="#authorized" class="sub">Authorized Views</a>
+    <a href="#security" class="section">5 &middot; Data Security &amp; Privacy</a>
+    <a href="#dlp" class="sub">Cloud DLP</a>
+    <a href="#masking" class="sub">Dynamic Data Masking</a>
+    <a href="#examtips" class="section">6 &middot; Exam Tips</a>
+  </aside>
+
+  <main class="main">
+
+    <!-- SECTION 1: Visualization -->
+    <section class="section" id="visualization">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Data Visualization</h2>
+      </div>
+
+      <h3 id="biengine">BI Engine</h3>
+      <p>
+        <strong>BI Engine</strong> is an in-memory analysis service that accelerates BigQuery queries
+        from BI tools like Looker Studio. It caches frequently accessed data in memory for
+        <strong>sub-second query response times</strong>.
+      </p>
+      <ul>
+        <li>Configured as a <strong>reservation</strong> (amount of memory allocated) per project per location</li>
+        <li>Automatically selects which tables/columns to cache based on query patterns</li>
+        <li>Works transparently &mdash; no query changes needed</li>
+        <li>Integrates with Looker Studio, Connected Sheets, and the BigQuery API</li>
+        <li><strong>Preferred tables</strong> can be specified to prioritize caching for specific tables</li>
+      </ul>
+
+      <pre><code><span style="color:#c084fc">-- Create a BI Engine reservation (via SQL or Console)</span>
+<span style="color:#c084fc">-- Sets aside 10 GB of in-memory cache for this project in US</span>
+
+<span style="color:#c084fc"># gcloud equivalent:</span>
+bq update --project_id=my-project \
+  --bi_reservation_size=10GB \
+  --location=US
+
+<span style="color:#c084fc"># Set preferred tables for caching priority</span>
+bq update --project_id=my-project \
+  --bi_reservation_size=10GB \
+  --location=US \
+  --preferred_tables=my-project:dataset.daily_summary,my-project:dataset.user_metrics</code></pre>
+
+      <h3 id="matviews">Materialized Views for BI</h3>
+      <p>
+        Materialized views complement BI Engine by pre-computing expensive aggregations. BigQuery
+        automatically rewrites incoming queries to use materialized views when applicable, even if
+        the user queries the base table directly.
+      </p>
+
+      <pre><code><span style="color:#c084fc">-- Materialized view optimized for dashboard queries</span>
+CREATE MATERIALIZED VIEW `project.dataset.mv_regional_metrics`
+OPTIONS (
+  enable_refresh = true,
+  refresh_interval_minutes = 30,
+  max_staleness = INTERVAL "1:0:0" HOUR TO SECOND  <span style="color:#c084fc">-- Serve stale data for 1 hr</span>
+)
+AS
+SELECT
+  DATE(event_time) AS event_date,
+  region,
+  product_category,
+  COUNT(*) AS total_events,
+  COUNT(DISTINCT user_id) AS unique_users,
+  SUM(revenue) AS total_revenue,
+  AVG(session_duration) AS avg_session_seconds
+FROM `project.dataset.events`
+GROUP BY 1, 2, 3;</code></pre>
+
+      <h3 id="looker">Looker and Looker Studio</h3>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Tool</th><th>Description</th><th>Best For</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Looker Studio</strong></td><td>Free, self-service dashboards and reports. Drag-and-drop, shareable links.</td><td>Ad-hoc exploration, team dashboards, quick reporting</td></tr>
+          <tr><td><strong>Looker</strong></td><td>Enterprise BI platform with LookML semantic layer. Governed metrics, embedded analytics.</td><td>Enterprise-wide BI, consistent metric definitions, data modeling</td></tr>
+          <tr><td><strong>Connected Sheets</strong></td><td>Access BigQuery from Google Sheets. Pivot tables, charts on live BQ data.</td><td>Business users who prefer spreadsheets, ad-hoc analysis</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p>BI Engine + Materialized Views + Looker Studio form a powerful stack for interactive dashboards: materialized views pre-aggregate data, BI Engine caches it in memory, and Looker Studio provides the visualization layer. Queries that would take seconds now return in milliseconds.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 2: BigQuery ML -->
+    <section class="section" id="bqml">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>BigQuery ML</h2>
+      </div>
+
+      <h3 id="bqml-models">Supported Model Types</h3>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Model Type</th><th>SQL Option</th><th>Use Case</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Linear Regression</strong></td><td><code>LINEAR_REG</code></td><td>Predict continuous values (price, demand)</td></tr>
+          <tr><td><strong>Logistic Regression</strong></td><td><code>LOGISTIC_REG</code></td><td>Binary/multi-class classification</td></tr>
+          <tr><td><strong>K-Means Clustering</strong></td><td><code>KMEANS</code></td><td>Customer segmentation, anomaly detection</td></tr>
+          <tr><td><strong>Matrix Factorization</strong></td><td><code>MATRIX_FACTORIZATION</code></td><td>Recommendation systems</td></tr>
+          <tr><td><strong>Time Series (ARIMA+)</strong></td><td><code>ARIMA_PLUS</code></td><td>Forecasting (sales, demand, capacity)</td></tr>
+          <tr><td><strong>Boosted Trees (XGBoost)</strong></td><td><code>BOOSTED_TREE_CLASSIFIER/REGRESSOR</code></td><td>High-accuracy tabular predictions</td></tr>
+          <tr><td><strong>DNN</strong></td><td><code>DNN_CLASSIFIER/REGRESSOR</code></td><td>Deep learning on tabular data</td></tr>
+          <tr><td><strong>AutoML Tables</strong></td><td><code>AUTOML_CLASSIFIER/REGRESSOR</code></td><td>Automated model selection and tuning</td></tr>
+          <tr><td><strong>Imported TensorFlow</strong></td><td><code>TENSORFLOW</code></td><td>Serve pre-trained TF models for inference in SQL</td></tr>
+          <tr><td><strong>Remote Models</strong></td><td><code>REMOTE</code></td><td>Call Vertex AI or Cloud AI endpoints from SQL</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="bqml-workflow">End-to-End ML Workflow in SQL</h3>
+
+      <pre><code><span style="color:#c084fc">-- Step 1: CREATE MODEL (training)</span>
+CREATE OR REPLACE MODEL `project.dataset.churn_model`
+OPTIONS (
+  model_type = 'BOOSTED_TREE_CLASSIFIER',
+  input_label_cols = ['churned'],
+  auto_class_weights = TRUE,
+  num_parallel_tree = 10,
+  max_iterations = 50,
+  learn_rate = 0.1,
+  data_split_method = 'AUTO_SPLIT',
+  enable_global_explain = TRUE
+) AS
+SELECT
+  user_tenure_days,
+  total_purchases,
+  avg_session_minutes,
+  support_tickets_30d,
+  last_login_days_ago,
+  subscription_tier,
+  churned
+FROM `project.dataset.user_features`
+WHERE signup_date < '2025-01-01';
+
+<span style="color:#c084fc">-- Step 2: EVALUATE (model performance)</span>
+SELECT *
+FROM ML.EVALUATE(MODEL `project.dataset.churn_model`);
+
+<span style="color:#c084fc">-- Step 3: EXPLAIN (feature importance)</span>
+SELECT *
+FROM ML.GLOBAL_EXPLAIN(MODEL `project.dataset.churn_model`);
+
+<span style="color:#c084fc">-- Step 4: PREDICT (inference)</span>
+SELECT
+  user_id,
+  predicted_churned,
+  predicted_churned_probs
+FROM ML.PREDICT(
+  MODEL `project.dataset.churn_model`,
+  (SELECT * FROM `project.dataset.user_features`
+   WHERE signup_date >= '2025-01-01')
+);
+
+<span style="color:#c084fc">-- Step 5: FORECAST (time series)</span>
+CREATE OR REPLACE MODEL `project.dataset.revenue_forecast`
+OPTIONS (
+  model_type = 'ARIMA_PLUS',
+  time_series_timestamp_col = 'date',
+  time_series_data_col = 'daily_revenue',
+  time_series_id_col = 'region',
+  auto_arima = TRUE,
+  holiday_region = 'US'
+) AS
+SELECT date, region, daily_revenue
+FROM `project.dataset.daily_revenue`;
+
+SELECT * FROM ML.FORECAST(
+  MODEL `project.dataset.revenue_forecast`,
+  STRUCT(30 AS horizon, 0.95 AS confidence_level)
+);</code></pre>
+
+      <h3 id="bqml-transform">TRANSFORM Clause for Feature Engineering</h3>
+
+      <pre><code><span style="color:#c084fc">-- TRANSFORM embeds feature engineering into the model</span>
+<span style="color:#c084fc">-- Applied automatically at prediction time too</span>
+CREATE OR REPLACE MODEL `project.dataset.model_with_transform`
+TRANSFORM(
+  ML.STANDARD_SCALER(age) OVER() AS scaled_age,
+  ML.BUCKETIZE(income, [20000, 50000, 100000, 200000]) AS income_bucket,
+  ML.FEATURE_CROSS(STRUCT(region, device_type)) AS region_device,
+  ML.QUANTILE_BUCKETIZE(purchase_count, 5) OVER() AS purchase_quintile,
+  IFNULL(last_purchase_days, 999) AS last_purchase_imputed,
+  IF(last_purchase_days IS NULL, 1, 0) AS purchase_missing_flag,
+  label
+)
+OPTIONS (
+  model_type = 'LOGISTIC_REG',
+  input_label_cols = ['label'],
+  auto_class_weights = TRUE
+) AS
+SELECT * FROM `project.dataset.training_data`;</code></pre>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Tip</div>
+        <p>The <strong>TRANSFORM</strong> clause is powerful because transformations are stored with the model and <strong>automatically applied during ML.PREDICT</strong>. You do not need to re-apply the same feature engineering at prediction time. Know the key transform functions: ML.STANDARD_SCALER, ML.BUCKETIZE, ML.FEATURE_CROSS, ML.QUANTILE_BUCKETIZE.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 3: AI/ML Data Prep -->
+    <section class="section" id="aiml">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>AI/ML Data Preparation</h2>
+      </div>
+
+      <h3 id="embeddings">Embeddings and Vector Search</h3>
+      <p>
+        BigQuery supports generating and searching <strong>text embeddings</strong> using remote models
+        connected to Vertex AI. This enables semantic search, similarity matching, and RAG directly in SQL.
+      </p>
+
+      <pre><code><span style="color:#c084fc">-- Create a remote model connection to Vertex AI embeddings</span>
+CREATE OR REPLACE MODEL `project.dataset.embedding_model`
+REMOTE WITH CONNECTION `us.vertex-ai-connection`
+OPTIONS (
+  endpoint = 'text-embedding-005'
+);
+
+<span style="color:#c084fc">-- Generate embeddings for documents</span>
+CREATE TABLE `project.dataset.doc_embeddings` AS
+SELECT
+  doc_id,
+  title,
+  content,
+  ml_generate_embedding_result AS embedding
+FROM ML.GENERATE_EMBEDDING(
+  MODEL `project.dataset.embedding_model`,
+  (SELECT doc_id, title, content FROM `project.dataset.documents`),
+  STRUCT(TRUE AS flatten_json_output)
+);
+
+<span style="color:#c084fc">-- Vector search: Find similar documents</span>
+SELECT
+  base.doc_id,
+  base.title,
+  distance
+FROM VECTOR_SEARCH(
+  TABLE `project.dataset.doc_embeddings`,
+  'embedding',
+  (SELECT ml_generate_embedding_result AS embedding
+   FROM ML.GENERATE_EMBEDDING(
+     MODEL `project.dataset.embedding_model`,
+     (SELECT 'How to optimize BigQuery costs' AS content)
+   )),
+  top_k => 5,
+  distance_type => 'COSINE'
+);</code></pre>
+
+      <h3 id="rag">Retrieval-Augmented Generation (RAG)</h3>
+      <p>
+        RAG combines vector search with LLM generation to produce answers grounded in your data:
+      </p>
+
+      <pre><code><span style="color:#c084fc">-- RAG pattern in BigQuery SQL</span>
+<span style="color:#c084fc">-- Step 1: Retrieve relevant documents via vector search</span>
+<span style="color:#c084fc">-- Step 2: Pass context + question to LLM</span>
+
+WITH relevant_docs AS (
+  SELECT base.content, distance
+  FROM VECTOR_SEARCH(
+    TABLE `project.dataset.doc_embeddings`, 'embedding',
+    (SELECT ml_generate_embedding_result AS embedding
+     FROM ML.GENERATE_EMBEDDING(
+       MODEL `project.dataset.embedding_model`,
+       (SELECT 'What are BigQuery partitioning best practices?' AS content)
+     )),
+    top_k => 3
+  )
+)
+SELECT ml_generate_text_llm_result AS answer
+FROM ML.GENERATE_TEXT(
+  MODEL `project.dataset.gemini_model`,
+  (SELECT CONCAT(
+    'Based on the following documentation, answer the question.\n\n',
+    'Documentation:\n',
+    (SELECT STRING_AGG(content, '\n---\n') FROM relevant_docs),
+    '\n\nQuestion: What are BigQuery partitioning best practices?'
+  ) AS prompt),
+  STRUCT(0.2 AS temperature, 1024 AS max_output_tokens)
+);</code></pre>
+    </section>
+
+    <!-- SECTION 4: Data Sharing -->
+    <section class="section" id="sharing">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Data Sharing</h2>
+      </div>
+
+      <h3 id="analyticshub">Analytics Hub</h3>
+      <p>
+        Analytics Hub enables secure, governed data sharing across organizations without copying data:
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <h4>Data Exchange</h4>
+          <p>A container for listings. Can be public (open to all) or private (restricted to specific organizations). Managed by exchange administrators.</p>
+        </div>
+        <div class="skill-card">
+          <h4>Listing</h4>
+          <p>A published dataset within an exchange. Includes description, documentation, sample queries, and access request flow.</p>
+        </div>
+        <div class="skill-card">
+          <h4>Linked Dataset</h4>
+          <p>When a subscriber accesses a listing, they get a linked (read-only) dataset. Zero-copy: queries read from the publisher's storage. No data duplication.</p>
+        </div>
+        <div class="skill-card">
+          <h4>Access Control</h4>
+          <p>Publishers control who can subscribe. Row-level and column-level security is enforced. The publisher pays for storage; subscribers pay for queries.</p>
+        </div>
+      </div>
+
+      <h3 id="authorized">Authorized Views and Datasets</h3>
+      <p>
+        For simpler sharing within an organization, <strong>authorized views</strong> grant access to a view
+        without granting access to the underlying tables:
+      </p>
+
+      <pre><code><span style="color:#c084fc">-- Create a view that filters sensitive data</span>
+CREATE VIEW `project.shared_dataset.public_orders` AS
+SELECT
+  order_id,
+  order_date,
+  product_category,
+  quantity,
+  region
+  <span style="color:#c084fc">-- Excludes: customer_name, email, payment_info</span>
+FROM `project.raw_dataset.orders`;
+
+<span style="color:#c084fc">-- Authorize the view to read from raw_dataset</span>
+<span style="color:#c084fc">-- (done in Console or via API: authorize the view in raw_dataset settings)</span>
+<span style="color:#c084fc">-- Now users with access to shared_dataset.public_orders</span>
+<span style="color:#c084fc">-- can query the view without access to raw_dataset.orders</span></code></pre>
+    </section>
+
+    <!-- SECTION 5: Security -->
+    <section class="section" id="security">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Data Security and Privacy</h2>
+      </div>
+
+      <h3 id="dlp">Cloud DLP (Sensitive Data Protection)</h3>
+      <p>
+        Sensitive Data Protection provides APIs for discovering, classifying, and de-identifying sensitive data:
+      </p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Operation</th><th>Description</th><th>Example</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Inspection</strong></td><td>Scan data to find sensitive information types (PII)</td><td>Find all SSNs, credit card numbers, email addresses in a BigQuery table</td></tr>
+          <tr><td><strong>De-identification</strong></td><td>Transform data to remove or obscure sensitive information</td><td>Replace SSN with token, mask email domain, redact phone numbers</td></tr>
+          <tr><td><strong>Re-identification</strong></td><td>Reverse de-identification (with proper keys)</td><td>Recover original SSN from token for authorized users</td></tr>
+          <tr><td><strong>Risk Analysis</strong></td><td>Assess re-identification risk of a dataset</td><td>k-anonymity, l-diversity, k-map analysis</td></tr>
+        </tbody>
+      </table>
+
+      <pre><code><span style="color:#c084fc"># DLP inspection job: Find PII in a BigQuery table</span>
+gcloud dlp jobs create \
+  --project=my-project \
+  --inspect-config='{
+    "infoTypes": [
+      {"name": "EMAIL_ADDRESS"},
+      {"name": "PHONE_NUMBER"},
+      {"name": "US_SOCIAL_SECURITY_NUMBER"},
+      {"name": "CREDIT_CARD_NUMBER"}
+    ],
+    "minLikelihood": "LIKELY"
+  }' \
+  --storage-config='{
+    "bigQueryOptions": {
+      "tableReference": {
+        "projectId": "my-project",
+        "datasetId": "raw_data",
+        "tableId": "customers"
+      }
+    }
+  }' \
+  --actions='[{"savingsFindings": {"outputConfig": {"table": {"projectId": "my-project", "datasetId": "dlp_results", "tableId": "findings"}}}}]'</code></pre>
+
+      <h3 id="masking">Dynamic Data Masking</h3>
+      <p>
+        BigQuery <strong>dynamic data masking</strong> allows you to define masking rules on columns using policy tags.
+        Different users see different levels of data based on their IAM permissions:
+      </p>
+
+      <pre><code><span style="color:#c084fc">-- Dynamic data masking with policy tags</span>
+<span style="color:#c084fc">-- 1. Create a taxonomy and policy tag in Data Catalog</span>
+<span style="color:#c084fc">-- 2. Add masking rules to the policy tag:</span>
+<span style="color:#c084fc">--    - SHA256 hash (for joining without revealing values)</span>
+<span style="color:#c084fc">--    - Nulling (replace with NULL)</span>
+<span style="color:#c084fc">--    - Default masking (replace with type-appropriate masked value)</span>
+<span style="color:#c084fc">--    - Custom (apply a UDF for custom masking logic)</span>
+
+<span style="color:#c084fc">-- 3. Apply the policy tag to a column</span>
+ALTER TABLE `project.dataset.customers`
+ALTER COLUMN email SET POLICY TAG
+  'projects/my-project/locations/us/taxonomies/123/policyTags/456';
+
+<span style="color:#c084fc">-- Users WITHOUT datacatalog.categoryFineGrainedReader see:</span>
+<span style="color:#c084fc">--   email: "****@****.***"  (masked)</span>
+<span style="color:#c084fc">-- Users WITH datacatalog.categoryFineGrainedReader see:</span>
+<span style="color:#c084fc">--   email: "john@example.com"  (actual value)</span></code></pre>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Tip</div>
+        <p><strong>Dynamic data masking</strong> vs <strong>Cloud DLP de-identification</strong>: Use masking when different users need different visibility on the same live table (policy tag approach). Use DLP de-identification when you need to create a sanitized copy of the data for broader access (e.g., anonymized dataset for analytics).</p>
+      </div>
+    </section>
+
+    <!-- SECTION 6: Exam Tips -->
+    <section class="section" id="examtips">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Exam Tips</h2>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario: Fast Dashboards</div>
+        <p>"Looker Studio dashboards on a 10 TB BigQuery table are too slow." &rarr; Create <strong>materialized views</strong> for common aggregations and enable <strong>BI Engine</strong> with a reservation sized to cache the materialized views. Also ensure the base table is partitioned and clustered on dashboard filter columns.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario: ML Without Data Movement</div>
+        <p>"Data analysts need to build ML models on BigQuery data without learning Python or moving data." &rarr; <strong>BigQuery ML</strong>. Train models with SQL using CREATE MODEL, evaluate with ML.EVALUATE, predict with ML.PREDICT. Use TRANSFORM for feature engineering.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario: Share Data with Partners</div>
+        <p>"Share curated datasets with external partners without data duplication or ongoing ETL." &rarr; <strong>Analytics Hub</strong>. Publish a listing; partners subscribe and get a linked dataset (zero-copy). Publisher controls access and pays for storage; subscriber pays for queries.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario: PII in Different Teams</div>
+        <p>"Marketing needs customer data but should not see SSN or credit card numbers. Analytics needs full access." &rarr; Use <strong>dynamic data masking</strong> with policy tags. Apply masking rules to SSN and credit card columns. Grant <code>datacatalog.categoryFineGrainedReader</code> only to analytics team.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario: Semantic Search on Documents</div>
+        <p>"Enable semantic search across millions of documents stored in BigQuery." &rarr; Use <strong>BigQuery ML + VECTOR_SEARCH</strong>. Generate embeddings with ML.GENERATE_EMBEDDING (remote model to Vertex AI), store in a BQ table, and use VECTOR_SEARCH for similarity queries.</p>
+      </div>
+    </section>
+
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous</div>
+        <a href="03-storing-the-data.html" class="next-btn prev-btn">&larr; Storing the Data</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Section</div>
+        <a href="05-maintaining-data-workloads.html" class="next-btn">Maintaining Data Workloads &rarr;</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer class="footer">
+  <span>CareerAlign &mdash; GCP Professional Data Engineer</span>
+  <span>Not affiliated with Google Cloud</span>
+</footer>
+</body>
+</html>

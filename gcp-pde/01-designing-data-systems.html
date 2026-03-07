@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Designing Data Processing Systems — CareerAlign GCP PDE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #22c55e;
+  --page-color-04: rgba(34,197,94,0.04);
+  --page-color-07: rgba(34,197,94,0.07);
+  --page-color-12: rgba(34,197,94,0.12);
+  --page-color-15: rgba(34,197,94,0.15);
+  --page-color-25: rgba(34,197,94,0.25);
+  --page-color-30: rgba(34,197,94,0.3);
+
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --accent-green: #22c55e;
+  --accent-amber: #f59e0b;
+  --accent-red:   #ef4444;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base); color: var(--text-primary);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.7; min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92); backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px; display: flex; align-items: center; height: 58px; gap: 24px;
+}
+.nav-logo { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap; }
+.nav-logo span { color: var(--page-color); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a { font-size: 12px; font-weight: 500; color: var(--text-muted); padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap; }
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--page-color); background: var(--page-color-15); }
+.nav-home { font-size: 12.5px; font-weight: 600; color: var(--page-color); padding: 6px 14px; border: 1px solid var(--page-color-30); border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto; }
+.nav-home:hover { background: var(--page-color-12); }
+
+.hero { padding: 70px 60px 50px; max-width: 1400px; margin: 0 auto; border-bottom: 1px solid var(--border-subtle); }
+.hero-tag { display: inline-flex; align-items: center; gap: 8px; background: var(--page-color-12); border: 1px solid var(--page-color-25); border-radius: 20px; padding: 5px 14px; margin-bottom: 22px; font-size: 12.5px; font-family: var(--font-display); font-weight: 600; color: var(--page-color); letter-spacing: 0.04em; text-transform: uppercase; }
+.hero h1 { font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem); font-weight: 700; line-height: 1.15; color: var(--text-primary); max-width: 820px; margin-bottom: 20px; }
+.hero h1 em { font-style: normal; color: var(--page-color); }
+.hero-desc { font-size: 1.1rem; color: var(--text-secondary); max-width: 760px; line-height: 1.75; margin-bottom: 36px; }
+.hero-checklist { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero-pill { display: flex; align-items: center; gap: 7px; background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+.hero-pill svg { color: var(--page-color); flex-shrink: 0; }
+
+.content-grid { max-width: 1400px; margin: 0 auto; padding: 0 60px 80px; display: grid; grid-template-columns: 260px 1fr; gap: 0; align-items: start; }
+.toc { position: sticky; top: 78px; padding: 32px 0; border-right: 1px solid var(--border-subtle); margin-right: 48px; }
+.toc-title { font-size: 11px; font-family: var(--font-display); font-weight: 700; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); }
+.toc a { display: block; font-size: 13px; color: var(--text-secondary); padding: 6px 0; transition: color .2s; border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px; }
+.toc a:hover { color: var(--text-primary); border-left-color: var(--page-color); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+.section { margin-bottom: 60px; }
+.section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-subtle); }
+.section-num { width: 36px; height: 36px; border-radius: 50%; background: var(--page-color-15); border: 1px solid var(--page-color-30); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--page-color); flex-shrink: 0; }
+.section h2 { font-family: var(--font-display); font-size: 1.55rem; font-weight: 700; color: var(--text-primary); }
+.section h3 { font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; color: var(--text-primary); margin: 28px 0 12px; }
+.section p { color: var(--text-secondary); margin-bottom: 16px; font-size: 1rem; line-height: 1.8; }
+.section p strong { color: var(--text-primary); font-weight: 600; }
+.section ul, .section ol { color: var(--text-secondary); margin: 0 0 16px 24px; font-size: 1rem; line-height: 1.8; }
+.section li { margin-bottom: 6px; }
+.section li strong { color: var(--text-primary); font-weight: 600; }
+
+.callout { border-left: 3px solid var(--page-color); background: var(--page-color-07); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 16px 20px; margin: 20px 0; }
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip { border-color: var(--accent-green); background: rgba(34,197,94,0.07); }
+.callout.warn { border-color: var(--accent-amber); background: rgba(245,158,11,0.07); }
+.callout.exam { border-color: var(--accent-red); background: rgba(239,68,68,0.07); }
+.callout-label { font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; color: var(--page-color); }
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label { color: var(--accent-green); }
+.callout.warn .callout-label { color: var(--accent-amber); }
+.callout.exam .callout-label { color: var(--accent-red); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+pre { background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: var(--radius-sm); padding: 20px 24px; overflow-x: auto; margin: 20px 0; }
+code { font-family: var(--font-mono); font-size: 13.5px; color: var(--accent-cyan); line-height: 1.65; }
+:not(pre) > code { background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 5px; padding: 2px 7px; font-size: 13px; }
+
+.skill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin: 24px 0; }
+.skill-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius); padding: 20px 22px; transition: border-color .2s; }
+.skill-card:hover { border-color: var(--page-color); }
+.skill-card h4 { font-family: var(--font-display); font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+.data-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+.data-table th { background: var(--bg-elevated); color: var(--text-primary); font-family: var(--font-display); font-weight: 600; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; padding: 12px 16px; text-align: left; border-bottom: 2px solid var(--border-strong); }
+.data-table td { padding: 10px 16px; color: var(--text-secondary); border-bottom: 1px solid var(--border-subtle); }
+.data-table tr:hover td { background: var(--bg-surface); }
+.data-table td strong { color: var(--text-primary); }
+
+.next-section { margin-top: 70px; padding-top: 40px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; }
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn { display: inline-flex; align-items: center; gap: 10px; background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 14px 22px; font-family: var(--font-display); font-size: 15px; font-weight: 600; color: var(--text-primary); transition: all .2s; }
+.next-btn:hover { border-color: var(--page-color); color: var(--page-color); transform: translateX(4px); }
+.prev-btn:hover { transform: translateX(-4px); }
+
+.footer { max-width: 1400px; margin: 0 auto; padding: 40px 60px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); }
+
+@media (max-width: 900px) {
+  .content-grid { grid-template-columns: 1fr; padding: 0 20px 40px; }
+  .toc { display: none; }
+  .hero { padding: 40px 20px 30px; }
+  .nav-links { display: none; }
+  .footer { flex-direction: column; gap: 8px; padding: 30px 20px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">&#9729;&#65039; <span>CareerAlign</span> GCP PDE</div>
+  <div class="nav-links">
+    <a href="01-designing-data-systems.html" class="active">01 &middot; Designing Systems</a>
+    <a href="02-ingesting-processing-data.html">02 &middot; Ingesting Data</a>
+    <a href="03-storing-the-data.html">03 &middot; Storing Data</a>
+    <a href="04-preparing-using-data.html">04 &middot; Preparing Data</a>
+    <a href="05-maintaining-data-workloads.html">05 &middot; Maintaining</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; PDE Hub</a>
+</nav>
+
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Section 01 &middot; Designing Data Processing Systems
+  </div>
+  <h1>Designing <em>Data Processing Systems</em></h1>
+  <p class="hero-desc">
+    Covers roughly 22% of the exam. Design for security and compliance, reliability and fidelity,
+    flexibility and portability, and plan data migrations. Master IAM, encryption, Dataflow,
+    Dataform, Cloud Data Fusion, and migration services.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Security &amp; Compliance</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Reliability &amp; Fidelity</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Flexibility &amp; Portability</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Data Migrations</div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-pde/notebooks/01-designing-data-systems.ipynb" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"> Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#security" class="section">1 &middot; Security &amp; Compliance</a>
+    <a href="#iam" class="sub">IAM &amp; Access Control</a>
+    <a href="#encryption" class="sub">Encryption Options</a>
+    <a href="#pii" class="sub">PII &amp; Data Governance</a>
+    <a href="#sovereignty" class="sub">Data Sovereignty</a>
+    <a href="#reliability" class="section">2 &middot; Reliability &amp; Fidelity</a>
+    <a href="#dataform" class="sub">Dataform &amp; SQLX</a>
+    <a href="#data-validation" class="sub">Data Validation</a>
+    <a href="#acid" class="sub">ACID Guarantees</a>
+    <a href="#flexibility" class="section">3 &middot; Flexibility &amp; Portability</a>
+    <a href="#multicloud" class="sub">Multi-Cloud Strategies</a>
+    <a href="#governance" class="sub">Data Governance</a>
+    <a href="#migrations" class="section">4 &middot; Data Migrations</a>
+    <a href="#bqdts" class="sub">BQ Data Transfer Service</a>
+    <a href="#dms" class="sub">Database Migration Service</a>
+    <a href="#datastream" class="sub">Datastream CDC</a>
+    <a href="#datafusion" class="section">5 &middot; Cloud Data Fusion</a>
+    <a href="#fusion-pipelines" class="sub">Building Pipelines</a>
+    <a href="#patterns" class="section">6 &middot; Architecture Patterns</a>
+    <a href="#examtips" class="section">7 &middot; Exam Tips</a>
+  </aside>
+
+  <main class="main">
+
+    <!-- SECTION 1: Security & Compliance -->
+    <section class="section" id="security">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Security and Compliance</h2>
+      </div>
+
+      <h3 id="iam">IAM and Access Control</h3>
+      <p>
+        Google Cloud Identity and Access Management (IAM) follows the principle of <strong>least privilege</strong>.
+        Permissions are grouped into <strong>roles</strong>, and roles are bound to <strong>members</strong> (users, groups,
+        service accounts) at a specific <strong>resource level</strong> (organization, folder, project, or individual resource).
+      </p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Role Type</th><th>Description</th><th>Example</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Basic Roles</strong></td><td>Owner, Editor, Viewer. Very broad. Avoid in production.</td><td><code>roles/editor</code></td></tr>
+          <tr><td><strong>Predefined Roles</strong></td><td>Granular, service-specific roles managed by Google.</td><td><code>roles/bigquery.dataViewer</code></td></tr>
+          <tr><td><strong>Custom Roles</strong></td><td>User-defined set of permissions for maximum precision.</td><td><code>roles/custom.dataAnalyst</code></td></tr>
+        </tbody>
+      </table>
+
+      <p>
+        For data engineering, key IAM considerations include <strong>BigQuery dataset-level access</strong>,
+        <strong>column-level security</strong> via policy tags, and <strong>row-level security</strong> with
+        <code>CREATE ROW ACCESS POLICY</code>.
+      </p>
+
+      <pre><code><span style="color:#c084fc">-- BigQuery row-level security</span>
+CREATE ROW ACCESS POLICY region_filter
+ON `project.dataset.sales`
+GRANT TO ("group:us-analysts@example.com")
+FILTER USING (region = 'US');
+
+<span style="color:#c084fc">-- Column-level security with policy tags</span>
+<span style="color:#c084fc">-- Applied via Data Catalog taxonomy in the console</span>
+<span style="color:#c084fc">-- Then grant access to the policy tag:</span>
+<span style="color:#c084fc">-- roles/datacatalog.categoryFineGrainedReader</span></code></pre>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Tip</div>
+        <p>When a question mentions "users should only see data for their region" or "restrict PII columns to specific teams," think <strong>row-level access policies</strong> and <strong>column-level policy tags</strong> respectively. These are the primary BigQuery fine-grained security mechanisms.</p>
+      </div>
+
+      <h3 id="encryption">Encryption Options</h3>
+      <p>
+        All data in Google Cloud is encrypted at rest by default using <strong>Google-managed encryption keys (GMEK)</strong>.
+        For additional control, you can choose between Customer-Managed Encryption Keys (CMEK) and
+        Customer-Supplied Encryption Keys (CSEK).
+      </p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Option</th><th>Key Management</th><th>Use Case</th><th>Supported Services</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>GMEK</strong></td><td>Google manages everything</td><td>Default, no compliance requirements</td><td>All GCP services</td></tr>
+          <tr><td><strong>CMEK</strong></td><td>You control keys in Cloud KMS</td><td>Regulatory compliance, key rotation control</td><td>BigQuery, Cloud Storage, Dataflow, Bigtable, Spanner, Dataproc</td></tr>
+          <tr><td><strong>CSEK</strong></td><td>You supply keys per API call</td><td>Maximum control, keys never stored by Google</td><td>Cloud Storage, Compute Engine disks only</td></tr>
+          <tr><td><strong>Cloud EKM</strong></td><td>Keys in external key manager</td><td>Keys must never reside in Google infrastructure</td><td>BigQuery, Cloud Storage, GKE, Compute Engine</td></tr>
+        </tbody>
+      </table>
+
+      <pre><code><span style="color:#c084fc"># Create a CMEK-protected BigQuery dataset</span>
+bq mk --dataset \
+  --default_kms_key=projects/my-proj/locations/us/keyRings/my-ring/cryptoKeys/my-key \
+  my-proj:secure_dataset
+
+<span style="color:#c084fc"># Create a CMEK-encrypted Cloud Storage bucket</span>
+gsutil kms encryption \
+  -k projects/my-proj/locations/us/keyRings/my-ring/cryptoKeys/my-key \
+  gs://my-secure-bucket</code></pre>
+
+      <h3 id="pii">PII and Data Governance</h3>
+      <p>
+        <strong>Sensitive Data Protection</strong> (formerly Cloud DLP) provides APIs for discovering,
+        classifying, and protecting sensitive data. It supports 150+ built-in infoTypes for PII detection
+        and offers multiple de-identification techniques.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <h4>Masking</h4>
+          <p>Replace characters with a fixed character (e.g., ****). Simple but irreversible. Use for display purposes.</p>
+        </div>
+        <div class="skill-card">
+          <h4>Tokenization (CryptoReplace)</h4>
+          <p>Replace with a cryptographic token. Reversible with the key. Maintains referential integrity across tables.</p>
+        </div>
+        <div class="skill-card">
+          <h4>Bucketing</h4>
+          <p>Replace exact values with ranges (e.g., age 27 becomes "20-30"). Reduces granularity while preserving analytical value.</p>
+        </div>
+        <div class="skill-card">
+          <h4>Date Shifting</h4>
+          <p>Shift dates by a random number of days. Preserves intervals between events for the same individual.</p>
+        </div>
+      </div>
+
+      <h3 id="sovereignty">Data Sovereignty and Residency</h3>
+      <p>
+        Data sovereignty requirements dictate where data can be stored and processed. GCP offers multiple
+        mechanisms to enforce data residency:
+      </p>
+      <ul>
+        <li><strong>Dataset/Bucket location</strong> &mdash; BigQuery datasets and Cloud Storage buckets are created in specific regions or multi-regions</li>
+        <li><strong>Organization policies</strong> &mdash; <code>constraints/gcp.resourceLocations</code> restricts which regions resources can be created in</li>
+        <li><strong>VPC Service Controls</strong> &mdash; Creates security perimeters around GCP resources to prevent data exfiltration</li>
+        <li><strong>Assured Workloads</strong> &mdash; Automates compliance controls for regulated industries (FedRAMP, HIPAA, PCI DSS)</li>
+      </ul>
+
+      <div class="callout warn">
+        <div class="callout-label">Important</div>
+        <p>BigQuery multi-region locations (US, EU) keep data within the specified geographic boundary. For stricter requirements, use single-region locations (e.g., europe-west1). VPC Service Controls add a perimeter to prevent data from leaving the project boundary.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 2: Reliability & Fidelity -->
+    <section class="section" id="reliability">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Reliability and Fidelity</h2>
+      </div>
+
+      <h3 id="dataform">Dataform and SQLX Workflows</h3>
+      <p>
+        <strong>Dataform</strong> is BigQuery's native SQL transformation service. It uses <strong>SQLX</strong>
+        (an extension of SQL) with dependency management, testing, and documentation. Dataform brings
+        software engineering best practices to data transformation: version control, CI/CD, and automated testing.
+      </p>
+
+      <pre><code><span style="color:#c084fc">-- Dataform SQLX: Define a transformation with dependencies</span>
+<span style="color:#c084fc">-- File: definitions/staging/stg_orders.sqlx</span>
+
+config {
+  type: "view",
+  schema: "staging",
+  description: "Staged orders with data quality filters",
+  assertions: {
+    uniqueKey: ["order_id"],
+    nonNull: ["order_id", "customer_id", "order_date"]
+  }
+}
+
+SELECT
+  order_id,
+  customer_id,
+  order_date,
+  ROUND(total_amount, 2) AS total_amount,
+  status,
+  CURRENT_TIMESTAMP() AS _loaded_at
+FROM ${ref("raw_orders")}
+WHERE order_id IS NOT NULL
+  AND total_amount > 0</code></pre>
+
+      <pre><code><span style="color:#c084fc">-- Dataform SQLX: Incremental table</span>
+<span style="color:#c084fc">-- File: definitions/marts/fct_daily_revenue.sqlx</span>
+
+config {
+  type: "incremental",
+  schema: "marts",
+  uniqueKey: ["order_date", "region"],
+  bigquery: {
+    partitionBy: "order_date",
+    clusterBy: ["region"]
+  }
+}
+
+SELECT
+  DATE(order_date) AS order_date,
+  region,
+  COUNT(DISTINCT order_id) AS num_orders,
+  SUM(total_amount) AS total_revenue,
+  AVG(total_amount) AS avg_order_value
+FROM ${ref("stg_orders")}
+${when(incremental(), `WHERE order_date > (SELECT MAX(order_date) FROM ${self()})`) }
+GROUP BY 1, 2</code></pre>
+
+      <h3 id="data-validation">Data Validation Strategies</h3>
+      <p>
+        Data validation ensures that data flowing through pipelines meets quality expectations. This includes
+        <strong>schema validation</strong>, <strong>business rule checks</strong>, and <strong>statistical validation</strong>.
+      </p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Validation Type</th><th>Tool</th><th>Example Check</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Schema validation</strong></td><td>Dataform assertions, Dataflow schemas</td><td>Non-null, type checks, unique keys</td></tr>
+          <tr><td><strong>Business rules</strong></td><td>Dataform assertions, BigQuery SQL</td><td>Amount > 0, date in valid range</td></tr>
+          <tr><td><strong>Statistical checks</strong></td><td>Dataplex data quality tasks</td><td>Row count within expected range, distribution checks</td></tr>
+          <tr><td><strong>Cross-dataset</strong></td><td>BigQuery scheduled queries</td><td>Referential integrity, row count reconciliation</td></tr>
+          <tr><td><strong>Freshness</strong></td><td>Dataplex, Cloud Monitoring</td><td>Data updated within last 4 hours</td></tr>
+        </tbody>
+      </table>
+
+      <pre><code><span style="color:#c084fc">-- Dataplex data quality YAML specification</span>
+rules:
+  - column: order_id
+    dimension: uniqueness
+    threshold: 1.0
+  - column: total_amount
+    dimension: validity
+    sql_expression: "total_amount > 0 AND total_amount < 1000000"
+    threshold: 0.99
+  - column: order_date
+    dimension: freshness
+    sql_expression: "order_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 2 DAY)"
+    threshold: 0.95
+  - dimension: completeness
+    sql_expression: "order_id IS NOT NULL AND customer_id IS NOT NULL"
+    threshold: 1.0</code></pre>
+
+      <h3 id="acid">ACID Guarantees Across GCP Services</h3>
+      <p>
+        Understanding ACID (Atomicity, Consistency, Isolation, Durability) behavior across services is critical
+        for choosing the right storage:
+      </p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Service</th><th>ACID Support</th><th>Scope</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Cloud Spanner</strong></td><td>Full ACID</td><td>Global, multi-region</td><td>Externally consistent (strongest guarantee)</td></tr>
+          <tr><td><strong>Cloud SQL / AlloyDB</strong></td><td>Full ACID</td><td>Single region</td><td>Traditional RDBMS transactions</td></tr>
+          <tr><td><strong>Firestore</strong></td><td>Full ACID</td><td>Multi-region</td><td>Transactions on up to 500 documents</td></tr>
+          <tr><td><strong>BigQuery</strong></td><td>ACID per DML</td><td>Per-table</td><td>Each DML statement is atomic. Multi-statement transactions supported.</td></tr>
+          <tr><td><strong>Bigtable</strong></td><td>Row-level atomic</td><td>Single row</td><td>No multi-row transactions. Designed for high throughput.</td></tr>
+          <tr><td><strong>Cloud Storage</strong></td><td>Object-level atomic</td><td>Single object</td><td>Strong global consistency for reads-after-writes</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Tip</div>
+        <p>If a scenario needs globally distributed ACID transactions, the answer is almost always <strong>Cloud Spanner</strong>. If it is a single-region transactional workload with PostgreSQL compatibility, think <strong>AlloyDB</strong>. BigQuery handles ACID at the DML statement level with support for multi-statement transactions using <code>BEGIN TRANSACTION</code>.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Flexibility & Portability -->
+    <section class="section" id="flexibility">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Flexibility and Portability</h2>
+      </div>
+
+      <h3 id="multicloud">Multi-Cloud and Hybrid Strategies</h3>
+      <p>
+        GCP provides several approaches for multi-cloud and hybrid data processing:
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <h4>BigQuery Omni</h4>
+          <p>Query data in AWS S3 or Azure Blob Storage directly from BigQuery using cross-cloud connections. No data movement required.</p>
+        </div>
+        <div class="skill-card">
+          <h4>Apache Beam Portability</h4>
+          <p>Write pipelines once, run on Dataflow (GCP), Spark, or Flink. The Beam SDK abstracts the runner, enabling cloud portability.</p>
+        </div>
+        <div class="skill-card">
+          <h4>Anthos / GKE Enterprise</h4>
+          <p>Run containerized data workloads consistently across GCP, on-premises, and other clouds with Kubernetes.</p>
+        </div>
+        <div class="skill-card">
+          <h4>Dataproc on GKE</h4>
+          <p>Run Spark workloads on GKE clusters for Kubernetes-native scheduling, bin-packing, and multi-tenancy.</p>
+        </div>
+      </div>
+
+      <pre><code><span style="color:#c084fc">-- BigQuery Omni: Query S3 data from BigQuery</span>
+CREATE EXTERNAL TABLE `project.dataset.s3_sales`
+WITH CONNECTION `aws-us-east-1.my-connection`
+OPTIONS (
+  format = 'PARQUET',
+  uris = ['s3://my-bucket/sales/*.parquet']
+);
+
+SELECT region, SUM(revenue) AS total_revenue
+FROM `project.dataset.s3_sales`
+GROUP BY region
+ORDER BY total_revenue DESC;</code></pre>
+
+      <h3 id="governance">Data Governance with Dataplex</h3>
+      <p>
+        <strong>Dataplex</strong> provides a unified data fabric for organizing, managing, and governing data across
+        data lakes, data warehouses, and data marts. Key concepts:
+      </p>
+      <ul>
+        <li><strong>Lakes</strong> &mdash; Logical grouping of data representing a business domain</li>
+        <li><strong>Zones</strong> &mdash; Subdivisions within a lake (raw zone, curated zone) with data format expectations</li>
+        <li><strong>Assets</strong> &mdash; Mapped Cloud Storage buckets or BigQuery datasets</li>
+        <li><strong>Data quality tasks</strong> &mdash; Automated quality checks defined in YAML</li>
+        <li><strong>Auto-discovery</strong> &mdash; Automatically catalogs and classifies data assets</li>
+      </ul>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p>Dataplex does not move or copy data. It provides a governance layer on top of existing storage. Data stays in Cloud Storage or BigQuery; Dataplex adds metadata, access control, and quality checks as a virtual fabric.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 4: Data Migrations -->
+    <section class="section" id="migrations">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Data Migrations</h2>
+      </div>
+
+      <h3 id="bqdts">BigQuery Data Transfer Service</h3>
+      <p>
+        The BigQuery Data Transfer Service automates data loading into BigQuery from SaaS applications
+        (Google Ads, YouTube, etc.), Amazon S3, Amazon Redshift, and Teradata. It runs on a schedule
+        and handles incremental transfers.
+      </p>
+
+      <pre><code><span style="color:#c084fc"># Create a scheduled transfer from S3 to BigQuery</span>
+bq mk --transfer_config \
+  --project_id=my-project \
+  --data_source=amazon_s3 \
+  --target_dataset=imported_data \
+  --display_name="Daily S3 Import" \
+  --schedule="every 24 hours" \
+  --params='{
+    "destination_table_name_template": "s3_events_{run_date}",
+    "data_path": "s3://source-bucket/events/*.parquet",
+    "access_key_id": "AKIAIOSFODNN7EXAMPLE",
+    "file_format": "PARQUET"
+  }'</code></pre>
+
+      <h3 id="dms">Database Migration Service (DMS)</h3>
+      <p>
+        DMS provides <strong>continuous replication</strong> from source databases to GCP managed databases.
+        It supports homogeneous migrations (MySQL to Cloud SQL for MySQL) and heterogeneous migrations
+        (Oracle to Cloud SQL for PostgreSQL, or to AlloyDB).
+      </p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Source</th><th>Target</th><th>Migration Type</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>MySQL (on-prem/RDS)</td><td>Cloud SQL for MySQL</td><td>Homogeneous, continuous</td></tr>
+          <tr><td>PostgreSQL (on-prem/RDS)</td><td>Cloud SQL for PostgreSQL, AlloyDB</td><td>Homogeneous, continuous</td></tr>
+          <tr><td>SQL Server</td><td>Cloud SQL for SQL Server</td><td>Homogeneous, continuous</td></tr>
+          <tr><td>Oracle</td><td>Cloud SQL for PostgreSQL, AlloyDB</td><td>Heterogeneous</td></tr>
+          <tr><td>MySQL / PostgreSQL</td><td>Cloud Spanner</td><td>Heterogeneous (via Harbourbridge)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Best Practice</div>
+        <p>For minimal-downtime migrations: (1) Set up continuous replication with DMS, (2) Let it catch up to the source, (3) Promote the replica when ready. The cutover window can be seconds to minutes instead of hours.</p>
+      </div>
+
+      <h3 id="datastream">Datastream for Change Data Capture (CDC)</h3>
+      <p>
+        <strong>Datastream</strong> is a serverless CDC and replication service. Unlike DMS (which targets managed databases),
+        Datastream streams changes into <strong>BigQuery</strong> or <strong>Cloud Storage</strong> for analytics.
+      </p>
+
+      <pre><code><span style="color:#c084fc"># Datastream architecture flow:</span>
+<span style="color:#c084fc"># Source DB (Oracle/MySQL/PostgreSQL/AlloyDB)</span>
+<span style="color:#c084fc">#   |</span>
+<span style="color:#c084fc">#   v [CDC via log reading]</span>
+<span style="color:#c084fc"># Datastream</span>
+<span style="color:#c084fc">#   |</span>
+<span style="color:#c084fc">#   v [Real-time streaming]</span>
+<span style="color:#c084fc"># BigQuery (merge tables) or Cloud Storage (Avro/JSON files)</span>
+<span style="color:#c084fc">#   |</span>
+<span style="color:#c084fc">#   v [Optional: Dataflow template for processing]</span>
+<span style="color:#c084fc"># Final destination (cleaned, transformed)</span></code></pre>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Tip</div>
+        <p>Know the difference: <strong>DMS</strong> migrates databases to Cloud SQL/AlloyDB/Spanner (operational databases). <strong>Datastream</strong> replicates changes to BigQuery/Cloud Storage (analytics). <strong>BigQuery Data Transfer Service</strong> imports from SaaS apps, S3, Redshift, and Teradata into BigQuery.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 5: Cloud Data Fusion -->
+    <section class="section" id="datafusion">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Cloud Data Fusion</h2>
+      </div>
+
+      <h3 id="fusion-pipelines">Visual ETL Pipeline Builder</h3>
+      <p>
+        Cloud Data Fusion is a fully managed, <strong>code-free</strong> data integration service built on the
+        open-source CDAP platform. It provides a visual drag-and-drop interface for building ETL/ELT pipelines
+        with 200+ pre-built connectors and transformations.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <h4>Data Fusion Basic</h4>
+          <p>For simple ETL pipelines. Includes visual pipeline designer, built-in transforms, and basic scheduling. Cost-effective for standard workloads.</p>
+        </div>
+        <div class="skill-card">
+          <h4>Data Fusion Enterprise</h4>
+          <p>Adds data lineage, metadata management, integration with Dataproc, advanced security (CMEK), and high availability for production workloads.</p>
+        </div>
+        <div class="skill-card">
+          <h4>Wrangler</h4>
+          <p>Interactive data preparation tool within Data Fusion. Point-and-click data cleansing, transformations, and profiling before building pipelines.</p>
+        </div>
+        <div class="skill-card">
+          <h4>Pipeline Studio</h4>
+          <p>Drag-and-drop canvas with sources, transforms, sinks, and error handlers. Pipelines compile to MapReduce or Spark jobs on Dataproc.</p>
+        </div>
+      </div>
+
+      <p>
+        Data Fusion pipelines execute on <strong>Dataproc clusters</strong> under the hood. You can configure
+        ephemeral (auto-created) or persistent clusters based on workload patterns.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">When to Use What</div>
+        <p><strong>Data Fusion</strong>: When your team needs a visual, code-free ETL tool with enterprise connectors (SAP, Salesforce, etc.). <strong>Dataflow</strong>: When you need custom streaming/batch pipelines with Apache Beam code. <strong>Dataform</strong>: When transformations are SQL-only within BigQuery (ELT pattern).</p>
+      </div>
+    </section>
+
+    <!-- SECTION 6: Architecture Patterns -->
+    <section class="section" id="patterns">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Architecture Patterns</h2>
+      </div>
+
+      <h3>Lambda vs Kappa Architecture</h3>
+      <p>
+        Two foundational patterns for data processing systems:
+      </p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Pattern</th><th>Description</th><th>GCP Implementation</th><th>When to Use</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Lambda</strong></td>
+            <td>Separate batch and speed layers, merged in serving layer</td>
+            <td>Batch: Dataflow batch + BQ. Speed: Dataflow streaming + BQ streaming buffer</td>
+            <td>When batch and streaming have different accuracy requirements</td>
+          </tr>
+          <tr>
+            <td><strong>Kappa</strong></td>
+            <td>Single streaming pipeline handles everything. Replay from event log for reprocessing.</td>
+            <td>Pub/Sub + Dataflow streaming + BigQuery</td>
+            <td>When a single pipeline can serve both real-time and historical needs</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Data Mesh Principles on GCP</h3>
+      <p>
+        Data mesh decentralizes data ownership to domain teams while maintaining interoperability:
+      </p>
+      <ul>
+        <li><strong>Domain ownership</strong> &mdash; Each team owns their data products (BigQuery datasets with quality SLAs)</li>
+        <li><strong>Data as a product</strong> &mdash; Datasets published with documentation, SLAs, and access patterns via Analytics Hub</li>
+        <li><strong>Self-serve platform</strong> &mdash; Dataplex provides the federated governance layer across domains</li>
+        <li><strong>Federated governance</strong> &mdash; Central policies (encryption, PII handling) with domain-specific implementation</li>
+      </ul>
+
+      <pre><code><span style="color:#c084fc">-- Data mesh pattern: Domain team publishes a data product</span>
+<span style="color:#c084fc">-- Step 1: Create a curated, documented dataset</span>
+CREATE SCHEMA `sales-domain.product_catalog`
+OPTIONS (
+  description = "Sales domain data product: Product catalog with daily refresh",
+  labels = [("domain", "sales"), ("tier", "gold"), ("sla", "daily")]
+);
+
+<span style="color:#c084fc">-- Step 2: Share via Analytics Hub</span>
+<span style="color:#c084fc">-- Create a listing in Analytics Hub for cross-domain consumption</span>
+<span style="color:#c084fc">-- Consumers get a linked dataset (zero-copy, governed access)</span></code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Architecture Decision</div>
+        <p>For the exam, remember: <strong>Analytics Hub</strong> enables the "data as a product" principle of data mesh by providing governed data sharing. <strong>Dataplex</strong> enables the "federated governance" principle by providing cross-domain metadata management and quality enforcement.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 7: Exam Tips -->
+    <section class="section" id="examtips">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Exam Tips and Scenarios</h2>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario: Data Sovereignty</div>
+        <p>"A company must keep all customer data within the EU." &rarr; Use EU multi-region or single EU region for BigQuery datasets and Cloud Storage buckets. Apply organization policy constraints on resource locations. Use VPC Service Controls for perimeter security.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario: Minimal-Downtime Migration</div>
+        <p>"Migrate an on-premises MySQL database to GCP with minimal downtime." &rarr; Use <strong>Database Migration Service (DMS)</strong> for continuous replication. Set up a Cloud SQL for MySQL target. DMS handles initial full dump + ongoing CDC until cutover.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario: Real-Time Analytics from OLTP</div>
+        <p>"Stream changes from an operational PostgreSQL database into BigQuery for real-time dashboards." &rarr; Use <strong>Datastream</strong> for CDC from PostgreSQL to BigQuery. Datastream creates merge tables that reflect the latest state of the source.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario: Code-Free ETL</div>
+        <p>"A team of data analysts (non-programmers) needs to build ETL pipelines from SAP to BigQuery." &rarr; Use <strong>Cloud Data Fusion</strong> with its visual pipeline designer and pre-built SAP connector. Enterprise edition for lineage tracking.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario: SQL Transformations in BQ</div>
+        <p>"Manage complex SQL transformations in BigQuery with version control and testing." &rarr; Use <strong>Dataform</strong> with SQLX, git integration, assertions for data quality, and scheduled execution.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario: PII Detection</div>
+        <p>"Automatically scan and de-identify PII in a data lake before it reaches analysts." &rarr; Use <strong>Sensitive Data Protection (Cloud DLP)</strong> API with inspection jobs for discovery and de-identification templates for masking/tokenization. Integrate with a Dataflow pipeline for automated processing.</p>
+      </div>
+
+      <h3>Key Comparisons to Memorize</h3>
+      <table class="data-table">
+        <thead>
+          <tr><th>Question</th><th>Answer</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Migrate database to managed DB?</td><td><strong>Database Migration Service (DMS)</strong></td></tr>
+          <tr><td>Stream database changes to BQ/GCS?</td><td><strong>Datastream</strong> (CDC)</td></tr>
+          <tr><td>Import from SaaS/S3/Redshift to BQ?</td><td><strong>BigQuery Data Transfer Service</strong></td></tr>
+          <tr><td>Code-free ETL with visual builder?</td><td><strong>Cloud Data Fusion</strong></td></tr>
+          <tr><td>SQL transformations in BQ?</td><td><strong>Dataform</strong></td></tr>
+          <tr><td>Custom streaming/batch pipeline?</td><td><strong>Dataflow</strong> (Apache Beam)</td></tr>
+          <tr><td>Fine-grained column security in BQ?</td><td><strong>Policy tags</strong> (Data Catalog)</td></tr>
+          <tr><td>Row-level security in BQ?</td><td><strong>Row access policies</strong></td></tr>
+          <tr><td>Unified data governance across lakes?</td><td><strong>Dataplex</strong></td></tr>
+          <tr><td>Share BQ datasets across orgs?</td><td><strong>Analytics Hub</strong></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- NAVIGATION -->
+    <div class="next-section">
+      <div></div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Section</div>
+        <a href="02-ingesting-processing-data.html" class="next-btn">
+          Ingesting and Processing Data &rarr;
+        </a>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<footer class="footer">
+  <span>CareerAlign &mdash; GCP Professional Data Engineer</span>
+  <span>Not affiliated with Google Cloud</span>
+</footer>
+</body>
+</html>

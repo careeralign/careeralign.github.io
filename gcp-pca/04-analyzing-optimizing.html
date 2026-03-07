@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Analyzing and Optimizing Processes — CareerAlign GCP PCA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #f97316;
+  --page-color-04: rgba(249,115,22,0.04);
+  --page-color-07: rgba(249,115,22,0.07);
+  --page-color-12: rgba(249,115,22,0.12);
+  --page-color-15: rgba(249,115,22,0.15);
+  --page-color-25: rgba(249,115,22,0.25);
+  --page-color-30: rgba(249,115,22,0.3);
+}
+:root {
+  --bg-base:#0b0d14;--bg-surface:#10131e;--bg-elevated:#171c2e;--bg-overlay:#1e2438;
+  --border-subtle:#1a1f34;--border-default:#232840;--border-strong:#2e3554;
+  --text-primary:#e6e8f4;--text-secondary:#8e94b5;--text-muted:#545a78;
+  --accent-indigo:#6366f1;--accent-cyan:#22d3ee;--accent-violet:#a855f7;
+  --accent-green:#22c55e;--accent-amber:#f59e0b;--accent-red:#ef4444;
+  --font-display:'Space Grotesk',sans-serif;--font-body:'Nunito',sans-serif;--font-mono:'JetBrains Mono',monospace;
+  --radius:12px;--radius-sm:8px;--radius-lg:18px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{background:var(--bg-base);color:var(--text-primary);font-family:var(--font-body);font-size:16px;line-height:1.7;min-height:100vh}
+a{color:inherit;text-decoration:none}img,svg{display:block}
+.nav{position:sticky;top:0;z-index:100;background:rgba(11,13,20,0.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border-subtle);padding:0 32px;display:flex;align-items:center;height:58px;gap:24px}
+.nav-logo{font-family:var(--font-display);font-weight:700;font-size:17px;color:var(--text-primary);display:flex;align-items:center;gap:9px;white-space:nowrap}.nav-logo span{color:var(--page-color)}
+.nav-links{display:flex;gap:6px;flex:1;flex-wrap:wrap;overflow:hidden}.nav-links a{font-size:12px;font-weight:500;color:var(--text-muted);padding:4px 8px;border-radius:6px;transition:all .2s;white-space:nowrap}.nav-links a:hover{color:var(--text-primary);background:var(--bg-elevated)}.nav-links a.active{color:var(--page-color);background:var(--page-color-15)}
+.nav-home{font-size:12.5px;font-weight:600;color:var(--page-color);padding:6px 14px;border:1px solid var(--page-color-30);border-radius:7px;transition:all .2s;white-space:nowrap;margin-left:auto}.nav-home:hover{background:var(--page-color-12)}
+.hero{padding:70px 60px 50px;max-width:1400px;margin:0 auto;border-bottom:1px solid var(--border-subtle)}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:var(--page-color-12);border:1px solid var(--page-color-25);border-radius:20px;padding:5px 14px;margin-bottom:22px;font-size:12.5px;font-family:var(--font-display);font-weight:600;color:var(--page-color);letter-spacing:0.04em;text-transform:uppercase}
+.hero h1{font-family:var(--font-display);font-size:clamp(2.2rem,4vw,3.4rem);font-weight:700;line-height:1.15;color:var(--text-primary);max-width:820px;margin-bottom:20px}.hero h1 em{font-style:normal;color:var(--page-color)}
+.hero-desc{font-size:1.1rem;color:var(--text-secondary);max-width:760px;line-height:1.75;margin-bottom:36px}
+.hero-checklist{display:flex;gap:12px;flex-wrap:wrap}.hero-pill{display:flex;align-items:center;gap:7px;background:var(--bg-surface);border:1px solid var(--border-default);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--text-secondary)}.hero-pill svg{color:var(--page-color);flex-shrink:0}
+.content-grid{max-width:1400px;margin:0 auto;padding:0 60px 80px;display:grid;grid-template-columns:260px 1fr;gap:0;align-items:start}
+.toc{position:sticky;top:78px;padding:32px 0;border-right:1px solid var(--border-subtle);margin-right:48px}.toc-title{font-size:11px;font-family:var(--font-display);font-weight:700;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-subtle)}.toc a{display:block;font-size:13px;color:var(--text-secondary);padding:6px 0;transition:color .2s;border-left:2px solid transparent;padding-left:12px;margin-left:-2px}.toc a:hover{color:var(--text-primary);border-left-color:var(--page-color)}.toc a.section{font-weight:600;color:var(--text-primary);font-size:12.5px;margin-top:8px}.toc a.sub{padding-left:24px;font-size:12px}
+.main{padding:40px 0}
+.section{margin-bottom:60px}.section-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border-subtle)}.section-num{width:36px;height:36px;border-radius:50%;background:var(--page-color-15);border:1px solid var(--page-color-30);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--page-color);flex-shrink:0}
+.section h2{font-family:var(--font-display);font-size:1.55rem;font-weight:700;color:var(--text-primary)}.section h3{font-family:var(--font-display);font-size:1.15rem;font-weight:600;color:var(--text-primary);margin:28px 0 12px}.section p{color:var(--text-secondary);margin-bottom:16px;font-size:1rem;line-height:1.8}.section p strong{color:var(--text-primary);font-weight:600}.section ul,.section ol{color:var(--text-secondary);margin:0 0 16px 24px;font-size:1rem;line-height:1.8}.section li{margin-bottom:6px}.section li strong{color:var(--text-primary);font-weight:600}
+.callout{border-left:3px solid var(--page-color);background:var(--page-color-07);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:16px 20px;margin:20px 0}.callout.info{border-color:var(--accent-indigo);background:rgba(99,102,241,0.07)}.callout.tip{border-color:var(--page-color);background:var(--page-color-07)}.callout.warn{border-color:var(--accent-amber);background:rgba(245,158,11,0.07)}.callout.exam{border-color:var(--accent-red);background:rgba(239,68,68,0.07)}
+.callout-label{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;color:var(--page-color)}.callout.info .callout-label{color:var(--accent-indigo)}.callout.warn .callout-label{color:var(--accent-amber)}.callout.exam .callout-label{color:var(--accent-red)}.callout p{margin:0;color:var(--text-secondary);font-size:0.95rem}
+pre{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:20px 24px;overflow-x:auto;margin:20px 0}code{font-family:var(--font-mono);font-size:13.5px;color:var(--accent-cyan);line-height:1.65}:not(pre)>code{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:5px;padding:2px 7px;font-size:13px}
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:24px 0}.skill-card{background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--radius);padding:20px 22px;transition:border-color .2s}.skill-card:hover{border-color:var(--page-color)}.skill-card-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}.skill-icon{width:32px;height:32px;border-radius:8px;background:var(--page-color-15);display:flex;align-items:center;justify-content:center;font-size:15px}.skill-card h4{font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--text-primary)}.skill-card p{font-size:13px;color:var(--text-secondary);margin:0;line-height:1.6}
+.data-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}.data-table th{background:var(--bg-elevated);color:var(--text-primary);font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:0.04em;text-transform:uppercase;padding:12px 16px;text-align:left;border-bottom:2px solid var(--border-strong)}.data-table td{padding:10px 16px;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle)}.data-table tr:hover td{background:var(--bg-surface)}.data-table td strong{color:var(--text-primary)}
+.comp-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:13.5px}.comp-table th{background:var(--bg-elevated);color:var(--text-primary);font-family:var(--font-display);font-weight:600;font-size:11.5px;letter-spacing:0.04em;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:2px solid var(--border-strong)}.comp-table td{padding:9px 14px;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle)}.comp-table tr:hover td{background:var(--bg-surface)}.comp-table td strong{color:var(--text-primary)}
+.next-section{margin-top:70px;padding-top:40px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center}.next-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;font-family:var(--font-display)}.next-btn{display:inline-flex;align-items:center;gap:10px;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:var(--radius);padding:14px 22px;font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--text-primary);transition:all .2s}.next-btn:hover{border-color:var(--page-color);color:var(--page-color);transform:translateX(4px)}.prev-btn:hover{border-color:var(--text-muted);color:var(--text-muted);transform:translateX(-4px)}.next-phase{font-size:12px;color:var(--page-color);font-weight:500}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">&#9729;&#65039; <span>CareerAlign</span> GCP PCA</div>
+  <div class="nav-links">
+    <a href="01-designing-cloud-solutions.html">01 &middot; Design</a>
+    <a href="02-provisioning-infrastructure.html">02 &middot; Provision</a>
+    <a href="03-security-compliance.html">03 &middot; Security</a>
+    <a href="04-analyzing-optimizing.html" class="active">04 &middot; Optimize</a>
+    <a href="05-managing-implementation.html">05 &middot; Implement</a>
+    <a href="06-operations-excellence.html">06 &middot; Operations</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; PCA Hub</a>
+</nav>
+
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Section 04 &middot; Analyzing and Optimizing Processes (~15%)
+  </div>
+  <h1>Analyzing and <em>Optimizing Processes</em></h1>
+  <p class="hero-desc">
+    Master SDLC best practices, CI/CD pipeline design, disaster recovery planning,
+    stakeholder management, and cost optimization strategies for cloud architectures.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> SDLC &amp; CI/CD</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Disaster Recovery</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Cost Optimization</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Stakeholder Management</div>
+  </div>
+  <div style="margin-top:20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-pca/notebooks/04-analyzing-optimizing.ipynb" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"> Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#sdlc" class="section">1 &middot; SDLC Best Practices</a>
+    <a href="#sdlc-models" class="sub">Development Models</a>
+    <a href="#sdlc-testing" class="sub">Testing Strategy</a>
+    <a href="#cicd" class="section">2 &middot; CI/CD Pipelines</a>
+    <a href="#cicd-build" class="sub">Cloud Build</a>
+    <a href="#cicd-deploy" class="sub">Cloud Deploy</a>
+    <a href="#cicd-artifacts" class="sub">Artifact Registry</a>
+    <a href="#dr" class="section">3 &middot; Disaster Recovery</a>
+    <a href="#dr-patterns" class="sub">DR Patterns</a>
+    <a href="#dr-rpo-rto" class="sub">RPO &amp; RTO</a>
+    <a href="#stakeholder" class="section">4 &middot; Stakeholder Management</a>
+    <a href="#stakeholder-comms" class="sub">Communication Patterns</a>
+    <a href="#cost" class="section">5 &middot; Cost Optimization</a>
+    <a href="#cost-compute" class="sub">Compute Savings</a>
+    <a href="#cost-storage" class="sub">Storage Savings</a>
+    <a href="#cost-tools" class="sub">Cost Management Tools</a>
+    <a href="#examtips" class="section">6 &middot; Exam Tips</a>
+  </aside>
+
+  <main class="main">
+
+    <!-- SECTION 1: SDLC -->
+    <section class="section" id="sdlc">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>SDLC Best Practices</h2>
+      </div>
+
+      <h3 id="sdlc-models">Development Models on GCP</h3>
+      <p>
+        The PCA exam expects you to recommend development processes, not just infrastructure. Understanding how
+        teams develop, test, and release software on GCP is critical for architecture decisions.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">&#128736;</div><h4>Trunk-Based Development</h4></div>
+          <p>Short-lived feature branches merged frequently to main. Enables continuous integration. Preferred for Cloud Build + Cloud Deploy pipelines.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">&#128640;</div><h4>GitOps</h4></div>
+          <p>Git as the single source of truth for infrastructure and app config. Argo CD or Config Sync watches a repo and reconciles cluster state. Ideal for GKE.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">&#128203;</div><h4>Environment Promotion</h4></div>
+          <p>Dev &rarr; Staging &rarr; Production pipeline with approval gates. Cloud Deploy handles promotion with rollback capabilities.</p>
+        </div>
+      </div>
+
+      <h3 id="sdlc-testing">Testing Strategy</h3>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Test Type</th><th>Scope</th><th>GCP Tool</th><th>When</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Unit Tests</strong></td><td>Individual functions</td><td>Cloud Build step</td><td>Every commit</td></tr>
+          <tr><td><strong>Integration Tests</strong></td><td>Service interactions</td><td>Cloud Build + test containers</td><td>Every PR merge</td></tr>
+          <tr><td><strong>Load Tests</strong></td><td>Performance at scale</td><td>Cloud Monitoring + custom (Locust, k6)</td><td>Pre-release</td></tr>
+          <tr><td><strong>Security Scans</strong></td><td>Vulnerabilities</td><td>Artifact Registry scanning, SCC</td><td>Every build</td></tr>
+          <tr><td><strong>Canary Analysis</strong></td><td>Production traffic</td><td>Cloud Deploy canary strategy</td><td>Deployment</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECTION 2: CI/CD -->
+    <section class="section" id="cicd">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>CI/CD Pipelines</h2>
+      </div>
+
+      <h3 id="cicd-build">Cloud Build</h3>
+      <p>
+        Cloud Build is a serverless CI/CD platform. It executes build steps defined in <code>cloudbuild.yaml</code>
+        using builder images. Each step runs in its own container.
+      </p>
+
+      <pre><code><span class="code-comment"># cloudbuild.yaml — Build, test, push, deploy</span>
+steps:
+  <span class="code-comment"># Step 1: Run unit tests</span>
+  - name: 'python:3.12'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - 'pip install -r requirements.txt && pytest tests/'
+
+  <span class="code-comment"># Step 2: Build Docker image</span>
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/my-app:$SHORT_SHA', '.']
+
+  <span class="code-comment"># Step 3: Push to Artifact Registry</span>
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/my-app:$SHORT_SHA']
+
+  <span class="code-comment"># Step 4: Deploy to Cloud Run</span>
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'my-app'
+      - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/my-app:$SHORT_SHA'
+      - '--region=us-central1'
+      - '--platform=managed'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+triggers:
+  - name: 'push-to-main'
+    github:
+      owner: 'my-org'
+      name: 'my-repo'
+      push:
+        branch: '^main$'</code></pre>
+
+      <h3 id="cicd-deploy">Cloud Deploy</h3>
+      <p>
+        Cloud Deploy provides <strong>managed continuous delivery</strong> with promotion, approval gates,
+        and rollback. It defines delivery pipelines as code.
+      </p>
+
+      <pre><code><span class="code-comment"># cloud-deploy pipeline definition</span>
+apiVersion: deploy.cloud.google.com/v1
+kind: DeliveryPipeline
+metadata:
+  name: my-pipeline
+serialPipeline:
+  stages:
+    - targetId: dev
+      profiles: [dev]
+    - targetId: staging
+      profiles: [staging]
+      strategy:
+        canary:
+          runtimeConfig:
+            cloudRun:
+              automaticTrafficControl: true
+          canaryDeployment:
+            percentages: [25, 50, 75]
+    - targetId: production
+      profiles: [production]
+      strategy:
+        canary:
+          runtimeConfig:
+            cloudRun:
+              automaticTrafficControl: true
+          canaryDeployment:
+            percentages: [10, 25, 50]</code></pre>
+
+      <h3 id="cicd-artifacts">Artifact Registry</h3>
+      <p>
+        Artifact Registry is the successor to Container Registry. It stores Docker images, language packages
+        (npm, pip, Maven), and OS packages. Key features include vulnerability scanning, remote repositories
+        (proxy for Docker Hub, npm), and virtual repositories (single endpoint for multiple repos).
+      </p>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Tip</div>
+        <p><strong>Artifact Registry replaces Container Registry.</strong> If a question mentions storing Docker images, the answer is Artifact Registry (not gcr.io). Artifact Registry also supports non-Docker artifacts and has built-in vulnerability scanning.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 3: DR -->
+    <section class="section" id="dr">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Disaster Recovery</h2>
+      </div>
+
+      <h3 id="dr-patterns">DR Patterns</h3>
+
+      <table class="comp-table">
+        <thead>
+          <tr><th>Pattern</th><th>RPO</th><th>RTO</th><th>Cost</th><th>How It Works</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Cold Standby</strong></td>
+            <td>Hours</td>
+            <td>Hours to days</td>
+            <td>Lowest</td>
+            <td>Backups in another region. Rebuild infrastructure from IaC after disaster.</td>
+          </tr>
+          <tr>
+            <td><strong>Warm Standby</strong></td>
+            <td>Minutes</td>
+            <td>Minutes to hours</td>
+            <td>Medium</td>
+            <td>Scaled-down replica running in DR region. Scale up on failover.</td>
+          </tr>
+          <tr>
+            <td><strong>Hot Standby</strong></td>
+            <td>Seconds</td>
+            <td>Seconds to minutes</td>
+            <td>Highest</td>
+            <td>Full replica in DR region with active traffic. Instant failover.</td>
+          </tr>
+          <tr>
+            <td><strong>Multi-Region Active-Active</strong></td>
+            <td>Near-zero</td>
+            <td>Near-zero</td>
+            <td>Highest</td>
+            <td>Both regions serve traffic. Global load balancer distributes requests.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 id="dr-rpo-rto">RPO and RTO</h3>
+      <p>
+        <strong>RPO (Recovery Point Objective)</strong> &mdash; Maximum acceptable data loss, measured in time. How much data can you afford to lose?
+      </p>
+      <p>
+        <strong>RTO (Recovery Time Objective)</strong> &mdash; Maximum acceptable downtime. How quickly must the system be back online?
+      </p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>RPO/RTO Target</th><th>Database Strategy</th><th>Compute Strategy</th><th>Cost Tier</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>RPO: 24h, RTO: 24h</strong></td><td>Daily backups to cross-region GCS</td><td>IaC (Terraform) rebuild from scratch</td><td>$</td></tr>
+          <tr><td><strong>RPO: 1h, RTO: 4h</strong></td><td>Continuous backup + PITR (Cloud SQL)</td><td>Pre-built images, autoscaled MIG in DR</td><td>$$</td></tr>
+          <tr><td><strong>RPO: 5min, RTO: 30min</strong></td><td>Cross-region read replicas (promote on failover)</td><td>Warm MIGs in DR region, scaled to minimum</td><td>$$$</td></tr>
+          <tr><td><strong>RPO: 0, RTO: ~0</strong></td><td>Cloud Spanner multi-region or AlloyDB HA</td><td>Multi-region GKE, global LB active-active</td><td>$$$$</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <div class="callout-label">Common Mistake</div>
+        <p><strong>Do not over-engineer DR.</strong> If the business requirement says RPO of 4 hours is acceptable, do not recommend Cloud Spanner multi-region (near-zero RPO). Match the DR strategy to the stated requirements, not the maximum possible reliability.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 4: Stakeholder -->
+    <section class="section" id="stakeholder">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Stakeholder Management</h2>
+      </div>
+
+      <h3 id="stakeholder-comms">Communication and Change Management</h3>
+      <p>
+        The PCA exam includes questions about non-technical skills &mdash; how to communicate architecture
+        decisions and manage organizational change during cloud adoption.
+      </p>
+
+      <ul>
+        <li><strong>Executive Stakeholders</strong> &mdash; Focus on TCO, risk reduction, competitive advantage. Use business metrics, not technical jargon.</li>
+        <li><strong>Development Teams</strong> &mdash; Focus on developer experience, CI/CD improvements, reduced ops burden. Show migration path and training plan.</li>
+        <li><strong>Security/Compliance Teams</strong> &mdash; Focus on control mechanisms, audit capabilities, compliance certifications. Demonstrate defense in depth.</li>
+        <li><strong>Operations Teams</strong> &mdash; Focus on monitoring, alerting, incident response, IaC. Show how managed services reduce toil.</li>
+      </ul>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p><strong>Architecture Decision Records (ADRs)</strong> document why specific technology choices were made. The exam values architects who can justify decisions with trade-off analysis, not just pick the "best" technology.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 5: Cost Optimization -->
+    <section class="section" id="cost">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Cost Optimization</h2>
+      </div>
+
+      <h3 id="cost-compute">Compute Cost Savings</h3>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Strategy</th><th>Savings</th><th>Commitment</th><th>Best For</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Spot VMs</strong></td><td>60-91%</td><td>None (preemptible)</td><td>Batch, CI/CD, fault-tolerant workloads</td></tr>
+          <tr><td><strong>Committed Use Discounts (CUDs)</strong></td><td>Up to 57%</td><td>1 or 3 years</td><td>Steady-state production workloads</td></tr>
+          <tr><td><strong>Sustained Use Discounts (SUDs)</strong></td><td>Up to 30%</td><td>None (automatic)</td><td>VMs running &gt;25% of the month</td></tr>
+          <tr><td><strong>Right-Sizing Recommendations</strong></td><td>10-40%</td><td>None</td><td>Over-provisioned VMs (Recommender)</td></tr>
+          <tr><td><strong>Autoscaling</strong></td><td>Variable</td><td>None</td><td>Variable traffic patterns</td></tr>
+          <tr><td><strong>Scale to Zero (Cloud Run)</strong></td><td>Up to 100% idle</td><td>None</td><td>Intermittent workloads</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="cost-storage">Storage Cost Savings</h3>
+      <ul>
+        <li><strong>Lifecycle Policies</strong> &mdash; Automatically transition objects to cheaper storage classes based on age.</li>
+        <li><strong>Autoclass</strong> &mdash; GCS automatically manages storage classes based on access patterns. Zero configuration.</li>
+        <li><strong>BigQuery Storage Optimization</strong> &mdash; Partitioning (reduce scanned data), clustering (sort optimization), materialized views (pre-computed results).</li>
+        <li><strong>Nearline/Coldline for Backups</strong> &mdash; Use appropriate storage class for backup frequency.</li>
+      </ul>
+
+      <h3 id="cost-tools">Cost Management Tools</h3>
+
+      <pre><code><span class="code-comment"># Set up a billing budget alert</span>
+gcloud billing budgets create \
+    --billing-account=01ABCD-234567-EFGH89 \
+    --display-name="Monthly Budget" \
+    --budget-amount=5000 \
+    --threshold-rule=percent=50,basis=current-spend \
+    --threshold-rule=percent=90,basis=current-spend \
+    --threshold-rule=percent=100,basis=current-spend \
+    --notifications-rule-pubsub-topic=projects/my-project/topics/billing-alerts
+
+<span class="code-comment"># Export billing to BigQuery for analysis</span>
+gcloud billing accounts describe 01ABCD-234567-EFGH89
+
+<span class="code-comment"># View Recommender insights for right-sizing</span>
+gcloud recommender insights list \
+    --insight-type=google.compute.instance.MachineTypeRecommender \
+    --project=my-project \
+    --location=us-central1-a</code></pre>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Tip</div>
+        <p><strong>Cost optimization is about matching resources to requirements, not minimizing cost at all costs.</strong> The exam rewards answers that balance cost with performance and reliability. Spot VMs are cheap but wrong for production databases. CUDs are great for steady workloads but waste money for bursty traffic.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 6: Exam Tips -->
+    <section class="section" id="examtips">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Exam Tips</h2>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 1</div>
+        <p><strong>"A company needs to reduce their cloud spending by 30% without impacting production SLAs..."</strong><br>
+        Answer: 1) Right-size VMs using Recommender insights. 2) Purchase CUDs for steady-state workloads. 3) Move non-production to Spot VMs. 4) Apply storage lifecycle policies. 5) Use autoscaling to scale down during off-peak. Do NOT recommend reducing redundancy or HA.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 2</div>
+        <p><strong>"An e-commerce company needs DR with less than 15 minutes of data loss and less than 1 hour of downtime..."</strong><br>
+        Answer: <strong>Warm standby</strong>. Cloud SQL with cross-region read replica (promote on failover, ~5 min RPO from async replication). Minimum-sized MIG in DR region with pre-built images. Global LB for automatic failover. This meets RPO &lt;15 min and RTO &lt;1 hour without the cost of hot standby.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 3</div>
+        <p><strong>"A team wants to implement CI/CD for a microservices application on GKE..."</strong><br>
+        Answer: <strong>Cloud Build</strong> for CI (build, test, push images to Artifact Registry). <strong>Cloud Deploy</strong> for CD with canary deployment strategy through dev &rarr; staging &rarr; production targets. Artifact Registry for container image storage with vulnerability scanning enabled.</p>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">General Strategy</div>
+        <p><strong>For optimization questions, think holistically.</strong> Cost optimization alone is not enough &mdash; you must also consider operational efficiency, developer productivity, and reliability. The best architecture optimizes across all dimensions, not just one.</p>
+      </div>
+    </section>
+
+    <!-- NAVIGATION -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Section</div>
+        <a href="03-security-compliance.html" class="next-btn prev-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          03 &middot; Security and Compliance
+        </a>
+      </div>
+      <div style="text-align:right">
+        <div class="next-label">Next Section</div>
+        <a href="05-managing-implementation.html" class="next-btn">
+          05 &middot; Managing Implementation
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+        <div class="next-phase">Implementation Management</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

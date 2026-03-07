@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Storing the Data — CareerAlign GCP PDE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #3b82f6;
+  --page-color-04: rgba(59,130,246,0.04);
+  --page-color-07: rgba(59,130,246,0.07);
+  --page-color-12: rgba(59,130,246,0.12);
+  --page-color-15: rgba(59,130,246,0.15);
+  --page-color-25: rgba(59,130,246,0.25);
+  --page-color-30: rgba(59,130,246,0.3);
+
+  --bg-base:#0b0d14;--bg-surface:#10131e;--bg-elevated:#171c2e;--bg-overlay:#1e2438;
+  --border-subtle:#1a1f34;--border-default:#232840;--border-strong:#2e3554;
+  --text-primary:#e6e8f4;--text-secondary:#8e94b5;--text-muted:#545a78;
+  --accent-indigo:#6366f1;--accent-cyan:#22d3ee;--accent-violet:#a855f7;
+  --accent-green:#22c55e;--accent-amber:#f59e0b;--accent-red:#ef4444;
+  --font-display:'Space Grotesk',sans-serif;--font-body:'Nunito',sans-serif;--font-mono:'JetBrains Mono',monospace;
+  --radius:12px;--radius-sm:8px;--radius-lg:18px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{background:var(--bg-base);color:var(--text-primary);font-family:var(--font-body);font-size:16px;line-height:1.7;min-height:100vh}
+a{color:inherit;text-decoration:none}img,svg{display:block}
+.nav{position:sticky;top:0;z-index:100;background:rgba(11,13,20,0.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border-subtle);padding:0 32px;display:flex;align-items:center;height:58px;gap:24px}
+.nav-logo{font-family:var(--font-display);font-weight:700;font-size:17px;color:var(--text-primary);display:flex;align-items:center;gap:9px;white-space:nowrap}.nav-logo span{color:var(--page-color)}
+.nav-links{display:flex;gap:6px;flex:1;flex-wrap:wrap;overflow:hidden}
+.nav-links a{font-size:12px;font-weight:500;color:var(--text-muted);padding:4px 8px;border-radius:6px;transition:all .2s;white-space:nowrap}
+.nav-links a:hover{color:var(--text-primary);background:var(--bg-elevated)}.nav-links a.active{color:var(--page-color);background:var(--page-color-15)}
+.nav-home{font-size:12.5px;font-weight:600;color:var(--page-color);padding:6px 14px;border:1px solid var(--page-color-30);border-radius:7px;transition:all .2s;white-space:nowrap;margin-left:auto}.nav-home:hover{background:var(--page-color-12)}
+.hero{padding:70px 60px 50px;max-width:1400px;margin:0 auto;border-bottom:1px solid var(--border-subtle)}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:var(--page-color-12);border:1px solid var(--page-color-25);border-radius:20px;padding:5px 14px;margin-bottom:22px;font-size:12.5px;font-family:var(--font-display);font-weight:600;color:var(--page-color);letter-spacing:0.04em;text-transform:uppercase}
+.hero h1{font-family:var(--font-display);font-size:clamp(2.2rem,4vw,3.4rem);font-weight:700;line-height:1.15;color:var(--text-primary);max-width:820px;margin-bottom:20px}.hero h1 em{font-style:normal;color:var(--page-color)}
+.hero-desc{font-size:1.1rem;color:var(--text-secondary);max-width:760px;line-height:1.75;margin-bottom:36px}
+.hero-checklist{display:flex;gap:12px;flex-wrap:wrap}
+.hero-pill{display:flex;align-items:center;gap:7px;background:var(--bg-surface);border:1px solid var(--border-default);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--text-secondary)}.hero-pill svg{color:var(--page-color);flex-shrink:0}
+.content-grid{max-width:1400px;margin:0 auto;padding:0 60px 80px;display:grid;grid-template-columns:260px 1fr;gap:0;align-items:start}
+.toc{position:sticky;top:78px;padding:32px 0;border-right:1px solid var(--border-subtle);margin-right:48px}
+.toc-title{font-size:11px;font-family:var(--font-display);font-weight:700;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-subtle)}
+.toc a{display:block;font-size:13px;color:var(--text-secondary);padding:6px 0;transition:color .2s;border-left:2px solid transparent;padding-left:12px;margin-left:-2px}
+.toc a:hover{color:var(--text-primary);border-left-color:var(--page-color)}
+.toc a.section{font-weight:600;color:var(--text-primary);font-size:12.5px;margin-top:8px}.toc a.sub{padding-left:24px;font-size:12px}
+.main{padding:40px 0}.section{margin-bottom:60px}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border-subtle)}
+.section-num{width:36px;height:36px;border-radius:50%;background:var(--page-color-15);border:1px solid var(--page-color-30);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--page-color);flex-shrink:0}
+.section h2{font-family:var(--font-display);font-size:1.55rem;font-weight:700;color:var(--text-primary)}
+.section h3{font-family:var(--font-display);font-size:1.15rem;font-weight:600;color:var(--text-primary);margin:28px 0 12px}
+.section p{color:var(--text-secondary);margin-bottom:16px;font-size:1rem;line-height:1.8}.section p strong{color:var(--text-primary);font-weight:600}
+.section ul,.section ol{color:var(--text-secondary);margin:0 0 16px 24px;font-size:1rem;line-height:1.8}.section li{margin-bottom:6px}.section li strong{color:var(--text-primary);font-weight:600}
+.callout{border-left:3px solid var(--page-color);background:var(--page-color-07);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:16px 20px;margin:20px 0}
+.callout.info{border-color:var(--accent-indigo);background:rgba(99,102,241,0.07)}.callout.tip{border-color:var(--accent-green);background:rgba(34,197,94,0.07)}.callout.warn{border-color:var(--accent-amber);background:rgba(245,158,11,0.07)}.callout.exam{border-color:var(--accent-red);background:rgba(239,68,68,0.07)}
+.callout-label{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;color:var(--page-color)}
+.callout.info .callout-label{color:var(--accent-indigo)}.callout.tip .callout-label{color:var(--accent-green)}.callout.warn .callout-label{color:var(--accent-amber)}.callout.exam .callout-label{color:var(--accent-red)}
+.callout p{margin:0;color:var(--text-secondary);font-size:0.95rem}
+pre{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:20px 24px;overflow-x:auto;margin:20px 0}
+code{font-family:var(--font-mono);font-size:13.5px;color:var(--accent-cyan);line-height:1.65}
+:not(pre)>code{background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:5px;padding:2px 7px;font-size:13px}
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:24px 0}
+.skill-card{background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--radius);padding:20px 22px;transition:border-color .2s}.skill-card:hover{border-color:var(--page-color)}
+.skill-card h4{font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px}.skill-card p{font-size:13px;color:var(--text-secondary);margin:0;line-height:1.6}
+.data-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}
+.data-table th{background:var(--bg-elevated);color:var(--text-primary);font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:0.04em;text-transform:uppercase;padding:12px 16px;text-align:left;border-bottom:2px solid var(--border-strong)}
+.data-table td{padding:10px 16px;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle)}.data-table tr:hover td{background:var(--bg-surface)}.data-table td strong{color:var(--text-primary)}
+.next-section{margin-top:70px;padding-top:40px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center}
+.next-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;font-family:var(--font-display)}
+.next-btn{display:inline-flex;align-items:center;gap:10px;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:var(--radius);padding:14px 22px;font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--text-primary);transition:all .2s}
+.next-btn:hover{border-color:var(--page-color);color:var(--page-color);transform:translateX(4px)}.prev-btn:hover{transform:translateX(-4px)}
+.footer{max-width:1400px;margin:0 auto;padding:40px 60px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;font-size:13px;color:var(--text-muted)}
+@media(max-width:900px){.content-grid{grid-template-columns:1fr;padding:0 20px 40px}.toc{display:none}.hero{padding:40px 20px 30px}.nav-links{display:none}.footer{flex-direction:column;gap:8px;padding:30px 20px}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">&#9729;&#65039; <span>CareerAlign</span> GCP PDE</div>
+  <div class="nav-links">
+    <a href="01-designing-data-systems.html">01 &middot; Designing Systems</a>
+    <a href="02-ingesting-processing-data.html">02 &middot; Ingesting Data</a>
+    <a href="03-storing-the-data.html" class="active">03 &middot; Storing Data</a>
+    <a href="04-preparing-using-data.html">04 &middot; Preparing Data</a>
+    <a href="05-maintaining-data-workloads.html">05 &middot; Maintaining</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; PDE Hub</a>
+</nav>
+
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Section 03 &middot; Storing the Data
+  </div>
+  <h1>Storing <em>the Data</em></h1>
+  <p class="hero-desc">
+    Covers roughly 20% of the exam. Select the right storage system for each workload, design
+    data warehouses and data lakes, understand BigQuery optimization, and build a unified data platform.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Storage Selection</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Data Warehouse Design</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Data Lake Architecture</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> BigQuery Optimization</div>
+  </div>
+  <div style="margin-top:20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-pde/notebooks/03-storing-the-data.ipynb" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"> Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#selection" class="section">1 &middot; Storage Selection Guide</a>
+    <a href="#relational" class="sub">Relational Databases</a>
+    <a href="#nosql" class="sub">NoSQL Databases</a>
+    <a href="#object" class="sub">Object Storage</a>
+    <a href="#bigquery" class="section">2 &middot; BigQuery Deep Dive</a>
+    <a href="#bq-arch" class="sub">Architecture</a>
+    <a href="#bq-partition" class="sub">Partitioning &amp; Clustering</a>
+    <a href="#bq-optimization" class="sub">Query Optimization</a>
+    <a href="#bq-slots" class="sub">Slots &amp; Pricing</a>
+    <a href="#warehouse" class="section">3 &middot; Data Warehouse Design</a>
+    <a href="#modeling" class="sub">Modeling Patterns</a>
+    <a href="#materialized" class="sub">Materialized Views</a>
+    <a href="#datalake" class="section">4 &middot; Data Lakes</a>
+    <a href="#biglake" class="sub">BigLake</a>
+    <a href="#dataplex" class="sub">Dataplex</a>
+    <a href="#formats" class="sub">File Formats</a>
+    <a href="#platform" class="section">5 &middot; Data Platform Design</a>
+    <a href="#lakehouse" class="sub">Lakehouse Architecture</a>
+    <a href="#examtips" class="section">6 &middot; Exam Tips</a>
+  </aside>
+
+  <main class="main">
+
+    <!-- SECTION 1: Storage Selection -->
+    <section class="section" id="selection">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Storage Selection Guide</h2>
+      </div>
+
+      <p>
+        Choosing the right storage service is one of the most heavily tested topics. The decision tree depends on
+        <strong>data structure</strong>, <strong>access pattern</strong>, <strong>latency requirements</strong>,
+        <strong>scale</strong>, and <strong>consistency needs</strong>.
+      </p>
+
+      <h3 id="relational">Relational Databases</h3>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Service</th><th>Scale</th><th>Best For</th><th>Max Size</th><th>SLA</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Cloud SQL</strong></td><td>Single region, read replicas</td><td>OLTP web/app backends, MySQL/PG/SQL Server compatibility</td><td>64 TB</td><td>99.95%</td></tr>
+          <tr><td><strong>AlloyDB</strong></td><td>Single region, columnar engine</td><td>High-performance PostgreSQL, mixed OLTP+analytics</td><td>64 TB+</td><td>99.99%</td></tr>
+          <tr><td><strong>Cloud Spanner</strong></td><td>Global, horizontal</td><td>Globally distributed ACID transactions, financial systems</td><td>Unlimited</td><td>99.999%</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout exam">
+        <div class="callout-label">Decision Framework</div>
+        <p>Need <strong>global ACID transactions</strong>? &rarr; Spanner. Need <strong>PostgreSQL compatibility with high performance</strong>? &rarr; AlloyDB. Need <strong>simple MySQL/PG/SQL Server</strong> for a web app? &rarr; Cloud SQL. Each step up adds cost but gains availability and scale.</p>
+      </div>
+
+      <h3 id="nosql">NoSQL Databases</h3>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Service</th><th>Data Model</th><th>Latency</th><th>Best For</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Bigtable</strong></td><td>Wide-column (row-key + column families)</td><td>Single-digit ms</td><td>Time-series, IoT, analytics at PB scale. HBase compatible.</td></tr>
+          <tr><td><strong>Firestore</strong></td><td>Document (collections + documents)</td><td>Low ms</td><td>Mobile/web apps, real-time sync, offline support</td></tr>
+          <tr><td><strong>Memorystore</strong></td><td>Key-value (Redis/Memcached)</td><td>Sub-ms</td><td>Caching, session management, leaderboards</td></tr>
+        </tbody>
+      </table>
+
+      <pre><code><span style="color:#c084fc"># Bigtable: Design a row key for time-series IoT data</span>
+<span style="color:#c084fc"># BAD: timestamp#device_id (hotspotting - all writes to latest time)</span>
+<span style="color:#c084fc"># GOOD: device_id#reverse_timestamp (distributes writes across nodes)</span>
+
+<span style="color:#c084fc"># Example row key design:</span>
+<span style="color:#c084fc"># sensor_001#9999999999-1709827200  (reversed Unix timestamp)</span>
+<span style="color:#c084fc"># sensor_002#9999999999-1709827200</span>
+<span style="color:#c084fc"># sensor_001#9999999999-1709830800</span>
+
+<span style="color:#c084fc"># This ensures:</span>
+<span style="color:#c084fc"># 1. Writes distribute across tablets (different device_ids)</span>
+<span style="color:#c084fc"># 2. Reads for a device get latest data first (reversed time)</span>
+<span style="color:#c084fc"># 3. Range scans by device are efficient (prefix scan)</span></code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Bigtable Anti-Patterns</div>
+        <p>Avoid <strong>monotonically increasing row keys</strong> (timestamps, sequence IDs) as the first component &mdash; this causes hotspotting. Always prefix with a high-cardinality, evenly distributed field. Bigtable stores data sorted by row key, so sequential keys all hit the same tablet.</p>
+      </div>
+
+      <h3 id="object">Object Storage (Cloud Storage)</h3>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Storage Class</th><th>Min Duration</th><th>Retrieval Cost</th><th>Use Case</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Standard</strong></td><td>None</td><td>Free</td><td>Frequently accessed data, analytics, ML training</td></tr>
+          <tr><td><strong>Nearline</strong></td><td>30 days</td><td>$0.01/GB</td><td>Monthly access: backups, infrequently accessed data</td></tr>
+          <tr><td><strong>Coldline</strong></td><td>90 days</td><td>$0.02/GB</td><td>Quarterly access: disaster recovery, regulatory archives</td></tr>
+          <tr><td><strong>Archive</strong></td><td>365 days</td><td>$0.05/GB</td><td>Yearly access: long-term compliance, legal holds</td></tr>
+        </tbody>
+      </table>
+
+      <pre><code><span style="color:#c084fc"># Lifecycle policy: Auto-transition and delete</span>
+gsutil lifecycle set lifecycle.json gs://my-bucket
+
+<span style="color:#c084fc"># lifecycle.json:</span>
+{
+  "rule": [
+    {
+      "action": {"type": "SetStorageClass", "storageClass": "NEARLINE"},
+      "condition": {"age": 30, "matchesStorageClass": ["STANDARD"]}
+    },
+    {
+      "action": {"type": "SetStorageClass", "storageClass": "COLDLINE"},
+      "condition": {"age": 90, "matchesStorageClass": ["NEARLINE"]}
+    },
+    {
+      "action": {"type": "Delete"},
+      "condition": {"age": 365}
+    }
+  ]
+}</code></pre>
+    </section>
+
+    <!-- SECTION 2: BigQuery Deep Dive -->
+    <section class="section" id="bigquery">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>BigQuery Deep Dive</h2>
+      </div>
+
+      <h3 id="bq-arch">Architecture: Dremel + Colossus + Borg + Jupiter</h3>
+      <p>
+        BigQuery's architecture separates <strong>compute</strong> and <strong>storage</strong>:
+      </p>
+      <ul>
+        <li><strong>Colossus</strong> &mdash; Distributed file system for persistent, columnar storage. Data stored in <strong>Capacitor</strong> format (Google's columnar format).</li>
+        <li><strong>Dremel</strong> &mdash; Execution engine that creates a tree of processing nodes. Root server distributes query to intermediate and leaf nodes.</li>
+        <li><strong>Jupiter</strong> &mdash; Google's petabit-scale network connecting compute and storage, enabling the separation.</li>
+        <li><strong>Borg</strong> &mdash; Cluster management system that allocates compute resources (slots) dynamically.</li>
+      </ul>
+
+      <h3 id="bq-partition">Partitioning and Clustering</h3>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Feature</th><th>Partitioning</th><th>Clustering</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Purpose</strong></td><td>Eliminate entire segments of data from scans</td><td>Sort data within partitions for colocated reads</td></tr>
+          <tr><td><strong>Columns</strong></td><td>One column: DATE, TIMESTAMP, DATETIME, INTEGER range, or ingestion time</td><td>Up to 4 columns (any type)</td></tr>
+          <tr><td><strong>Limit</strong></td><td>Max 4,000 partitions per table</td><td>No limit</td></tr>
+          <tr><td><strong>Cost benefit</strong></td><td>Shows in query dry-run (bytes scanned)</td><td>May not show in dry-run (applied at execution)</td></tr>
+          <tr><td><strong>Best for</strong></td><td>Date-based filtering (WHERE date = ...)</td><td>High-cardinality columns used in WHERE/JOIN</td></tr>
+        </tbody>
+      </table>
+
+      <pre><code><span style="color:#c084fc">-- Partitioned + clustered table</span>
+CREATE TABLE `project.dataset.events`
+(
+  event_id STRING,
+  user_id STRING,
+  event_type STRING,
+  amount NUMERIC,
+  region STRING,
+  event_time TIMESTAMP
+)
+PARTITION BY DATE(event_time)
+CLUSTER BY user_id, region
+OPTIONS (
+  partition_expiration_days = 365,
+  require_partition_filter = true,  <span style="color:#c084fc">-- Force partition pruning</span>
+  description = "Production events table"
+);
+
+<span style="color:#c084fc">-- GOOD: Uses partition pruning + cluster pruning</span>
+SELECT user_id, SUM(amount)
+FROM `project.dataset.events`
+WHERE DATE(event_time) = '2025-03-01'
+  AND region = 'US'
+GROUP BY user_id;
+
+<span style="color:#c084fc">-- BAD: Function on partition column prevents pruning</span>
+SELECT * FROM `project.dataset.events`
+WHERE EXTRACT(YEAR FROM event_time) = 2025;  <span style="color:#c084fc">-- Full table scan!</span></code></pre>
+
+      <h3 id="bq-optimization">Query Optimization Techniques</h3>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <h4>SELECT Only Needed Columns</h4>
+          <p>BigQuery is columnar. SELECT * reads every column. Only select the columns you need to reduce bytes scanned and cost.</p>
+        </div>
+        <div class="skill-card">
+          <h4>Filter Early with WHERE</h4>
+          <p>Apply WHERE clauses before JOINs. Use partition filters. Avoid transforming partition columns in WHERE (breaks pruning).</p>
+        </div>
+        <div class="skill-card">
+          <h4>Use APPROX Functions</h4>
+          <p>APPROX_COUNT_DISTINCT is much faster than COUNT(DISTINCT). APPROX_QUANTILES, APPROX_TOP_COUNT, APPROX_TOP_SUM for approximate aggregations.</p>
+        </div>
+        <div class="skill-card">
+          <h4>Avoid Self-Joins</h4>
+          <p>Use window functions (OVER) instead of self-joins. LAG, LEAD, ROW_NUMBER, running aggregates are faster than joining a table to itself.</p>
+        </div>
+        <div class="skill-card">
+          <h4>Denormalize When Possible</h4>
+          <p>BigQuery is optimized for wide, denormalized tables. Use nested/repeated fields (STRUCT, ARRAY) instead of star schema joins.</p>
+        </div>
+        <div class="skill-card">
+          <h4>Materialize CTEs</h4>
+          <p>Large CTEs used multiple times in a query get re-executed. Create materialized views or temporary tables for expensive intermediate results.</p>
+        </div>
+      </div>
+
+      <pre><code><span style="color:#c084fc">-- Nested and repeated fields (denormalization)</span>
+CREATE TABLE `project.dataset.orders_nested` AS
+SELECT
+  order_id,
+  customer_id,
+  order_date,
+  STRUCT(
+    shipping_address.street,
+    shipping_address.city,
+    shipping_address.state,
+    shipping_address.zip
+  ) AS shipping,
+  ARRAY_AGG(STRUCT(
+    item_id,
+    product_name,
+    quantity,
+    unit_price
+  )) AS line_items
+FROM `project.dataset.orders` o
+JOIN `project.dataset.order_items` oi USING (order_id)
+JOIN `project.dataset.addresses` a ON o.shipping_address_id = a.address_id
+GROUP BY order_id, customer_id, order_date,
+  shipping_address.street, shipping_address.city,
+  shipping_address.state, shipping_address.zip;
+
+<span style="color:#c084fc">-- Query nested data efficiently (no JOINs needed)</span>
+SELECT
+  order_id,
+  shipping.city,
+  (SELECT SUM(li.quantity * li.unit_price) FROM UNNEST(line_items) li) AS total
+FROM `project.dataset.orders_nested`
+WHERE order_date = '2025-03-01';</code></pre>
+
+      <h3 id="bq-slots">Slots and Pricing Models</h3>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Pricing Model</th><th>How It Works</th><th>Best For</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>On-demand</strong></td><td>$6.25 per TB scanned (first 1 TB/month free)</td><td>Ad-hoc queries, variable workloads, getting started</td></tr>
+          <tr><td><strong>Editions (Standard)</strong></td><td>$0.04/slot-hour, autoscaling, baseline + burst</td><td>Predictable workloads, cost control</td></tr>
+          <tr><td><strong>Editions (Enterprise)</strong></td><td>$0.06/slot-hour, CMEK, multi-region, advanced</td><td>Enterprise compliance, advanced features</td></tr>
+          <tr><td><strong>Editions (Enterprise Plus)</strong></td><td>$0.10/slot-hour, all features, highest availability</td><td>Mission-critical, multi-region failover</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Tip</div>
+        <p>A <strong>slot</strong> is a unit of computational capacity (CPU + memory + network). A query uses multiple slots in parallel. With Editions, you set a <strong>baseline</strong> (committed) and <strong>max reservation</strong> (burst capacity). Autoscaler adjusts between them based on demand.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Data Warehouse Design -->
+    <section class="section" id="warehouse">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Data Warehouse Design</h2>
+      </div>
+
+      <h3 id="modeling">Data Modeling in BigQuery</h3>
+      <p>
+        BigQuery supports multiple modeling approaches, but its columnar architecture favors
+        <strong>wide, denormalized tables</strong> over traditional normalized schemas:
+      </p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Pattern</th><th>Description</th><th>BigQuery Recommendation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Star Schema</strong></td><td>Central fact table + dimension tables (JOINs at query time)</td><td>Works but JOINs cost compute slots. Consider pre-joining into wide tables.</td></tr>
+          <tr><td><strong>Denormalized</strong></td><td>All data in one wide table with nested/repeated fields</td><td>Best for BigQuery. Uses STRUCT and ARRAY. Avoids JOINs.</td></tr>
+          <tr><td><strong>Data Vault</strong></td><td>Hubs, links, satellites for historical tracking</td><td>Supported but complex. Useful for audit trails and slowly changing dimensions.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="materialized">Materialized Views</h3>
+      <p>
+        Materialized views pre-compute query results and update automatically when base tables change.
+        BigQuery <strong>transparently rewrites</strong> queries to use materialized views when beneficial.
+      </p>
+
+      <pre><code><span style="color:#c084fc">-- Create a materialized view for daily aggregations</span>
+CREATE MATERIALIZED VIEW `project.dataset.daily_summary`
+PARTITION BY event_date
+CLUSTER BY region
+OPTIONS (
+  enable_refresh = true,
+  refresh_interval_minutes = 30,
+  max_staleness = INTERVAL "4:0:0" HOUR TO SECOND
+)
+AS
+SELECT
+  DATE(event_time) AS event_date,
+  region,
+  COUNT(*) AS event_count,
+  SUM(amount) AS total_amount,
+  AVG(amount) AS avg_amount,
+  APPROX_COUNT_DISTINCT(user_id) AS unique_users
+FROM `project.dataset.events`
+GROUP BY 1, 2;
+
+<span style="color:#c084fc">-- This query will automatically use the materialized view:</span>
+SELECT region, SUM(total_amount)
+FROM `project.dataset.events`
+WHERE DATE(event_time) = '2025-03-01'
+GROUP BY region;</code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p>Materialized views support <strong>smart tuning</strong> &mdash; BigQuery automatically creates and manages materialized views for frequently run queries. They also support <strong>max_staleness</strong> which allows reading slightly stale data in exchange for zero compute cost.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 4: Data Lakes -->
+    <section class="section" id="datalake">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Data Lakes</h2>
+      </div>
+
+      <h3 id="biglake">BigLake: Unified Storage Engine</h3>
+      <p>
+        BigLake extends BigQuery governance to data stored in Cloud Storage. Create BigLake tables
+        that point to files in GCS and query them with BigQuery SQL, while applying the same
+        row-level and column-level security as native BigQuery tables.
+      </p>
+
+      <pre><code><span style="color:#c084fc">-- Create a BigLake table over Parquet files in Cloud Storage</span>
+CREATE EXTERNAL TABLE `project.dataset.events_lake`
+WITH CONNECTION `us.my-biglake-connection`
+OPTIONS (
+  format = 'PARQUET',
+  uris = ['gs://my-data-lake/events/*.parquet'],
+  metadata_cache_mode = 'AUTOMATIC',    <span style="color:#c084fc">-- Cache metadata for performance</span>
+  max_staleness = INTERVAL 1 HOUR       <span style="color:#c084fc">-- Refresh metadata hourly</span>
+);
+
+<span style="color:#c084fc">-- Query the BigLake table just like a native BQ table</span>
+SELECT DATE(event_time) AS dt, COUNT(*) AS events
+FROM `project.dataset.events_lake`
+WHERE region = 'US'
+GROUP BY 1
+ORDER BY 1 DESC
+LIMIT 30;</code></pre>
+
+      <h3 id="dataplex">Dataplex: Data Fabric</h3>
+      <p>
+        Dataplex organizes data across storage systems into a logical hierarchy:
+      </p>
+
+      <pre><code><span style="color:#c084fc"># Create a Dataplex lake for the sales domain</span>
+gcloud dataplex lakes create sales-lake \
+  --location=us-central1 \
+  --display-name="Sales Domain Lake"
+
+<span style="color:#c084fc"># Add a raw zone (accept any format)</span>
+gcloud dataplex zones create raw-zone \
+  --lake=sales-lake \
+  --location=us-central1 \
+  --resource-location-type=SINGLE_REGION \
+  --type=RAW \
+  --display-name="Raw Ingestion Zone"
+
+<span style="color:#c084fc"># Add a curated zone (structured data only)</span>
+gcloud dataplex zones create curated-zone \
+  --lake=sales-lake \
+  --location=us-central1 \
+  --resource-location-type=SINGLE_REGION \
+  --type=CURATED \
+  --display-name="Curated Analytics Zone"
+
+<span style="color:#c084fc"># Attach a Cloud Storage bucket as an asset</span>
+gcloud dataplex assets create raw-events \
+  --lake=sales-lake \
+  --zone=raw-zone \
+  --location=us-central1 \
+  --resource-type=STORAGE_BUCKET \
+  --resource-name=projects/my-project/buckets/sales-raw-data
+
+<span style="color:#c084fc"># Attach a BigQuery dataset as an asset</span>
+gcloud dataplex assets create curated-analytics \
+  --lake=sales-lake \
+  --zone=curated-zone \
+  --location=us-central1 \
+  --resource-type=BIGQUERY_DATASET \
+  --resource-name=projects/my-project/datasets/sales_curated</code></pre>
+
+      <h3 id="formats">File Format Comparison</h3>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Format</th><th>Type</th><th>Compression</th><th>Schema</th><th>Best For</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Parquet</strong></td><td>Columnar</td><td>Excellent (Snappy, GZIP)</td><td>Embedded</td><td>Analytics, BigQuery external tables, Spark. Best overall for data lakes.</td></tr>
+          <tr><td><strong>Avro</strong></td><td>Row-based</td><td>Good (Snappy, Deflate)</td><td>Embedded (JSON)</td><td>Streaming ingestion, schema evolution, Dataflow output. Pub/Sub default.</td></tr>
+          <tr><td><strong>ORC</strong></td><td>Columnar</td><td>Excellent (ZLIB, Snappy)</td><td>Embedded</td><td>Hive/Hadoop workloads, Dataproc. Similar to Parquet.</td></tr>
+          <tr><td><strong>CSV</strong></td><td>Row-based</td><td>None (gzip separately)</td><td>None</td><td>Simple data exchange. Not recommended for analytics (no types, slow).</td></tr>
+          <tr><td><strong>JSON (newline-delimited)</strong></td><td>Row-based</td><td>None (gzip separately)</td><td>Self-describing</td><td>APIs, logs, flexible schemas. Readable but verbose.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Tip</div>
+        <p>For data lakes, <strong>Parquet</strong> is almost always the right answer for analytics workloads (columnar, compressed, schema-embedded). Use <strong>Avro</strong> for streaming/CDC pipelines where row-oriented access and schema evolution matter. Use <strong>CSV/JSON</strong> only for simple import/export.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 5: Data Platform Design -->
+    <section class="section" id="platform">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Data Platform Design</h2>
+      </div>
+
+      <h3 id="lakehouse">Lakehouse Architecture on GCP</h3>
+      <p>
+        The modern <strong>lakehouse</strong> combines the low-cost storage of a data lake with the
+        managed query engine and governance of a data warehouse. On GCP, this is implemented with:
+      </p>
+      <ul>
+        <li><strong>Cloud Storage</strong> as the storage layer (Parquet/Avro files)</li>
+        <li><strong>BigLake</strong> for unified governance and fine-grained security</li>
+        <li><strong>BigQuery</strong> as the compute/query engine (queries both native and external tables)</li>
+        <li><strong>Dataplex</strong> for metadata management, data quality, and cataloging</li>
+        <li><strong>Dataproc</strong> for Spark workloads that read/write to the same data</li>
+      </ul>
+
+      <pre><code><span style="color:#c084fc">-- Lakehouse pattern: Unified query across native and lake data</span>
+
+<span style="color:#c084fc">-- Native BigQuery table (hot/recent data)</span>
+SELECT user_id, event_type, amount, event_time
+FROM `project.dataset.events_native`
+WHERE DATE(event_time) >= DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY)
+
+UNION ALL
+
+<span style="color:#c084fc">-- BigLake table (cold/historical data in GCS)</span>
+SELECT user_id, event_type, amount, event_time
+FROM `project.dataset.events_lake`
+WHERE DATE(event_time) < DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY);</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Architecture Pattern</div>
+        <p>A common pattern: recent data (last 90 days) in native BigQuery tables for fast querying. Historical data in Cloud Storage as Parquet files, queried via BigLake external tables. This balances query performance with storage cost. Use <strong>scheduled queries</strong> or Dataform to move data from native to GCS on a rolling basis.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 6: Exam Tips -->
+    <section class="section" id="examtips">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Exam Tips</h2>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario: High-Throughput Time-Series</div>
+        <p>"Millions of IoT sensors writing data at sub-second intervals, need low-latency reads by device ID." &rarr; <strong>Bigtable</strong>. Design row key as <code>device_id#reverse_timestamp</code> to avoid hotspotting and enable efficient scans per device.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario: Global Financial Application</div>
+        <p>"Banking application needs ACID transactions across multiple regions with 99.999% availability." &rarr; <strong>Cloud Spanner</strong>. Only GCP database with global strong consistency and five-nines SLA.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario: PostgreSQL Migration with Analytics</div>
+        <p>"Migrate PostgreSQL workload that also runs complex analytical queries." &rarr; <strong>AlloyDB</strong>. PostgreSQL compatible, 100x faster for analytical queries than standard PostgreSQL thanks to its columnar engine.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario: Reduce BigQuery Costs</div>
+        <p>"Query costs are too high for a large table queried daily by region." &rarr; Partition by date, cluster by region, create materialized views for common aggregations, use <code>require_partition_filter = true</code>, and switch to Editions pricing with reservations.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario: Govern Data Across Lake and Warehouse</div>
+        <p>"Apply consistent access controls and quality checks to data in both Cloud Storage and BigQuery." &rarr; Use <strong>BigLake</strong> for unified access control and <strong>Dataplex</strong> for metadata management and data quality tasks across both storage systems.</p>
+      </div>
+
+      <h3>Quick Selection Cheat Sheet</h3>
+      <table class="data-table">
+        <thead>
+          <tr><th>Need</th><th>Choose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Petabyte-scale SQL analytics</td><td><strong>BigQuery</strong></td></tr>
+          <tr><td>High-throughput NoSQL, time-series</td><td><strong>Bigtable</strong></td></tr>
+          <tr><td>Global ACID transactions</td><td><strong>Cloud Spanner</strong></td></tr>
+          <tr><td>PostgreSQL with fast analytics</td><td><strong>AlloyDB</strong></td></tr>
+          <tr><td>Simple MySQL/PG web backend</td><td><strong>Cloud SQL</strong></td></tr>
+          <tr><td>Mobile/web real-time sync</td><td><strong>Firestore</strong></td></tr>
+          <tr><td>Sub-ms caching layer</td><td><strong>Memorystore</strong></td></tr>
+          <tr><td>Cheap object/file storage</td><td><strong>Cloud Storage</strong></td></tr>
+          <tr><td>Data lake with BQ governance</td><td><strong>BigLake</strong></td></tr>
+          <tr><td>Cross-system data governance</td><td><strong>Dataplex</strong></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous</div>
+        <a href="02-ingesting-processing-data.html" class="next-btn prev-btn">&larr; Ingesting and Processing Data</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Section</div>
+        <a href="04-preparing-using-data.html" class="next-btn">Preparing and Using Data &rarr;</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer class="footer">
+  <span>CareerAlign &mdash; GCP Professional Data Engineer</span>
+  <span>Not affiliated with Google Cloud</span>
+</footer>
+</body>
+</html>

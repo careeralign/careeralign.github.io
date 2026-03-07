@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Innovating with Google Cloud AI — CareerAlign GCP CDL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #3b82f6;
+  --page-color-04: rgba(59,130,246,0.04);
+  --page-color-07: rgba(59,130,246,0.07);
+  --page-color-12: rgba(59,130,246,0.12);
+  --page-color-15: rgba(59,130,246,0.15);
+  --page-color-25: rgba(59,130,246,0.25);
+  --page-color-30: rgba(59,130,246,0.3);
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">CareerAlign <span style="color:#3b82f6;">GCP CDL</span></a>
+  <div class="nav-links">
+    <a href="01-digital-transformation.html">01 Digital Transform</a>
+    <a href="02-data-transformation.html">02 Data</a>
+    <a href="03-ai-ml.html" class="active">03 AI/ML</a>
+    <a href="04-infrastructure-apps.html">04 Infrastructure</a>
+    <a href="05-trust-security.html">05 Security</a>
+    <a href="06-scaling-operations.html">06 Operations</a>
+  </div>
+  <a href="index.html" class="nav-home" style="color:#3b82f6;border-color:rgba(59,130,246,0.3);">Hub</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">Section 03 &mdash; ~16% of Exam</div>
+  <h1>Innovating with Google Cloud <em>AI</em></h1>
+  <p class="hero-desc">
+    Explore the spectrum of AI and ML options on Google Cloud &mdash; from pre-trained APIs that
+    require no ML expertise to custom model training with Vertex AI and TensorFlow on TPUs.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> AI vs ML vs Deep Learning</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Pre-trained APIs</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> AutoML &amp; Vertex AI</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> BigQuery ML</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> TensorFlow &amp; TPUs</div>
+  </div>
+</section>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#ai-fundamentals" class="section">1. AI/ML Fundamentals</a>
+    <a href="#ai-types" class="sub">Types of ML</a>
+    <a href="#ml-spectrum" class="section">2. The ML Spectrum</a>
+    <a href="#pretrained" class="section">3. Pre-trained APIs</a>
+    <a href="#automl" class="section">4. AutoML</a>
+    <a href="#bqml" class="section">5. BigQuery ML</a>
+    <a href="#vertex-ai" class="section">6. Vertex AI Platform</a>
+    <a href="#tensorflow-tpu" class="section">7. TensorFlow &amp; TPUs</a>
+    <a href="#responsible-ai" class="section">8. Responsible AI</a>
+    <a href="#exam-tips" class="section">9. Exam Tips</a>
+  </aside>
+
+  <div class="main">
+
+    <div class="section" id="ai-fundamentals">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>AI and ML Fundamentals</h2>
+      </div>
+      <p>
+        <strong>Artificial Intelligence (AI)</strong> is the broad field of creating machines that can
+        perform tasks that typically require human intelligence. <strong>Machine Learning (ML)</strong> is
+        a subset of AI where systems learn from data rather than being explicitly programmed.
+        <strong>Deep Learning (DL)</strong> is a subset of ML that uses neural networks with many layers.
+      </p>
+
+      <div class="diagram-wrap">
+        <pre style="background:transparent;border:none;text-align:center;color:var(--text-secondary);font-size:14px;"><code>
+  +-------------------------------------------+
+  |           Artificial Intelligence          |
+  |   +-----------------------------------+   |
+  |   |        Machine Learning           |   |
+  |   |   +---------------------------+   |   |
+  |   |   |      Deep Learning        |   |   |
+  |   |   |  (Neural Networks, LLMs)  |   |   |
+  |   |   +---------------------------+   |   |
+  |   +-----------------------------------+   |
+  +-------------------------------------------+
+        </code></pre>
+        <div class="diagram-caption">AI, ML, and Deep Learning are nested subsets</div>
+      </div>
+
+      <h3 id="ai-types">Types of Machine Learning</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Type</th><th>Training Data</th><th>Use Cases</th><th>GCP Example</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Supervised</strong></td><td>Labeled data (input + correct output)</td><td>Classification, regression, prediction</td><td>AutoML, BigQuery ML</td></tr>
+          <tr><td><strong>Unsupervised</strong></td><td>Unlabeled data (input only)</td><td>Clustering, anomaly detection, dimensionality reduction</td><td>BigQuery ML K-means</td></tr>
+          <tr><td><strong>Reinforcement</strong></td><td>Reward signals from environment</td><td>Robotics, game playing, optimization</td><td>Custom training on Vertex AI</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Key ML Concepts for the Exam</h3>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">L</div>
+            <h4>Label</h4>
+          </div>
+          <p>The correct answer in supervised learning. For image classification, the label is the object category. For regression, it is the numeric target value.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">F</div>
+            <h4>Feature</h4>
+          </div>
+          <p>An input variable used by the model to make predictions. For a house price model, features include square footage, number of bedrooms, location, and age.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">M</div>
+            <h4>Model</h4>
+          </div>
+          <p>The mathematical representation learned from data that maps inputs (features) to outputs (predictions). Trained models are deployed to serve predictions.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">T</div>
+            <h4>Training vs. Inference</h4>
+          </div>
+          <p>Training = learning patterns from data (expensive, done occasionally). Inference = applying the trained model to new data (cheap, done continuously).</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="ml-spectrum">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>The ML Spectrum on Google Cloud</h2>
+      </div>
+      <p>
+        Google Cloud offers ML solutions at every level of expertise and customization. The exam frequently
+        asks you to choose the right level for a given scenario. The spectrum ranges from no ML expertise
+        needed (pre-trained APIs) to full custom training (Vertex AI with TensorFlow/PyTorch).
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr><th>Level</th><th>Expertise Required</th><th>Data Required</th><th>Service</th><th>Use Case</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>1. Pre-trained APIs</strong></td><td>None</td><td>None (Google's models)</td><td>Vision, NLP, Speech, Translation, Video AI</td><td>Generic ML tasks (OCR, sentiment, transcription)</td></tr>
+          <tr><td><strong>2. BigQuery ML</strong></td><td>SQL only</td><td>Data already in BigQuery</td><td>BigQuery ML</td><td>Predictions on structured data using SQL</td></tr>
+          <tr><td><strong>3. AutoML</strong></td><td>Low (label data only)</td><td>Your labeled dataset</td><td>Vertex AI AutoML</td><td>Custom models without coding</td></tr>
+          <tr><td><strong>4. Custom Training</strong></td><td>High (ML engineering)</td><td>Your dataset + code</td><td>Vertex AI Custom Training</td><td>Novel architectures, unique requirements</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <div class="callout-label">Decision Rule for the Exam</div>
+        <p>Always choose the <strong>simplest option that meets requirements</strong>. If a pre-trained API works, do not suggest AutoML. If BigQuery ML can solve it with SQL, do not suggest custom training. Escalate complexity only when simpler options cannot meet the need.</p>
+      </div>
+    </div>
+
+    <div class="section" id="pretrained">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Pre-trained APIs</h2>
+      </div>
+      <p>
+        Google Cloud provides pre-trained ML models accessible via simple REST APIs. No ML expertise,
+        training data, or model management is needed. Just send your data and receive predictions.
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr><th>API</th><th>Input</th><th>Capabilities</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Cloud Vision API</strong></td><td>Images</td><td>Label detection, OCR, face detection, landmark recognition, safe search, logo detection</td></tr>
+          <tr><td><strong>Cloud Natural Language</strong></td><td>Text</td><td>Sentiment analysis, entity recognition, syntax analysis, content classification</td></tr>
+          <tr><td><strong>Cloud Speech-to-Text</strong></td><td>Audio</td><td>Transcription in 125+ languages, streaming recognition, speaker diarization</td></tr>
+          <tr><td><strong>Cloud Text-to-Speech</strong></td><td>Text</td><td>Natural-sounding speech in 220+ voices, SSML support, WaveNet voices</td></tr>
+          <tr><td><strong>Cloud Translation</strong></td><td>Text</td><td>Translation between 130+ languages, glossary support, batch translation</td></tr>
+          <tr><td><strong>Cloud Video Intelligence</strong></td><td>Video</td><td>Label detection, shot change, object tracking, text detection in video</td></tr>
+          <tr><td><strong>Document AI</strong></td><td>Documents</td><td>Extract structured data from forms, invoices, receipts, contracts</td></tr>
+          <tr><td><strong>Dialogflow</strong></td><td>Text/Voice</td><td>Build conversational agents (chatbots) with NLU, intents, and entities</td></tr>
+        </tbody>
+      </table>
+
+      <pre><code># Example: Call Cloud Vision API with gcloud
+gcloud ml vision detect-labels gs://my-bucket/photo.jpg
+
+# Example: Analyze sentiment with NL API
+gcloud ml language analyze-sentiment \
+  --content="Google Cloud is fantastic for data analytics!"
+
+# Example: Transcribe audio
+gcloud ml speech recognize gs://my-bucket/audio.wav \
+  --language-code=en-US
+</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>Pre-trained APIs are the answer when the scenario involves <strong>common ML tasks with no custom data</strong>: "extract text from scanned documents" (Document AI/Vision OCR), "translate website content" (Translation API), "analyze customer review sentiment" (NL API).</p>
+      </div>
+    </div>
+
+    <div class="section" id="automl">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>AutoML on Vertex AI</h2>
+      </div>
+      <p>
+        <strong>AutoML</strong> lets you train custom ML models by simply providing your labeled data.
+        Vertex AI AutoML handles feature engineering, architecture search, hyperparameter tuning, and
+        model selection automatically. No ML coding expertise required.
+      </p>
+
+      <h3>AutoML Workflow</h3>
+      <ol style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li><strong>Prepare data</strong> &mdash; Upload labeled data (images with categories, text with labels, CSVs with target columns).</li>
+        <li><strong>Train model</strong> &mdash; Vertex AI automatically tries thousands of architectures and selects the best one.</li>
+        <li><strong>Evaluate</strong> &mdash; Review precision, recall, F1 score, and confusion matrix in the console.</li>
+        <li><strong>Deploy</strong> &mdash; Deploy the model to an endpoint for online predictions, or run batch predictions.</li>
+      </ol>
+
+      <h3>AutoML Data Types</h3>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">I</div><h4>Image</h4></div>
+          <p>Classification (single/multi-label), object detection (bounding boxes). Min ~100 images per label, recommended 1,000+.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">T</div><h4>Text</h4></div>
+          <p>Classification, entity extraction, sentiment analysis. Min ~1,000 examples per label for good accuracy.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">D</div><h4>Tabular</h4></div>
+          <p>Classification, regression, forecasting on structured CSV data. Handles missing values and feature engineering automatically.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">V</div><h4>Video</h4></div>
+          <p>Classification, object tracking, action recognition. Processes video segments and labels temporal events.</p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">When to Use AutoML vs. Pre-trained APIs</div>
+        <p>Use <strong>pre-trained APIs</strong> for generic tasks (general sentiment, common object labels). Use <strong>AutoML</strong> when you need domain-specific recognition (e.g., classify manufacturing defects, identify custom product categories, detect rare medical conditions).</p>
+      </div>
+    </div>
+
+    <div class="section" id="bqml">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>BigQuery ML</h2>
+      </div>
+      <p>
+        <strong>BigQuery ML (BQML)</strong> lets you create and execute ML models directly in BigQuery
+        using standard SQL. This democratizes ML by enabling SQL analysts to build models without moving
+        data out of the warehouse or learning Python.
+      </p>
+
+      <pre><code>-- Create a logistic regression model to predict customer churn
+CREATE OR REPLACE MODEL `my_dataset.churn_model`
+OPTIONS(
+  model_type='LOGISTIC_REG',
+  input_label_cols=['churned'],
+  auto_class_weights=TRUE
+) AS
+SELECT
+  tenure_months,
+  monthly_charges,
+  contract_type,
+  internet_service,
+  churned
+FROM `my_dataset.customer_data`
+WHERE split_col = 'TRAIN';
+
+-- Evaluate the model
+SELECT * FROM ML.EVALUATE(MODEL `my_dataset.churn_model`);
+
+-- Make predictions on new data
+SELECT * FROM ML.PREDICT(MODEL `my_dataset.churn_model`,
+  (SELECT * FROM `my_dataset.new_customers`));
+</code></pre>
+
+      <h3>Supported Model Types in BQML</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Model Type</th><th>SQL Keyword</th><th>Use Case</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Linear Regression</td><td>LINEAR_REG</td><td>Predict numeric values (price, revenue)</td></tr>
+          <tr><td>Logistic Regression</td><td>LOGISTIC_REG</td><td>Binary/multiclass classification</td></tr>
+          <tr><td>K-Means Clustering</td><td>KMEANS</td><td>Customer segmentation (unsupervised)</td></tr>
+          <tr><td>Time Series (ARIMA+)</td><td>ARIMA_PLUS</td><td>Forecasting (sales, demand)</td></tr>
+          <tr><td>XGBoost</td><td>BOOSTED_TREE_CLASSIFIER/REGRESSOR</td><td>High-accuracy classification/regression</td></tr>
+          <tr><td>Deep Neural Network</td><td>DNN_CLASSIFIER/REGRESSOR</td><td>Complex patterns in tabular data</td></tr>
+          <tr><td>TensorFlow import</td><td>TENSORFLOW</td><td>Import pre-trained TF SavedModels into BQ</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>Choose BigQuery ML when: (1) Data is already in BigQuery, (2) the team knows SQL but not Python, (3) you want to avoid data movement. BQML is the answer for "ML without ML expertise" scenarios where data lives in BigQuery.</p>
+      </div>
+    </div>
+
+    <div class="section" id="vertex-ai">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Vertex AI Platform</h2>
+      </div>
+      <p>
+        <strong>Vertex AI</strong> is Google Cloud's unified ML platform that brings together all ML
+        services under one roof. It supports the entire ML lifecycle: data preparation, training (AutoML
+        or custom), evaluation, deployment, monitoring, and MLOps.
+      </p>
+
+      <h3>Key Vertex AI Components</h3>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">G</div><h4>Model Garden</h4></div>
+          <p>Discover and deploy foundation models (Gemini, PaLM, Llama, Mistral) and fine-tune them on your data. One-click deployment to endpoints.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">W</div><h4>Workbench</h4></div>
+          <p>Managed Jupyter notebooks for data exploration and model prototyping. Pre-installed with ML frameworks. Integrated with BigQuery and Cloud Storage.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">P</div><h4>Pipelines</h4></div>
+          <p>Orchestrate ML workflows as DAGs. Automate data prep, training, evaluation, and deployment. Based on Kubeflow Pipelines and TFX.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">F</div><h4>Feature Store</h4></div>
+          <p>Centralized repository for ML features. Share features across models. Serve features with low latency for online predictions. Prevents training-serving skew.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">E</div><h4>Endpoints</h4></div>
+          <p>Deploy trained models for online (real-time) or batch prediction. Auto-scaling, traffic splitting for A/B testing, and model versioning.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">M</div><h4>Model Monitoring</h4></div>
+          <p>Detect data drift and prediction drift in production. Alerts when model performance degrades, triggering retraining.</p>
+        </div>
+      </div>
+
+      <h3>Generative AI on Vertex AI</h3>
+      <p>
+        Vertex AI provides access to Google's foundation models through the <strong>Generative AI Studio</strong>
+        and <strong>Model Garden</strong>. Key models include:
+      </p>
+      <ul style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li><strong>Gemini</strong> &mdash; Google's most capable multimodal model. Understands text, images, video, audio, and code.</li>
+        <li><strong>Imagen</strong> &mdash; Image generation and editing from text prompts.</li>
+        <li><strong>Codey</strong> &mdash; Code generation, completion, and explanation.</li>
+        <li><strong>Chirp</strong> &mdash; Advanced speech-to-text with high accuracy across languages.</li>
+      </ul>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p>Vertex AI is a <strong>platform</strong>, not a single service. Think of it as the umbrella that contains AutoML, custom training, Model Garden, pipelines, endpoints, and all ML management tools. When the exam mentions "unified ML platform," the answer is Vertex AI.</p>
+      </div>
+    </div>
+
+    <div class="section" id="tensorflow-tpu">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>TensorFlow and TPUs</h2>
+      </div>
+      <p>
+        <strong>TensorFlow</strong> is Google's open-source ML framework for building and training neural
+        networks. <strong>TPUs</strong> (Tensor Processing Units) are Google's custom-designed chips
+        optimized for ML workloads, providing significant speedups over GPUs for certain model architectures.
+      </p>
+
+      <h3>TPU vs GPU vs CPU</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Hardware</th><th>Best For</th><th>Speed (Training)</th><th>Cost</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>CPU</strong></td><td>General computing, small models, inference</td><td>Slowest for ML</td><td>Lowest per hour</td></tr>
+          <tr><td><strong>GPU</strong></td><td>Most DL training, vision models, GANs</td><td>10-100x faster than CPU</td><td>Medium</td></tr>
+          <tr><td><strong>TPU</strong></td><td>Large language models, large batch training</td><td>2-5x faster than GPU (for supported models)</td><td>Higher per hour but faster completion</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>TPUs are Google's unique differentiator. They are custom ASIC chips designed specifically for tensor operations. For the exam, know that TPUs are best for <strong>large-scale training of neural networks</strong> (especially transformers and LLMs) and are available exclusively on Google Cloud.</p>
+      </div>
+
+      <pre><code># Create a VM with a TPU for training
+gcloud compute tpus tpu-vm create my-tpu \
+  --zone=us-central1-b \
+  --accelerator-type=v4-8 \
+  --version=tpu-ubuntu2204-base
+
+# Train a TensorFlow model on GPU via Vertex AI
+gcloud ai custom-jobs create \
+  --display-name=my-training-job \
+  --worker-pool-spec=machine-type=n1-standard-8,\
+    accelerator-type=NVIDIA_TESLA_T4,\
+    accelerator-count=1,\
+    replica-count=1,\
+    container-image-uri=gcr.io/my-project/trainer:latest
+</code></pre>
+    </div>
+
+    <div class="section" id="responsible-ai">
+      <div class="section-header">
+        <div class="section-num">8</div>
+        <h2>Responsible AI</h2>
+      </div>
+      <p>
+        Google has published <strong>AI Principles</strong> that guide responsible development and use of
+        AI. The CDL exam tests awareness of these principles and their practical implications.
+      </p>
+
+      <h3>Google's AI Principles</h3>
+      <ol style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li><strong>Be socially beneficial</strong> &mdash; AI should benefit society broadly.</li>
+        <li><strong>Avoid creating or reinforcing unfair bias</strong> &mdash; Test for and mitigate bias in data and models.</li>
+        <li><strong>Be built and tested for safety</strong> &mdash; Rigorous testing and monitoring.</li>
+        <li><strong>Be accountable to people</strong> &mdash; Human oversight and control.</li>
+        <li><strong>Incorporate privacy design principles</strong> &mdash; Data minimization and user control.</li>
+        <li><strong>Uphold high standards of scientific excellence</strong> &mdash; Peer review and reproducibility.</li>
+        <li><strong>Be made available for uses that accord with these principles</strong> &mdash; Restrict harmful applications.</li>
+      </ol>
+
+      <div class="callout warn">
+        <div class="callout-label">AI Applications Google Will Not Pursue</div>
+        <p>Google has explicitly stated it will not develop AI for: weapons, surveillance that violates international norms, technologies that cause overall harm, or applications that violate widely accepted principles of international law and human rights.</p>
+      </div>
+
+      <h3>Explainable AI (XAI)</h3>
+      <p>
+        Vertex AI includes <strong>Explainable AI</strong> tools that help you understand why a model made
+        a specific prediction. Feature attributions show which input features contributed most to the output.
+        This is crucial for building trust, debugging models, and meeting regulatory requirements.
+      </p>
+    </div>
+
+    <div class="section" id="exam-tips">
+      <div class="section-header">
+        <div class="section-num">9</div>
+        <h2>Exam Tips and Decision Guide</h2>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Strategy</div>
+        <p>Section 3 (~16%) focuses on <strong>choosing the right ML approach</strong>. The decision flow is: Can a pre-trained API solve it? If yes, use it. If no, is the data in BigQuery and the team knows SQL? Use BQML. If no, do you have labeled data but no ML expertise? Use AutoML. Otherwise, custom training on Vertex AI.</p>
+      </div>
+
+      <h3>Quick Decision Matrix</h3>
+      <ul style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li>"Detect objects in images with standard labels" &rarr; <strong>Vision API</strong></li>
+        <li>"Classify customer emails into custom categories" &rarr; <strong>AutoML Text</strong></li>
+        <li>"Predict sales from BigQuery data using SQL" &rarr; <strong>BigQuery ML</strong></li>
+        <li>"Train a custom transformer on proprietary data" &rarr; <strong>Vertex AI Custom Training</strong></li>
+        <li>"Build a chatbot" &rarr; <strong>Dialogflow</strong> (simple) or <strong>Vertex AI + Gemini</strong> (advanced)</li>
+        <li>"Generate text/images/code" &rarr; <strong>Vertex AI Generative AI / Gemini</strong></li>
+        <li>"What platform unifies all ML?" &rarr; <strong>Vertex AI</strong></li>
+        <li>"What accelerator is unique to Google?" &rarr; <strong>TPU</strong></li>
+      </ul>
+    </div>
+
+    <div class="next-section">
+      <a href="02-data-transformation.html" class="prev-btn">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10H5m4-4l-4 4 4 4"/></svg>
+        <div><div class="next-label">Previous</div>Data Transformation</div>
+      </a>
+      <a href="04-infrastructure-apps.html" class="next-btn">
+        <div><div class="next-label">Next Section</div>Infrastructure &amp; Apps</div>
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 10h10m-4-4l4 4-4 4"/></svg>
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <p>CareerAlign &mdash; Google Cloud Digital Leader Study Guide &mdash; Not affiliated with Google Cloud.</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Trust and Security with Google Cloud — CareerAlign GCP CDL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #a855f7;
+  --page-color-04: rgba(168,85,247,0.04);
+  --page-color-07: rgba(168,85,247,0.07);
+  --page-color-12: rgba(168,85,247,0.12);
+  --page-color-15: rgba(168,85,247,0.15);
+  --page-color-25: rgba(168,85,247,0.25);
+  --page-color-30: rgba(168,85,247,0.3);
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">CareerAlign <span style="color:#a855f7;">GCP CDL</span></a>
+  <div class="nav-links">
+    <a href="01-digital-transformation.html">01 Digital Transform</a>
+    <a href="02-data-transformation.html">02 Data</a>
+    <a href="03-ai-ml.html">03 AI/ML</a>
+    <a href="04-infrastructure-apps.html">04 Infrastructure</a>
+    <a href="05-trust-security.html" class="active">05 Security</a>
+    <a href="06-scaling-operations.html">06 Operations</a>
+  </div>
+  <a href="index.html" class="nav-home" style="color:#a855f7;border-color:rgba(168,85,247,0.3);">Hub</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">Section 05 &mdash; ~17% of Exam</div>
+  <h1>Trust and Security with <em>Google Cloud</em></h1>
+  <p class="hero-desc">
+    Understand cybersecurity fundamentals, Google's defense-in-depth approach, encryption, identity
+    and access management, network security, and compliance frameworks on Google Cloud.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Cybersecurity threats</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Encryption at rest &amp; in transit</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> IAM &amp; identity</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Cloud Armor &amp; DDoS</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Compliance &amp; governance</div>
+  </div>
+</section>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#threats" class="section">1. Cybersecurity Threats</a>
+    <a href="#defense" class="section">2. Defense in Depth</a>
+    <a href="#encryption" class="section">3. Encryption</a>
+    <a href="#iam" class="section">4. Identity &amp; Access (IAM)</a>
+    <a href="#network-security" class="section">5. Network Security</a>
+    <a href="#security-services" class="section">6. Security Services</a>
+    <a href="#compliance" class="section">7. Compliance &amp; Governance</a>
+    <a href="#exam-tips" class="section">8. Exam Tips</a>
+  </aside>
+
+  <div class="main">
+
+    <div class="section" id="threats">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>Cybersecurity Threats</h2>
+      </div>
+      <p>
+        Understanding common security threats is fundamental to the CDL exam. Google Cloud provides
+        services to defend against each type, but the customer must understand the threat landscape
+        to configure protections appropriately.
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr><th>Threat</th><th>Description</th><th>Google Cloud Defense</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>DDoS</strong></td><td>Flood service with traffic to overwhelm it</td><td>Cloud Armor, Google Front End, global load balancing</td></tr>
+          <tr><td><strong>Phishing</strong></td><td>Trick users into revealing credentials</td><td>Titan Security Keys, 2FA, BeyondCorp, Advanced Protection</td></tr>
+          <tr><td><strong>Ransomware</strong></td><td>Encrypt data and demand payment</td><td>Backup/DR, immutable storage, Security Command Center</td></tr>
+          <tr><td><strong>Data breach</strong></td><td>Unauthorized access to sensitive data</td><td>IAM, VPC Service Controls, DLP API, encryption</td></tr>
+          <tr><td><strong>Insider threat</strong></td><td>Malicious or negligent employee actions</td><td>IAM least privilege, Audit Logs, Access Transparency</td></tr>
+          <tr><td><strong>Supply chain attack</strong></td><td>Compromise software dependencies</td><td>Binary Authorization, Artifact Registry, Software Delivery Shield</td></tr>
+          <tr><td><strong>Malware</strong></td><td>Malicious software (viruses, trojans)</td><td>Chronicle SIEM, VirusTotal, Cloud IDS</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p>Security is a <strong>shared responsibility</strong> (see Section 1). Google secures the infrastructure, but you must properly configure IAM, firewall rules, encryption keys, and access policies. Most cloud security breaches are caused by <strong>misconfiguration</strong>, not infrastructure vulnerabilities.</p>
+      </div>
+    </div>
+
+    <div class="section" id="defense">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Google's Defense in Depth</h2>
+      </div>
+      <p>
+        Google uses a <strong>defense-in-depth</strong> strategy with multiple layers of security controls.
+        If one layer is compromised, additional layers continue to protect the system.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">1</div><h4>Hardware &amp; Physical</h4></div>
+          <p>Custom-designed servers with Titan security chip (hardware root of trust). Purpose-built data centers with biometric access, guards, and layered perimeters.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">2</div><h4>Service Deployment</h4></div>
+          <p>Every service identity is cryptographically authenticated. Services communicate using mutual TLS. No trust based on network location.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">3</div><h4>Data Storage</h4></div>
+          <p>All data encrypted at rest by default (AES-256). Encryption keys managed by Google KMS with automatic rotation. Customer-managed keys (CMEK) available.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">4</div><h4>Internet Communication</h4></div>
+          <p>Google Front End (GFE) terminates TLS/SSL. Automatic DDoS protection. Certificate management. HTTPS enforced by default.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">5</div><h4>Operations</h4></div>
+          <p>Intrusion detection systems, security monitoring, incident response teams, red team exercises, and bug bounty programs.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">6</div><h4>User Identity</h4></div>
+          <p>Multi-factor authentication, phishing-resistant security keys, BeyondCorp zero-trust model. Access decisions based on user + device + context.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="encryption">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Encryption on Google Cloud</h2>
+      </div>
+      <p>
+        Google Cloud encrypts data automatically at multiple levels. Understanding encryption options
+        is critical for the CDL exam, especially the differences between Google-managed, customer-managed,
+        and customer-supplied encryption keys.
+      </p>
+
+      <h3>Encryption at Rest</h3>
+      <p>All data stored on Google Cloud is encrypted by default using <strong>AES-256</strong>. The encryption hierarchy uses multiple layers of keys:</p>
+      <ul style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li><strong>Data Encryption Key (DEK)</strong> &mdash; Encrypts the actual data. Unique per data chunk.</li>
+        <li><strong>Key Encryption Key (KEK)</strong> &mdash; Encrypts the DEK. Managed by Cloud KMS.</li>
+        <li><strong>Root key</strong> &mdash; Protects the KEKs. Stored in Google's key management infrastructure.</li>
+      </ul>
+
+      <h3>Key Management Options</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Option</th><th>Who Manages Keys</th><th>Control Level</th><th>Use Case</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Google-managed (default)</strong></td><td>Google</td><td>No customer action needed</td><td>Most workloads &mdash; automatic, transparent</td></tr>
+          <tr><td><strong>CMEK (Customer-Managed)</strong></td><td>Customer via Cloud KMS</td><td>Control key rotation, access, and lifecycle</td><td>Regulatory requirements, audit trails</td></tr>
+          <tr><td><strong>CSEK (Customer-Supplied)</strong></td><td>Customer provides keys directly</td><td>Full control &mdash; Google never stores keys</td><td>Maximum control, highest operational burden</td></tr>
+          <tr><td><strong>EKM (External Key Manager)</strong></td><td>Customer's external KMS</td><td>Keys never enter Google infrastructure</td><td>Sovereignty requirements, data residency</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Encryption in Transit</h3>
+      <p>
+        All data moving between Google data centers is encrypted using <strong>ALTS</strong> (Application Layer
+        Transport Security), Google's internal protocol. Data from users to Google services is encrypted via
+        <strong>TLS/HTTPS</strong>. This is automatic and cannot be disabled.
+      </p>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>Remember: <strong>Google encrypts all data at rest by default</strong> (no configuration needed). CMEK gives you control over key lifecycle. CSEK gives you maximum control but highest operational burden. EKM keeps keys outside Google entirely.</p>
+      </div>
+    </div>
+
+    <div class="section" id="iam">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Identity and Access Management (IAM)</h2>
+      </div>
+      <p>
+        <strong>Cloud IAM</strong> controls who (identity) can do what (role) on which resource. It is
+        the foundation of Google Cloud security and follows the <strong>principle of least privilege</strong>
+        &mdash; grant only the minimum permissions needed.
+      </p>
+
+      <h3>IAM Components</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Component</th><th>Description</th><th>Examples</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Member (Principal)</strong></td><td>Who is requesting access</td><td>Google Account, Service Account, Google Group, Cloud Identity domain</td></tr>
+          <tr><td><strong>Role</strong></td><td>Collection of permissions</td><td>roles/viewer, roles/editor, roles/owner, roles/bigquery.dataEditor</td></tr>
+          <tr><td><strong>Policy</strong></td><td>Binds members to roles on a resource</td><td>"user:alice@example.com has roles/storage.objectViewer on bucket-x"</td></tr>
+          <tr><td><strong>Resource</strong></td><td>What is being accessed</td><td>Project, bucket, dataset, VM instance</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Role Types</h3>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">B</div><h4>Basic Roles</h4></div>
+          <p><strong>Owner, Editor, Viewer</strong>. Broad permissions across all services. Avoid in production &mdash; too permissive. Use only for quick prototyping or personal projects.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">P</div><h4>Predefined Roles</h4></div>
+          <p>Fine-grained, service-specific roles (e.g., <code>roles/bigquery.dataEditor</code>). Created and maintained by Google. <strong>Best practice for most use cases.</strong></p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">C</div><h4>Custom Roles</h4></div>
+          <p>User-defined roles with specific permissions. For when predefined roles are too broad. Requires ongoing maintenance as new permissions are added.</p>
+        </div>
+      </div>
+
+      <h3>Service Accounts</h3>
+      <p>
+        A <strong>service account</strong> is a special account used by applications and VMs (not humans)
+        to authenticate to Google Cloud APIs. It represents the identity of a workload, not a person.
+      </p>
+
+      <pre><code># Create a service account
+gcloud iam service-accounts create my-app-sa \
+  --display-name="My Application Service Account"
+
+# Grant a role to the service account
+gcloud projects add-iam-policy-binding my-project \
+  --member="serviceAccount:my-app-sa@my-project.iam.gserviceaccount.com" \
+  --role="roles/bigquery.dataViewer"
+
+# List all IAM bindings for a project
+gcloud projects get-iam-policy my-project
+</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Security Best Practices</div>
+        <p><strong>Least privilege</strong>: Use predefined roles, not basic roles. <strong>Service accounts</strong>: Do not use default service accounts in production; create dedicated ones. <strong>Groups</strong>: Assign roles to Google Groups, not individual users, for easier management.</p>
+      </div>
+
+      <h3>Resource Hierarchy</h3>
+      <p>IAM policies are inherited down the resource hierarchy:</p>
+      <div class="diagram-wrap">
+        <pre style="background:transparent;border:none;text-align:center;color:var(--text-secondary);font-size:13px;"><code>
+  [ Organization ] ── org-level policies apply to everything below
+       |
+  [  Folder  ] ── department or team grouping
+       |
+  [  Project  ] ── billing boundary, resource container
+       |
+  [ Resources ] ── VMs, buckets, datasets, etc.
+        </code></pre>
+        <div class="diagram-caption">IAM policies inherit downward: Organization &rarr; Folder &rarr; Project &rarr; Resource</div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p>A policy set at the <strong>organization level</strong> applies to every project and resource in the org. A policy at the <strong>folder level</strong> applies to all projects in that folder. You <strong>cannot restrict</strong> at a lower level what was granted at a higher level (policies are additive).</p>
+      </div>
+    </div>
+
+    <div class="section" id="network-security">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Network Security</h2>
+      </div>
+      <p>
+        Google Cloud provides multiple layers of network security to protect workloads from external
+        and internal threats.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">V</div><h4>VPC (Virtual Private Cloud)</h4></div>
+          <p>Isolated network environment for your resources. Define subnets, routes, and firewall rules. VPC is global (spans all regions); subnets are regional.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">F</div><h4>Firewall Rules</h4></div>
+          <p>Stateful packet inspection rules that allow or deny traffic. Applied at the VM level. Support for network tags and service account-based targeting.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">A</div><h4>Cloud Armor</h4></div>
+          <p>DDoS protection and WAF for HTTP(S) load balancers. Geo-based blocking, rate limiting, preconfigured OWASP top 10 rules, adaptive protection.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">S</div><h4>VPC Service Controls</h4></div>
+          <p>Create security perimeters around Google Cloud resources. Prevent data exfiltration even if IAM is misconfigured. Controls API-level access to services like BigQuery and Cloud Storage.</p>
+        </div>
+      </div>
+
+      <h3>Cloud Armor in Detail</h3>
+      <p>
+        <strong>Cloud Armor</strong> works with Google Cloud's global HTTP(S) load balancer to provide
+        defense against DDoS attacks and application-layer threats.
+      </p>
+      <ul style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li><strong>Preconfigured WAF rules</strong> &mdash; Block OWASP Top 10 attacks (SQL injection, XSS, etc.).</li>
+        <li><strong>IP allowlist/denylist</strong> &mdash; Allow or block traffic from specific IPs or CIDR ranges.</li>
+        <li><strong>Geo-based policies</strong> &mdash; Block traffic from specific countries or regions.</li>
+        <li><strong>Rate limiting</strong> &mdash; Throttle requests per client to prevent abuse.</li>
+        <li><strong>Adaptive Protection</strong> &mdash; ML-based anomaly detection that automatically generates rules for detected attacks.</li>
+      </ul>
+    </div>
+
+    <div class="section" id="security-services">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Security Operations Services</h2>
+      </div>
+
+      <table class="comp-table">
+        <thead>
+          <tr><th>Service</th><th>Purpose</th><th>Key Capability</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Security Command Center (SCC)</strong></td><td>Security posture management</td><td>Asset inventory, vulnerability scanning, threat detection, compliance monitoring</td></tr>
+          <tr><td><strong>Chronicle SIEM</strong></td><td>Security information &amp; event management</td><td>Petabyte-scale log analysis, threat hunting, 12-month retention</td></tr>
+          <tr><td><strong>Cloud DLP</strong></td><td>Data loss prevention</td><td>Discover, classify, and de-identify sensitive data (PII, credit cards, etc.)</td></tr>
+          <tr><td><strong>Cloud Audit Logs</strong></td><td>Activity logging</td><td>Who did what, where, when. Admin Activity (always on) and Data Access logs</td></tr>
+          <tr><td><strong>Access Transparency</strong></td><td>Google employee access logging</td><td>Logs when Google personnel access your data for support (enterprise feature)</td></tr>
+          <tr><td><strong>Binary Authorization</strong></td><td>Deploy-time security</td><td>Only allow trusted container images to deploy to GKE/Cloud Run</td></tr>
+          <tr><td><strong>Secret Manager</strong></td><td>Secrets management</td><td>Store and manage API keys, passwords, certificates with versioning and audit</td></tr>
+          <tr><td><strong>Cloud IDS</strong></td><td>Intrusion detection</td><td>Network-based threat detection using Palo Alto Networks engine</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">SCC Tiers</div>
+        <p><strong>SCC Standard</strong> (free): Asset inventory, security health analytics, web security scanner. <strong>SCC Premium</strong>: Adds Event Threat Detection, Container Threat Detection, Virtual Machine Threat Detection, and compliance reporting (CIS, PCI DSS, etc.).</p>
+      </div>
+    </div>
+
+    <div class="section" id="compliance">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Compliance and Governance</h2>
+      </div>
+      <p>
+        Google Cloud maintains a comprehensive set of compliance certifications and supports customers
+        in meeting their own regulatory requirements. The CDL exam tests awareness of key frameworks
+        and how Google Cloud helps achieve compliance.
+      </p>
+
+      <h3>Key Compliance Frameworks</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Framework</th><th>Region/Industry</th><th>Covers</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>SOC 1/2/3</strong></td><td>Global</td><td>Internal controls over financial reporting (SOC 1), security/availability/confidentiality (SOC 2)</td></tr>
+          <tr><td><strong>ISO 27001</strong></td><td>Global</td><td>Information security management systems (ISMS)</td></tr>
+          <tr><td><strong>GDPR</strong></td><td>European Union</td><td>Data protection and privacy for EU residents</td></tr>
+          <tr><td><strong>HIPAA</strong></td><td>United States</td><td>Protected health information (PHI) in healthcare</td></tr>
+          <tr><td><strong>PCI DSS</strong></td><td>Global</td><td>Payment card data security</td></tr>
+          <tr><td><strong>FedRAMP</strong></td><td>US Government</td><td>Cloud security assessment for federal agencies</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Google Cloud Governance Tools</h3>
+      <ul style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li><strong>Organization Policy Service</strong> &mdash; Centrally define constraints across all projects (e.g., restrict VM locations, disable public IP).</li>
+        <li><strong>Assured Workloads</strong> &mdash; Configure compliance controls (data residency, personnel access) for regulated industries.</li>
+        <li><strong>Data residency controls</strong> &mdash; Choose regions to store data, enforce via organization policies.</li>
+        <li><strong>Audit Logs</strong> &mdash; Admin Activity logs (always on, free, 400-day retention) and Data Access logs (configurable).</li>
+      </ul>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>Google Cloud is <strong>compliant with</strong> many frameworks, but compliance is a shared responsibility. Google provides the compliant infrastructure; you must configure and use it correctly. The exam may ask "how do you ensure GDPR compliance?" &mdash; the answer involves data residency, DLP, encryption, and IAM, not just "use Google Cloud."</p>
+      </div>
+    </div>
+
+    <div class="section" id="exam-tips">
+      <div class="section-header">
+        <div class="section-num">8</div>
+        <h2>Exam Tips</h2>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Strategy</div>
+        <p>Section 5 (~17%) emphasizes <strong>IAM best practices</strong>, <strong>encryption options</strong>, and <strong>which security service solves which problem</strong>. Know the principle of least privilege, the difference between CMEK and CSEK, and when to use Cloud Armor vs. VPC Service Controls vs. SCC.</p>
+      </div>
+
+      <h3>Quick Reference</h3>
+      <ul style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li>"Protect against DDoS attacks" &rarr; <strong>Cloud Armor + global load balancer</strong></li>
+        <li>"Control who can access what" &rarr; <strong>IAM roles and policies</strong></li>
+        <li>"Control encryption key lifecycle" &rarr; <strong>Cloud KMS with CMEK</strong></li>
+        <li>"Prevent data exfiltration from APIs" &rarr; <strong>VPC Service Controls</strong></li>
+        <li>"Find and redact PII in data" &rarr; <strong>Cloud DLP</strong></li>
+        <li>"Security posture dashboard" &rarr; <strong>Security Command Center</strong></li>
+        <li>"Store API keys and passwords securely" &rarr; <strong>Secret Manager</strong></li>
+        <li>"Zero-trust access model" &rarr; <strong>BeyondCorp Enterprise</strong></li>
+        <li>"Audit what Google employees do with my data" &rarr; <strong>Access Transparency</strong></li>
+      </ul>
+    </div>
+
+    <div class="next-section">
+      <a href="04-infrastructure-apps.html" class="prev-btn">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10H5m4-4l-4 4 4 4"/></svg>
+        <div><div class="next-label">Previous</div>Infrastructure &amp; Apps</div>
+      </a>
+      <a href="06-scaling-operations.html" class="next-btn">
+        <div><div class="next-label">Next Section</div>Scaling &amp; Operations</div>
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 10h10m-4-4l4 4-4 4"/></svg>
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <p>CareerAlign &mdash; Google Cloud Digital Leader Study Guide &mdash; Not affiliated with Google Cloud.</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Techniques to Improve Gen AI Model Output — CareerAlign GCP GenAI Leader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #3b82f6;
+  --page-color-04: rgba(59,130,246,0.04);
+  --page-color-07: rgba(59,130,246,0.07);
+  --page-color-12: rgba(59,130,246,0.12);
+  --page-color-15: rgba(59,130,246,0.15);
+  --page-color-25: rgba(59,130,246,0.25);
+  --page-color-30: rgba(59,130,246,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#10024; <span>CareerAlign</span> GCP GenAI Leader</div>
+  <div class="nav-links">
+    <a href="01-fundamentals-gen-ai.html">01 &middot; Fundamentals</a>
+    <a href="02-gcp-gen-ai-offerings.html">02 &middot; GCP Offerings</a>
+    <a href="03-improve-model-output.html" class="active">03 &middot; Improve Output</a>
+    <a href="04-business-strategies.html">04 &middot; Business Strategy</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GAL Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Section 3 &middot; ~20% of Exam
+  </div>
+  <h1>Techniques to Improve <em>Gen AI Output</em></h1>
+  <p class="hero-desc">
+    Learn the key techniques for getting better results from generative AI models: prompt engineering
+    (zero-shot, few-shot, chain-of-thought, ReAct), grounding, RAG, fine-tuning, human-in-the-loop
+    review, monitoring, and sampling parameters (temperature, top-p, tokens).
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Prompt Engineering
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Grounding &amp; RAG
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Fine-Tuning &amp; RLHF
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Sampling Parameters
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      HITL &amp; Monitoring
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-gal/notebooks/03-improve-model-output.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#limitations" class="section">1 &middot; Foundation Model Limitations</a>
+    <a href="#hallucinations" class="sub">Hallucinations &amp; Staleness</a>
+    <a href="#prompt-engineering" class="section">2 &middot; Prompt Engineering</a>
+    <a href="#zero-shot" class="sub">Zero-Shot Prompting</a>
+    <a href="#one-few-shot" class="sub">One-Shot &amp; Few-Shot</a>
+    <a href="#role-prompting" class="sub">Role Prompting</a>
+    <a href="#cot" class="sub">Chain-of-Thought</a>
+    <a href="#react" class="sub">ReAct Prompting</a>
+    <a href="#grounding" class="section">3 &middot; Grounding</a>
+    <a href="#rag-technique" class="section">4 &middot; RAG Deep Dive</a>
+    <a href="#fine-tuning" class="section">5 &middot; Fine-Tuning</a>
+    <a href="#hitl" class="section">6 &middot; Human-in-the-Loop</a>
+    <a href="#monitoring" class="section">7 &middot; Monitoring</a>
+    <a href="#sampling" class="section">8 &middot; Sampling Parameters</a>
+    <a href="#temperature" class="sub">Temperature</a>
+    <a href="#top-p-k" class="sub">Top-P &amp; Top-K</a>
+    <a href="#tokens" class="sub">Tokens &amp; Context Window</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- SECTION 1 -->
+    <section class="section" id="limitations">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Foundation Model Limitations</h2>
+      </div>
+
+      <p>
+        Before learning techniques to improve output, you must understand <strong>why</strong> improvement
+        is needed. Foundation models, despite their impressive capabilities, have inherent limitations
+        that must be addressed for production use.
+      </p>
+
+      <h3 id="hallucinations">Key Limitations</h3>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128123;</div>
+            <h4>Hallucinations</h4>
+          </div>
+          <p>Models generate plausible-sounding but factually incorrect information. They may cite fake sources, invent statistics, or confidently state falsehoods. This is the #1 limitation.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128197;</div>
+            <h4>Knowledge Cutoff</h4>
+          </div>
+          <p>Models only know information up to their training data cutoff date. They cannot answer questions about recent events without grounding or RAG.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#9878;</div>
+            <h4>Bias</h4>
+          </div>
+          <p>Training data contains societal biases that models can reproduce or amplify. Outputs may reflect gender, racial, cultural, or other biases.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128218;</div>
+            <h4>Context Window Limits</h4>
+          </div>
+          <p>Models can only process a limited amount of text at once. Long documents may exceed the context window, requiring chunking strategies.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128176;</div>
+            <h4>Cost &amp; Latency</h4>
+          </div>
+          <p>Larger models are expensive to run and slow to respond. Production applications must balance quality with cost and response time.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128272;</div>
+            <h4>Lack of Domain Knowledge</h4>
+          </div>
+          <p>General-purpose models lack deep expertise in specialized domains (medical, legal, financial). Fine-tuning or RAG addresses this gap.</p>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Focus</div>
+        <p>The exam expects you to match each limitation to the correct mitigation technique: <strong>Hallucinations &rarr; Grounding/RAG.</strong> <strong>Knowledge cutoff &rarr; RAG with current data.</strong> <strong>Bias &rarr; Responsible AI practices, diverse training data.</strong> <strong>Domain gaps &rarr; Fine-tuning.</strong> <strong>Cost &rarr; Smaller models (Flash), caching.</strong></p>
+      </div>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section class="section" id="prompt-engineering">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Prompt Engineering</h2>
+      </div>
+
+      <p>
+        <strong>Prompt engineering</strong> is the practice of designing and refining input prompts to guide
+        a generative model toward producing desired outputs. It is the fastest, cheapest, and most accessible
+        technique for improving model output &mdash; no training data, no compute, no code changes required.
+      </p>
+      <p>
+        A well-designed prompt has several components:
+      </p>
+      <ul style="margin:12px 0 12px 24px;color:var(--text-secondary);">
+        <li><strong>Task instruction</strong> &mdash; what you want the model to do</li>
+        <li><strong>Context</strong> &mdash; background information or constraints</li>
+        <li><strong>Input data</strong> &mdash; the specific content to process</li>
+        <li><strong>Output format</strong> &mdash; how the response should be structured</li>
+        <li><strong>Examples</strong> (optional) &mdash; demonstrations of desired behavior</li>
+      </ul>
+
+      <h3 id="zero-shot">Zero-Shot Prompting</h3>
+
+      <p>
+        In <strong>zero-shot prompting</strong>, you provide the task instruction without any examples.
+        The model relies entirely on its pre-trained knowledge to generate a response. This works well
+        for simple, well-defined tasks.
+      </p>
+
+      <pre><code><span class="code-comment"># Zero-shot: No examples provided</span>
+prompt = <span class="code-string">"""Classify the following customer review as POSITIVE, NEGATIVE, or NEUTRAL.
+
+Review: "The delivery was fast but the product quality was below expectations."
+
+Classification:"""</span>
+
+<span class="code-comment"># Model output: NEGATIVE (or NEUTRAL, depending on interpretation)</span></code></pre>
+
+      <h3 id="one-few-shot">One-Shot and Few-Shot Prompting</h3>
+
+      <p>
+        <strong>One-shot</strong> provides a single example, while <strong>few-shot</strong> provides
+        multiple examples (typically 2-5). Examples demonstrate the expected input-output pattern,
+        giving the model a clear template to follow.
+      </p>
+
+      <pre><code><span class="code-comment"># Few-shot: Multiple examples guide the model</span>
+prompt = <span class="code-string">"""Classify reviews as POSITIVE, NEGATIVE, or NEUTRAL.
+
+Review: "Absolutely love this! Best purchase ever."
+Classification: POSITIVE
+
+Review: "Arrived broken, total waste of money."
+Classification: NEGATIVE
+
+Review: "It works fine, nothing special."
+Classification: NEUTRAL
+
+Review: "The delivery was fast but the product quality was below expectations."
+Classification:"""</span>
+
+<span class="code-comment"># Model output: NEGATIVE (more consistent with examples)</span></code></pre>
+
+      <div class="comp-table" style="overflow-x:auto; margin: 20px 0;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border-strong);">
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Technique</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Examples</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Best For</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Token Cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Zero-shot</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">0</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Simple tasks, common formats</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Lowest</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">One-shot</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">1</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Quick format demonstration</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Low</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Few-shot</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">2-5+</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Consistent formatting, classification, structured output</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Medium</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="role-prompting">Role Prompting (System Instructions)</h3>
+
+      <p>
+        <strong>Role prompting</strong> assigns a persona or role to the model, shaping its behavior,
+        tone, and expertise level. In Vertex AI, this is implemented through <strong>system instructions</strong>
+        that persist across the conversation.
+      </p>
+
+      <pre><code><span class="code-comment"># Role prompting via system instructions</span>
+<span class="code-keyword">from</span> vertexai.generative_models <span class="code-keyword">import</span> GenerativeModel
+
+model = GenerativeModel(
+    <span class="code-string">"gemini-1.5-pro"</span>,
+    system_instruction=<span class="code-string">"""You are a senior cloud architect at a Fortune 500 company.
+Answer questions about cloud infrastructure with:
+- Technical accuracy suitable for engineering teams
+- Cost-optimization considerations
+- Security best practices
+- Specific Google Cloud service recommendations when applicable"""</span>
+)
+
+response = model.generate_content(<span class="code-string">"How should we architect a RAG pipeline?"</span>)</code></pre>
+
+      <h3 id="cot">Chain-of-Thought (CoT) Prompting</h3>
+
+      <p>
+        <strong>Chain-of-thought prompting</strong> instructs the model to reason step by step before
+        giving a final answer. This dramatically improves performance on tasks requiring logic,
+        mathematics, or multi-step reasoning.
+      </p>
+
+      <pre><code><span class="code-comment"># Chain-of-thought: "Think step by step"</span>
+prompt = <span class="code-string">"""A company has 3 data centers. Each data center has 8 racks.
+Each rack holds 4 TPU v5e pods. Each pod has 256 chips.
+How many TPU chips does the company have in total?
+
+Let's think step by step:"""</span>
+
+<span class="code-comment"># Model output:
+# Step 1: 3 data centers x 8 racks = 24 racks
+# Step 2: 24 racks x 4 pods = 96 pods
+# Step 3: 96 pods x 256 chips = 24,576 chips
+# Answer: 24,576 TPU chips</span></code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p>Chain-of-thought works because it forces the model to allocate more "compute" (tokens) to reasoning before committing to an answer. Without CoT, the model might jump to an incorrect answer. With CoT, the intermediate steps keep the reasoning on track.</p>
+      </div>
+
+      <h3 id="react">ReAct Prompting</h3>
+
+      <p>
+        <strong>ReAct (Reasoning + Acting)</strong> is an advanced prompting pattern where the model
+        alternates between reasoning about a problem and taking actions (calling tools, searching data).
+        This is the foundation for AI agent behavior.
+      </p>
+      <p>
+        The ReAct loop follows this pattern:
+      </p>
+      <ol style="margin:12px 0 12px 24px;color:var(--text-secondary);">
+        <li><strong>Thought</strong> &mdash; the model reasons about what it needs to do next</li>
+        <li><strong>Action</strong> &mdash; the model calls a tool or API to get information</li>
+        <li><strong>Observation</strong> &mdash; the tool returns results</li>
+        <li><strong>Repeat</strong> &mdash; the model reasons about the new information and decides next steps</li>
+        <li><strong>Final Answer</strong> &mdash; once enough information is gathered, the model responds</li>
+      </ol>
+
+      <pre><code><span class="code-comment"># ReAct pattern (conceptual)</span>
+<span class="code-comment"># Thought: I need to check the current GCP pricing for TPU v5e.</span>
+<span class="code-comment"># Action: search("GCP TPU v5e pricing per chip hour 2024")</span>
+<span class="code-comment"># Observation: TPU v5e is $1.20 per chip-hour on-demand.</span>
+<span class="code-comment"># Thought: Now I can calculate the daily cost for 256 chips.</span>
+<span class="code-comment"># Action: calculate(256 * 1.20 * 24)</span>
+<span class="code-comment"># Observation: $7,372.80</span>
+<span class="code-comment"># Final Answer: Running 256 TPU v5e chips for one day costs ~$7,373.</span></code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>The exam distinguishes between prompt engineering techniques by their complexity and use case. <strong>Zero/few-shot = classification and formatting.</strong> <strong>CoT = reasoning and math.</strong> <strong>ReAct = tool use and agents.</strong> <strong>Role prompting = behavior and tone.</strong></p>
+      </div>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section class="section" id="grounding">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Grounding</h2>
+      </div>
+
+      <p>
+        <strong>Grounding</strong> connects model outputs to verifiable external data sources, reducing
+        hallucinations and ensuring factual accuracy. It is the primary technique for making generative
+        AI outputs trustworthy for enterprise use.
+      </p>
+      <p>
+        Vertex AI supports two main grounding approaches:
+      </p>
+
+      <div class="comp-table" style="overflow-x:auto; margin: 20px 0;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border-strong);">
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Grounding Type</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">How It Works</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Best For</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Google Search Grounding</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Gemini queries Google Search and incorporates web results</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Current events, public knowledge, general facts</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Custom Data Grounding (RAG)</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Model retrieves from your own enterprise data stores</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Internal docs, proprietary knowledge, private data</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre><code><span class="code-comment"># Google Search grounding in Vertex AI</span>
+<span class="code-keyword">from</span> vertexai.generative_models <span class="code-keyword">import</span> GenerativeModel, Tool
+<span class="code-keyword">from</span> vertexai.generative_models <span class="code-keyword">import</span> grounding
+
+model = GenerativeModel(<span class="code-string">"gemini-1.5-pro"</span>)
+
+<span class="code-comment"># Enable Google Search grounding</span>
+search_tool = Tool.from_google_search_retrieval(
+    grounding.GoogleSearchRetrieval()
+)
+
+response = model.generate_content(
+    <span class="code-string">"What were Google Cloud's latest AI announcements?"</span>,
+    tools=[search_tool]
+)
+<span class="code-comment"># Response is grounded in live web search results</span>
+<span class="code-comment"># Includes source citations</span></code></pre>
+    </section>
+
+    <!-- SECTION 4 -->
+    <section class="section" id="rag-technique">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>RAG Deep Dive</h2>
+      </div>
+
+      <p>
+        <strong>Retrieval-Augmented Generation (RAG)</strong> is the most important technique for enterprise
+        generative AI. It addresses hallucinations, knowledge cutoff, and domain specificity by providing
+        the model with relevant context from your own data at inference time.
+      </p>
+
+      <h3>The RAG Pipeline</h3>
+
+      <p>
+        A RAG system has two phases: an <strong>offline indexing phase</strong> (prepare your data) and an
+        <strong>online retrieval phase</strong> (serve queries).
+      </p>
+
+      <h3>Offline: Indexing</h3>
+      <ol style="margin:12px 0 12px 24px;color:var(--text-secondary);">
+        <li><strong>Document ingestion</strong> &mdash; load documents from GCS, BigQuery, URLs, or databases</li>
+        <li><strong>Chunking</strong> &mdash; split documents into smaller passages (typically 256-1024 tokens)</li>
+        <li><strong>Embedding</strong> &mdash; convert each chunk into a vector using an embedding model (e.g., text-embedding-004)</li>
+        <li><strong>Indexing</strong> &mdash; store vectors in a vector database (Vertex AI Vector Search)</li>
+      </ol>
+
+      <h3>Online: Retrieval &amp; Generation</h3>
+      <ol style="margin:12px 0 12px 24px;color:var(--text-secondary);">
+        <li><strong>Query embedding</strong> &mdash; user's question is converted to a vector</li>
+        <li><strong>Similarity search</strong> &mdash; find the top-K most similar document chunks</li>
+        <li><strong>Context assembly</strong> &mdash; retrieved chunks are inserted into the prompt</li>
+        <li><strong>Generation</strong> &mdash; Gemini generates a response grounded in the retrieved context</li>
+      </ol>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p><strong>Chunking strategy matters.</strong> Too small = context is lost. Too large = irrelevant information dilutes the signal. Overlap between chunks prevents information from being split at boundaries. The exam may test your understanding that chunk size is a key hyperparameter in RAG systems.</p>
+      </div>
+
+      <h3>RAG vs Fine-Tuning: When to Use Each</h3>
+
+      <div class="comp-table" style="overflow-x:auto; margin: 20px 0;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border-strong);">
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Factor</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">RAG</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Fine-Tuning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--text-primary);font-weight:600;">Data freshness</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Always current (updates to data store are immediate)</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Static (requires retraining for new data)</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--text-primary);font-weight:600;">Setup cost</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Low (no training, just index documents)</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Higher (requires training data, compute, iteration)</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--text-primary);font-weight:600;">Per-query cost</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Higher (retrieval + longer prompts)</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Lower (knowledge is in the model weights)</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--text-primary);font-weight:600;">Traceability</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">High (can cite source documents)</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Low (knowledge is encoded in weights)</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;color:var(--text-primary);font-weight:600;">Best for</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Q&amp;A over docs, factual accuracy, changing data</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Style, tone, specialized behavior, domain language</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Distinction</div>
+        <p><strong>RAG adds knowledge at inference time.</strong> <strong>Fine-tuning bakes knowledge into model weights.</strong> If the question mentions "frequently changing data" or "source citations," the answer is RAG. If it mentions "consistent writing style" or "domain-specific terminology," the answer is fine-tuning.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 5 -->
+    <section class="section" id="fine-tuning">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Fine-Tuning</h2>
+      </div>
+
+      <p>
+        <strong>Fine-tuning</strong> is the process of further training a pre-trained model on a specific
+        dataset to customize its behavior for a particular task or domain. Vertex AI supports multiple
+        fine-tuning approaches:
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128218;</div>
+            <h4>Supervised Fine-Tuning (SFT)</h4>
+          </div>
+          <p>Train on input-output pairs showing the desired behavior. Provide hundreds to thousands of examples in your specific format, style, and domain. The most common approach.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#127919;</div>
+            <h4>RLHF</h4>
+          </div>
+          <p>Reinforcement Learning from Human Feedback. Human evaluators rank model outputs, and the model is trained to prefer higher-ranked responses. Used for alignment and safety.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128257;</div>
+            <h4>Distillation</h4>
+          </div>
+          <p>Train a smaller model to mimic a larger model's outputs. Reduces cost and latency while retaining most of the quality. Available for Gemini models on Vertex AI.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128295;</div>
+            <h4>Parameter-Efficient (LoRA/Adapter)</h4>
+          </div>
+          <p>Train only a small number of additional parameters rather than the full model. Faster, cheaper, and enables multiple fine-tuned variants from one base model.</p>
+        </div>
+      </div>
+
+      <pre><code><span class="code-comment"># Fine-tuning example on Vertex AI (conceptual)</span>
+<span class="code-keyword">from</span> vertexai.tuning <span class="code-keyword">import</span> sft
+
+<span class="code-comment"># Prepare training data as JSONL</span>
+<span class="code-comment"># {"messages": [{"role": "user", "content": "..."}, {"role": "model", "content": "..."}]}</span>
+
+tuning_job = sft.train(
+    source_model=<span class="code-string">"gemini-1.5-pro-002"</span>,
+    train_dataset=<span class="code-string">"gs://my-bucket/training-data.jsonl"</span>,
+    validation_dataset=<span class="code-string">"gs://my-bucket/validation-data.jsonl"</span>,
+    epochs=<span class="code-num">3</span>,
+    learning_rate_multiplier=<span class="code-num">1.0</span>,
+    tuned_model_display_name=<span class="code-string">"my-custom-gemini"</span>,
+)
+
+<span class="code-comment"># After tuning, deploy the model</span>
+tuned_model = GenerativeModel(tuning_job.tuned_model_endpoint_name)</code></pre>
+    </section>
+
+    <!-- SECTION 6 -->
+    <section class="section" id="hitl">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Human-in-the-Loop (HITL)</h2>
+      </div>
+
+      <p>
+        <strong>Human-in-the-loop (HITL)</strong> involves integrating human review and oversight into
+        the generative AI pipeline. This is critical for high-stakes applications where errors have
+        significant consequences (medical, legal, financial, safety-critical).
+      </p>
+
+      <h3>HITL Patterns</h3>
+
+      <div class="comp-table" style="overflow-x:auto; margin: 20px 0;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border-strong);">
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Pattern</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Description</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Pre-publication Review</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Human reviews AI output before it reaches end users</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Marketing copy approval, medical report review</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Feedback Loop</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Users rate or correct AI outputs, feeding back into training</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Thumbs up/down on chatbot responses</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Confidence-Based Routing</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Low-confidence responses are escalated to humans</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Customer service agent handoff</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Collaborative Authoring</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">AI generates a draft, human edits and refines</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">AI writes first draft, human editor polishes</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 7 -->
+    <section class="section" id="monitoring">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Monitoring Gen AI in Production</h2>
+      </div>
+
+      <p>
+        Deploying a generative AI model is not the end &mdash; it is the beginning of ongoing monitoring
+        and optimization. Key aspects to monitor:
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128202;</div>
+            <h4>Quality Metrics</h4>
+          </div>
+          <p>Track response quality over time using automated metrics (BLEU, ROUGE, factual accuracy) and human evaluation. Detect quality degradation early.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128176;</div>
+            <h4>Cost Monitoring</h4>
+          </div>
+          <p>Track token usage, API calls, and compute costs. Identify expensive queries. Optimize by caching common responses or using smaller models for simple tasks.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#9201;</div>
+            <h4>Latency Tracking</h4>
+          </div>
+          <p>Monitor response times to ensure SLA compliance. Identify slow queries and optimize prompt length, model selection, or caching strategies.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128274;</div>
+            <h4>Safety Monitoring</h4>
+          </div>
+          <p>Track safety filter triggers, harmful content attempts, and policy violations. Ensure responsible AI guardrails remain effective over time.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 8 -->
+    <section class="section" id="sampling">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <h2>Sampling Parameters</h2>
+      </div>
+
+      <p>
+        Sampling parameters control <strong>how</strong> the model selects tokens during generation.
+        They do not change the model itself, but they dramatically affect the output's style,
+        creativity, and consistency. These are critical for the exam.
+      </p>
+
+      <h3 id="temperature">Temperature</h3>
+
+      <p>
+        <strong>Temperature</strong> controls the randomness of token selection. It scales the logits
+        (raw probability scores) before the softmax function:
+      </p>
+      <ul style="margin:12px 0 12px 24px;color:var(--text-secondary);">
+        <li><strong>Temperature = 0</strong> &mdash; deterministic, always picks the highest-probability token (greedy decoding). Best for factual, consistent outputs.</li>
+        <li><strong>Temperature = 0.1-0.3</strong> &mdash; mostly deterministic with slight variation. Good for analytical tasks.</li>
+        <li><strong>Temperature = 0.7-1.0</strong> &mdash; balanced creativity. Standard for conversational AI.</li>
+        <li><strong>Temperature > 1.0</strong> &mdash; highly creative/random. May produce incoherent outputs.</li>
+      </ul>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p><strong>Factual Q&amp;A = low temperature (0-0.3).</strong> <strong>Creative writing = high temperature (0.7-1.0).</strong> <strong>Code generation = medium-low temperature (0.2-0.4).</strong> The exam loves asking "which temperature setting" for a given scenario.</p>
+      </div>
+
+      <h3 id="top-p-k">Top-P (Nucleus Sampling) and Top-K</h3>
+
+      <p>
+        <strong>Top-P</strong> limits token selection to the smallest set whose cumulative probability
+        exceeds P. For example, top-p = 0.9 means the model considers only enough tokens to cover 90%
+        of the probability mass.
+      </p>
+      <p>
+        <strong>Top-K</strong> limits selection to the K most probable tokens. For example, top-k = 40
+        means only the top 40 tokens are considered at each step.
+      </p>
+
+      <div class="comp-table" style="overflow-x:auto; margin: 20px 0;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border-strong);">
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Parameter</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Low Value</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">High Value</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Default (Gemini)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Temperature</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">0 (deterministic)</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">2.0 (very random)</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">1.0</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Top-P</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">0.1 (very focused)</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">1.0 (all tokens)</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">0.95</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Top-K</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">1 (greedy)</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">100+ (diverse)</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">40</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="tokens">Tokens and Context Window</h3>
+
+      <p>
+        <strong>Tokens</strong> are the basic units of text that models process. A token is roughly 4
+        characters or 3/4 of a word in English. Understanding token limits is essential for prompt design:
+      </p>
+      <ul style="margin:12px 0 12px 24px;color:var(--text-secondary);">
+        <li><strong>Max input tokens</strong> &mdash; the maximum prompt size (context window). Gemini 1.5 Pro supports up to 2 million tokens.</li>
+        <li><strong>Max output tokens</strong> &mdash; the maximum response length. Set via <code>max_output_tokens</code> parameter.</li>
+        <li><strong>Total token budget</strong> = input tokens + output tokens. Longer prompts (e.g., with RAG context) leave fewer tokens for the response.</li>
+      </ul>
+
+      <pre><code><span class="code-comment"># Configuring sampling parameters</span>
+<span class="code-keyword">from</span> vertexai.generative_models <span class="code-keyword">import</span> GenerativeModel, GenerationConfig
+
+model = GenerativeModel(<span class="code-string">"gemini-1.5-pro"</span>)
+
+<span class="code-comment"># For factual Q&A: low temperature, focused sampling</span>
+factual_config = GenerationConfig(
+    temperature=<span class="code-num">0.1</span>,
+    top_p=<span class="code-num">0.8</span>,
+    top_k=<span class="code-num">20</span>,
+    max_output_tokens=<span class="code-num">1024</span>,
+)
+
+<span class="code-comment"># For creative writing: higher temperature, broader sampling</span>
+creative_config = GenerationConfig(
+    temperature=<span class="code-num">0.9</span>,
+    top_p=<span class="code-num">0.95</span>,
+    top_k=<span class="code-num">40</span>,
+    max_output_tokens=<span class="code-num">2048</span>,
+)
+
+response = model.generate_content(
+    <span class="code-string">"Write a haiku about cloud computing."</span>,
+    generation_config=creative_config
+)</code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Summary: Technique Selection Guide</div>
+        <p>
+          <strong>Start with prompt engineering</strong> (free, fast). If that is not enough, add <strong>grounding/RAG</strong> (moderate effort). If you need behavioral changes, try <strong>fine-tuning</strong> (significant effort). Always include <strong>HITL</strong> for high-stakes applications. Tune <strong>sampling parameters</strong> throughout. Add <strong>monitoring</strong> before production launch.
+        </p>
+      </div>
+    </section>
+
+    <!-- PREV/NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous</div>
+        <a href="02-gcp-gen-ai-offerings.html" class="next-btn prev-btn">
+          &larr; 02 &middot; GCP Gen AI Offerings
+        </a>
+      </div>
+      <div>
+        <div class="next-label">Next</div>
+        <a href="04-business-strategies.html" class="next-btn">
+          04 &middot; Business Strategies &rarr;
+        </a>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<footer>
+  CareerAlign.com &middot; GCP Generative AI Leader &middot;
+  <a href="index.html">Hub</a> &middot;
+  <a href="04-business-strategies.html">Next: Business Strategies &rarr;</a>
+</footer>
+
+</body>
+</html>

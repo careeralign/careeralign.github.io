@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Fundamentals of Generative AI — CareerAlign GCP GenAI Leader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #22c55e;
+  --page-color-04: rgba(34,197,94,0.04);
+  --page-color-07: rgba(34,197,94,0.07);
+  --page-color-12: rgba(34,197,94,0.12);
+  --page-color-15: rgba(34,197,94,0.15);
+  --page-color-25: rgba(34,197,94,0.25);
+  --page-color-30: rgba(34,197,94,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#10024; <span>CareerAlign</span> GCP GenAI Leader</div>
+  <div class="nav-links">
+    <a href="01-fundamentals-gen-ai.html" class="active">01 &middot; Fundamentals</a>
+    <a href="02-gcp-gen-ai-offerings.html">02 &middot; GCP Offerings</a>
+    <a href="03-improve-model-output.html">03 &middot; Improve Output</a>
+    <a href="04-business-strategies.html">04 &middot; Business Strategy</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; GAL Hub</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Section 1 &middot; ~30% of Exam
+  </div>
+  <h1>Fundamentals of <em>Generative AI</em></h1>
+  <p class="hero-desc">
+    Master the foundational concepts of artificial intelligence, machine learning, and generative AI.
+    This section covers AI/ML core concepts, foundation models, LLMs, diffusion models, the ML lifecycle,
+    choosing models, data types and quality, and Google's foundation model family including Gemini, Gemma, Imagen, and Veo.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      AI, ML &amp; NLP Concepts
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Foundation Models &amp; LLMs
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      ML Lifecycle
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Data Types &amp; Quality
+    </div>
+    <div class="hero-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Google Models (Gemini, Gemma, Imagen, Veo)
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-gal/notebooks/01-fundamentals-gen-ai.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="content-grid">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#core-concepts" class="section">1 &middot; Core AI &amp; ML Concepts</a>
+    <a href="#ai-vs-ml" class="sub">AI vs ML vs DL</a>
+    <a href="#nlp-basics" class="sub">NLP Fundamentals</a>
+    <a href="#gen-ai-defined" class="section">2 &middot; What Is Generative AI</a>
+    <a href="#gen-vs-disc" class="sub">Generative vs Discriminative</a>
+    <a href="#foundation-models" class="section">3 &middot; Foundation Models &amp; LLMs</a>
+    <a href="#transformer" class="sub">Transformer Architecture</a>
+    <a href="#diffusion" class="sub">Diffusion Models</a>
+    <a href="#ml-approaches" class="section">4 &middot; ML Approaches</a>
+    <a href="#supervised" class="sub">Supervised, Unsupervised, RL</a>
+    <a href="#ml-lifecycle" class="section">5 &middot; ML Lifecycle</a>
+    <a href="#choosing-models" class="sub">Choosing Models</a>
+    <a href="#data-fundamentals" class="section">6 &middot; Data Fundamentals</a>
+    <a href="#data-quality" class="sub">Data Quality</a>
+    <a href="#genai-landscape" class="section">7 &middot; Gen AI Landscape</a>
+    <a href="#google-models" class="section">8 &middot; Google Foundation Models</a>
+    <a href="#gemini" class="sub">Gemini Family</a>
+    <a href="#gemma-imagen-veo" class="sub">Gemma, Imagen, Veo</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- SECTION 1 -->
+    <section class="section" id="core-concepts">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Core AI &amp; ML Concepts</h2>
+      </div>
+
+      <p>
+        <strong>Artificial Intelligence (AI)</strong> is the broad field of computer science focused on creating
+        systems that can perform tasks that typically require human intelligence. This encompasses reasoning,
+        learning, perception, language understanding, and decision-making. AI systems range from simple
+        rule-based engines to sophisticated deep learning models.
+      </p>
+      <p>
+        <strong>Machine Learning (ML)</strong> is a subset of AI where systems learn patterns from data
+        rather than being explicitly programmed. Instead of writing rules, you provide examples and the
+        algorithm discovers the rules. ML powers recommendations, fraud detection, language translation,
+        and thousands of other applications.
+      </p>
+      <p>
+        <strong>Deep Learning (DL)</strong> is a subset of ML that uses neural networks with multiple layers
+        (hence "deep") to learn hierarchical representations of data. Deep learning excels at unstructured
+        data &mdash; images, text, audio, and video &mdash; and is the foundation for modern generative AI.
+      </p>
+
+      <h3 id="ai-vs-ml">AI vs ML vs Deep Learning</h3>
+
+      <div class="comp-table" style="overflow-x:auto; margin: 20px 0;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border-strong);">
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Concept</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Definition</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">AI</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Machines performing tasks requiring human-like intelligence</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Chess-playing programs, virtual assistants</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">ML</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Systems that learn patterns from data without explicit programming</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Spam filters, recommendation engines</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Deep Learning</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Neural networks with many layers learning hierarchical features</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Image recognition, speech-to-text</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Generative AI</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">AI that creates new content (text, images, audio, video, code)</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Gemini, Imagen, ChatGPT</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>The exam tests your understanding of the nested relationship: <strong>AI &supset; ML &supset; Deep Learning &supset; Generative AI</strong>. Generative AI is a specialized application of deep learning, which itself is a subset of ML, which is a subset of AI.</p>
+      </div>
+
+      <h3 id="nlp-basics">NLP Fundamentals</h3>
+
+      <p>
+        <strong>Natural Language Processing (NLP)</strong> is the branch of AI focused on enabling computers to
+        understand, interpret, and generate human language. Key NLP tasks include:
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128221;</div>
+            <h4>Text Classification</h4>
+          </div>
+          <p>Categorizing text into predefined labels. Examples: sentiment analysis, spam detection, topic classification.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128269;</div>
+            <h4>Named Entity Recognition</h4>
+          </div>
+          <p>Identifying entities (people, places, organizations, dates) within text. Foundation for information extraction.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#127760;</div>
+            <h4>Machine Translation</h4>
+          </div>
+          <p>Translating text between languages. Modern approaches use sequence-to-sequence models with attention mechanisms.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128172;</div>
+            <h4>Text Generation</h4>
+          </div>
+          <p>Creating new text that is coherent and contextually appropriate. The core task of large language models like Gemini.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section class="section" id="gen-ai-defined">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>What Is Generative AI</h2>
+      </div>
+
+      <p>
+        <strong>Generative AI</strong> refers to artificial intelligence systems that can create new content
+        &mdash; text, images, audio, video, code, and structured data &mdash; rather than merely classifying or
+        analyzing existing data. These models learn the underlying distribution of their training data and
+        generate novel outputs that are statistically similar to, but not copies of, the training examples.
+      </p>
+      <p>
+        Generative AI represents a paradigm shift from traditional ML. Where traditional systems consume data
+        and produce decisions (classify this email, predict this price), generative systems produce entirely
+        new artifacts. A generative AI model can write a marketing email, generate a product image, compose
+        music, or write working code.
+      </p>
+
+      <h3 id="gen-vs-disc">Generative vs Discriminative Models</h3>
+
+      <p>
+        This is a fundamental distinction tested on the exam. A <strong>discriminative model</strong> learns
+        the decision boundary between classes &mdash; it models P(Y|X), the probability of a label Y given
+        input X. A <strong>generative model</strong> learns the full joint distribution P(X,Y) or P(X),
+        enabling it to generate new data points.
+      </p>
+
+      <div class="comp-table" style="overflow-x:auto; margin: 20px 0;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border-strong);">
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Aspect</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Discriminative</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Generative</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--text-primary);font-weight:600;">Goal</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Classify / predict labels</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Generate new content</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--text-primary);font-weight:600;">Models</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">P(Y|X) &mdash; conditional</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">P(X) or P(X,Y) &mdash; joint</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--text-primary);font-weight:600;">Output</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Label, score, category</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Text, image, audio, video, code</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;color:var(--text-primary);font-weight:600;">Examples</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Logistic regression, SVM, random forest</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">LLMs (Gemini), GANs, diffusion models</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p>Many modern AI systems combine both approaches. For example, Gemini is primarily generative but can perform discriminative tasks (classification, sentiment analysis) through prompting. The exam may test whether you understand that generative models can also classify.</p>
+      </div>
+
+      <p>
+        <strong>Use cases for generative AI</strong> span every industry: content creation (marketing copy, articles),
+        code generation and debugging, customer service automation, document summarization, data augmentation,
+        drug discovery, creative design, and educational tutoring. The exam expects you to identify which
+        scenarios are best suited for generative AI versus traditional ML approaches.
+      </p>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section class="section" id="foundation-models">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Foundation Models &amp; LLMs</h2>
+      </div>
+
+      <p>
+        A <strong>foundation model</strong> is a large AI model pre-trained on broad, diverse data that can be
+        adapted to a wide range of downstream tasks. The term was coined by Stanford's HAI in 2021 to describe
+        models like BERT, GPT, and PaLM that serve as a "foundation" upon which many applications are built.
+      </p>
+      <p>
+        Foundation models exhibit <strong>emergent capabilities</strong> &mdash; abilities that appear only at
+        sufficient scale that were not explicitly trained for. For example, large language models can perform
+        arithmetic, translate between languages they were not specifically trained on, and reason about novel
+        problems. These emergent properties make foundation models uniquely powerful.
+      </p>
+
+      <h3>Key Characteristics of Foundation Models</h3>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128218;</div>
+            <h4>Pre-trained on Massive Data</h4>
+          </div>
+          <p>Trained on terabytes of text, images, or multimodal data. This broad training gives them general knowledge and capabilities.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128295;</div>
+            <h4>Adaptable (Fine-tunable)</h4>
+          </div>
+          <p>Can be customized for specific tasks through fine-tuning, prompt engineering, or RAG without retraining from scratch.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#127919;</div>
+            <h4>Multi-task Capable</h4>
+          </div>
+          <p>A single model handles translation, summarization, Q&amp;A, classification, and code generation without separate training.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128640;</div>
+            <h4>Emergent Abilities</h4>
+          </div>
+          <p>At large scale, capabilities emerge that were never explicitly trained: in-context learning, chain-of-thought reasoning, tool use.</p>
+        </div>
+      </div>
+
+      <h3 id="transformer">The Transformer Architecture</h3>
+
+      <p>
+        The <strong>Transformer</strong> is the neural network architecture behind virtually all modern LLMs.
+        Introduced in the 2017 paper "Attention Is All You Need" by Vaswani et al., it replaced recurrent
+        architectures (RNNs, LSTMs) with a <strong>self-attention mechanism</strong> that processes all tokens
+        in parallel rather than sequentially.
+      </p>
+      <p>
+        Key components of the Transformer:
+      </p>
+      <ul style="margin:12px 0 12px 24px;color:var(--text-secondary);">
+        <li><strong>Self-Attention</strong> &mdash; allows each token to attend to every other token, capturing long-range dependencies</li>
+        <li><strong>Multi-Head Attention</strong> &mdash; runs multiple attention operations in parallel to capture different relationship types</li>
+        <li><strong>Positional Encoding</strong> &mdash; injects position information since attention is order-agnostic</li>
+        <li><strong>Feed-Forward Networks</strong> &mdash; applied to each position independently after attention</li>
+        <li><strong>Layer Normalization</strong> &mdash; stabilizes training of deep networks</li>
+      </ul>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>You do not need to know the math behind transformers for this exam. Focus on understanding that: (1) transformers use self-attention to process all tokens in parallel, (2) this enables them to capture long-range dependencies, and (3) they are the architecture behind Gemini and all major LLMs.</p>
+      </div>
+
+      <p>
+        <strong>Large Language Models (LLMs)</strong> are transformer-based foundation models trained specifically
+        on text data. They predict the next token given a sequence of preceding tokens (autoregressive generation).
+        Modern LLMs have billions to trillions of parameters and are trained on datasets containing trillions of
+        tokens from books, websites, code repositories, and other text sources.
+      </p>
+
+      <h3 id="diffusion">Diffusion Models</h3>
+
+      <p>
+        <strong>Diffusion models</strong> are a class of generative models that create data by learning to reverse
+        a noise-adding process. During training, the model learns to progressively denoise a corrupted input.
+        During generation, it starts from pure random noise and iteratively refines it into a coherent output.
+      </p>
+      <p>
+        Diffusion models power image generation (Imagen), video generation (Veo), and audio synthesis.
+        They produce higher-quality, more diverse outputs than earlier approaches like GANs (Generative
+        Adversarial Networks) and VAEs (Variational Autoencoders), and are more stable to train.
+      </p>
+
+      <div class="comp-table" style="overflow-x:auto; margin: 20px 0;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border-strong);">
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Model Type</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">How It Works</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Strengths</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Google Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">LLM (Transformer)</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Autoregressive next-token prediction</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Text, code, reasoning, multimodal</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Gemini, Gemma</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Diffusion Model</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Iterative denoising from noise</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Photorealistic images, video</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Imagen, Veo</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">GAN</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Generator vs discriminator adversarial training</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Fast generation, style transfer</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">StyleGAN (historical)</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">VAE</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Encode to latent space, decode to output</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Smooth interpolation, latent control</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Used in Imagen pipeline</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 4 -->
+    <section class="section" id="ml-approaches">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>ML Approaches</h2>
+      </div>
+
+      <p>
+        Machine learning approaches are categorized by the type of learning signal available during training.
+        Understanding these distinctions is critical for the exam, as questions may ask when to use each approach.
+      </p>
+
+      <h3 id="supervised">Supervised, Unsupervised, and Reinforcement Learning</h3>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#127919;</div>
+            <h4>Supervised Learning</h4>
+          </div>
+          <p>Learns from labeled data (input-output pairs). The model maps inputs to known correct outputs. Examples: classification, regression, object detection. Requires labeled datasets.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128300;</div>
+            <h4>Unsupervised Learning</h4>
+          </div>
+          <p>Discovers patterns in unlabeled data. No correct answers are provided. Examples: clustering, dimensionality reduction, anomaly detection. Works with raw, unlabeled datasets.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#127922;</div>
+            <h4>Reinforcement Learning (RL)</h4>
+          </div>
+          <p>Agent learns by interacting with an environment and receiving rewards/penalties. Used in robotics, game playing, and RLHF for LLM alignment.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128257;</div>
+            <h4>Semi-Supervised / Self-Supervised</h4>
+          </div>
+          <p>Combines small amounts of labeled data with large amounts of unlabeled data. Self-supervised learning (used in LLM pre-training) creates labels from the data itself (predict next token).</p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p><strong>RLHF (Reinforcement Learning from Human Feedback)</strong> is a critical technique for aligning LLMs. After pre-training, human evaluators rank model outputs, and a reward model is trained on these preferences. The LLM is then fine-tuned using RL to maximize the reward model's score, making outputs more helpful and less harmful.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 5 -->
+    <section class="section" id="ml-lifecycle">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>ML Lifecycle</h2>
+      </div>
+
+      <p>
+        The ML lifecycle describes the end-to-end process of developing, deploying, and maintaining ML models.
+        For generative AI projects, the lifecycle includes additional considerations around prompt engineering,
+        evaluation of generated content, and responsible AI guardrails.
+      </p>
+
+      <div class="comp-table" style="overflow-x:auto; margin: 20px 0;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border-strong);">
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Phase</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Activities</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Gen AI Considerations</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">1. Problem Definition</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Define business problem, success metrics, feasibility</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Determine if gen AI is the right approach vs. traditional ML</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">2. Data Collection</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Gather, clean, and prepare training data</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Collect examples for fine-tuning, RAG documents, evaluation datasets</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">3. Model Selection</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Choose architecture, model size, pre-trained model</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Select from Model Garden: Gemini Pro vs Flash, open-source options</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">4. Training / Tuning</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Train from scratch or fine-tune, optimize hyperparameters</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Prompt engineering, supervised fine-tuning, RLHF alignment</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">5. Evaluation</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Test on held-out data, measure metrics</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Human evaluation, automated metrics (BLEU, ROUGE), safety testing</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">6. Deployment</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Serve model via API, integrate into applications</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Vertex AI Endpoints, grounding configuration, safety filters</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">7. Monitoring</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Track performance, detect drift, retrain as needed</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Monitor for hallucinations, bias drift, cost optimization</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="choosing-models">Choosing the Right Model</h3>
+
+      <p>
+        Selecting the right model is a critical decision. The exam tests whether you can match scenarios to
+        appropriate model choices. Key factors include:
+      </p>
+      <ul style="margin:12px 0 12px 24px;color:var(--text-secondary);">
+        <li><strong>Task type</strong> &mdash; text generation, image creation, classification, or multimodal</li>
+        <li><strong>Latency requirements</strong> &mdash; real-time (use smaller/faster models like Gemini Flash) vs. batch</li>
+        <li><strong>Cost constraints</strong> &mdash; larger models cost more per request; fine-tuning adds upfront cost</li>
+        <li><strong>Data sensitivity</strong> &mdash; on-premises deployment needs (use open-weight Gemma) vs. managed API</li>
+        <li><strong>Quality needs</strong> &mdash; complex reasoning tasks need larger models (Gemini Pro/Ultra)</li>
+        <li><strong>Customization depth</strong> &mdash; prompt engineering (fast) vs. fine-tuning (slower but more tailored)</li>
+      </ul>
+
+      <div class="callout warn">
+        <div class="callout-label">Common Mistake</div>
+        <p>Do not assume the largest model is always best. The exam values cost-efficiency. If a task can be accomplished with Gemini Flash and prompt engineering, choosing the more expensive Ultra model is the wrong answer.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 6 -->
+    <section class="section" id="data-fundamentals">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Data Fundamentals</h2>
+      </div>
+
+      <p>
+        Data is the fuel for all AI systems. The exam covers data types, data quality principles, and the
+        distinction between structured/unstructured and labeled/unlabeled data.
+      </p>
+
+      <h3>Structured vs Unstructured Data</h3>
+
+      <div class="comp-table" style="overflow-x:auto; margin: 20px 0;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border-strong);">
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Type</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Definition</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Examples</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">AI Approach</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Structured</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Organized in rows/columns with a defined schema</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Databases, spreadsheets, CSV files</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Traditional ML, BigQuery ML</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Semi-structured</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Has some organizational properties but no rigid schema</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">JSON, XML, email, log files</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">NLP, parsing, gen AI extraction</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Unstructured</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">No predefined schema or organization</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Images, audio, video, free text, PDFs</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Deep learning, generative AI</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Labeled vs Unlabeled Data</h3>
+
+      <p>
+        <strong>Labeled data</strong> has known correct outputs (a tagged image, a classified document).
+        It is required for supervised learning and fine-tuning. Creating labeled data is expensive and
+        time-consuming.
+      </p>
+      <p>
+        <strong>Unlabeled data</strong> has no associated labels. It is abundant and cheap. Unsupervised
+        learning and self-supervised pre-training (used for LLMs) work with unlabeled data. LLMs are
+        pre-trained on massive unlabeled text corpora using self-supervised objectives (predict the next token).
+      </p>
+
+      <h3 id="data-quality">Data Quality</h3>
+
+      <p>
+        Data quality directly impacts model performance. The principle "garbage in, garbage out" applies
+        even more strongly to generative AI, where poor data leads to inaccurate, biased, or hallucinated outputs.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#9989;</div>
+            <h4>Accuracy</h4>
+          </div>
+          <p>Data correctly represents the real-world entities it describes. Inaccurate training data leads to models that produce wrong answers.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128202;</div>
+            <h4>Completeness</h4>
+          </div>
+          <p>No missing values or gaps in coverage. Incomplete data causes models to have blind spots on certain topics or demographics.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#9201;</div>
+            <h4>Timeliness</h4>
+          </div>
+          <p>Data is current and up-to-date. Stale training data causes models to lack knowledge of recent events (a key reason for grounding/RAG).</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128290;</div>
+            <h4>Consistency</h4>
+          </div>
+          <p>No contradictions across data sources. Inconsistent data confuses models and leads to unpredictable outputs.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128200;</div>
+            <h4>Representativeness</h4>
+          </div>
+          <p>Data reflects the diversity of real-world use. Biased training data leads to models that perform poorly on underrepresented groups.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128274;</div>
+            <h4>Privacy Compliance</h4>
+          </div>
+          <p>Data handling complies with regulations (GDPR, CCPA). PII must be properly managed in training data to avoid legal and ethical issues.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 7 -->
+    <section class="section" id="genai-landscape">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Gen AI Landscape Layers</h2>
+      </div>
+
+      <p>
+        The generative AI technology stack can be understood as a layered architecture. Each layer builds
+        on the one below and serves different stakeholders. The exam expects you to understand where
+        Google's offerings fit within this landscape.
+      </p>
+
+      <div class="comp-table" style="overflow-x:auto; margin: 20px 0;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border-strong);">
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Layer</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Description</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Google Cloud Offerings</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Infrastructure</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Hardware (GPUs, TPUs) and compute for training/serving</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Cloud TPUs, A3 GPU VMs, Hypercomputer</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Foundation Models</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Pre-trained large models that power applications</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Gemini, Gemma, Imagen, Veo, Chirp</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Developer Platform</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Tools for building AI apps: APIs, SDKs, fine-tuning, RAG</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Vertex AI, Model Garden, Agent Builder</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Pre-built Applications</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Ready-to-use AI products for end users</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Gemini App, Gemini for Workspace, Customer Engagement Suite</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>The exam frequently asks you to match a scenario to the correct layer. A developer building a custom chatbot uses the <strong>Developer Platform</strong> layer (Vertex AI). A business user summarizing emails uses the <strong>Pre-built Application</strong> layer (Gemini for Workspace). A team training their own model uses the <strong>Infrastructure</strong> layer.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 8 -->
+    <section class="section" id="google-models">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <h2>Google Foundation Models</h2>
+      </div>
+
+      <p>
+        Google offers a comprehensive family of foundation models, each optimized for different modalities
+        and use cases. Understanding the distinctions between these models is heavily tested on the exam.
+      </p>
+
+      <h3 id="gemini">The Gemini Family</h3>
+
+      <p>
+        <strong>Gemini</strong> is Google's most capable multimodal AI model family. It natively handles
+        text, images, audio, video, and code in a single model. Gemini comes in multiple size variants
+        optimized for different use cases:
+      </p>
+
+      <div class="comp-table" style="overflow-x:auto; margin: 20px 0;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border-strong);">
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Variant</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Size</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Best For</th>
+              <th style="text-align:left;padding:12px 16px;color:var(--text-primary);font-family:var(--font-display);">Key Features</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Gemini Ultra</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Largest</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Complex reasoning, research, multimodal analysis</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Highest capability, powers Gemini Advanced</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Gemini Pro</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Medium</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">General-purpose tasks, balanced quality and speed</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Best price-performance ratio for most use cases</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Gemini Flash</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Lighter</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">High-volume, low-latency applications</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Fastest response time, lowest cost per token</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;color:var(--page-color);font-weight:600;">Gemini Nano</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Smallest</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">On-device (phones, IoT), offline scenarios</td>
+              <td style="padding:10px 16px;color:var(--text-secondary);">Runs locally on Pixel, no cloud dependency</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p>Gemini is <strong>natively multimodal</strong> &mdash; trained from the ground up on text, images, audio, and video simultaneously. This differs from earlier approaches that bolted vision capabilities onto text models. Gemini can understand a video, read text in an image, process audio, and generate code all within a single prompt.</p>
+      </div>
+
+      <h3 id="gemma-imagen-veo">Gemma, Imagen, and Veo</h3>
+
+      <p>
+        Beyond Gemini, Google offers specialized foundation models for specific modalities:
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#128142;</div>
+            <h4>Gemma</h4>
+          </div>
+          <p>Google's family of <strong>open-weight</strong> models built from the same research as Gemini. Available in 2B and 7B parameter sizes. Ideal for on-premises deployment, custom fine-tuning, research, and scenarios requiring full model control. Runs on consumer hardware.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#127912;</div>
+            <h4>Imagen</h4>
+          </div>
+          <p>Google's text-to-image <strong>diffusion model</strong> that generates photorealistic images from text descriptions. Available through Vertex AI. Features include inpainting, outpainting, style transfer, and image editing. Enterprise-grade with built-in safety filters.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#127909;</div>
+            <h4>Veo</h4>
+          </div>
+          <p>Google's <strong>video generation model</strong> that creates high-quality videos from text or image prompts. Supports various cinematic styles, camera movements, and creative directions. Targeted at media, advertising, and creative production workflows.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon" style="background:var(--page-color-12);">&#127908;</div>
+            <h4>Chirp</h4>
+          </div>
+          <p>Google's speech foundation model powering Cloud Speech-to-Text V2. Supports 100+ languages with improved accuracy. Used for transcription, voice commands, and audio understanding workflows.</p>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Distinction</div>
+        <p><strong>Gemini = proprietary, managed API, most capable.</strong> <strong>Gemma = open-weight, self-deployable, smaller.</strong> The exam tests when to recommend each: Gemma when customers need on-premises deployment, full model control, or want to avoid vendor lock-in. Gemini when they need maximum capability, multimodal features, or prefer a managed service.</p>
+      </div>
+
+      <pre><code><span class="code-comment"># Quick comparison: Gemini vs Gemma via Vertex AI SDK</span>
+<span class="code-keyword">from</span> vertexai.generative_models <span class="code-keyword">import</span> GenerativeModel
+
+<span class="code-comment"># Gemini Pro - managed API, multimodal</span>
+gemini = GenerativeModel(<span class="code-string">"gemini-1.5-pro"</span>)
+response = gemini.generate_content(<span class="code-string">"Explain quantum computing in 3 sentences."</span>)
+
+<span class="code-comment"># Gemma - open model, deploy to your own endpoint</span>
+<span class="code-comment"># Deploy Gemma from Model Garden, then call your custom endpoint</span>
+gemma = GenerativeModel(<span class="code-string">"gemma-7b"</span>)  <span class="code-comment"># from your deployed endpoint</span>
+response = gemma.generate_content(<span class="code-string">"Explain quantum computing in 3 sentences."</span>)</code></pre>
+    </section>
+
+    <!-- PREV/NEXT -->
+    <div class="next-section">
+      <div></div>
+      <div>
+        <div class="next-label">Next</div>
+        <a href="02-gcp-gen-ai-offerings.html" class="next-btn">
+          02 &middot; Google Cloud's Gen AI Offerings &rarr;
+        </a>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<footer>
+  CareerAlign.com &middot; GCP Generative AI Leader &middot;
+  <a href="index.html">Hub</a> &middot;
+  <a href="02-gcp-gen-ai-offerings.html">Next: GCP Offerings &rarr;</a>
+</footer>
+
+</body>
+</html>

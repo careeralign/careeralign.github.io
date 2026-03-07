@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>GCP Professional Data Engineer — CareerAlign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+
+  --section-1:    #22c55e;
+  --section-2:    #06b6d4;
+  --section-3:    #3b82f6;
+  --section-4:    #f97316;
+  --section-5:    #a855f7;
+
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px;
+  display: flex; align-items: center;
+  height: 58px; gap: 32px;
+}
+.nav-logo {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
+}
+.nav-logo span { color: var(--accent-indigo); }
+.nav-links { display: flex; gap: 24px; flex: 1; }
+.nav-links a {
+  font-size: 13.5px; font-weight: 500; color: var(--text-secondary);
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--text-primary); }
+.nav-right {
+  display: flex; align-items: center; gap: 12px; margin-left: auto;
+}
+.progress-badge {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 20px; padding: 5px 14px;
+  font-size: 12.5px; font-family: var(--font-mono);
+  color: var(--accent-cyan); white-space: nowrap;
+}
+
+/* HERO */
+.hero {
+  padding: 80px 60px 60px;
+  max-width: 1300px;
+  margin: 0 auto;
+  position: relative;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(99,102,241,0.1);
+  border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 20px; padding: 5px 14px;
+  font-size: 12px; font-weight: 600;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: #a5b4fc; margin-bottom: 24px;
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 700; line-height: 1.1;
+  margin-bottom: 20px; letter-spacing: -.02em;
+  background: linear-gradient(135deg, #e6e8f4 30%, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-sub {
+  font-size: 18px; color: var(--text-secondary);
+  max-width: 680px; line-height: 1.75; margin-bottom: 40px;
+}
+
+.stats-strip {
+  display: flex; gap: 0; margin: 56px 0 0;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  overflow: hidden; background: var(--bg-surface);
+}
+.stat-item {
+  flex: 1; padding: 22px 24px;
+  border-right: 1px solid var(--border-default);
+  text-align: center;
+}
+.stat-item:last-child { border-right: none; }
+.stat-val {
+  font-family: var(--font-display);
+  font-size: 30px; font-weight: 700;
+  color: var(--text-primary); line-height: 1; margin-bottom: 4px;
+}
+.stat-label {
+  font-size: 13px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .06em;
+}
+
+/* SECTION WRAPPER */
+.section {
+  max-width: 1300px; margin: 0 auto; padding: 56px 60px;
+}
+.section-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 36px; gap: 20px; flex-wrap: wrap;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: 28px; font-weight: 700;
+  color: var(--text-primary); line-height: 1.2;
+}
+.section-title span { color: var(--accent-indigo); }
+.section-sub {
+  font-size: 15px; color: var(--text-secondary);
+  margin-top: 6px; max-width: 600px; line-height: 1.65;
+}
+.divider {
+  border: none; border-top: 1px solid var(--border-subtle); margin: 0 60px;
+}
+
+/* MODULE CARD GRID */
+.phase-heading {
+  font-family: var(--font-display);
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase;
+  padding: 7px 12px; border-radius: 6px;
+  display: inline-block; margin-bottom: 16px;
+}
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 18px; margin-bottom: 40px;
+}
+.module-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  border-top: 3px solid var(--card-color, #6366f1);
+  transition: border-color .2s, box-shadow .2s, transform .2s;
+  position: relative;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.module-card:hover {
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  transform: translateY(-2px);
+  border-color: var(--card-color, #6366f1);
+}
+.module-card.completed { opacity: .6; }
+.module-card.completed::after {
+  content: '\2713  Read';
+  position: absolute; top: 14px; right: 14px;
+  font-size: 11px; font-weight: 700; color: #22c55e;
+  background: rgba(34,197,94,0.12);
+  border: 1px solid rgba(34,197,94,0.3);
+  border-radius: 20px; padding: 2px 9px;
+}
+.card-num {
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 500;
+  color: var(--card-color, #6366f1);
+  letter-spacing: .06em;
+}
+.card-title {
+  font-family: var(--font-display);
+  font-size: 16px; font-weight: 700;
+  color: var(--text-primary); line-height: 1.3;
+}
+.card-desc {
+  font-size: 13.5px; color: var(--text-secondary);
+  line-height: 1.55; flex: 1;
+}
+.card-footer {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  margin-top: 6px; padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+.card-time {
+  font-size: 12px; color: var(--text-muted);
+  display: flex; align-items: center; gap: 5px;
+}
+.card-topics {
+  display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px;
+}
+.topic-pill {
+  font-size: 11px; padding: 2px 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 12px; color: var(--text-muted);
+}
+.card-check {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  background: transparent; cursor: pointer;
+  appearance: none; -webkit-appearance: none;
+  transition: all .2s; flex-shrink: 0;
+}
+.card-check:checked {
+  background: var(--card-color, #6366f1);
+  border-color: var(--card-color, #6366f1);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6l3 3 5-5' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* GLOSSARY */
+.glossary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 12px;
+}
+.glossary-item {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+}
+.gloss-term {
+  font-family: var(--font-mono);
+  font-size: 13px; font-weight: 500;
+  color: var(--accent-cyan); margin-bottom: 6px;
+}
+.gloss-def {
+  font-size: 13.5px; color: var(--text-secondary); line-height: 1.6;
+}
+
+/* PROGRESS BAR */
+.progress-bar-wrap {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  padding: 20px 28px; margin-bottom: 36px;
+  display: flex; align-items: center; gap: 20px;
+}
+.progress-label {
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 600; white-space: nowrap;
+  color: var(--text-secondary);
+}
+.progress-track {
+  flex: 1; height: 8px;
+  background: var(--bg-base);
+  border-radius: 4px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-indigo), var(--accent-cyan));
+  border-radius: 4px; transition: width .5s ease;
+}
+.progress-pct {
+  font-family: var(--font-mono);
+  font-size: 14px; color: var(--accent-cyan); white-space: nowrap;
+}
+.btn-reset {
+  font-size: 12px; color: var(--text-muted);
+  background: none; border: none; cursor: pointer;
+  padding: 4px 8px; border-radius: 4px;
+  font-family: var(--font-body);
+}
+.btn-reset:hover { color: var(--text-secondary); background: var(--bg-overlay); }
+
+/* COLAB BUTTON */
+.colab-btn {
+  display: inline-flex; align-items: center;
+  opacity: 0.7; transition: opacity 0.2s; flex-shrink: 0;
+}
+.colab-btn:hover { opacity: 1; }
+
+/* FOOTER */
+.footer {
+  max-width: 1300px; margin: 0 auto;
+  padding: 40px 60px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 13px; color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .hero { padding: 40px 20px 30px; }
+  .section { padding: 30px 20px; }
+  .stats-strip { flex-direction: column; }
+  .stat-item { border-right: none; border-bottom: 1px solid var(--border-default); }
+  .stat-item:last-child { border-bottom: none; }
+  .card-grid { grid-template-columns: 1fr; }
+  .glossary-grid { grid-template-columns: 1fr; }
+  .nav { padding: 0 16px; gap: 16px; }
+  .nav-links { display: none; }
+  .footer { flex-direction: column; gap: 12px; padding: 30px 20px; }
+  .divider { margin: 0 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9729;&#65039; <span>CareerAlign</span> GCP PDE</div>
+  <div class="nav-links">
+    <a href="01-designing-data-systems.html">Designing Systems</a>
+    <a href="02-ingesting-processing-data.html">Ingesting Data</a>
+    <a href="03-storing-the-data.html">Storing Data</a>
+    <a href="04-preparing-using-data.html">Preparing Data</a>
+    <a href="05-maintaining-data-workloads.html">Maintaining Workloads</a>
+  </div>
+  <div class="nav-right">
+    <span class="progress-badge" id="navProgress">0 / 5 done</span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-eyebrow">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    Google Cloud Certification
+  </div>
+  <h1>Professional Data Engineer Exam Guide</h1>
+  <p class="hero-sub">
+    Master every domain of the GCP Professional Data Engineer certification. From designing
+    data processing systems to building pipelines, choosing storage, preparing data for analytics
+    and ML, and automating production workloads. Five comprehensive study guides with hands-on notebooks.
+  </p>
+
+  <div class="stats-strip">
+    <div class="stat-item">
+      <div class="stat-val">5</div>
+      <div class="stat-label">Study Guides</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">5</div>
+      <div class="stat-label">Exam Sections</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">5</div>
+      <div class="stat-label">Colab Notebooks</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">30+</div>
+      <div class="stat-label">GCP Services</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">100%</div>
+      <div class="stat-label">Exam Coverage</div>
+    </div>
+  </div>
+</header>
+
+<hr class="divider">
+
+<!-- PROGRESS -->
+<div class="section">
+  <div class="progress-bar-wrap">
+    <span class="progress-label">Overall Progress</span>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <span class="progress-pct" id="progressPct">0%</span>
+    <button class="btn-reset" onclick="resetProgress()">Reset</button>
+  </div>
+
+  <div class="section-header">
+    <div>
+      <div class="section-title">Exam <span>Sections</span></div>
+      <div class="section-sub">Five sections covering the full Professional Data Engineer exam blueprint. Complete each guide and check it off to track your progress.</div>
+    </div>
+  </div>
+
+  <!-- Section 1 -->
+  <div class="phase-heading" style="background:rgba(34,197,94,0.12);color:#22c55e;">Section 1 &middot; ~22% of Exam</div>
+  <div class="card-grid">
+    <a href="01-designing-data-systems.html" class="module-card" style="--card-color:#22c55e;" data-key="ca_gcppde_done_01">
+      <div class="card-num">SECTION 01</div>
+      <div class="card-title">Designing Data Processing Systems</div>
+      <div class="card-desc">Security and compliance, reliability and fidelity, flexibility and portability, data migrations. IAM, encryption, Dataflow, Dataform, Cloud Data Fusion, BigQuery Data Transfer Service.</div>
+      <div class="card-topics">
+        <span class="topic-pill">IAM</span>
+        <span class="topic-pill">Dataflow</span>
+        <span class="topic-pill">Data Fusion</span>
+        <span class="topic-pill">Migrations</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          45 min read
+        </span>
+        <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-pde/notebooks/01-designing-data-systems.ipynb" target="_blank" rel="noopener" class="colab-btn" onclick="event.stopPropagation();">
+          <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+        </a>
+        <input type="checkbox" class="card-check" style="--card-color:#22c55e;" onclick="event.stopPropagation();">
+      </div>
+    </a>
+  </div>
+
+  <!-- Section 2 -->
+  <div class="phase-heading" style="background:rgba(6,182,212,0.12);color:#06b6d4;">Section 2 &middot; ~25% of Exam</div>
+  <div class="card-grid">
+    <a href="02-ingesting-processing-data.html" class="module-card" style="--card-color:#06b6d4;" data-key="ca_gcppde_done_02">
+      <div class="card-num">SECTION 02</div>
+      <div class="card-title">Ingesting and Processing Data</div>
+      <div class="card-desc">Pipeline planning and building, batch vs streaming, deploying and operationalizing pipelines. Dataflow, Apache Beam, Dataproc, Pub/Sub, Cloud Composer, Spark, Kafka.</div>
+      <div class="card-topics">
+        <span class="topic-pill">Beam</span>
+        <span class="topic-pill">Dataproc</span>
+        <span class="topic-pill">Pub/Sub</span>
+        <span class="topic-pill">Streaming</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          50 min read
+        </span>
+        <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-pde/notebooks/02-ingesting-processing-data.ipynb" target="_blank" rel="noopener" class="colab-btn" onclick="event.stopPropagation();">
+          <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+        </a>
+        <input type="checkbox" class="card-check" style="--card-color:#06b6d4;" onclick="event.stopPropagation();">
+      </div>
+    </a>
+  </div>
+
+  <!-- Section 3 -->
+  <div class="phase-heading" style="background:rgba(59,130,246,0.12);color:#3b82f6;">Section 3 &middot; ~20% of Exam</div>
+  <div class="card-grid">
+    <a href="03-storing-the-data.html" class="module-card" style="--card-color:#3b82f6;" data-key="ca_gcppde_done_03">
+      <div class="card-num">SECTION 03</div>
+      <div class="card-title">Storing the Data</div>
+      <div class="card-desc">Storage system selection, data warehouse design, data lake architecture, data platform design. BigQuery, BigLake, Bigtable, Spanner, AlloyDB, Cloud SQL, Firestore, Memorystore, Dataplex.</div>
+      <div class="card-topics">
+        <span class="topic-pill">BigQuery</span>
+        <span class="topic-pill">Spanner</span>
+        <span class="topic-pill">Bigtable</span>
+        <span class="topic-pill">Dataplex</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          40 min read
+        </span>
+        <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-pde/notebooks/03-storing-the-data.ipynb" target="_blank" rel="noopener" class="colab-btn" onclick="event.stopPropagation();">
+          <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+        </a>
+        <input type="checkbox" class="card-check" style="--card-color:#3b82f6;" onclick="event.stopPropagation();">
+      </div>
+    </a>
+  </div>
+
+  <!-- Section 4 -->
+  <div class="phase-heading" style="background:rgba(249,115,22,0.12);color:#f97316;">Section 4 &middot; ~15% of Exam</div>
+  <div class="card-grid">
+    <a href="04-preparing-using-data.html" class="module-card" style="--card-color:#f97316;" data-key="ca_gcppde_done_04">
+      <div class="card-num">SECTION 04</div>
+      <div class="card-title">Preparing and Using Data for Analysis</div>
+      <div class="card-desc">Data visualization, AI/ML data preparation, data sharing and governance, security and privacy. BI Engine, BigQuery ML, Analytics Hub, DLP API, data masking.</div>
+      <div class="card-topics">
+        <span class="topic-pill">BQML</span>
+        <span class="topic-pill">BI Engine</span>
+        <span class="topic-pill">DLP</span>
+        <span class="topic-pill">Analytics Hub</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          35 min read
+        </span>
+        <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-pde/notebooks/04-preparing-using-data.ipynb" target="_blank" rel="noopener" class="colab-btn" onclick="event.stopPropagation();">
+          <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+        </a>
+        <input type="checkbox" class="card-check" style="--card-color:#f97316;" onclick="event.stopPropagation();">
+      </div>
+    </a>
+  </div>
+
+  <!-- Section 5 -->
+  <div class="phase-heading" style="background:rgba(168,85,247,0.12);color:#a855f7;">Section 5 &middot; ~18% of Exam</div>
+  <div class="card-grid">
+    <a href="05-maintaining-data-workloads.html" class="module-card" style="--card-color:#a855f7;" data-key="ca_gcppde_done_05">
+      <div class="card-num">SECTION 05</div>
+      <div class="card-title">Maintaining and Automating Data Workloads</div>
+      <div class="card-desc">Resource optimization, automation and repeatability, workload organization, monitoring and troubleshooting, fault tolerance and data integrity.</div>
+      <div class="card-topics">
+        <span class="topic-pill">Composer</span>
+        <span class="topic-pill">Monitoring</span>
+        <span class="topic-pill">Reservations</span>
+        <span class="topic-pill">DAGs</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-time">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          40 min read
+        </span>
+        <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-pde/notebooks/05-maintaining-data-workloads.ipynb" target="_blank" rel="noopener" class="colab-btn" onclick="event.stopPropagation();">
+          <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+        </a>
+        <input type="checkbox" class="card-check" style="--card-color:#a855f7;" onclick="event.stopPropagation();">
+      </div>
+    </a>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- GLOSSARY -->
+<div class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Data Engineering <span>Glossary</span></div>
+      <div class="section-sub">Key GCP services and concepts you need to know for the Professional Data Engineer exam.</div>
+    </div>
+  </div>
+
+  <div class="glossary-grid">
+    <div class="glossary-item">
+      <div class="gloss-term">BigQuery</div>
+      <div class="gloss-def">Serverless, petabyte-scale enterprise data warehouse. Supports SQL analytics, streaming ingestion, ML (BQML), and BI Engine for sub-second dashboards.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Dataflow</div>
+      <div class="gloss-def">Fully managed, serverless stream and batch processing service based on Apache Beam. Supports auto-scaling, exactly-once semantics, and windowing.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Apache Beam</div>
+      <div class="gloss-def">Open-source unified programming model for batch and streaming. Portable across runners (Dataflow, Spark, Flink). Uses PCollections, ParDo, and windowing.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Pub/Sub</div>
+      <div class="gloss-def">Global, real-time messaging service for event-driven architectures. At-least-once delivery, push/pull subscriptions, dead-letter topics, message ordering.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Dataproc</div>
+      <div class="gloss-def">Managed Apache Spark and Hadoop service. Supports autoscaling clusters, preemptible VMs, and Dataproc Serverless for on-demand Spark jobs without cluster management.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Cloud Composer</div>
+      <div class="gloss-def">Managed Apache Airflow service for workflow orchestration. DAG-based scheduling, cross-service coordination, built-in GCP operators and sensors.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Bigtable</div>
+      <div class="gloss-def">Managed wide-column NoSQL database for low-latency, high-throughput workloads. Ideal for time-series, IoT, and analytics at petabyte scale. HBase API compatible.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Cloud Spanner</div>
+      <div class="gloss-def">Globally distributed, strongly consistent relational database. Unlimited scale with SQL, ACID transactions, and 99.999% availability SLA.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">AlloyDB</div>
+      <div class="gloss-def">Fully managed PostgreSQL-compatible database. Up to 4x faster than standard PostgreSQL for transactional workloads, 100x faster for analytical queries.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">BigLake</div>
+      <div class="gloss-def">Unified storage engine for data lakes and warehouses. Query data in Cloud Storage and BigQuery with consistent governance, access control, and fine-grained security.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Dataplex</div>
+      <div class="gloss-def">Intelligent data fabric for unified data management. Auto-discovers, classifies, and governs data across data lakes, warehouses, and marts. Supports data quality tasks.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Cloud Data Fusion</div>
+      <div class="gloss-def">Fully managed, code-free ETL/ELT service built on CDAP. Visual drag-and-drop pipeline builder with 200+ connectors for enterprise data integration.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Dataform</div>
+      <div class="gloss-def">SQL-based data transformation service in BigQuery. Git-integrated, SQLX-based, with dependency management, testing, and scheduling for ELT workflows.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Datastream</div>
+      <div class="gloss-def">Serverless change data capture (CDC) and replication service. Streams data from MySQL, PostgreSQL, Oracle, and AlloyDB into BigQuery and Cloud Storage in real time.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Cloud DLP (Sensitive Data Protection)</div>
+      <div class="gloss-def">Data loss prevention API for discovering, classifying, and de-identifying sensitive data (PII, PHI, PCI). Supports masking, tokenization, and k-anonymity.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Analytics Hub</div>
+      <div class="gloss-def">Data exchange platform for securely sharing BigQuery datasets across organizations. Zero-copy linked datasets, published listings, fine-grained access control.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Cloud SQL</div>
+      <div class="gloss-def">Managed relational database for MySQL, PostgreSQL, and SQL Server. Automated backups, replication, failover, and encryption. Best for OLTP web/app workloads.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Firestore</div>
+      <div class="gloss-def">Serverless NoSQL document database with real-time sync, offline support, and ACID transactions. Two modes: Native (mobile/web) and Datastore (server-side).</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Memorystore</div>
+      <div class="gloss-def">Managed in-memory data store for Redis and Memcached. Sub-millisecond latency for caching, session management, and real-time analytics leaderboards.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">BigQuery ML (BQML)</div>
+      <div class="gloss-def">Train and deploy ML models using SQL in BigQuery. Supports linear/logistic regression, k-means, time series (ARIMA_PLUS), boosted trees, DNN, and imported TensorFlow models.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Cloud Storage</div>
+      <div class="gloss-def">Object storage with four classes: Standard, Nearline (30-day), Coldline (90-day), Archive (365-day). Lifecycle policies, versioning, and uniform bucket-level access.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Database Migration Service</div>
+      <div class="gloss-def">Serverless service for migrating MySQL, PostgreSQL, SQL Server, Oracle, and AlloyDB to Cloud SQL, AlloyDB, or Cloud Spanner with minimal downtime.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">Transfer Appliance</div>
+      <div class="gloss-def">Physical appliance for offline data transfer to Google Cloud. For datasets too large for network transfer (typically 20+ TB). Rack-mountable, encrypted.</div>
+    </div>
+    <div class="glossary-item">
+      <div class="gloss-term">BI Engine</div>
+      <div class="gloss-def">In-memory analysis service for sub-second interactive dashboards in BigQuery. Integrates with Looker Studio and connected sheets. Automatic smart tuning.</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span>CareerAlign &mdash; GCP Professional Data Engineer Study Guide</span>
+  <span>Not affiliated with Google Cloud. For educational purposes only.</span>
+</footer>
+
+<script>
+const PREFIX = 'ca_gcppde_done_';
+const TOTAL = 5;
+
+function loadProgress() {
+  document.querySelectorAll('.module-card').forEach(card => {
+    const key = card.dataset.key;
+    if (!key) return;
+    const cb = card.querySelector('.card-check');
+    if (localStorage.getItem(key) === '1') {
+      cb.checked = true;
+      card.classList.add('completed');
+    }
+    cb.addEventListener('change', () => {
+      if (cb.checked) {
+        localStorage.setItem(key, '1');
+        card.classList.add('completed');
+      } else {
+        localStorage.removeItem(key);
+        card.classList.remove('completed');
+      }
+      updateBar();
+    });
+  });
+  updateBar();
+}
+
+function updateBar() {
+  let done = 0;
+  for (let i = 1; i <= TOTAL; i++) {
+    if (localStorage.getItem(PREFIX + String(i).padStart(2, '0')) === '1') done++;
+  }
+  const pct = Math.round((done / TOTAL) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('navProgress').textContent = done + ' / ' + TOTAL + ' done';
+}
+
+function resetProgress() {
+  for (let i = 1; i <= TOTAL; i++) {
+    localStorage.removeItem(PREFIX + String(i).padStart(2, '0'));
+  }
+  document.querySelectorAll('.card-check').forEach(cb => { cb.checked = false; });
+  document.querySelectorAll('.module-card').forEach(c => { c.classList.remove('completed'); });
+  updateBar();
+}
+
+loadProgress();
+</script>
+</body>
+</html>

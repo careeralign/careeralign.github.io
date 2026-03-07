@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Designing and Planning a Cloud Solution Architecture — CareerAlign GCP PCA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #22c55e;
+  --page-color-04: rgba(34,197,94,0.04);
+  --page-color-07: rgba(34,197,94,0.07);
+  --page-color-12: rgba(34,197,94,0.12);
+  --page-color-15: rgba(34,197,94,0.15);
+  --page-color-25: rgba(34,197,94,0.25);
+  --page-color-30: rgba(34,197,94,0.3);
+}
+:root {
+  --bg-base:      #0b0d14;
+  --bg-surface:   #10131e;
+  --bg-elevated:  #171c2e;
+  --bg-overlay:   #1e2438;
+  --border-subtle:#1a1f34;
+  --border-default:#232840;
+  --border-strong: #2e3554;
+  --text-primary: #e6e8f4;
+  --text-secondary:#8e94b5;
+  --text-muted:   #545a78;
+  --accent-indigo:#6366f1;
+  --accent-cyan:  #22d3ee;
+  --accent-violet:#a855f7;
+  --glow-indigo:  rgba(99,102,241,0.25);
+  --accent-green: #22c55e;
+  --accent-amber: #f59e0b;
+  --accent-red:   #ef4444;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-base); color: var(--text-primary);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.7; min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,13,20,0.92); backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 32px; display: flex; align-items: center; height: 58px; gap: 24px;
+}
+.nav-logo { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap; }
+.nav-logo span { color: var(--page-color); }
+.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
+.nav-links a { font-size: 12px; font-weight: 500; color: var(--text-muted); padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap; }
+.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-links a.active { color: var(--page-color); background: var(--page-color-15); }
+.nav-home { font-size: 12.5px; font-weight: 600; color: var(--page-color); padding: 6px 14px; border: 1px solid var(--page-color-30); border-radius: 7px; transition: all .2s; white-space: nowrap; margin-left: auto; }
+.nav-home:hover { background: var(--page-color-12); }
+
+.hero { padding: 70px 60px 50px; max-width: 1400px; margin: 0 auto; border-bottom: 1px solid var(--border-subtle); }
+.hero-tag { display: inline-flex; align-items: center; gap: 8px; background: var(--page-color-12); border: 1px solid var(--page-color-25); border-radius: 20px; padding: 5px 14px; margin-bottom: 22px; font-size: 12.5px; font-family: var(--font-display); font-weight: 600; color: var(--page-color); letter-spacing: 0.04em; text-transform: uppercase; }
+.hero h1 { font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3.4rem); font-weight: 700; line-height: 1.15; color: var(--text-primary); max-width: 820px; margin-bottom: 20px; }
+.hero h1 em { font-style: normal; color: var(--page-color); }
+.hero-desc { font-size: 1.1rem; color: var(--text-secondary); max-width: 760px; line-height: 1.75; margin-bottom: 36px; }
+.hero-checklist { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero-pill { display: flex; align-items: center; gap: 7px; background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+.hero-pill svg { color: var(--page-color); flex-shrink: 0; }
+
+.content-grid { max-width: 1400px; margin: 0 auto; padding: 0 60px 80px; display: grid; grid-template-columns: 260px 1fr; gap: 0; align-items: start; }
+.toc { position: sticky; top: 78px; padding: 32px 0; border-right: 1px solid var(--border-subtle); margin-right: 48px; }
+.toc-title { font-size: 11px; font-family: var(--font-display); font-weight: 700; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); }
+.toc a { display: block; font-size: 13px; color: var(--text-secondary); padding: 6px 0; transition: color .2s; border-left: 2px solid transparent; padding-left: 12px; margin-left: -2px; }
+.toc a:hover { color: var(--text-primary); border-left-color: var(--page-color); }
+.toc a.section { font-weight: 600; color: var(--text-primary); font-size: 12.5px; margin-top: 8px; }
+.toc a.sub { padding-left: 24px; font-size: 12px; }
+
+.main { padding: 40px 0; }
+
+.section { margin-bottom: 60px; }
+.section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-subtle); }
+.section-num { width: 36px; height: 36px; border-radius: 50%; background: var(--page-color-15); border: 1px solid var(--page-color-30); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--page-color); flex-shrink: 0; }
+.section h2 { font-family: var(--font-display); font-size: 1.55rem; font-weight: 700; color: var(--text-primary); }
+.section h3 { font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; color: var(--text-primary); margin: 28px 0 12px; }
+.section p { color: var(--text-secondary); margin-bottom: 16px; font-size: 1rem; line-height: 1.8; }
+.section p strong { color: var(--text-primary); font-weight: 600; }
+.section ul, .section ol { color: var(--text-secondary); margin: 0 0 16px 24px; font-size: 1rem; line-height: 1.8; }
+.section li { margin-bottom: 6px; }
+.section li strong { color: var(--text-primary); font-weight: 600; }
+
+.callout { border-left: 3px solid var(--page-color); background: var(--page-color-07); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 16px 20px; margin: 20px 0; }
+.callout.info { border-color: var(--accent-indigo); background: rgba(99,102,241,0.07); }
+.callout.tip { border-color: var(--page-color); background: var(--page-color-07); }
+.callout.warn { border-color: var(--accent-amber); background: rgba(245,158,11,0.07); }
+.callout.exam { border-color: var(--accent-red); background: rgba(239,68,68,0.07); }
+.callout-label { font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; color: var(--page-color); }
+.callout.info .callout-label { color: var(--accent-indigo); }
+.callout.tip .callout-label { color: var(--page-color); }
+.callout.warn .callout-label { color: var(--accent-amber); }
+.callout.exam .callout-label { color: var(--accent-red); }
+.callout p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+pre { background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: var(--radius-sm); padding: 20px 24px; overflow-x: auto; margin: 20px 0; }
+code { font-family: var(--font-mono); font-size: 13.5px; color: var(--accent-cyan); line-height: 1.65; }
+:not(pre) > code { background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 5px; padding: 2px 7px; font-size: 13px; }
+
+.skill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin: 24px 0; }
+.skill-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius); padding: 20px 22px; transition: border-color .2s; }
+.skill-card:hover { border-color: var(--page-color); }
+.skill-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.skill-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--page-color-15); display: flex; align-items: center; justify-content: center; font-size: 15px; }
+.skill-card h4 { font-family: var(--font-display); font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.skill-card p { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6; }
+
+.data-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+.data-table th { background: var(--bg-elevated); color: var(--text-primary); font-family: var(--font-display); font-weight: 600; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; padding: 12px 16px; text-align: left; border-bottom: 2px solid var(--border-strong); }
+.data-table td { padding: 10px 16px; color: var(--text-secondary); border-bottom: 1px solid var(--border-subtle); }
+.data-table tr:hover td { background: var(--bg-surface); }
+.data-table td strong { color: var(--text-primary); }
+
+.next-section { margin-top: 70px; padding-top: 40px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; }
+.next-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: var(--font-display); }
+.next-btn { display: inline-flex; align-items: center; gap: 10px; background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 14px 22px; font-family: var(--font-display); font-size: 15px; font-weight: 600; color: var(--text-primary); transition: all .2s; }
+.next-btn:hover { border-color: var(--page-color); color: var(--page-color); transform: translateX(4px); }
+.prev-btn:hover { border-color: var(--text-muted); color: var(--text-muted); transform: translateX(-4px); }
+.next-phase { font-size: 12px; color: var(--page-color); font-weight: 500; }
+
+.comp-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13.5px; }
+.comp-table th { background: var(--bg-elevated); color: var(--text-primary); font-family: var(--font-display); font-weight: 600; font-size: 11.5px; letter-spacing: 0.04em; text-transform: uppercase; padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--border-strong); }
+.comp-table td { padding: 9px 14px; color: var(--text-secondary); border-bottom: 1px solid var(--border-subtle); }
+.comp-table tr:hover td { background: var(--bg-surface); }
+.comp-table td strong { color: var(--text-primary); }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">&#9729;&#65039; <span>CareerAlign</span> GCP PCA</div>
+  <div class="nav-links">
+    <a href="01-designing-cloud-solutions.html" class="active">01 &middot; Design</a>
+    <a href="02-provisioning-infrastructure.html">02 &middot; Provision</a>
+    <a href="03-security-compliance.html">03 &middot; Security</a>
+    <a href="04-analyzing-optimizing.html">04 &middot; Optimize</a>
+    <a href="05-managing-implementation.html">05 &middot; Implement</a>
+    <a href="06-operations-excellence.html">06 &middot; Operations</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; PCA Hub</a>
+</nav>
+
+<header class="hero">
+  <div class="hero-tag">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Section 01 &middot; Designing and Planning a Cloud Solution Architecture (~25%)
+  </div>
+  <h1>Designing and Planning a <em>Cloud Solution Architecture</em></h1>
+  <p class="hero-desc">
+    The highest-weighted exam section. Master business and technical requirements gathering,
+    the Well-Architected Framework, compute/storage/network design, migration planning,
+    and AI/ML solution architecture with Gemini, Agent Builder, and Model Garden.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Business Requirements</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Well-Architected Framework</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Compute &amp; Network Design</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Migration Planning</div>
+    <div class="hero-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> AI/ML Solutions</div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/gcp-pca/notebooks/01-designing-cloud-solutions.ipynb" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20"> Open Notebook in Colab
+    </a>
+  </div>
+</header>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#requirements" class="section">1 &middot; Requirements Gathering</a>
+    <a href="#requirements-business" class="sub">Business Requirements</a>
+    <a href="#requirements-technical" class="sub">Technical Requirements</a>
+    <a href="#well-architected" class="section">2 &middot; Well-Architected Framework</a>
+    <a href="#well-architected-pillars" class="sub">The Five Pillars</a>
+    <a href="#well-architected-review" class="sub">Architecture Reviews</a>
+    <a href="#compute" class="section">3 &middot; Compute Design</a>
+    <a href="#compute-comparison" class="sub">GKE vs Cloud Run vs App Engine</a>
+    <a href="#compute-vms" class="sub">Compute Engine Patterns</a>
+    <a href="#storage" class="section">4 &middot; Storage Design</a>
+    <a href="#storage-decision" class="sub">Decision Framework</a>
+    <a href="#storage-databases" class="sub">Database Selection</a>
+    <a href="#network" class="section">5 &middot; Network Design</a>
+    <a href="#network-vpc" class="sub">VPC Architecture</a>
+    <a href="#network-hybrid" class="sub">Hybrid Connectivity</a>
+    <a href="#migration" class="section">6 &middot; Migration Planning</a>
+    <a href="#migration-phases" class="sub">Migration Phases</a>
+    <a href="#migration-strategies" class="sub">The 6 Rs</a>
+    <a href="#aiml" class="section">7 &middot; AI/ML Solutions</a>
+    <a href="#aiml-gemini" class="sub">Gemini &amp; Agent Builder</a>
+    <a href="#aiml-garden" class="sub">Model Garden</a>
+    <a href="#examtips" class="section">8 &middot; Exam Tips</a>
+  </aside>
+
+  <main class="main">
+
+    <!-- SECTION 1: Requirements -->
+    <section class="section" id="requirements">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Requirements Gathering</h2>
+      </div>
+
+      <h3 id="requirements-business">Business Requirements</h3>
+      <p>
+        Every architecture decision on the PCA exam traces back to <strong>business requirements</strong>. The exam presents
+        case studies where you must identify constraints before jumping to technical solutions. Key dimensions include:
+      </p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Dimension</th><th>Questions to Ask</th><th>Impact on Architecture</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Cost</strong></td>
+            <td>Budget constraints? OpEx vs CapEx preference? Growth rate?</td>
+            <td>Serverless vs provisioned, committed use discounts, storage class selection</td>
+          </tr>
+          <tr>
+            <td><strong>Compliance</strong></td>
+            <td>HIPAA? PCI-DSS? GDPR? SOC 2? Data residency?</td>
+            <td>Region selection, encryption (CMEK), VPC-SC, audit logging</td>
+          </tr>
+          <tr>
+            <td><strong>Time to Market</strong></td>
+            <td>MVP timeline? Team velocity? Existing codebase?</td>
+            <td>Managed services over self-hosted, App Engine/Cloud Run over GKE</td>
+          </tr>
+          <tr>
+            <td><strong>Availability</strong></td>
+            <td>SLA target? Acceptable downtime? Geographic reach?</td>
+            <td>Multi-region vs regional, global load balancing, failover design</td>
+          </tr>
+          <tr>
+            <td><strong>Scalability</strong></td>
+            <td>Expected users? Traffic patterns (bursty vs steady)?</td>
+            <td>Autoscaling config, database sharding, CDN placement</td>
+          </tr>
+          <tr>
+            <td><strong>Security</strong></td>
+            <td>Data sensitivity? Zero-trust requirements? Team access model?</td>
+            <td>IAM design, VPC-SC, IAP, encryption, Secret Manager</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Tip</div>
+        <p><strong>Always read the business requirements before the technical ones.</strong> The exam often has answers that are technically correct but violate a business constraint (budget, compliance, timeline). The best answer satisfies both.</p>
+      </div>
+
+      <h3 id="requirements-technical">Technical Requirements</h3>
+      <p>
+        Technical requirements define <strong>how</strong> the system must behave. On the exam, you will translate these into
+        specific GCP service selections and configurations.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9889;</div>
+            <h4>Latency / Performance</h4>
+          </div>
+          <p>Response time targets drive compute placement, caching strategy (Cloud CDN, Memorystore), database choice (Spanner for global consistency vs Bigtable for low-latency reads).</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128202;</div>
+            <h4>Throughput</h4>
+          </div>
+          <p>Requests per second, data ingestion rate. Impacts load balancer type, Pub/Sub partitioning, Dataflow pipeline sizing, and BigQuery slot reservations.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128274;</div>
+            <h4>Durability</h4>
+          </div>
+          <p>Data loss tolerance (RPO). Drives backup strategy, Cloud Storage class, database replication, and cross-region storage configurations.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128295;</div>
+            <h4>Maintainability</h4>
+          </div>
+          <p>Team size, skills, operational overhead. Favors managed services, serverless, and IaC (Terraform) for reproducibility and reduced ops burden.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: Well-Architected Framework -->
+    <section class="section" id="well-architected">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Google Cloud Well-Architected Framework</h2>
+      </div>
+
+      <h3 id="well-architected-pillars">The Five Pillars</h3>
+      <p>
+        The <strong>Google Cloud Well-Architected Framework</strong> provides design principles for building
+        cloud-native systems. The exam heavily references these pillars when evaluating architecture decisions.
+      </p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Pillar</th><th>Focus Areas</th><th>Key GCP Services</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Operational Excellence</strong></td>
+            <td>Automation, monitoring, incident response, CI/CD, IaC</td>
+            <td>Cloud Build, Cloud Deploy, Cloud Monitoring, Terraform</td>
+          </tr>
+          <tr>
+            <td><strong>Security, Privacy &amp; Compliance</strong></td>
+            <td>Identity, encryption, network security, compliance controls</td>
+            <td>IAM, Cloud KMS, VPC-SC, Security Command Center, IAP</td>
+          </tr>
+          <tr>
+            <td><strong>Reliability</strong></td>
+            <td>High availability, disaster recovery, fault tolerance, resilience</td>
+            <td>Regional MIGs, Cloud Spanner multi-region, GKE multi-cluster</td>
+          </tr>
+          <tr>
+            <td><strong>Cost Optimization</strong></td>
+            <td>Right-sizing, committed discounts, autoscaling, storage lifecycle</td>
+            <td>Recommender, Billing budgets, preemptible/spot VMs, Coldline</td>
+          </tr>
+          <tr>
+            <td><strong>Performance Optimization</strong></td>
+            <td>Caching, CDN, database tuning, load balancing, compute selection</td>
+            <td>Cloud CDN, Memorystore, Cloud Load Balancing, TPUs/GPUs</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 id="well-architected-review">Architecture Reviews</h3>
+      <p>
+        Google recommends periodic architecture reviews against the Well-Architected Framework. On the exam,
+        you should recognize when a proposed architecture violates a pillar and suggest the correct remediation.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p><strong>Trade-offs are expected.</strong> A multi-region Cloud Spanner deployment maximizes reliability and consistency
+        but costs more than a regional Cloud SQL instance. The exam tests your ability to justify trade-offs
+        based on stated requirements, not pick the most expensive option.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Compute Design -->
+    <section class="section" id="compute">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Compute Design</h2>
+      </div>
+
+      <h3 id="compute-comparison">GKE vs Cloud Run vs App Engine vs Compute Engine</h3>
+      <p>
+        Compute selection is one of the most-tested topics on the PCA exam. Each service has a sweet spot
+        determined by workload type, team expertise, and operational requirements.
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr><th>Criteria</th><th>Compute Engine</th><th>GKE</th><th>Cloud Run</th><th>App Engine</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Abstraction</strong></td>
+            <td>IaaS (full VM)</td>
+            <td>CaaS (containers + K8s)</td>
+            <td>Serverless containers</td>
+            <td>PaaS (managed runtime)</td>
+          </tr>
+          <tr>
+            <td><strong>Scale to Zero</strong></td>
+            <td>No</td>
+            <td>No (Autopilot scales pods)</td>
+            <td>Yes</td>
+            <td>Standard: No; Flex: No</td>
+          </tr>
+          <tr>
+            <td><strong>Max Request Timeout</strong></td>
+            <td>Unlimited</td>
+            <td>Unlimited</td>
+            <td>60 min</td>
+            <td>Standard: 10 min; Flex: 60 min</td>
+          </tr>
+          <tr>
+            <td><strong>Stateful Workloads</strong></td>
+            <td>Yes (persistent disks)</td>
+            <td>Yes (StatefulSets, PVs)</td>
+            <td>No (stateless only)</td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td><strong>GPU/TPU Support</strong></td>
+            <td>Yes</td>
+            <td>Yes (node pools)</td>
+            <td>GPU preview</td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td><strong>Ops Overhead</strong></td>
+            <td>High (patch, scale)</td>
+            <td>Medium (K8s complexity)</td>
+            <td>Low (fully managed)</td>
+            <td>Low</td>
+          </tr>
+          <tr>
+            <td><strong>Best For</strong></td>
+            <td>Legacy apps, custom OS, Windows, HPC</td>
+            <td>Microservices, multi-container, service mesh</td>
+            <td>HTTP APIs, event-driven, rapid deploy</td>
+            <td>Web apps, simple APIs, rapid prototyping</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Tip</div>
+        <p><strong>Default to the simplest compute that meets requirements.</strong> If a workload is a stateless HTTP API with bursty traffic, Cloud Run is almost always the answer. Only choose GKE when you need K8s-specific features (StatefulSets, service mesh, multi-container pods, DaemonSets).</p>
+      </div>
+
+      <h3 id="compute-vms">Compute Engine Patterns</h3>
+      <p>
+        When VMs are the right choice, key architecture patterns include:
+      </p>
+
+      <ul>
+        <li><strong>Managed Instance Groups (MIGs)</strong> &mdash; autoscaling, autohealing, rolling updates. Use regional MIGs for high availability across zones.</li>
+        <li><strong>Sole-Tenant Nodes</strong> &mdash; physical server isolation for compliance (HIPAA, PCI). Dedicated hardware, no sharing with other tenants.</li>
+        <li><strong>Spot/Preemptible VMs</strong> &mdash; up to 91% cheaper. Use for fault-tolerant batch, data processing, CI/CD runners. Not for production serving.</li>
+        <li><strong>Custom Machine Types</strong> &mdash; right-size vCPU and memory independently. Cost optimization when standard types over-provision.</li>
+      </ul>
+
+      <pre><code><span class="code-comment"># Create a regional MIG with autoscaling</span>
+gcloud compute instance-templates create web-template \
+    --machine-type=e2-medium \
+    --image-family=debian-12 \
+    --image-project=debian-cloud \
+    --tags=http-server \
+    --metadata=startup-script='#!/bin/bash
+apt-get update && apt-get install -y nginx
+systemctl start nginx'
+
+gcloud compute instance-groups managed create web-mig \
+    --template=web-template \
+    --size=2 \
+    --region=us-central1 \
+    --target-distribution-shape=EVEN
+
+gcloud compute instance-groups managed set-autoscaling web-mig \
+    --region=us-central1 \
+    --min-num-replicas=2 \
+    --max-num-replicas=10 \
+    --target-cpu-utilization=0.6 \
+    --cool-down-period=90</code></pre>
+    </section>
+
+    <!-- SECTION 4: Storage Design -->
+    <section class="section" id="storage">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Storage Design</h2>
+      </div>
+
+      <h3 id="storage-decision">Storage Decision Framework</h3>
+      <p>
+        Storage selection depends on <strong>data model</strong> (structured/unstructured), <strong>access pattern</strong>
+        (OLTP/OLAP/streaming), <strong>consistency</strong> requirements, and <strong>scale</strong>.
+      </p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Storage Type</th><th>Service</th><th>Best For</th><th>Anti-Pattern</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Object Storage</strong></td>
+            <td>Cloud Storage</td>
+            <td>Media, backups, data lake, static web</td>
+            <td>Transactional data, low-latency lookups</td>
+          </tr>
+          <tr>
+            <td><strong>Block Storage</strong></td>
+            <td>Persistent Disk / Local SSD</td>
+            <td>VM file systems, databases on VMs</td>
+            <td>Shared file access, object storage use cases</td>
+          </tr>
+          <tr>
+            <td><strong>File Storage</strong></td>
+            <td>Filestore / Cloud Storage FUSE</td>
+            <td>NFS workloads, shared data, legacy lift-and-shift</td>
+            <td>High-throughput streaming, analytics</td>
+          </tr>
+          <tr>
+            <td><strong>Relational (Regional)</strong></td>
+            <td>Cloud SQL</td>
+            <td>Web apps, CMS, traditional OLTP &lt;10TB</td>
+            <td>Global distribution, horizontal scaling &gt;64TB</td>
+          </tr>
+          <tr>
+            <td><strong>Relational (Global)</strong></td>
+            <td>Cloud Spanner</td>
+            <td>Global finance, inventory, gaming leaderboards</td>
+            <td>Small workloads where Cloud SQL suffices</td>
+          </tr>
+          <tr>
+            <td><strong>NoSQL (Document)</strong></td>
+            <td>Firestore</td>
+            <td>Mobile/web apps, user profiles, game state</td>
+            <td>Analytics, joins, complex transactions</td>
+          </tr>
+          <tr>
+            <td><strong>NoSQL (Wide-column)</strong></td>
+            <td>Bigtable</td>
+            <td>IoT time-series, ad tech, financial ticks, &gt;1TB</td>
+            <td>&lt;1TB data, complex queries, multi-row transactions</td>
+          </tr>
+          <tr>
+            <td><strong>Data Warehouse</strong></td>
+            <td>BigQuery</td>
+            <td>Analytics, BI, ML, petabyte-scale OLAP</td>
+            <td>OLTP workloads, sub-second point lookups</td>
+          </tr>
+          <tr>
+            <td><strong>In-Memory Cache</strong></td>
+            <td>Memorystore (Redis/Memcached)</td>
+            <td>Session store, caching, leaderboards, real-time</td>
+            <td>Durable primary storage</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 id="storage-databases">Database Selection by Access Pattern</h3>
+
+      <div class="callout tip">
+        <div class="callout-label">Decision Flow</div>
+        <p><strong>Structured + ACID + &lt;10TB + single region?</strong> Cloud SQL.<br>
+        <strong>Structured + ACID + global?</strong> Cloud Spanner.<br>
+        <strong>Document/hierarchical + mobile/web?</strong> Firestore.<br>
+        <strong>Time-series / wide-column + &gt;1TB?</strong> Bigtable.<br>
+        <strong>Analytics/OLAP?</strong> BigQuery.<br>
+        <strong>Unstructured blobs?</strong> Cloud Storage.</p>
+      </div>
+
+      <pre><code><span class="code-comment"># Cloud Storage lifecycle policy (cost optimization)</span>
+gsutil lifecycle set lifecycle.json gs://my-bucket
+
+<span class="code-comment"># lifecycle.json — transition to Nearline after 30 days, Coldline after 90</span>
+{
+  "rule": [
+    {
+      "action": {"type": "SetStorageClass", "storageClass": "NEARLINE"},
+      "condition": {"age": 30, "matchesStorageClass": ["STANDARD"]}
+    },
+    {
+      "action": {"type": "SetStorageClass", "storageClass": "COLDLINE"},
+      "condition": {"age": 90, "matchesStorageClass": ["NEARLINE"]}
+    },
+    {
+      "action": {"type": "Delete"},
+      "condition": {"age": 365}
+    }
+  ]
+}</code></pre>
+    </section>
+
+    <!-- SECTION 5: Network Design -->
+    <section class="section" id="network">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>Network Design</h2>
+      </div>
+
+      <h3 id="network-vpc">VPC Architecture Patterns</h3>
+      <p>
+        Network design on GCP centers around <strong>VPC networks</strong>, which are global resources containing regional
+        subnets. The exam tests your understanding of connectivity models, especially for multi-project and hybrid environments.
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr><th>Pattern</th><th>Use Case</th><th>How It Works</th><th>Limitations</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Shared VPC</strong></td>
+            <td>Multi-project, centralized network admin</td>
+            <td>Host project shares VPC with service projects</td>
+            <td>Same org only; max 1 host project per service project</td>
+          </tr>
+          <tr>
+            <td><strong>VPC Peering</strong></td>
+            <td>Cross-org or cross-project connectivity</td>
+            <td>Direct RFC1918 connectivity between two VPCs</td>
+            <td>Non-transitive; no overlapping CIDR; max 25 peers</td>
+          </tr>
+          <tr>
+            <td><strong>Cloud VPN</strong></td>
+            <td>Encrypted tunnel to on-prem or other clouds</td>
+            <td>IPsec tunnels over public internet</td>
+            <td>Max 3 Gbps per tunnel (HA VPN); internet-dependent</td>
+          </tr>
+          <tr>
+            <td><strong>Cloud Interconnect</strong></td>
+            <td>High-bandwidth private on-prem connectivity</td>
+            <td>Dedicated (10/100 Gbps) or Partner (50 Mbps-50 Gbps)</td>
+            <td>Higher cost; requires colocation (Dedicated) or partner</td>
+          </tr>
+          <tr>
+            <td><strong>Cloud NAT</strong></td>
+            <td>Outbound internet for private VMs</td>
+            <td>NAT gateway for VMs without external IPs</td>
+            <td>Outbound only; not a load balancer</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout exam">
+        <div class="callout-label">Exam Tip</div>
+        <p><strong>Shared VPC vs VPC Peering:</strong> If all projects are in the same organization and you want centralized network control, use <strong>Shared VPC</strong>. If connecting across organizations or you need decentralized control, use <strong>VPC Peering</strong>. Remember: VPC Peering is non-transitive (A peers with B, B peers with C, but A cannot reach C through B).</p>
+      </div>
+
+      <h3 id="network-hybrid">Hybrid Connectivity Decision</h3>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Requirement</th><th>Solution</th><th>Bandwidth</th><th>Encryption</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Quick setup, low bandwidth</strong></td>
+            <td>Classic VPN</td>
+            <td>Up to 3 Gbps/tunnel</td>
+            <td>IPsec (always)</td>
+          </tr>
+          <tr>
+            <td><strong>Production, 99.99% SLA</strong></td>
+            <td>HA VPN</td>
+            <td>Up to 3 Gbps/tunnel (multi-tunnel)</td>
+            <td>IPsec (always)</td>
+          </tr>
+          <tr>
+            <td><strong>High bandwidth, consistent latency</strong></td>
+            <td>Dedicated Interconnect</td>
+            <td>10 or 100 Gbps per link</td>
+            <td>Not encrypted by default (add MACsec)</td>
+          </tr>
+          <tr>
+            <td><strong>Moderate bandwidth, no colocation</strong></td>
+            <td>Partner Interconnect</td>
+            <td>50 Mbps to 50 Gbps</td>
+            <td>Not encrypted by default</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <pre><code><span class="code-comment"># Create HA VPN gateway</span>
+gcloud compute vpn-gateways create my-ha-vpn \
+    --network=my-vpc \
+    --region=us-central1
+
+<span class="code-comment"># Create external VPN gateway (on-prem peer)</span>
+gcloud compute external-vpn-gateways create on-prem-gw \
+    --interfaces 0=203.0.113.1,1=203.0.113.2
+
+<span class="code-comment"># Create Cloud Router for dynamic routing</span>
+gcloud compute routers create my-router \
+    --network=my-vpc \
+    --region=us-central1 \
+    --asn=65001</code></pre>
+    </section>
+
+    <!-- SECTION 6: Migration Planning -->
+    <section class="section" id="migration">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Migration Planning</h2>
+      </div>
+
+      <h3 id="migration-phases">Google Cloud Migration Phases</h3>
+      <p>
+        Google recommends a <strong>four-phase migration framework</strong>. The exam tests your ability to
+        identify which phase activities belong to and recommend appropriate tools.
+      </p>
+
+      <ol>
+        <li><strong>Assess</strong> &mdash; Inventory existing workloads, evaluate TCO, identify dependencies, assess cloud readiness. Tools: Migration Center (formerly StratoZone), Application Discovery.</li>
+        <li><strong>Plan</strong> &mdash; Define migration strategy per workload, establish landing zone (org hierarchy, networking, IAM), set up foundation infrastructure. Tools: Cloud Foundation Toolkit, Terraform.</li>
+        <li><strong>Deploy</strong> &mdash; Execute migration, validate functionality, run parallel operations. Tools: Migrate to VMs, Migrate to Containers, Database Migration Service.</li>
+        <li><strong>Optimize</strong> &mdash; Right-size resources, implement monitoring, automate operations, modernize applications. Tools: Recommender, Active Assist, Cloud Monitoring.</li>
+      </ol>
+
+      <h3 id="migration-strategies">The 6 Rs of Migration</h3>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Strategy</th><th>Definition</th><th>When to Use</th><th>GCP Tooling</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Rehost (Lift &amp; Shift)</strong></td>
+            <td>Move as-is to cloud VMs</td>
+            <td>Legacy apps, quick migration, minimal changes</td>
+            <td>Migrate to VMs</td>
+          </tr>
+          <tr>
+            <td><strong>Replatform</strong></td>
+            <td>Minor optimizations during migration</td>
+            <td>Replace self-managed DB with Cloud SQL, move to managed services</td>
+            <td>Database Migration Service, Cloud SQL</td>
+          </tr>
+          <tr>
+            <td><strong>Refactor</strong></td>
+            <td>Re-architect for cloud-native</td>
+            <td>Microservices, containers, serverless target</td>
+            <td>GKE, Cloud Run, Cloud Functions</td>
+          </tr>
+          <tr>
+            <td><strong>Repurchase</strong></td>
+            <td>Replace with SaaS/managed service</td>
+            <td>Email to Workspace, CRM to SaaS</td>
+            <td>Google Workspace, Marketplace</td>
+          </tr>
+          <tr>
+            <td><strong>Retire</strong></td>
+            <td>Decommission</td>
+            <td>Unused or redundant applications</td>
+            <td>N/A</td>
+          </tr>
+          <tr>
+            <td><strong>Retain</strong></td>
+            <td>Keep on-premises</td>
+            <td>Regulatory, latency, or dependency constraints</td>
+            <td>Hybrid with Anthos, Cloud VPN/Interconnect</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <div class="callout-label">Common Mistake</div>
+        <p><strong>Do not default to refactoring everything.</strong> The exam rewards pragmatism. A lift-and-shift with post-migration optimization is often the correct answer when the business requirement emphasizes speed or minimal disruption. Refactoring is justified only when the requirements demand cloud-native features (autoscaling, serverless) or when the existing architecture is fundamentally incompatible.</p>
+      </div>
+
+      <pre><code><span class="code-comment"># Terraform landing zone — project factory pattern</span>
+<span class="code-keyword">module</span> <span class="code-string">"project-factory"</span> {
+  <span class="code-keyword">source</span>  = <span class="code-string">"terraform-google-modules/project-factory/google"</span>
+  <span class="code-keyword">version</span> = <span class="code-string">"~> 15.0"</span>
+
+  name                 = <span class="code-string">"my-migration-project"</span>
+  org_id               = <span class="code-string">"123456789"</span>
+  folder_id            = <span class="code-string">"folders/456789012"</span>
+  billing_account      = <span class="code-string">"01ABCD-234567-EFGH89"</span>
+
+  activate_apis = [
+    <span class="code-string">"compute.googleapis.com"</span>,
+    <span class="code-string">"container.googleapis.com"</span>,
+    <span class="code-string">"sqladmin.googleapis.com"</span>,
+    <span class="code-string">"monitoring.googleapis.com"</span>,
+  ]
+
+  shared_vpc         = <span class="code-string">"host-project-id"</span>
+  shared_vpc_subnets = [
+    <span class="code-string">"projects/host-project-id/regions/us-central1/subnetworks/shared-subnet"</span>,
+  ]
+}</code></pre>
+    </section>
+
+    <!-- SECTION 7: AI/ML Solutions -->
+    <section class="section" id="aiml">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>AI/ML Solution Architecture</h2>
+      </div>
+
+      <h3 id="aiml-gemini">Gemini and Agent Builder</h3>
+      <p>
+        The PCA exam now includes AI/ML solution design. As a Cloud Architect, you need to recommend the right
+        AI approach based on the use case, not train models yourself.
+      </p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Use Case</th><th>Recommended Service</th><th>Why</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Chatbot grounded in company docs</strong></td>
+            <td>Agent Builder + Vertex AI Search</td>
+            <td>Managed RAG, no custom ML pipeline needed</td>
+          </tr>
+          <tr>
+            <td><strong>Code generation / developer assist</strong></td>
+            <td>Gemini Code Assist</td>
+            <td>IDE integration, security-aware suggestions</td>
+          </tr>
+          <tr>
+            <td><strong>Cloud operations assistance</strong></td>
+            <td>Gemini Cloud Assist</td>
+            <td>Natural-language queries about GCP resources, troubleshooting</td>
+          </tr>
+          <tr>
+            <td><strong>Custom image classification</strong></td>
+            <td>Vertex AI AutoML Vision</td>
+            <td>Domain-specific labels, no ML expertise required</td>
+          </tr>
+          <tr>
+            <td><strong>Text extraction from documents</strong></td>
+            <td>Document AI</td>
+            <td>Pre-trained processors for invoices, receipts, forms</td>
+          </tr>
+          <tr>
+            <td><strong>Translation at scale</strong></td>
+            <td>Cloud Translation API</td>
+            <td>100+ languages, batch and real-time</td>
+          </tr>
+          <tr>
+            <td><strong>Custom LLM fine-tuning</strong></td>
+            <td>Model Garden + Vertex AI Tuning</td>
+            <td>Supervised fine-tuning, RLHF, adapter tuning on Gemini/open models</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 id="aiml-garden">Model Garden</h3>
+      <p>
+        Vertex AI Model Garden provides a catalog of <strong>Google models</strong> (Gemini, Imagen, Chirp),
+        <strong>open-source models</strong> (Llama, Mistral, Gemma), and <strong>partner models</strong> (Claude, Cohere).
+        As an architect, you choose based on task, latency, cost, and data governance requirements.
+      </p>
+
+      <div class="callout info">
+        <div class="callout-label">Architecture Decision</div>
+        <p><strong>Pre-trained API vs AutoML vs Custom Training vs Foundation Model:</strong> Use pre-trained APIs for common tasks (Vision, NLP, Translation). Use AutoML when you have labeled data for a domain-specific task. Use custom training only when you need full control over architecture. Use foundation models (Gemini) for generative tasks, and ground them with RAG for enterprise data.</p>
+      </div>
+
+      <pre><code><span class="code-comment"># Deploy a Gemini model endpoint via gcloud</span>
+gcloud ai endpoints create \
+    --display-name=gemini-endpoint \
+    --region=us-central1
+
+<span class="code-comment"># Create an Agent Builder data store</span>
+gcloud discovery-engine data-stores create my-datastore \
+    --location=global \
+    --collection=default_collection \
+    --type=CONTENT
+
+<span class="code-comment"># Import documents to the data store</span>
+gcloud discovery-engine documents import \
+    --data-store=my-datastore \
+    --location=global \
+    --collection=default_collection \
+    --gcs-uri=gs://my-bucket/docs/</code></pre>
+    </section>
+
+    <!-- SECTION 8: Exam Tips -->
+    <section class="section" id="examtips">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <h2>Exam Tips</h2>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 1</div>
+        <p><strong>"A company needs to migrate 500 VMs to GCP within 3 months. The apps are legacy .NET and Java with minimal cloud-native readiness..."</strong><br>
+        Answer: <strong>Rehost (lift-and-shift)</strong> using Migrate to VMs. Replatform databases to Cloud SQL after initial migration. Timeline rules out refactoring.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 2</div>
+        <p><strong>"A financial services company needs a globally consistent database for real-time inventory tracking across 4 continents..."</strong><br>
+        Answer: <strong>Cloud Spanner</strong> with multi-region configuration. Only GCP database offering global strong consistency with SQL semantics. Cloud SQL read replicas do not provide strong consistency.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 3</div>
+        <p><strong>"A startup with 2 developers needs to deploy a REST API that handles 0-10,000 RPS with unpredictable traffic..."</strong><br>
+        Answer: <strong>Cloud Run</strong>. Scales to zero (cost), handles burst traffic, minimal ops overhead for small team. GKE is overkill for this scenario.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 4</div>
+        <p><strong>"An enterprise needs to connect 10 GCP projects with centralized network policies managed by a dedicated networking team..."</strong><br>
+        Answer: <strong>Shared VPC</strong>. Central host project, service projects for workloads. Networking team manages firewall rules and subnets centrally. VPC Peering would decentralize control.</p>
+      </div>
+
+      <div class="callout exam">
+        <div class="callout-label">Scenario 5</div>
+        <p><strong>"A healthcare company wants to build a patient-facing chatbot that answers questions from medical records, with HIPAA compliance..."</strong><br>
+        Answer: <strong>Agent Builder</strong> with Vertex AI Search for RAG, grounded in Firestore or Cloud Healthcare API data. VPC-SC perimeter for data protection. BAA with Google Cloud for HIPAA. Do NOT fine-tune models on PHI without proper data governance.</p>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">General Strategy</div>
+        <p><strong>The PCA exam values pragmatism over perfection.</strong> Choose managed services over self-hosted. Choose serverless when stateless. Choose the simplest solution that meets ALL stated requirements (business + technical + compliance). When two answers are technically valid, the one with lower operational complexity is usually correct.</p>
+      </div>
+    </section>
+
+    <!-- NAVIGATION -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous</div>
+        <a href="index.html" class="next-btn prev-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          PCA Hub
+        </a>
+      </div>
+      <div style="text-align:right">
+        <div class="next-label">Next Section</div>
+        <a href="02-provisioning-infrastructure.html" class="next-btn">
+          02 &middot; Managing and Provisioning Infrastructure
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+        <div class="next-phase">Infrastructure Provisioning</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

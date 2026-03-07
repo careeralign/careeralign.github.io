@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Scaling with Google Cloud Operations — CareerAlign GCP CDL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #ef4444;
+  --page-color-04: rgba(239,68,68,0.04);
+  --page-color-07: rgba(239,68,68,0.07);
+  --page-color-12: rgba(239,68,68,0.12);
+  --page-color-15: rgba(239,68,68,0.15);
+  --page-color-25: rgba(239,68,68,0.25);
+  --page-color-30: rgba(239,68,68,0.3);
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">CareerAlign <span style="color:#ef4444;">GCP CDL</span></a>
+  <div class="nav-links">
+    <a href="01-digital-transformation.html">01 Digital Transform</a>
+    <a href="02-data-transformation.html">02 Data</a>
+    <a href="03-ai-ml.html">03 AI/ML</a>
+    <a href="04-infrastructure-apps.html">04 Infrastructure</a>
+    <a href="05-trust-security.html">05 Security</a>
+    <a href="06-scaling-operations.html" class="active">06 Operations</a>
+  </div>
+  <a href="index.html" class="nav-home" style="color:#ef4444;border-color:rgba(239,68,68,0.3);">Hub</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">Section 06 &mdash; ~17% of Exam</div>
+  <h1>Scaling with Google Cloud <em>Operations</em></h1>
+  <p class="hero-desc">
+    Understand financial governance, billing management, resource hierarchy, SRE principles,
+    DevOps practices, monitoring and logging, and Google's sustainability commitments.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Cost management &amp; billing</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Resource hierarchy</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> SRE &amp; DevOps</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Cloud Monitoring &amp; Logging</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Sustainability</div>
+  </div>
+</section>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#cost-mgmt" class="section">1. Cost Management</a>
+    <a href="#billing" class="section">2. Billing &amp; Pricing</a>
+    <a href="#hierarchy" class="section">3. Resource Hierarchy</a>
+    <a href="#sre" class="section">4. SRE Principles</a>
+    <a href="#devops" class="section">5. DevOps Practices</a>
+    <a href="#monitoring" class="section">6. Monitoring &amp; Logging</a>
+    <a href="#sustainability" class="section">7. Sustainability</a>
+    <a href="#exam-tips" class="section">8. Exam Tips</a>
+  </aside>
+
+  <div class="main">
+
+    <div class="section" id="cost-mgmt">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>Cloud Cost Management</h2>
+      </div>
+      <p>
+        <strong>Financial governance</strong> is essential in the cloud because the pay-as-you-go model
+        can lead to unexpected costs if resources are not managed properly. Google Cloud provides multiple
+        tools and strategies for controlling and optimizing cloud spending.
+      </p>
+
+      <h3>Cost Optimization Strategies</h3>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">R</div><h4>Right-Sizing</h4></div>
+          <p>Match VM machine types to actual workload needs. Google recommends right-sizing based on Cloud Monitoring metrics. Avoid paying for idle CPU/memory.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">S</div><h4>Sustained Use Discounts</h4></div>
+          <p>Automatic discounts (up to 30%) for VMs running more than 25% of a month. No commitment required. Applied to Compute Engine and GKE nodes.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">C</div><h4>Committed Use Discounts</h4></div>
+          <p>1 or 3 year commitments for up to 57% discount on compute. Best for predictable, steady-state workloads. Commit to vCPUs and memory, not specific machine types.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">P</div><h4>Spot / Preemptible VMs</h4></div>
+          <p>60-91% discount for interruptible workloads. Ideal for batch processing, CI/CD, and fault-tolerant jobs. Google can reclaim with 30s notice.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">A</div><h4>Autoscaling</h4></div>
+          <p>Scale resources dynamically based on demand. Scale down during off-peak hours. Serverless services (Cloud Run, BigQuery) scale to zero when idle.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">L</div><h4>Lifecycle Policies</h4></div>
+          <p>Automatically transition Cloud Storage objects to cheaper classes (Nearline, Coldline, Archive) or delete old data. Reduces long-term storage costs.</p>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>The exam often asks "how to reduce cloud costs." Key answers: <strong>right-size VMs</strong>, <strong>use committed/sustained use discounts</strong>, <strong>use serverless (scale to zero)</strong>, <strong>use Spot VMs for batch</strong>, <strong>set storage lifecycle rules</strong>, <strong>set budget alerts</strong>.</p>
+      </div>
+    </div>
+
+    <div class="section" id="billing">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Billing and Pricing</h2>
+      </div>
+      <p>
+        Google Cloud billing is organized around <strong>billing accounts</strong> that are linked to
+        <strong>projects</strong>. Understanding the billing structure is important for both cost management
+        and for the CDL exam.
+      </p>
+
+      <h3>Billing Structure</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Component</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Billing Account</strong></td><td>Payment instrument linked to one or more projects. Contains payment method, billing contacts, and invoices.</td></tr>
+          <tr><td><strong>Project</strong></td><td>Resource container and billing boundary. Each project is linked to exactly one billing account. All resource costs are charged to the project's billing account.</td></tr>
+          <tr><td><strong>Budgets &amp; Alerts</strong></td><td>Set spending thresholds (actual or forecasted) that trigger email/Pub/Sub notifications. Alerts do NOT stop spending by default.</td></tr>
+          <tr><td><strong>Billing Export</strong></td><td>Export detailed billing data to BigQuery for analysis, or to Cloud Storage for archival.</td></tr>
+          <tr><td><strong>Labels</strong></td><td>Key-value tags applied to resources. Used to organize and filter billing reports (e.g., team:frontend, env:prod).</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <div class="callout-label">Important</div>
+        <p>Budget alerts are <strong>notifications only</strong> &mdash; they do NOT automatically stop or cap spending. To enforce spending limits, you must set up <strong>programmatic responses</strong> using Pub/Sub notifications + Cloud Functions to disable billing or shut down resources.</p>
+      </div>
+
+      <h3>Google Cloud Pricing Principles</h3>
+      <ul style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li><strong>Pay-as-you-go</strong> &mdash; No upfront costs. Pay only for what you use.</li>
+        <li><strong>Per-second billing</strong> &mdash; Compute Engine bills per second (minimum 1 minute).</li>
+        <li><strong>No termination fees</strong> &mdash; Stop using a service anytime without penalties (except CUDs).</li>
+        <li><strong>Custom machine types</strong> &mdash; Choose exact vCPU and memory ratios to avoid paying for unused resources.</li>
+        <li><strong>Free tier</strong> &mdash; Many services include a free usage tier (e.g., BigQuery 1 TB/month queries, Cloud Functions 2M invocations/month).</li>
+      </ul>
+
+      <pre><code># List billing accounts
+gcloud billing accounts list
+
+# Link a project to a billing account
+gcloud billing projects link my-project \
+  --billing-account=0X0X0X-0X0X0X-0X0X0X
+
+# Create a budget alert
+gcloud billing budgets create \
+  --billing-account=0X0X0X-0X0X0X-0X0X0X \
+  --display-name="Monthly Budget" \
+  --budget-amount=1000USD \
+  --threshold-rule=percent=0.5 \
+  --threshold-rule=percent=0.9 \
+  --threshold-rule=percent=1.0
+
+# Export billing to BigQuery
+gcloud billing export bigquery enable \
+  --billing-account=0X0X0X-0X0X0X-0X0X0X \
+  --project=my-project \
+  --dataset=billing_export
+</code></pre>
+    </div>
+
+    <div class="section" id="hierarchy">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Resource Hierarchy</h2>
+      </div>
+      <p>
+        Google Cloud organizes resources in a hierarchy that controls access (IAM), policies, and billing.
+        Understanding this hierarchy is critical for both governance and the exam.
+      </p>
+
+      <div class="diagram-wrap">
+        <pre style="background:transparent;border:none;text-align:center;color:var(--text-secondary);font-size:13px;"><code>
+  [ Organization ]  (example.com)
+       |
+       |-- [ Folder: Engineering ]
+       |       |-- [ Project: web-prod ]
+       |       |-- [ Project: web-staging ]
+       |       |-- [ Folder: ML Team ]
+       |              |-- [ Project: ml-training ]
+       |              |-- [ Project: ml-serving ]
+       |
+       |-- [ Folder: Finance ]
+               |-- [ Project: finance-prod ]
+               |-- [ Project: finance-analytics ]
+        </code></pre>
+        <div class="diagram-caption">Resource hierarchy: Organization &rarr; Folders &rarr; Projects &rarr; Resources</div>
+      </div>
+
+      <table class="comp-table">
+        <thead>
+          <tr><th>Level</th><th>Purpose</th><th>Key Properties</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Organization</strong></td><td>Root node, maps to your domain</td><td>Created with Cloud Identity or Google Workspace. Org-level policies and IAM apply to everything.</td></tr>
+          <tr><td><strong>Folder</strong></td><td>Group projects by team, department, or environment</td><td>Can be nested up to 10 levels. IAM and policies inherit to child folders and projects.</td></tr>
+          <tr><td><strong>Project</strong></td><td>Container for resources and billing</td><td>Has a unique project ID (globally unique), project name, and project number. Linked to one billing account.</td></tr>
+          <tr><td><strong>Resource</strong></td><td>Individual GCP services</td><td>VMs, buckets, datasets, etc. Belong to exactly one project.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p>The <strong>project</strong> is the fundamental unit of Google Cloud. It is both the billing boundary and the resource container. Every API call is made in the context of a project. Best practice: separate projects for different environments (dev, staging, prod) and different teams.</p>
+      </div>
+    </div>
+
+    <div class="section" id="sre">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Site Reliability Engineering (SRE)</h2>
+      </div>
+      <p>
+        <strong>SRE</strong> is Google's approach to operations and reliability, defined as "what happens
+        when you ask a software engineer to design an operations function." SRE concepts are heavily
+        tested on the CDL exam because Google Cloud applies these principles throughout its services.
+      </p>
+
+      <h3>Core SRE Concepts</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Concept</th><th>Definition</th><th>Example</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>SLI (Service Level Indicator)</strong></td><td>A measurable metric that defines service health</td><td>Request latency (p99 &lt; 200ms), availability (% of successful requests)</td></tr>
+          <tr><td><strong>SLO (Service Level Objective)</strong></td><td>Target value for an SLI over a time period</td><td>"99.9% of requests succeed within 200ms over 30 days"</td></tr>
+          <tr><td><strong>SLA (Service Level Agreement)</strong></td><td>Business contract with consequences for missing SLO</td><td>"If availability drops below 99.9%, customer receives service credits"</td></tr>
+          <tr><td><strong>Error Budget</strong></td><td>Allowed amount of unreliability (100% - SLO)</td><td>99.9% SLO = 0.1% error budget = ~43 min/month of downtime allowed</td></tr>
+          <tr><td><strong>Toil</strong></td><td>Repetitive, manual, automatable operational work</td><td>Manual deployments, ticket-driven restarts, manual scaling</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">SLI vs SLO vs SLA</div>
+        <p><strong>SLI</strong> = what you measure (latency, availability). <strong>SLO</strong> = internal target (99.9%). <strong>SLA</strong> = external contract with penalties. SLOs are always tighter than SLAs. Error budget = the difference between 100% and SLO &mdash; spend it on feature velocity.</p>
+      </div>
+
+      <h3>Error Budget Philosophy</h3>
+      <p>
+        The <strong>error budget</strong> is a powerful concept: it quantifies exactly how much unreliability
+        a service can tolerate. If the error budget is healthy (few errors), teams can push new features
+        faster. If the error budget is depleted, teams must focus on reliability before shipping new features.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">B</div><h4>Blameless Postmortems</h4></div>
+          <p>After incidents, focus on systemic causes and process improvements, not individual blame. Document what happened, why, and how to prevent recurrence.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">T</div><h4>Toil Reduction</h4></div>
+          <p>Automate repetitive operational tasks. SRE teams should spend &lt;50% of time on toil and &gt;50% on engineering work that improves reliability and automation.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">M</div><h4>Monitoring &amp; Alerting</h4></div>
+          <p>Monitor SLIs, alert on SLO violations (not individual errors). Use symptom-based alerting (user-facing problems) rather than cause-based alerting (internal metrics).</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="devops">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>DevOps Practices</h2>
+      </div>
+      <p>
+        <strong>DevOps</strong> is a set of practices that combines software development (Dev) and
+        IT operations (Ops) to shorten the development lifecycle and deliver high-quality software
+        continuously. Google Cloud provides tools that support key DevOps practices.
+      </p>
+
+      <h3>DORA Metrics (DevOps Research and Assessment)</h3>
+      <p>Google's DORA team identified four key metrics that measure DevOps performance:</p>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Metric</th><th>What It Measures</th><th>Elite Performance</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Deployment Frequency</strong></td><td>How often code is deployed to production</td><td>Multiple times per day</td></tr>
+          <tr><td><strong>Lead Time for Changes</strong></td><td>Time from code commit to running in production</td><td>Less than 1 hour</td></tr>
+          <tr><td><strong>Change Failure Rate</strong></td><td>% of deployments that cause a failure</td><td>0-15%</td></tr>
+          <tr><td><strong>Time to Restore</strong></td><td>Time to recover from a failure</td><td>Less than 1 hour</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Google Cloud DevOps Tools</h3>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">R</div><h4>Cloud Source Repositories</h4></div>
+          <p>Private Git repositories hosted on Google Cloud. Integrates with Cloud Build for CI/CD triggers on push or PR.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">B</div><h4>Cloud Build</h4></div>
+          <p>Serverless CI/CD platform. Build, test, and deploy containers. Supports Docker, Buildpacks, and custom build steps. Pay per build-minute.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">A</div><h4>Artifact Registry</h4></div>
+          <p>Store and manage container images, language packages (npm, Maven, Python), and OS packages. Vulnerability scanning built-in.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">D</div><h4>Cloud Deploy</h4></div>
+          <p>Managed continuous delivery to GKE, Cloud Run, and Anthos. Promotion-based pipeline with approval gates and rollback support.</p>
+        </div>
+      </div>
+
+      <pre><code># Trigger a Cloud Build from source code
+gcloud builds submit --tag gcr.io/my-project/my-app .
+
+# Set up a build trigger on a Git repo
+gcloud builds triggers create github \
+  --repo-name=my-repo \
+  --repo-owner=my-org \
+  --branch-pattern="^main$" \
+  --build-config=cloudbuild.yaml
+
+# Deploy to Cloud Run
+gcloud run deploy my-service \
+  --image=gcr.io/my-project/my-app \
+  --region=us-central1 \
+  --allow-unauthenticated
+</code></pre>
+    </div>
+
+    <div class="section" id="monitoring">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Cloud Monitoring and Logging</h2>
+      </div>
+      <p>
+        Google Cloud's operations suite (formerly Stackdriver) provides integrated monitoring, logging,
+        error reporting, and tracing for applications running on Google Cloud and beyond.
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr><th>Service</th><th>Purpose</th><th>Key Features</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Cloud Monitoring</strong></td><td>Metrics, dashboards, alerting</td><td>1500+ built-in metrics, custom metrics, uptime checks, alerting policies, SLO monitoring</td></tr>
+          <tr><td><strong>Cloud Logging</strong></td><td>Log management</td><td>Centralized logs from all GCP services, log-based metrics, log routing to BigQuery/Storage/Pub/Sub</td></tr>
+          <tr><td><strong>Cloud Trace</strong></td><td>Distributed tracing</td><td>Track request latency across microservices, identify bottlenecks, latency distributions</td></tr>
+          <tr><td><strong>Error Reporting</strong></td><td>Error aggregation</td><td>Automatically group and count errors, link to source code, alert on new errors</td></tr>
+          <tr><td><strong>Cloud Profiler</strong></td><td>Production profiling</td><td>Continuously profile CPU and memory in production with minimal overhead (&lt;5%)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Alerting Best Practices</h3>
+      <ul style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li><strong>Alert on symptoms, not causes</strong> &mdash; Alert when users are affected (high latency, errors), not when a single metric changes.</li>
+        <li><strong>Use multi-condition policies</strong> &mdash; Combine conditions to reduce false alarms (e.g., high error rate AND high traffic).</li>
+        <li><strong>Set appropriate thresholds</strong> &mdash; Too sensitive = alert fatigue. Too loose = missed incidents.</li>
+        <li><strong>Route to the right team</strong> &mdash; Use notification channels (email, Slack, PagerDuty, Pub/Sub) per severity.</li>
+      </ul>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>Know the difference between <strong>Cloud Monitoring</strong> (metrics and dashboards) and <strong>Cloud Logging</strong> (log data). Monitoring answers "what is happening now?" Logging answers "what happened and why?" Trace answers "where is the bottleneck in this request?"</p>
+      </div>
+    </div>
+
+    <div class="section" id="sustainability">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Google Cloud Sustainability</h2>
+      </div>
+      <p>
+        Google has been carbon neutral since 2007 and aims to run on <strong>24/7 carbon-free energy</strong>
+        by 2030. The CDL exam includes questions about Google's environmental commitments because
+        sustainability is a key decision factor for many organizations choosing a cloud provider.
+      </p>
+
+      <h3>Google's Sustainability Commitments</h3>
+      <ul style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li><strong>Carbon neutral since 2007</strong> &mdash; Google matches 100% of electricity with renewable energy purchases.</li>
+        <li><strong>24/7 CFE by 2030</strong> &mdash; Goal to run every data center on carbon-free energy every hour of every day.</li>
+        <li><strong>1.1 PUE</strong> &mdash; Power Usage Effectiveness. Industry average is ~1.6. Google's data centers are among the most energy-efficient in the world.</li>
+        <li><strong>Circular economy</strong> &mdash; Reuse and recycle server components. Custom-designed hardware reduces waste.</li>
+        <li><strong>Water stewardship</strong> &mdash; Water-positive by 2030 (replenish more freshwater than consumed).</li>
+      </ul>
+
+      <h3>Customer Sustainability Tools</h3>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">C</div><h4>Carbon Footprint Dashboard</h4></div>
+          <p>View your workloads' carbon emissions in the Cloud Console. Track gross and net emissions by project, service, and region over time.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">R</div><h4>Region Carbon Data</h4></div>
+          <p>Google publishes carbon-free energy percentage per region. Choose low-carbon regions (e.g., Oregon, Finland, Iowa) for environmentally-conscious deployments.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">A</div><h4>Active Assist</h4></div>
+          <p>AI-powered recommendations for idle resources, right-sizing, and committed use. Reducing waste saves both money and carbon.</p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p>Moving from on-premises data centers to Google Cloud can reduce carbon emissions by an estimated <strong>5-10x</strong> due to Google's efficient infrastructure, renewable energy, and custom hardware. The exam may frame this as a benefit of cloud migration.</p>
+      </div>
+    </div>
+
+    <div class="section" id="exam-tips">
+      <div class="section-header">
+        <div class="section-num">8</div>
+        <h2>Exam Tips</h2>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Strategy</div>
+        <p>Section 6 (~17%) covers <strong>cost optimization</strong>, <strong>SRE concepts (SLI/SLO/SLA/error budget)</strong>, and <strong>DevOps practices</strong>. Know the billing hierarchy (Organization &rarr; Folder &rarr; Project), how budget alerts work, DORA metrics, and Google's sustainability claims.</p>
+      </div>
+
+      <h3>Quick Reference</h3>
+      <ul style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li>"How to control cloud costs?" &rarr; <strong>Budgets, alerts, right-sizing, CUDs, Spot VMs, autoscaling</strong></li>
+        <li>"What measures service reliability?" &rarr; <strong>SLIs (metrics), SLOs (targets), SLAs (contracts)</strong></li>
+        <li>"What is error budget?" &rarr; <strong>100% - SLO = allowed unreliability. Spend it on innovation.</strong></li>
+        <li>"How to measure DevOps performance?" &rarr; <strong>DORA metrics (deploy frequency, lead time, failure rate, restore time)</strong></li>
+        <li>"Where to see billing data for analysis?" &rarr; <strong>Export billing to BigQuery</strong></li>
+        <li>"How to organize GCP resources?" &rarr; <strong>Organization &rarr; Folders &rarr; Projects</strong></li>
+        <li>"What is Google's carbon goal?" &rarr; <strong>24/7 carbon-free energy by 2030</strong></li>
+        <li>"Budget alerts stop spending?" &rarr; <strong>No! Alerts are notifications only. Use Cloud Functions + Pub/Sub to automate shutdown.</strong></li>
+      </ul>
+    </div>
+
+    <div class="next-section">
+      <a href="05-trust-security.html" class="prev-btn">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10H5m4-4l-4 4 4 4"/></svg>
+        <div><div class="next-label">Previous</div>Trust &amp; Security</div>
+      </a>
+      <a href="index.html" class="next-btn">
+        <div><div class="next-label">Back to Hub</div>
+          All Sections
+        </div>
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 10h10m-4-4l4 4-4 4"/></svg>
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <p>CareerAlign &mdash; Google Cloud Digital Leader Study Guide &mdash; Not affiliated with Google Cloud.</p>
+</footer>
+
+</body>
+</html>

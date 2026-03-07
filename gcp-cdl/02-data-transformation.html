@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Data Transformation with Google Cloud — CareerAlign GCP CDL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #06b6d4;
+  --page-color-04: rgba(6,182,212,0.04);
+  --page-color-07: rgba(6,182,212,0.07);
+  --page-color-12: rgba(6,182,212,0.12);
+  --page-color-15: rgba(6,182,212,0.15);
+  --page-color-25: rgba(6,182,212,0.25);
+  --page-color-30: rgba(6,182,212,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="index.html" class="nav-logo">CareerAlign <span style="color:#06b6d4;">GCP CDL</span></a>
+  <div class="nav-links">
+    <a href="01-digital-transformation.html">01 Digital Transform</a>
+    <a href="02-data-transformation.html" class="active">02 Data</a>
+    <a href="03-ai-ml.html">03 AI/ML</a>
+    <a href="04-infrastructure-apps.html">04 Infrastructure</a>
+    <a href="05-trust-security.html">05 Security</a>
+    <a href="06-scaling-operations.html">06 Operations</a>
+  </div>
+  <a href="index.html" class="nav-home" style="color:#06b6d4;border-color:rgba(6,182,212,0.3);">Hub</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">Section 02 &mdash; ~16% of Exam</div>
+  <h1>Exploring Data Transformation with <em>Google Cloud</em></h1>
+  <p class="hero-desc">
+    Learn how Google Cloud enables organizations to unlock the value of their data through
+    managed data warehousing, real-time streaming, object storage, and business intelligence tools.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Data value chain</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> BigQuery data warehouse</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Cloud Storage classes</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Pub/Sub &amp; Dataflow streaming</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Looker &amp; BI</div>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#data-value" class="section">1. Data Value Chain</a>
+    <a href="#bigquery" class="section">2. BigQuery</a>
+    <a href="#bq-architecture" class="sub">Architecture</a>
+    <a href="#bq-pricing" class="sub">Pricing Models</a>
+    <a href="#cloud-storage" class="section">3. Cloud Storage</a>
+    <a href="#cs-classes" class="sub">Storage Classes</a>
+    <a href="#databases" class="section">4. Database Services</a>
+    <a href="#streaming" class="section">5. Streaming &amp; Messaging</a>
+    <a href="#dataflow" class="section">6. Dataflow &amp; Dataproc</a>
+    <a href="#looker" class="section">7. Looker &amp; BI</a>
+    <a href="#exam-tips" class="section">8. Exam Tips</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- Section 1 -->
+    <div class="section" id="data-value">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>The Data Value Chain</h2>
+      </div>
+      <p>
+        Data by itself has little value. It becomes valuable when it is <strong>collected, stored, processed,
+        analyzed, and activated</strong>. Google Cloud provides managed services for every stage of this value chain,
+        allowing organizations to build complete data platforms without managing infrastructure.
+      </p>
+      <h3>Stages of the Data Value Chain</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Stage</th><th>Activity</th><th>Google Cloud Services</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Ingest</td><td>Collect data from sources</td><td>Pub/Sub, Datastream, Transfer Service, IoT Core</td></tr>
+          <tr><td>Store</td><td>Persist data durably</td><td>Cloud Storage, BigQuery, Cloud SQL, Bigtable, Firestore</td></tr>
+          <tr><td>Process</td><td>Transform and clean data</td><td>Dataflow, Dataproc, Dataprep, Cloud Data Fusion</td></tr>
+          <tr><td>Analyze</td><td>Query and gain insights</td><td>BigQuery, Looker, Data Studio, Connected Sheets</td></tr>
+          <tr><td>Activate</td><td>Use insights to drive action</td><td>Vertex AI, BigQuery ML, Looker dashboards, APIs</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p>Google Cloud's data services are <strong>serverless by design</strong>. BigQuery, Dataflow, Pub/Sub, and Cloud Storage all auto-scale without you managing clusters or servers. This is a key differentiator vs. on-premises Hadoop/Spark clusters.</p>
+      </div>
+
+      <h3>Data Types</h3>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">S</div>
+            <h4>Structured Data</h4>
+          </div>
+          <p>Organized in rows and columns with a fixed schema. Stored in relational databases (Cloud SQL, Spanner) or BigQuery. Examples: transactions, CRM records, inventory.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">U</div>
+            <h4>Unstructured Data</h4>
+          </div>
+          <p>No predefined format. Stored in Cloud Storage as objects. Examples: images, videos, PDFs, audio files, emails. Over 80% of enterprise data is unstructured.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">M</div>
+            <h4>Semi-Structured Data</h4>
+          </div>
+          <p>Has some organizational properties but no rigid schema. Examples: JSON, XML, log files, IoT sensor readings. Stored in Firestore, Bigtable, or BigQuery (nested/repeated fields).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2 -->
+    <div class="section" id="bigquery">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>BigQuery &mdash; Cloud Data Warehouse</h2>
+      </div>
+      <p>
+        <strong>BigQuery</strong> is Google Cloud's fully managed, serverless, petabyte-scale data warehouse.
+        It enables super-fast SQL queries using the processing power of Google's infrastructure. BigQuery is
+        one of the most heavily tested services on the CDL exam.
+      </p>
+
+      <h3 id="bq-architecture">Architecture: Separation of Storage and Compute</h3>
+      <p>
+        BigQuery's key architectural innovation is the <strong>separation of storage and compute</strong>.
+        Data is stored in Google's distributed storage system (Colossus), while compute resources for queries
+        are provisioned from a shared pool (Dremel engine). This means you can scale storage and compute independently.
+      </p>
+
+      <div class="diagram-wrap">
+        <pre style="background:transparent;border:none;text-align:center;color:var(--text-secondary);font-size:13px;"><code>
+  [Data Sources]
+       |
+  [ Ingest: Streaming / Batch / Transfer ]
+       |
+  +---------+      +-----------+
+  | Colossus |      |  Dremel   |
+  | (Storage)|      | (Compute) |
+  +---------+      +-----------+
+       |                 |
+       +--------+--------+
+                |
+      [ BigQuery SQL Engine ]
+                |
+    +-----------+-----------+
+    |           |           |
+  [Looker]  [Data Studio] [BQML]
+        </code></pre>
+        <div class="diagram-caption">BigQuery architecture: storage and compute are independent, enabling autoscaling queries</div>
+      </div>
+
+      <h3>Key BigQuery Features</h3>
+      <ul style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li><strong>Serverless</strong> &mdash; No infrastructure to manage. No clusters to provision or tune.</li>
+        <li><strong>Standard SQL</strong> &mdash; ANSI-compliant SQL (no proprietary query language).</li>
+        <li><strong>Built-in ML</strong> &mdash; BigQuery ML lets you create and execute ML models using SQL.</li>
+        <li><strong>Streaming ingestion</strong> &mdash; Insert rows in real-time for near-instant analysis.</li>
+        <li><strong>Geospatial analytics</strong> &mdash; Built-in GIS functions for location-based queries.</li>
+        <li><strong>Column-level security</strong> &mdash; Fine-grained access control on individual columns.</li>
+        <li><strong>BI Engine</strong> &mdash; In-memory analysis layer for sub-second dashboard queries.</li>
+      </ul>
+
+      <h3 id="bq-pricing">BigQuery Pricing Models</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Model</th><th>How It Works</th><th>Best For</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>On-demand</strong></td><td>$6.25 per TB of data scanned by queries</td><td>Variable/unpredictable workloads, exploration</td></tr>
+          <tr><td><strong>Capacity (Editions)</strong></td><td>Pay for reserved compute slots (per-second billing)</td><td>Predictable, heavy query workloads</td></tr>
+          <tr><td><strong>Storage</strong></td><td>$0.02/GB/month (active), $0.01/GB/month (long-term)</td><td>All workloads; long-term = 90+ days unmodified</td></tr>
+          <tr><td><strong>Free tier</strong></td><td>1 TB queries + 10 GB storage per month</td><td>Learning, prototyping, small analytics</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>BigQuery <strong>on-demand pricing charges by data scanned</strong>, not compute time. To reduce costs: use partitioned tables, clustered tables, and <code>SELECT</code> only the columns you need (avoid <code>SELECT *</code>).</p>
+      </div>
+
+      <pre><code># Query a public dataset (free tier)
+bq query --use_legacy_sql=false \
+  'SELECT name, SUM(number) as total
+   FROM `bigquery-public-data.usa_names.usa_1910_current`
+   WHERE year > 2000
+   GROUP BY name
+   ORDER BY total DESC
+   LIMIT 10'
+
+# Create a dataset and table
+bq mk --dataset my_project:my_dataset
+bq load --autodetect \
+  my_dataset.sales_data \
+  gs://my-bucket/sales.csv
+</code></pre>
+    </div>
+
+    <!-- Section 3 -->
+    <div class="section" id="cloud-storage">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Cloud Storage</h2>
+      </div>
+      <p>
+        <strong>Cloud Storage</strong> is Google Cloud's object storage service for storing any amount of
+        unstructured data. It offers <strong>11 nines (99.999999999%) durability</strong>, global accessibility,
+        and four storage classes to optimize cost based on access frequency.
+      </p>
+
+      <h3 id="cs-classes">Storage Classes</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Class</th><th>Minimum Storage Duration</th><th>Use Case</th><th>Storage Cost (per GB/month)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Standard</strong></td><td>None</td><td>Frequently accessed data, websites, streaming</td><td>~$0.020</td></tr>
+          <tr><td><strong>Nearline</strong></td><td>30 days</td><td>Backups, data accessed &lt; once/month</td><td>~$0.010</td></tr>
+          <tr><td><strong>Coldline</strong></td><td>90 days</td><td>Disaster recovery, data accessed &lt; once/quarter</td><td>~$0.004</td></tr>
+          <tr><td><strong>Archive</strong></td><td>365 days</td><td>Long-term retention, regulatory compliance</td><td>~$0.0012</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <div class="callout-label">Important</div>
+        <p>Storage class affects <strong>cost and access charges</strong>, not performance or durability. All classes have the same 11 nines durability and millisecond access latency. Nearline/Coldline/Archive have higher per-operation retrieval costs and minimum storage durations.</p>
+      </div>
+
+      <h3>Object Lifecycle Management</h3>
+      <p>
+        Lifecycle rules automatically transition or delete objects based on age, creation date, storage class,
+        or other conditions. This is a key cost optimization feature for the exam.
+      </p>
+      <pre><code># Set lifecycle rule: move to Coldline after 90 days, delete after 365 days
+# lifecycle.json
+{
+  "lifecycle": {
+    "rule": [
+      {
+        "action": {"type": "SetStorageClass", "storageClass": "COLDLINE"},
+        "condition": {"age": 90}
+      },
+      {
+        "action": {"type": "Delete"},
+        "condition": {"age": 365}
+      }
+    ]
+  }
+}
+
+# Apply lifecycle policy
+gsutil lifecycle set lifecycle.json gs://my-bucket
+</code></pre>
+
+      <h3>Key Cloud Storage Concepts</h3>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">B</div>
+            <h4>Buckets</h4>
+          </div>
+          <p>Top-level containers for objects. Globally unique names. Choose location type: region, dual-region, or multi-region. IAM controls access at bucket or object level.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">V</div>
+            <h4>Versioning</h4>
+          </div>
+          <p>Keep historical versions of objects. Prevents accidental deletion or overwrites. Combined with lifecycle rules to limit version retention and control costs.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">R</div>
+            <h4>Retention Policies</h4>
+          </div>
+          <p>Lock objects for a minimum period (regulatory compliance). Bucket Lock makes the retention policy permanent and immutable &mdash; even admins cannot delete objects early.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">T</div>
+            <h4>Transfer Service</h4>
+          </div>
+          <p>Move large datasets from other clouds (AWS S3, Azure), on-premises, or between buckets. Schedule recurring transfers with bandwidth controls.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4 -->
+    <div class="section" id="databases">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Database Services</h2>
+      </div>
+      <p>
+        Google Cloud offers multiple managed database services, each optimized for different workloads.
+        The CDL exam tests your ability to match the right database to a given scenario.
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr><th>Service</th><th>Type</th><th>Best For</th><th>Key Feature</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Cloud SQL</strong></td><td>Relational (MySQL, PostgreSQL, SQL Server)</td><td>Web apps, CMS, e-commerce</td><td>Managed backups, replicas, patches</td></tr>
+          <tr><td><strong>Cloud Spanner</strong></td><td>Relational, globally distributed</td><td>Global transactions, financial systems</td><td>Unlimited scale + strong consistency</td></tr>
+          <tr><td><strong>Firestore</strong></td><td>NoSQL document</td><td>Mobile/web apps, user profiles, catalogs</td><td>Real-time sync, offline support</td></tr>
+          <tr><td><strong>Cloud Bigtable</strong></td><td>NoSQL wide-column</td><td>IoT, time-series, analytics (1M+ rows/sec)</td><td>Sub-10ms latency at petabyte scale</td></tr>
+          <tr><td><strong>Memorystore</strong></td><td>In-memory (Redis, Memcached)</td><td>Caching, session management, leaderboards</td><td>Sub-millisecond latency</td></tr>
+          <tr><td><strong>AlloyDB</strong></td><td>PostgreSQL-compatible</td><td>Enterprise workloads, OLTP + analytics</td><td>4x faster than standard PostgreSQL</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Decision Guide</div>
+        <p><strong>Need SQL + global consistency?</strong> Cloud Spanner. <strong>Need SQL + standard relational?</strong> Cloud SQL. <strong>Need NoSQL for mobile/web?</strong> Firestore. <strong>Need NoSQL for massive throughput?</strong> Bigtable. <strong>Need caching?</strong> Memorystore.</p>
+      </div>
+    </div>
+
+    <!-- Section 5 -->
+    <div class="section" id="streaming">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Streaming and Messaging: Pub/Sub</h2>
+      </div>
+      <p>
+        <strong>Pub/Sub</strong> (Publish/Subscribe) is Google Cloud's fully managed messaging service for
+        building event-driven architectures. It decouples event producers from consumers, enabling
+        asynchronous communication between microservices, data pipelines, and applications.
+      </p>
+
+      <h3>How Pub/Sub Works</h3>
+      <div class="diagram-wrap">
+        <pre style="background:transparent;border:none;text-align:center;color:var(--text-secondary);font-size:13px;"><code>
+  [Publisher 1]  [Publisher 2]  [Publisher 3]
+       |              |              |
+       +------+-------+------+------+
+              |              |
+         [ Topic A ]    [ Topic B ]
+              |              |
+       +------+------+      |
+       |             |       |
+  [Subscription 1] [Sub 2] [Sub 3]
+       |             |       |
+  [Subscriber A] [Sub B] [Sub C]
+  (push/pull)   (push)   (pull)
+        </code></pre>
+        <div class="diagram-caption">Pub/Sub: publishers send messages to topics; subscribers receive via subscriptions</div>
+      </div>
+
+      <h3>Key Pub/Sub Features</h3>
+      <ul style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li><strong>At-least-once delivery</strong> &mdash; Every message is delivered at least once (may see duplicates).</li>
+        <li><strong>Push and pull</strong> &mdash; Pull: subscribers poll for messages. Push: Pub/Sub sends HTTP POST to an endpoint.</li>
+        <li><strong>Message retention</strong> &mdash; Up to 31 days (configurable). Replay old messages for recovery.</li>
+        <li><strong>Ordering</strong> &mdash; Optional message ordering within an ordering key for FIFO guarantees.</li>
+        <li><strong>Dead letter topics</strong> &mdash; Route undeliverable messages to a separate topic for debugging.</li>
+        <li><strong>Serverless &amp; auto-scaling</strong> &mdash; Handles millions of messages per second with no capacity planning.</li>
+      </ul>
+
+      <pre><code># Create a topic and subscription
+gcloud pubsub topics create my-events
+gcloud pubsub subscriptions create my-sub \
+  --topic=my-events \
+  --ack-deadline=60
+
+# Publish a message
+gcloud pubsub topics publish my-events \
+  --message="Hello from CDL study guide"
+
+# Pull messages
+gcloud pubsub subscriptions pull my-sub --auto-ack --limit=5
+</code></pre>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p>Pub/Sub is the <strong>ingestion layer</strong> in most real-time data pipelines. A common architecture is: <strong>Pub/Sub (ingest) &rarr; Dataflow (process) &rarr; BigQuery (analyze)</strong>. This pattern appears frequently on the CDL exam.</p>
+      </div>
+    </div>
+
+    <!-- Section 6 -->
+    <div class="section" id="dataflow">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Dataflow and Dataproc</h2>
+      </div>
+      <p>
+        Google Cloud offers two main data processing services. <strong>Dataflow</strong> is the serverless option
+        based on Apache Beam. <strong>Dataproc</strong> is the managed Hadoop/Spark option for teams with existing
+        Spark/Hadoop code.
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr><th>Feature</th><th>Dataflow</th><th>Dataproc</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Based on</td><td>Apache Beam (Google-created)</td><td>Apache Hadoop / Spark</td></tr>
+          <tr><td>Management</td><td>Fully serverless, auto-scaling</td><td>Managed clusters (you choose size)</td></tr>
+          <tr><td>Batch &amp; Stream</td><td>Unified model for both</td><td>Spark Streaming or batch</td></tr>
+          <tr><td>Use case</td><td>New pipelines, real-time ETL</td><td>Existing Hadoop/Spark migrations</td></tr>
+          <tr><td>Pricing</td><td>Per worker per second</td><td>Per cluster per second (+ VMs)</td></tr>
+          <tr><td>Provisioning</td><td>No cluster setup</td><td>Cluster in ~90 seconds</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Decision Rule</div>
+        <p><strong>New data pipeline with no existing code?</strong> Choose Dataflow (serverless, Beam). <strong>Migrating existing Hadoop/Spark jobs?</strong> Choose Dataproc (managed clusters, same APIs).</p>
+      </div>
+
+      <h3>Cloud Data Fusion</h3>
+      <p>
+        <strong>Cloud Data Fusion</strong> is a fully managed, visual ETL/ELT service. It provides a
+        drag-and-drop interface for building data pipelines without writing code. Under the hood, it uses
+        Dataproc for execution. Best for teams that prefer visual pipeline design or lack coding expertise.
+      </p>
+    </div>
+
+    <!-- Section 7 -->
+    <div class="section" id="looker">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Looker and Business Intelligence</h2>
+      </div>
+      <p>
+        <strong>Looker</strong> is Google Cloud's enterprise business intelligence (BI) platform. It provides
+        a governed semantic layer (LookML) that ensures consistent metric definitions across an organization,
+        plus dashboards, reports, and embedded analytics capabilities.
+      </p>
+
+      <h3>Google Cloud BI Tools</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Tool</th><th>Audience</th><th>Key Feature</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Looker</strong></td><td>Enterprise analysts, data teams</td><td>LookML semantic model, governed metrics, embedded analytics</td></tr>
+          <tr><td><strong>Looker Studio</strong> (formerly Data Studio)</td><td>Business users, marketers</td><td>Free, drag-and-drop dashboards, 800+ connectors</td></tr>
+          <tr><td><strong>Connected Sheets</strong></td><td>Spreadsheet users</td><td>Query BigQuery directly from Google Sheets &mdash; no SQL needed</td></tr>
+          <tr><td><strong>BigQuery BI Engine</strong></td><td>Dashboard developers</td><td>In-memory acceleration for sub-second dashboard queries</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">Key Concept</div>
+        <p><strong>LookML</strong> is Looker's modeling language that defines relationships, metrics, and business logic in a reusable, version-controlled layer. It ensures that "revenue" means the same thing whether viewed in a dashboard, a report, or an embedded application.</p>
+      </div>
+    </div>
+
+    <!-- Section 8 -->
+    <div class="section" id="exam-tips">
+      <div class="section-header">
+        <div class="section-num">8</div>
+        <h2>Exam Tips and Service Selection Guide</h2>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Strategy</div>
+        <p>Section 2 (~16% of exam) focuses on <strong>data service selection</strong>. For every scenario, ask: Is the data structured or unstructured? Is it batch or streaming? What size and latency requirements? Then map to the right service.</p>
+      </div>
+
+      <h3>Service Selection Decision Tree</h3>
+      <ul style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li>"Store and analyze petabytes of structured data with SQL" &rarr; <strong>BigQuery</strong></li>
+        <li>"Store images, videos, backups, or any unstructured data" &rarr; <strong>Cloud Storage</strong></li>
+        <li>"Build a real-time event-driven pipeline" &rarr; <strong>Pub/Sub + Dataflow + BigQuery</strong></li>
+        <li>"Migrate existing Hadoop/Spark jobs" &rarr; <strong>Dataproc</strong></li>
+        <li>"Need a relational database for a web app" &rarr; <strong>Cloud SQL</strong></li>
+        <li>"Need global transactions with relational consistency" &rarr; <strong>Cloud Spanner</strong></li>
+        <li>"Build dashboards for business users" &rarr; <strong>Looker / Looker Studio</strong></li>
+        <li>"Real-time NoSQL for mobile/web apps" &rarr; <strong>Firestore</strong></li>
+        <li>"Massive throughput NoSQL for IoT/time-series" &rarr; <strong>Bigtable</strong></li>
+      </ul>
+
+      <h3>Common Exam Scenarios</h3>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">Q</div>
+            <h4>Cost Optimization</h4>
+          </div>
+          <p>"How to reduce BigQuery costs?" &rarr; Use partitioned/clustered tables, avoid SELECT *, use on-demand for sporadic queries, editions for heavy use.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">Q</div>
+            <h4>Data Lifecycle</h4>
+          </div>
+          <p>"How to manage storage costs for aging data?" &rarr; Cloud Storage lifecycle rules to transition Standard &rarr; Nearline &rarr; Coldline &rarr; Archive &rarr; Delete.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">Q</div>
+            <h4>Real-Time Analytics</h4>
+          </div>
+          <p>"Analyze clickstream data in real-time?" &rarr; Pub/Sub (ingest) &rarr; Dataflow (transform) &rarr; BigQuery (query) &rarr; Looker (visualize).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PREV/NEXT -->
+    <div class="next-section">
+      <a href="01-digital-transformation.html" class="prev-btn">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10H5m4-4l-4 4 4 4"/></svg>
+        <div>
+          <div class="next-label">Previous</div>
+          Digital Transformation
+        </div>
+      </a>
+      <a href="03-ai-ml.html" class="next-btn">
+        <div>
+          <div class="next-label">Next Section</div>
+          AI &amp; ML
+        </div>
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 10h10m-4-4l4 4-4 4"/></svg>
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <p>CareerAlign &mdash; Google Cloud Digital Leader Study Guide &mdash; Not affiliated with Google Cloud.</p>
+</footer>
+
+</body>
+</html>

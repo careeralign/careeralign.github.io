@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Modernize Infrastructure and Applications — CareerAlign GCP CDL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #f97316;
+  --page-color-04: rgba(249,115,22,0.04);
+  --page-color-07: rgba(249,115,22,0.07);
+  --page-color-12: rgba(249,115,22,0.12);
+  --page-color-15: rgba(249,115,22,0.15);
+  --page-color-25: rgba(249,115,22,0.25);
+  --page-color-30: rgba(249,115,22,0.3);
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">CareerAlign <span style="color:#f97316;">GCP CDL</span></a>
+  <div class="nav-links">
+    <a href="01-digital-transformation.html">01 Digital Transform</a>
+    <a href="02-data-transformation.html">02 Data</a>
+    <a href="03-ai-ml.html">03 AI/ML</a>
+    <a href="04-infrastructure-apps.html" class="active">04 Infrastructure</a>
+    <a href="05-trust-security.html">05 Security</a>
+    <a href="06-scaling-operations.html">06 Operations</a>
+  </div>
+  <a href="index.html" class="nav-home" style="color:#f97316;border-color:rgba(249,115,22,0.3);">Hub</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">Section 04 &mdash; ~17% of Exam</div>
+  <h1>Modernize Infrastructure and <em>Applications</em></h1>
+  <p class="hero-desc">
+    Learn about cloud migration strategies, compute options from VMs to serverless,
+    container orchestration with GKE, API management, and hybrid/multicloud with Anthos.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Migration strategies</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Compute Engine &amp; GKE</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Cloud Run &amp; serverless</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Containers &amp; APIs</div>
+    <div class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg> Anthos hybrid/multicloud</div>
+  </div>
+</section>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#migration" class="section">1. Migration Strategies</a>
+    <a href="#compute-engine" class="section">2. Compute Engine</a>
+    <a href="#containers" class="section">3. Containers &amp; GKE</a>
+    <a href="#serverless" class="section">4. Serverless Compute</a>
+    <a href="#compute-compare" class="section">5. Compute Comparison</a>
+    <a href="#apis" class="section">6. API Management</a>
+    <a href="#hybrid" class="section">7. Hybrid &amp; Multicloud</a>
+    <a href="#exam-tips" class="section">8. Exam Tips</a>
+  </aside>
+
+  <div class="main">
+
+    <div class="section" id="migration">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>Cloud Migration Strategies</h2>
+      </div>
+      <p>
+        Organizations migrating to the cloud follow different strategies based on their applications,
+        timelines, and goals. Google Cloud and industry analysts identify several common migration patterns,
+        often called the <strong>"6 Rs"</strong> of migration.
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr><th>Strategy</th><th>Description</th><th>When to Use</th><th>Effort</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Rehost</strong> (Lift &amp; Shift)</td><td>Move as-is to cloud VMs</td><td>Quick wins, legacy apps with no changes</td><td>Low</td></tr>
+          <tr><td><strong>Replatform</strong> (Lift &amp; Optimize)</td><td>Minor optimizations during move</td><td>Use managed services (e.g., Cloud SQL instead of self-managed MySQL)</td><td>Low-Medium</td></tr>
+          <tr><td><strong>Refactor</strong> (Re-architect)</td><td>Redesign for cloud-native</td><td>Take advantage of microservices, containers, serverless</td><td>High</td></tr>
+          <tr><td><strong>Repurchase</strong></td><td>Replace with SaaS</td><td>Move from on-prem email to Google Workspace</td><td>Medium</td></tr>
+          <tr><td><strong>Retire</strong></td><td>Decommission the application</td><td>App no longer needed</td><td>Low</td></tr>
+          <tr><td><strong>Retain</strong></td><td>Keep on-premises</td><td>Regulatory requirements, not ready to migrate</td><td>None</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">Google Cloud Migration Tools</div>
+        <p><strong>Migrate to Virtual Machines</strong> (formerly Migrate for Compute Engine) automates lift-and-shift of VMs from on-premises, AWS, or Azure to Compute Engine. <strong>Migrate to Containers</strong> converts VMs into containers for GKE. <strong>Database Migration Service</strong> handles database migrations to Cloud SQL or AlloyDB.</p>
+      </div>
+
+      <h3>Migration Phases</h3>
+      <ol style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li><strong>Assess</strong> &mdash; Inventory workloads, assess dependencies, determine TCO, identify migration candidates.</li>
+        <li><strong>Plan</strong> &mdash; Choose migration strategy per workload, design target architecture, plan network connectivity.</li>
+        <li><strong>Deploy</strong> &mdash; Set up foundation (VPC, IAM, billing), migrate workloads in waves, validate functionality.</li>
+        <li><strong>Optimize</strong> &mdash; Right-size resources, implement autoscaling, apply cost controls, modernize further.</li>
+      </ol>
+    </div>
+
+    <div class="section" id="compute-engine">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Compute Engine</h2>
+      </div>
+      <p>
+        <strong>Compute Engine</strong> provides virtual machines (VMs) running on Google's infrastructure.
+        It is the IaaS compute service &mdash; you have full control over the operating system, networking,
+        and installed software.
+      </p>
+
+      <h3>Machine Type Families</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Family</th><th>Description</th><th>Use Cases</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>E2</strong> (General)</td><td>Cost-optimized, shared-core options</td><td>Dev/test, small apps, microservices</td></tr>
+          <tr><td><strong>N2/N2D</strong> (General)</td><td>Balanced compute, Intel/AMD</td><td>Web servers, databases, medium workloads</td></tr>
+          <tr><td><strong>C2/C2D</strong> (Compute)</td><td>Highest per-core performance</td><td>Gaming, HPC, single-threaded apps</td></tr>
+          <tr><td><strong>M2/M3</strong> (Memory)</td><td>Ultra-high memory (up to 12 TB)</td><td>SAP HANA, in-memory databases</td></tr>
+          <tr><td><strong>A2/A3</strong> (Accelerator)</td><td>GPU-attached (NVIDIA A100/H100)</td><td>ML training, rendering, simulations</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Key Compute Engine Features</h3>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">L</div><h4>Live Migration</h4></div>
+          <p>Google migrates running VMs between physical hosts during maintenance with zero downtime. Unique to Google Cloud &mdash; no reboot required.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">P</div><h4>Preemptible/Spot VMs</h4></div>
+          <p>60-91% discount for interruptible workloads. Google can reclaim with 30s notice. Ideal for batch processing, CI/CD, fault-tolerant jobs.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">A</div><h4>Autoscaling (MIGs)</h4></div>
+          <p>Managed Instance Groups automatically add/remove VMs based on CPU, memory, or custom metrics. Combined with load balancers for HA.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">S</div><h4>Sole-Tenant Nodes</h4></div>
+          <p>Dedicated physical servers for compliance requirements. No hardware sharing with other tenants. Bring your own licenses (BYOL).</p>
+        </div>
+      </div>
+
+      <pre><code># Create a VM instance
+gcloud compute instances create web-server \
+  --zone=us-central1-a \
+  --machine-type=e2-medium \
+  --image-family=debian-12 \
+  --image-project=debian-cloud \
+  --tags=http-server
+
+# Create a managed instance group with autoscaling
+gcloud compute instance-groups managed create my-mig \
+  --template=my-template \
+  --size=2 \
+  --zone=us-central1-a
+
+gcloud compute instance-groups managed set-autoscaling my-mig \
+  --max-num-replicas=10 \
+  --target-cpu-utilization=0.6 \
+  --zone=us-central1-a
+</code></pre>
+    </div>
+
+    <div class="section" id="containers">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Containers and Google Kubernetes Engine (GKE)</h2>
+      </div>
+      <p>
+        <strong>Containers</strong> package an application with all its dependencies into a portable,
+        lightweight unit that runs consistently across environments. <strong>Docker</strong> is the most
+        common container runtime. <strong>Kubernetes</strong> is the open-source system for orchestrating
+        (managing) containers at scale.
+      </p>
+
+      <h3>Containers vs. VMs</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Aspect</th><th>Virtual Machines</th><th>Containers</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Isolation</td><td>Full OS per VM (strong isolation)</td><td>Shared OS kernel (process isolation)</td></tr>
+          <tr><td>Size</td><td>Gigabytes (includes full OS)</td><td>Megabytes (app + dependencies only)</td></tr>
+          <tr><td>Startup</td><td>Minutes</td><td>Seconds</td></tr>
+          <tr><td>Portability</td><td>Limited (OS-dependent)</td><td>High (runs anywhere Docker runs)</td></tr>
+          <tr><td>Density</td><td>10s per host</td><td>100s per host</td></tr>
+          <tr><td>Use case</td><td>Legacy apps, full OS control needed</td><td>Microservices, CI/CD, cloud-native apps</td></tr>
+        </tbody>
+      </table>
+
+      <h3>GKE &mdash; Google Kubernetes Engine</h3>
+      <p>
+        <strong>GKE</strong> is Google's managed Kubernetes service. Google manages the control plane
+        (API server, scheduler, etcd) while you manage the worker nodes and workloads. GKE Autopilot
+        goes further by also managing the nodes.
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr><th>Feature</th><th>GKE Standard</th><th>GKE Autopilot</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Node management</td><td>You manage nodes</td><td>Google manages nodes</td></tr>
+          <tr><td>Pricing</td><td>Pay for nodes (VMs)</td><td>Pay per pod (resources used)</td></tr>
+          <tr><td>Configuration</td><td>Full control over node pools</td><td>Best practices enforced</td></tr>
+          <tr><td>Security</td><td>You configure hardening</td><td>Hardened by default</td></tr>
+          <tr><td>Best for</td><td>Teams needing custom node config</td><td>Teams wanting fully managed K8s</td></tr>
+        </tbody>
+      </table>
+
+      <pre><code># Create a GKE Autopilot cluster
+gcloud container clusters create-auto my-cluster \
+  --region=us-central1
+
+# Deploy an application
+kubectl create deployment hello-app \
+  --image=us-docker.pkg.dev/google-samples/containers/gke/hello-app:1.0
+
+# Expose it as a service
+kubectl expose deployment hello-app \
+  --type=LoadBalancer \
+  --port=80 \
+  --target-port=8080
+</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>GKE is the answer when you need <strong>container orchestration at scale</strong>. If you just need to run a single container without managing Kubernetes, use <strong>Cloud Run</strong> instead.</p>
+      </div>
+    </div>
+
+    <div class="section" id="serverless">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Serverless Compute</h2>
+      </div>
+      <p>
+        <strong>Serverless</strong> means Google manages all infrastructure &mdash; servers, scaling, patching,
+        and capacity planning. You focus only on your code. Google Cloud offers three main serverless compute options.
+      </p>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">R</div><h4>Cloud Run</h4></div>
+          <p>Run stateless containers with automatic scaling (including to zero). Supports any language/framework. Pay per request. Best for HTTP services, APIs, web apps.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">F</div><h4>Cloud Functions</h4></div>
+          <p>Event-driven functions (FaaS). Write a single function triggered by HTTP, Pub/Sub, Cloud Storage events. Pay per invocation. Best for glue code, webhooks, lightweight processing.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">A</div><h4>App Engine</h4></div>
+          <p>Fully managed platform for web applications. Standard environment (sandboxed, fast scaling) and Flexible environment (custom runtimes, Docker). Best for traditional web apps.</p>
+        </div>
+      </div>
+
+      <table class="comp-table">
+        <thead>
+          <tr><th>Feature</th><th>Cloud Run</th><th>Cloud Functions</th><th>App Engine</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Unit of deployment</td><td>Container image</td><td>Single function</td><td>Application</td></tr>
+          <tr><td>Language support</td><td>Any (container-based)</td><td>Node, Python, Go, Java, .NET, Ruby, PHP</td><td>Standard: Python, Java, Go, PHP, Node, Ruby. Flexible: any</td></tr>
+          <tr><td>Scale to zero</td><td>Yes</td><td>Yes</td><td>Standard: Yes. Flexible: Min 1 instance</td></tr>
+          <tr><td>Max timeout</td><td>60 min</td><td>9 min (1st gen) / 60 min (2nd gen)</td><td>Varies</td></tr>
+          <tr><td>Concurrency</td><td>Up to 1000 requests per instance</td><td>1 per instance (1st gen) / configurable (2nd gen)</td><td>Automatic</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <div class="callout-label">Decision Guide</div>
+        <p><strong>Cloud Run</strong> is the default serverless choice for most new workloads (containers, any language, scale to zero). Use <strong>Cloud Functions</strong> for simple event handlers. Use <strong>App Engine</strong> for legacy web apps or when you want an opinionated web framework.</p>
+      </div>
+    </div>
+
+    <div class="section" id="compute-compare">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Compute Options Comparison</h2>
+      </div>
+
+      <table class="comp-table">
+        <thead>
+          <tr><th>Service</th><th>Model</th><th>Control</th><th>Scaling</th><th>Best For</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Compute Engine</strong></td><td>IaaS (VMs)</td><td>Full (OS, network, storage)</td><td>Manual or MIG autoscaler</td><td>Legacy apps, custom OS, GPU/TPU workloads</td></tr>
+          <tr><td><strong>GKE</strong></td><td>CaaS (Containers)</td><td>High (pods, nodes, networking)</td><td>HPA + cluster autoscaler</td><td>Microservices at scale, multi-container apps</td></tr>
+          <tr><td><strong>Cloud Run</strong></td><td>Serverless containers</td><td>Low (just container image)</td><td>Auto (0 to N instances)</td><td>Stateless HTTP services, APIs</td></tr>
+          <tr><td><strong>Cloud Functions</strong></td><td>FaaS</td><td>Lowest (just function code)</td><td>Auto per invocation</td><td>Event handlers, glue code, webhooks</td></tr>
+          <tr><td><strong>App Engine</strong></td><td>PaaS</td><td>Low-Medium</td><td>Auto</td><td>Web apps, RESTful backends</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Decision Flow</div>
+        <p>Need full OS control? &rarr; <strong>Compute Engine</strong>. Need container orchestration at scale? &rarr; <strong>GKE</strong>. Want serverless containers? &rarr; <strong>Cloud Run</strong>. Just a function? &rarr; <strong>Cloud Functions</strong>. Traditional web app? &rarr; <strong>App Engine</strong>.</p>
+      </div>
+    </div>
+
+    <div class="section" id="apis">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>API Management with Apigee</h2>
+      </div>
+      <p>
+        <strong>Apigee</strong> is Google Cloud's full-lifecycle API management platform. It helps organizations
+        design, secure, deploy, monitor, and monetize APIs. APIs are the building blocks of modern application
+        architectures and microservices.
+      </p>
+
+      <h3>Why APIs Matter</h3>
+      <ul style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li><strong>Microservices architecture</strong> &mdash; Services communicate via APIs, enabling independent development and deployment.</li>
+        <li><strong>Partner integrations</strong> &mdash; Expose business capabilities to partners securely via APIs.</li>
+        <li><strong>Mobile/web backends</strong> &mdash; APIs serve as the backend for mobile apps and single-page web applications.</li>
+        <li><strong>Monetization</strong> &mdash; Treat APIs as products with rate limiting, usage tracking, and billing.</li>
+      </ul>
+
+      <h3>Apigee Key Features</h3>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">P</div><h4>API Proxies</h4></div>
+          <p>Facade layer that decouples API consumers from backend services. Apply policies for security, transformation, caching, and rate limiting without changing backend code.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">A</div><h4>Analytics</h4></div>
+          <p>Monitor API traffic, latency, error rates, and developer adoption. Identify performance bottlenecks and usage patterns.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header"><div class="skill-icon">D</div><h4>Developer Portal</h4></div>
+          <p>Self-service portal for API consumers. Documentation, API key registration, sandbox testing, and community forums.</p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Cloud Endpoints vs. Apigee</div>
+        <p><strong>Cloud Endpoints</strong> is a lightweight API gateway for GCP-hosted backends (simpler, lower cost). <strong>Apigee</strong> is the enterprise-grade platform with advanced analytics, monetization, and multi-cloud support. For the CDL exam, Apigee is the answer for "enterprise API management."</p>
+      </div>
+    </div>
+
+    <div class="section" id="hybrid">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Hybrid and Multicloud with Anthos</h2>
+      </div>
+      <p>
+        <strong>Anthos</strong> is Google Cloud's platform for managing applications across multiple
+        environments: on-premises data centers, Google Cloud, and other public clouds (AWS, Azure).
+        It provides a consistent development and operations experience everywhere.
+      </p>
+
+      <h3>Anthos Components</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Component</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Anthos on GKE</strong></td><td>Managed Kubernetes on Google Cloud (the foundation)</td></tr>
+          <tr><td><strong>Anthos on-premises</strong></td><td>Run GKE on your own hardware in your data center</td></tr>
+          <tr><td><strong>Anthos on AWS/Azure</strong></td><td>Attach and manage Kubernetes clusters on other clouds</td></tr>
+          <tr><td><strong>Anthos Service Mesh</strong></td><td>Managed Istio for service-to-service communication, security, and observability</td></tr>
+          <tr><td><strong>Anthos Config Management</strong></td><td>GitOps-based policy and configuration management across all clusters</td></tr>
+          <tr><td><strong>Migrate to Containers</strong></td><td>Automatically containerize VMs for migration to GKE</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Exam Tip</div>
+        <p>Anthos is the answer whenever the exam mentions <strong>hybrid cloud, multicloud, consistent management across environments</strong>, or running Kubernetes on-premises. It provides a "single pane of glass" for managing workloads everywhere.</p>
+      </div>
+
+      <h3>Hybrid Connectivity</h3>
+      <ul style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li><strong>Cloud VPN</strong> &mdash; Encrypted IPsec tunnel over the internet. Quick to set up, lower cost, but throughput limited by internet bandwidth.</li>
+        <li><strong>Cloud Interconnect (Dedicated)</strong> &mdash; Direct physical connection to Google's network. 10 or 100 Gbps. Lowest latency and highest throughput. Requires colocation facility.</li>
+        <li><strong>Cloud Interconnect (Partner)</strong> &mdash; Connection through a supported service provider. Lower bandwidth than dedicated but easier to set up.</li>
+      </ul>
+    </div>
+
+    <div class="section" id="exam-tips">
+      <div class="section-header">
+        <div class="section-num">8</div>
+        <h2>Exam Tips</h2>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-label">Exam Strategy</div>
+        <p>Section 4 (~17%) tests <strong>compute service selection</strong> and <strong>migration strategies</strong>. Know the difference between lift-and-shift (Compute Engine), containerize (GKE/Cloud Run), and serverless (Cloud Functions). Match the migration strategy (6 Rs) to the scenario.</p>
+      </div>
+
+      <h3>Quick Reference</h3>
+      <ul style="color:var(--text-secondary);margin:0 0 16px 24px;line-height:1.8;">
+        <li>"Move VMs to cloud without changes" &rarr; <strong>Rehost (Compute Engine)</strong></li>
+        <li>"Run containers without managing servers" &rarr; <strong>Cloud Run</strong></li>
+        <li>"Orchestrate 100s of microservices in containers" &rarr; <strong>GKE</strong></li>
+        <li>"Run same workloads on-prem and in cloud" &rarr; <strong>Anthos</strong></li>
+        <li>"Manage and secure APIs at enterprise scale" &rarr; <strong>Apigee</strong></li>
+        <li>"Connect on-prem to GCP with high bandwidth" &rarr; <strong>Cloud Interconnect</strong></li>
+        <li>"What is unique about Google Cloud VMs?" &rarr; <strong>Live migration (zero-downtime maintenance)</strong></li>
+      </ul>
+    </div>
+
+    <div class="next-section">
+      <a href="03-ai-ml.html" class="prev-btn">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10H5m4-4l-4 4 4 4"/></svg>
+        <div><div class="next-label">Previous</div>AI &amp; ML</div>
+      </a>
+      <a href="05-trust-security.html" class="next-btn">
+        <div><div class="next-label">Next Section</div>Trust &amp; Security</div>
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 10h10m-4-4l4 4-4 4"/></svg>
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <p>CareerAlign &mdash; Google Cloud Digital Leader Study Guide &mdash; Not affiliated with Google Cloud.</p>
+</footer>
+
+</body>
+</html>
