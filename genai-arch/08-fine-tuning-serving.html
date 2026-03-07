@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Fine-Tuning &amp; Serving — CareerAlign GenAI Architectures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #a855f7;
+  --page-color-04: rgba(168,85,247,0.04);
+  --page-color-07: rgba(168,85,247,0.07);
+  --page-color-12: rgba(168,85,247,0.12);
+  --page-color-15: rgba(168,85,247,0.15);
+  --page-color-25: rgba(168,85,247,0.25);
+  --page-color-30: rgba(168,85,247,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9881;&#65039; <span style="color:#a855f7;">GenAI</span> Architectures</div>
+  <div class="nav-links">
+    <a href="01-simple-chat-api.html">01</a>
+    <a href="02-conversational-chatbot.html">02</a>
+    <a href="03-rag-pipeline.html">03</a>
+    <a href="04-document-processing.html">04</a>
+    <a href="05-multi-model-router.html">05</a>
+    <a href="06-agentic-tool-use.html">06</a>
+    <a href="07-eval-guardrails.html">07</a>
+    <a href="08-fine-tuning-serving.html" class="active">08</a>
+    <a href="09-multi-agent.html">09</a>
+    <a href="10-production-platform.html">10</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; All Architectures</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">&#9889; Architecture 08 &middot; Advanced</div>
+  <h1>Fine-Tuning <em>&amp; Serving</em></h1>
+  <p class="hero-desc">
+    Fine-tune and deploy custom models tailored to your domain. Learn when prompt engineering hits its ceiling
+    and how to adapt a base model with your own data &mdash; from data preparation and LoRA training
+    through evaluation, registry management, A/B deployment, and continuous quality monitoring.
+  </p>
+  <div class="hero-checklist">
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Data Preparation</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> LoRA / QLoRA Training</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Model Evaluation</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> A/B Serving &amp; Monitoring</span>
+  </div>
+  <div style="margin-top:28px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/genai-arch/notebooks/08-fine-tuning-serving.ipynb" target="_blank" class="btn btn-primary" style="background:#a855f7;">Open Notebook in Colab &rarr;</a>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#overview" class="section">Architecture Overview</a>
+    <a href="#diagram" class="section">Architecture Diagram</a>
+    <a href="#components" class="section">Components Deep Dive</a>
+    <a href="#implementation" class="section">Implementation</a>
+    <a href="#dataflow" class="section">Data Flow</a>
+    <a href="#tradeoffs" class="section">Trade-offs</a>
+    <a href="#production" class="section">Production Checklist</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- 1. OVERVIEW -->
+    <div class="section" id="overview">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>Architecture Overview</h2>
+      </div>
+      <p>
+        The <strong>Fine-Tuning &amp; Serving</strong> architecture enables you to adapt a pre-trained foundation model
+        to your specific domain, style, or task. Instead of relying solely on prompt engineering, you modify the model's
+        weights using your own curated dataset &mdash; then deploy the customized model behind a high-performance serving
+        layer with A/B testing and drift monitoring.
+      </p>
+      <h3>When to Use</h3>
+      <ul>
+        <li>Prompt engineering and few-shot examples have plateaued in quality</li>
+        <li>You need consistent style, tone, or format that is hard to maintain via prompts alone</li>
+        <li>Domain-specific terminology or knowledge requires weight-level adaptation</li>
+        <li>You want to reduce inference cost by using a smaller, specialized model</li>
+        <li>Latency requirements demand a smaller model that still meets quality thresholds</li>
+      </ul>
+      <h3>Decision Guide: Fine-Tune vs. Prompt Engineer</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Signal</th><th>Prompt Engineering</th><th>Fine-Tuning</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Data available</td><td>&lt; 50 examples</td><td>500+ high-quality examples</td></tr>
+          <tr><td>Task complexity</td><td>Can be described in natural language</td><td>Requires pattern learning</td></tr>
+          <tr><td>Output consistency</td><td>Acceptable variation</td><td>Must follow rigid format</td></tr>
+          <tr><td>Iteration speed</td><td>Minutes (prompt edits)</td><td>Hours to days (training runs)</td></tr>
+          <tr><td>Cost at scale</td><td>Higher (long prompts)</td><td>Lower (shorter prompts, smaller model)</td></tr>
+          <tr><td>Maintenance</td><td>Version control prompts</td><td>Retrain on new data periodically</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip">
+        <div class="callout-label">Tip</div>
+        <p>Always start with prompt engineering. Only move to fine-tuning when you have strong evidence that prompts cannot achieve the required quality, and you have a robust evaluation pipeline to measure improvement.</p>
+      </div>
+    </div>
+
+    <!-- 2. DIAGRAM -->
+    <div class="section" id="diagram">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Architecture Diagram</h2>
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 800 400" class="learning-path-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow8" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+            </marker>
+            <marker id="arrow8r" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#a855f7"/>
+            </marker>
+          </defs>
+
+          <!-- Training Data -->
+          <rect x="15" y="140" width="100" height="70" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="65" y="170" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Training</text>
+          <text x="65" y="188" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Data</text>
+
+          <!-- Arrow to Prepare -->
+          <line x1="115" y1="175" x2="145" y2="175" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow8)"/>
+
+          <!-- Prepare -->
+          <rect x="155" y="130" width="105" height="90" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="207" y="158" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Prepare</text>
+          <text x="207" y="176" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">format, filter</text>
+          <text x="207" y="190" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">validate, dedup</text>
+
+          <!-- Arrow to Fine-Tune -->
+          <line x1="260" y1="175" x2="290" y2="175" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow8)"/>
+
+          <!-- Fine-Tune Engine -->
+          <rect x="300" y="115" width="130" height="120" rx="8" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="365" y="142" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Fine-Tune</text>
+          <text x="365" y="158" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Engine</text>
+          <text x="365" y="180" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="10">Base Model</text>
+          <text x="365" y="196" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="10">+ LoRA Adapter</text>
+          <text x="365" y="214" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">epochs, lr, rank</text>
+
+          <!-- Arrow to Evaluate -->
+          <line x1="430" y1="175" x2="460" y2="175" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow8)"/>
+
+          <!-- Evaluate -->
+          <rect x="470" y="135" width="100" height="80" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="520" y="163" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Evaluate</text>
+          <text x="520" y="180" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">metrics, human</text>
+          <text x="520" y="194" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">eval, benchmarks</text>
+
+          <!-- Arrow to Deploy -->
+          <line x1="570" y1="175" x2="600" y2="175" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow8)"/>
+
+          <!-- Deploy / Serving Block -->
+          <rect x="610" y="90" width="170" height="170" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="695" y="115" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Deploy &amp; Serve</text>
+
+          <!-- Model Registry sub-box -->
+          <rect x="625" y="125" width="140" height="30" rx="6" fill="#10131e" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="695" y="145" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="10">Model Registry</text>
+
+          <!-- Model A -->
+          <rect x="625" y="165" width="62" height="35" rx="6" fill="#10131e" stroke="#232840" stroke-width="1.5"/>
+          <text x="656" y="180" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="11" font-weight="600">Model A</text>
+          <text x="656" y="193" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">90%</text>
+
+          <!-- Model B -->
+          <rect x="703" y="165" width="62" height="35" rx="6" fill="#10131e" stroke="#232840" stroke-width="1.5"/>
+          <text x="734" y="180" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="11" font-weight="600">Model B</text>
+          <text x="734" y="193" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">10%</text>
+
+          <!-- A/B label -->
+          <text x="695" y="220" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">A/B Traffic Split</text>
+
+          <!-- Arrow down to Monitor -->
+          <line x1="695" y1="260" x2="695" y2="300" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow8)"/>
+
+          <!-- Monitor -->
+          <rect x="635" y="310" width="120" height="55" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="695" y="335" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Monitor</text>
+          <text x="695" y="352" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">quality drift, latency</text>
+
+          <!-- Drift loop arrow back to Prepare -->
+          <path d="M 635 337 L 207 337 L 207 220" fill="none" stroke="#a855f7" stroke-width="2" marker-end="url(#arrow8r)" stroke-dasharray="6,4"/>
+          <text x="420" y="355" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="10">drift detected &rarr; retrain</text>
+
+          <!-- Title label -->
+          <text x="400" y="30" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="16" font-weight="700">Fine-Tuning &amp; Serving Pipeline</text>
+          <text x="400" y="50" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">End-to-end: data prep &rarr; train &rarr; evaluate &rarr; deploy &rarr; monitor &rarr; retrain</text>
+        </svg>
+        <p class="diagram-caption">Architecture diagram &mdash; Fine-Tuning &amp; Serving: data preparation through deployment with drift-driven retraining loop</p>
+      </div>
+    </div>
+
+    <!-- 3. COMPONENTS -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Components Deep Dive</h2>
+      </div>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128451;</div>
+            <h4>Data Preparation</h4>
+          </div>
+          <p>Convert raw data into JSONL instruction/response pairs. Apply quality filtering, deduplication, length balancing, and train/validation splitting. Data quality is the single largest factor in fine-tuning success.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9881;</div>
+            <h4>Fine-Tuning Methods</h4>
+          </div>
+          <p>Choose between full fine-tuning (all weights), LoRA (low-rank adapters on attention layers), QLoRA (quantized LoRA for lower memory), or prefix tuning. LoRA is the default choice for most use cases.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128202;</div>
+            <h4>Evaluation Pipeline</h4>
+          </div>
+          <p>Combine automated metrics (loss, perplexity, BLEU/ROUGE) with held-out test sets and human evaluation. A model that scores well on metrics but fails human review is not ready for production.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128640;</div>
+            <h4>Serving Infrastructure</h4>
+          </div>
+          <p>Deploy with optimized inference engines: vLLM (PagedAttention, continuous batching), TGI (HuggingFace), or Triton (NVIDIA). Each offers different trade-offs in throughput, latency, and hardware support.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9878;</div>
+            <h4>A/B Testing</h4>
+          </div>
+          <p>Route traffic between model versions using weighted splits. Compare quality metrics, latency, and user satisfaction scores. Gradually ramp new models from 5% to 100% as confidence grows.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128208;</div>
+            <h4>Model Registry</h4>
+          </div>
+          <p>Version every model artifact with metadata: training config, dataset hash, evaluation scores, and lineage. Enables instant rollback and reproducibility. Use MLflow, Weights &amp; Biases, or cloud-native registries.</p>
+        </div>
+      </div>
+
+      <h3>Fine-Tuning Methods Comparison</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Method</th><th>Trainable Params</th><th>GPU Memory</th><th>Quality</th><th>Best For</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Full Fine-Tuning</td><td>100%</td><td>Very High (4x model size)</td><td>Highest</td><td>Unlimited compute, maximum quality</td></tr>
+          <tr><td>LoRA</td><td>0.1 &ndash; 1%</td><td>Low (1.1x model size)</td><td>Near-full</td><td>Most production use cases</td></tr>
+          <tr><td>QLoRA</td><td>0.1 &ndash; 1%</td><td>Very Low (0.5x)</td><td>Good</td><td>Limited GPU memory, prototyping</td></tr>
+          <tr><td>Prefix Tuning</td><td>&lt; 0.1%</td><td>Minimal</td><td>Moderate</td><td>Simple style/format adaptation</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Key Hyperparameters</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Parameter</th><th>Typical Range</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Learning Rate</td><td>1e-5 &ndash; 2e-4</td><td>Lower for larger models; use cosine scheduler</td></tr>
+          <tr><td>Epochs</td><td>1 &ndash; 5</td><td>More epochs risk overfitting; monitor val loss</td></tr>
+          <tr><td>LoRA Rank (r)</td><td>4 &ndash; 64</td><td>Higher rank = more capacity but more params</td></tr>
+          <tr><td>LoRA Alpha</td><td>16 &ndash; 128</td><td>Usually 2x rank; controls scaling</td></tr>
+          <tr><td>Batch Size</td><td>4 &ndash; 32</td><td>Use gradient accumulation if GPU-limited</td></tr>
+          <tr><td>Warmup Ratio</td><td>0.03 &ndash; 0.1</td><td>Gradual learning rate increase</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 4. IMPLEMENTATION -->
+    <div class="section" id="implementation">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Implementation</h2>
+      </div>
+
+      <h3>Data Preparation Pipeline</h3>
+<pre><code><span class="code-keyword">import</span> json
+<span class="code-keyword">import</span> hashlib
+<span class="code-keyword">from</span> pathlib <span class="code-keyword">import</span> Path
+
+<span class="code-keyword">def</span> <span class="code-fn">prepare_dataset</span>(raw_path: <span class="code-fn">str</span>, output_path: <span class="code-fn">str</span>, max_len: <span class="code-fn">int</span> = <span class="code-num">2048</span>):
+    <span class="code-string">"""Convert raw data to JSONL, filter, and deduplicate."""</span>
+    seen_hashes = <span class="code-fn">set</span>()
+    valid, skipped = <span class="code-num">0</span>, <span class="code-num">0</span>
+
+    <span class="code-keyword">with</span> <span class="code-fn">open</span>(raw_path) <span class="code-keyword">as</span> f_in, <span class="code-fn">open</span>(output_path, <span class="code-string">"w"</span>) <span class="code-keyword">as</span> f_out:
+        <span class="code-keyword">for</span> line <span class="code-keyword">in</span> f_in:
+            row = json.loads(line)
+
+            <span class="code-comment"># Validate required fields</span>
+            <span class="code-keyword">if not</span> row.get(<span class="code-string">"instruction"</span>) <span class="code-keyword">or not</span> row.get(<span class="code-string">"response"</span>):
+                skipped += <span class="code-num">1</span>
+                <span class="code-keyword">continue</span>
+
+            <span class="code-comment"># Length filter</span>
+            total_len = <span class="code-fn">len</span>(row[<span class="code-string">"instruction"</span>]) + <span class="code-fn">len</span>(row[<span class="code-string">"response"</span>])
+            <span class="code-keyword">if</span> total_len > max_len <span class="code-keyword">or</span> total_len < <span class="code-num">20</span>:
+                skipped += <span class="code-num">1</span>
+                <span class="code-keyword">continue</span>
+
+            <span class="code-comment"># Deduplicate by content hash</span>
+            content_hash = hashlib.md5(
+                (row[<span class="code-string">"instruction"</span>] + row[<span class="code-string">"response"</span>]).encode()
+            ).hexdigest()
+            <span class="code-keyword">if</span> content_hash <span class="code-keyword">in</span> seen_hashes:
+                skipped += <span class="code-num">1</span>
+                <span class="code-keyword">continue</span>
+            seen_hashes.add(content_hash)
+
+            <span class="code-comment"># Format as chat messages</span>
+            formatted = {
+                <span class="code-string">"messages"</span>: [
+                    {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: row[<span class="code-string">"instruction"</span>]},
+                    {<span class="code-string">"role"</span>: <span class="code-string">"assistant"</span>, <span class="code-string">"content"</span>: row[<span class="code-string">"response"</span>]},
+                ]
+            }
+            f_out.write(json.dumps(formatted) + <span class="code-string">"\n"</span>)
+            valid += <span class="code-num">1</span>
+
+    <span class="code-fn">print</span>(<span class="code-string">f"Prepared {valid} examples, skipped {skipped}"</span>)
+    <span class="code-keyword">return</span> valid
+</code></pre>
+
+      <h3>LoRA Training Configuration</h3>
+<pre><code><span class="code-keyword">from</span> peft <span class="code-keyword">import</span> LoraConfig, get_peft_model, TaskType
+<span class="code-keyword">from</span> transformers <span class="code-keyword">import</span> (
+    AutoModelForCausalLM, AutoTokenizer,
+    TrainingArguments, Trainer
+)
+
+<span class="code-comment"># Load base model</span>
+model_name = <span class="code-string">"meta-llama/Llama-3.1-8B-Instruct"</span>
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    torch_dtype=<span class="code-string">"bfloat16"</span>,
+    device_map=<span class="code-string">"auto"</span>,
+)
+
+<span class="code-comment"># Configure LoRA</span>
+lora_config = LoraConfig(
+    task_type=TaskType.CAUSAL_LM,
+    r=<span class="code-num">16</span>,                     <span class="code-comment"># rank</span>
+    lora_alpha=<span class="code-num">32</span>,             <span class="code-comment"># scaling factor</span>
+    lora_dropout=<span class="code-num">0.05</span>,
+    target_modules=[<span class="code-string">"q_proj"</span>, <span class="code-string">"k_proj"</span>, <span class="code-string">"v_proj"</span>, <span class="code-string">"o_proj"</span>],
+    bias=<span class="code-string">"none"</span>,
+)
+model = get_peft_model(model, lora_config)
+model.print_trainable_parameters()
+<span class="code-comment"># trainable params: 6,553,600 || all params: 8,030,261,248 || 0.08%</span>
+
+<span class="code-comment"># Training arguments</span>
+training_args = TrainingArguments(
+    output_dir=<span class="code-string">"./ft-output"</span>,
+    num_train_epochs=<span class="code-num">3</span>,
+    per_device_train_batch_size=<span class="code-num">4</span>,
+    gradient_accumulation_steps=<span class="code-num">8</span>,
+    learning_rate=<span class="code-num">2e-4</span>,
+    lr_scheduler_type=<span class="code-string">"cosine"</span>,
+    warmup_ratio=<span class="code-num">0.05</span>,
+    bf16=<span class="code-keyword">True</span>,
+    logging_steps=<span class="code-num">10</span>,
+    eval_strategy=<span class="code-string">"steps"</span>,
+    eval_steps=<span class="code-num">50</span>,
+    save_strategy=<span class="code-string">"steps"</span>,
+    save_steps=<span class="code-num">100</span>,
+    report_to=<span class="code-string">"wandb"</span>,
+)
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=eval_dataset,
+    tokenizer=tokenizer,
+)
+trainer.train()
+</code></pre>
+
+      <h3>vLLM Serving Setup</h3>
+<pre><code><span class="code-comment"># Launch vLLM server with LoRA adapter</span>
+<span class="code-comment"># Command line:</span>
+<span class="code-comment"># python -m vllm.entrypoints.openai.api_server \</span>
+<span class="code-comment">#   --model meta-llama/Llama-3.1-8B-Instruct \</span>
+<span class="code-comment">#   --enable-lora \</span>
+<span class="code-comment">#   --lora-modules my-adapter=./ft-output/adapter \</span>
+<span class="code-comment">#   --max-loras 4 \</span>
+<span class="code-comment">#   --port 8000</span>
+
+<span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+
+<span class="code-comment"># Client code (vLLM is OpenAI-compatible)</span>
+client = OpenAI(base_url=<span class="code-string">"http://localhost:8000/v1"</span>, api_key=<span class="code-string">"na"</span>)
+
+<span class="code-keyword">def</span> <span class="code-fn">query_fine_tuned</span>(prompt: <span class="code-fn">str</span>, model: <span class="code-fn">str</span> = <span class="code-string">"my-adapter"</span>) -> <span class="code-fn">str</span>:
+    <span class="code-string">"""Query the fine-tuned model via vLLM."""</span>
+    response = client.chat.completions.create(
+        model=model,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: prompt}],
+        max_tokens=<span class="code-num">512</span>,
+        temperature=<span class="code-num">0.3</span>,
+    )
+    <span class="code-keyword">return</span> response.choices[<span class="code-num">0</span>].message.content
+
+<span class="code-comment"># A/B traffic routing</span>
+<span class="code-keyword">import</span> random
+
+<span class="code-keyword">def</span> <span class="code-fn">ab_route</span>(prompt: <span class="code-fn">str</span>, new_model_pct: <span class="code-fn">float</span> = <span class="code-num">0.1</span>) -> <span class="code-fn">str</span>:
+    <span class="code-string">"""Route traffic between model versions."""</span>
+    model = <span class="code-string">"my-adapter-v2"</span> <span class="code-keyword">if</span> random.random() < new_model_pct <span class="code-keyword">else</span> <span class="code-string">"my-adapter-v1"</span>
+    result = query_fine_tuned(prompt, model=model)
+    <span class="code-comment"># Log which model served the request for analysis</span>
+    log_ab_result(prompt, model, result)
+    <span class="code-keyword">return</span> result
+</code></pre>
+    </div>
+
+    <!-- 5. DATA FLOW -->
+    <div class="section" id="dataflow">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Data Flow</h2>
+      </div>
+      <p>Here is the step-by-step flow through the Fine-Tuning &amp; Serving pipeline:</p>
+      <ul class="checklist">
+        <li><span class="check-box done"></span><strong>1. Collect training data</strong> &mdash; Gather instruction/response pairs from production logs, human annotators, or synthetic generation</li>
+        <li><span class="check-box done"></span><strong>2. Prepare &amp; validate</strong> &mdash; Convert to JSONL, filter by quality/length, deduplicate, split into train/validation/test sets (80/10/10)</li>
+        <li><span class="check-box done"></span><strong>3. Configure training</strong> &mdash; Select base model, LoRA rank, learning rate, epochs; set up experiment tracking (W&amp;B, MLflow)</li>
+        <li><span class="check-box done"></span><strong>4. Fine-tune</strong> &mdash; Train with LoRA adapters; monitor training/validation loss for convergence and overfitting</li>
+        <li><span class="check-box done"></span><strong>5. Evaluate</strong> &mdash; Run held-out test set, compute automated metrics, conduct human evaluation on 50-100 sample outputs</li>
+        <li><span class="check-box done"></span><strong>6. Register model</strong> &mdash; Push adapter weights + metadata (dataset version, scores, config) to model registry</li>
+        <li><span class="check-box done"></span><strong>7. Deploy with A/B split</strong> &mdash; Start new model at 5-10% traffic; compare quality and latency against production baseline</li>
+        <li><span class="check-box done"></span><strong>8. Monitor &amp; iterate</strong> &mdash; Track quality drift, latency p99, error rates; trigger retraining when metrics degrade</li>
+      </ul>
+    </div>
+
+    <!-- 6. TRADE-OFFS -->
+    <div class="section" id="tradeoffs">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Trade-offs &amp; Considerations</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Advantage</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Domain-specific quality improvements</td><td>Requires curated, high-quality training data</td></tr>
+          <tr><td>Reduced inference cost (smaller model, shorter prompts)</td><td>Training compute and GPU costs</td></tr>
+          <tr><td>Consistent output style and format</td><td>Risk of catastrophic forgetting on general tasks</td></tr>
+          <tr><td>Lower latency with smaller specialized models</td><td>Ongoing maintenance: retraining on new data</td></tr>
+          <tr><td>Intellectual property stays in your adapter weights</td><td>Harder to debug than prompt-based approaches</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Serving Infrastructure Comparison</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Engine</th><th>Strengths</th><th>Best For</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>vLLM</td><td>PagedAttention, continuous batching, multi-LoRA</td><td>High-throughput production serving</td></tr>
+          <tr><td>TGI (HuggingFace)</td><td>Easy setup, HF ecosystem integration</td><td>Quick deployment, HF model hub</td></tr>
+          <tr><td>Triton (NVIDIA)</td><td>Multi-framework, ensemble pipelines</td><td>Complex ML pipelines, NVIDIA GPUs</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">When to upgrade</div>
+        <p>If you need multiple specialized models collaborating on complex tasks, move to Architecture 09 (Multi-Agent). If you need a full platform with model management, routing, and observability, see Architecture 10 (Production Platform).</p>
+      </div>
+    </div>
+
+    <!-- 7. PRODUCTION CHECKLIST -->
+    <div class="section" id="production">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Production Checklist</h2>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Data quality pipeline: automated filtering, deduplication, and validation on every training run</li>
+        <li><span class="check-box"></span>Dataset versioning with hash-based tracking (DVC, LakeFS, or cloud storage versioning)</li>
+        <li><span class="check-box"></span>Experiment tracking: log all hyperparameters, metrics, and artifacts (W&amp;B, MLflow)</li>
+        <li><span class="check-box"></span>Evaluation gate: model must pass automated + human eval thresholds before deployment</li>
+        <li><span class="check-box"></span>Model registry with rollback capability (tag: production, staging, deprecated)</li>
+        <li><span class="check-box"></span>A/B testing framework with statistical significance checks before full rollout</li>
+        <li><span class="check-box"></span>Serving infrastructure with auto-scaling, health checks, and graceful draining</li>
+        <li><span class="check-box"></span>Quality drift monitoring: periodic evaluation on held-out set, alert on regression</li>
+        <li><span class="check-box"></span>Cost tracking per training run and per-inference cost comparison across model versions</li>
+        <li><span class="check-box"></span>Automated retraining pipeline triggered by drift alerts or scheduled cadence</li>
+        <li><span class="check-box"></span>Security: model weights encrypted at rest, access-controlled registry, audit logs</li>
+        <li><span class="check-box"></span>Disaster recovery: model artifacts backed up, serving can cold-start from registry</li>
+      </ul>
+    </div>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Architecture</div>
+        <a href="07-eval-guardrails.html" class="next-btn">&larr; 07 &middot; Eval &amp; Guardrails</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Architecture</div>
+        <a href="09-multi-agent.html" class="next-btn">09 &middot; Multi-Agent Systems &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  CareerAlign.com &middot; GenAI Reference Architectures &middot;
+  <a href="index.html">All Architectures</a>
+</footer>
+
+</body>
+</html>

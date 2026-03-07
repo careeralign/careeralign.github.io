@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Production Platform — CareerAlign GenAI Architectures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #a855f7;
+  --page-color-04: rgba(168,85,247,0.04);
+  --page-color-07: rgba(168,85,247,0.07);
+  --page-color-12: rgba(168,85,247,0.12);
+  --page-color-15: rgba(168,85,247,0.15);
+  --page-color-25: rgba(168,85,247,0.25);
+  --page-color-30: rgba(168,85,247,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9881;&#65039; <span style="color:#a855f7;">GenAI</span> Architectures</div>
+  <div class="nav-links">
+    <a href="01-simple-chat-api.html">01</a>
+    <a href="02-conversational-chatbot.html">02</a>
+    <a href="03-rag-pipeline.html">03</a>
+    <a href="04-document-processing.html">04</a>
+    <a href="05-multi-model-router.html">05</a>
+    <a href="06-agentic-tool-use.html">06</a>
+    <a href="07-eval-guardrails.html">07</a>
+    <a href="08-fine-tuning-serving.html">08</a>
+    <a href="09-multi-agent.html">09</a>
+    <a href="10-production-platform.html" class="active">10</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; All Architectures</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">&#9889; Architecture 10 &middot; Advanced &middot; Capstone</div>
+  <h1>Production <em>Platform</em></h1>
+  <p class="hero-desc">
+    The capstone architecture: an end-to-end enterprise GenAI platform that unifies every pattern from this series.
+    API gateway with auth and rate limiting, intelligent request routing, RAG and agent pipelines,
+    multi-model pool, guardrails, semantic caching, observability, cost tracking, and compliance &mdash;
+    all wired together into a production-grade system.
+  </p>
+  <div class="hero-checklist">
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> API Gateway &amp; Auth</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Semantic Caching</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Observability &amp; Tracing</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Cost Tracking</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Multi-Model Routing</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Compliance &amp; Audit</span>
+  </div>
+  <div style="margin-top:28px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/genai-arch/notebooks/10-production-platform.ipynb" target="_blank" class="btn btn-primary" style="background:#a855f7;">Open Notebook in Colab &rarr;</a>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#overview" class="section">Architecture Overview</a>
+    <a href="#diagram" class="section">Architecture Diagram</a>
+    <a href="#components" class="section">Components Deep Dive</a>
+    <a href="#implementation" class="section">Implementation</a>
+    <a href="#dataflow" class="section">Data Flow</a>
+    <a href="#tradeoffs" class="section">Trade-offs</a>
+    <a href="#production" class="section">Production Checklist</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- 1. OVERVIEW -->
+    <div class="section" id="overview">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>Architecture Overview</h2>
+      </div>
+      <p>
+        The <strong>Production Platform</strong> is the capstone architecture that combines every pattern from this
+        series into a unified, enterprise-grade GenAI system. It provides a single entry point (API gateway) that
+        authenticates requests, enforces rate limits, routes to the appropriate pipeline (RAG, agent, or direct LLM),
+        applies guardrails, caches responses, tracks costs, and logs everything for observability and compliance.
+      </p>
+      <p>
+        This is not a single application &mdash; it is an <strong>internal platform</strong> that enables multiple teams
+        to build GenAI features without each team reinventing infrastructure. Think of it as the "GenAI operating system"
+        for your organization.
+      </p>
+      <h3>When to Use</h3>
+      <ul>
+        <li>Multiple teams or products need GenAI capabilities with shared infrastructure</li>
+        <li>You need centralized cost tracking, security, and compliance across all GenAI usage</li>
+        <li>Different use cases require different pipelines (RAG, agents, fine-tuned models) behind one API</li>
+        <li>Enterprise requirements: audit logging, data retention policies, multi-tenant isolation</li>
+        <li>You want to experiment with models and pipelines using feature flags without code changes</li>
+      </ul>
+      <h3>Complexity Level</h3>
+      <p>
+        <strong>Very High.</strong> This is a platform, not an application. It requires dedicated infrastructure
+        engineering, DevOps, and ongoing operational investment. Only build this when you have 3+ teams consuming
+        GenAI and the operational overhead of per-team infrastructure exceeds the cost of a shared platform.
+      </p>
+      <div class="callout tip">
+        <div class="callout-label">Build vs Buy</div>
+        <p>Before building a full platform, evaluate managed options: AWS Bedrock, GCP Vertex AI, Azure AI Studio, or startups like Portkey, LiteLLM, and Helicone. A hybrid approach &mdash; managed LLM gateway + custom business logic &mdash; is often the fastest path to production.</p>
+      </div>
+    </div>
+
+    <!-- 2. DIAGRAM -->
+    <div class="section" id="diagram">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Architecture Diagram</h2>
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 800 500" class="learning-path-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow10" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+            </marker>
+            <marker id="arrow10p" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#a855f7"/>
+            </marker>
+          </defs>
+
+          <!-- ===== TOP ROW: Client -> Gateway -> Router ===== -->
+
+          <!-- Client Apps -->
+          <rect x="10" y="50" width="90" height="60" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="55" y="75" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">Client</text>
+          <text x="55" y="92" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">Apps</text>
+
+          <!-- Arrow Client to Gateway -->
+          <line x1="100" y1="80" x2="130" y2="80" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow10)"/>
+
+          <!-- API Gateway -->
+          <rect x="140" y="38" width="140" height="85" rx="8" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="210" y="60" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">API Gateway</text>
+          <text x="210" y="78" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="9">Auth / JWT</text>
+          <text x="210" y="92" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">Rate Limit</text>
+          <text x="210" y="106" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">Validation / Cache Check</text>
+
+          <!-- Arrow Gateway to Router -->
+          <line x1="280" y1="80" x2="320" y2="80" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow10)"/>
+
+          <!-- Request Router -->
+          <rect x="330" y="48" width="110" height="65" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="385" y="72" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Request</text>
+          <text x="385" y="90" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Router</text>
+          <text x="385" y="106" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">feature flags</text>
+
+          <!-- ===== MIDDLE ROW: Three Pipelines ===== -->
+
+          <!-- Arrow Router to RAG -->
+          <line x1="385" y1="113" x2="385" y2="148" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow10)"/>
+          <line x1="350" y1="113" x2="250" y2="148" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow10)"/>
+          <line x1="420" y1="113" x2="530" y2="148" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow10)"/>
+
+          <!-- RAG Pipeline -->
+          <rect x="195" y="155" width="110" height="65" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="250" y="178" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">RAG Pipeline</text>
+          <text x="250" y="195" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">embed, retrieve</text>
+          <text x="250" y="209" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">rerank, augment</text>
+
+          <!-- Agent Pipeline -->
+          <rect x="330" y="155" width="110" height="65" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="385" y="178" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">Agent Pipeline</text>
+          <text x="385" y="195" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">plan, tools</text>
+          <text x="385" y="209" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">multi-agent</text>
+
+          <!-- Direct LLM -->
+          <rect x="475" y="155" width="110" height="65" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="530" y="178" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">Direct LLM</text>
+          <text x="530" y="195" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">chat, completion</text>
+          <text x="530" y="209" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">fine-tuned models</text>
+
+          <!-- All three feed into LLM Pool -->
+          <line x1="250" y1="220" x2="385" y2="250" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrow10)"/>
+          <line x1="385" y1="220" x2="385" y2="250" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrow10)"/>
+          <line x1="530" y1="220" x2="385" y2="250" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrow10)"/>
+
+          <!-- LLM Pool -->
+          <rect x="310" y="255" width="150" height="70" rx="8" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="385" y="278" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">LLM Pool</text>
+          <text x="345" y="298" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="9">GPT-4o</text>
+          <text x="385" y="298" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="9">Claude</text>
+          <text x="425" y="298" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="9">Llama</text>
+          <text x="385" y="314" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">fallback chains</text>
+
+          <!-- Arrow LLM Pool to Guardrails -->
+          <line x1="460" y1="290" x2="510" y2="290" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow10)"/>
+
+          <!-- Guardrails -->
+          <rect x="520" y="260" width="95" height="60" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="567" y="283" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">Guardrails</text>
+          <text x="567" y="298" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">PII, toxicity</text>
+          <text x="567" y="311" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">format check</text>
+
+          <!-- Arrow Guardrails to Response Cache -->
+          <line x1="615" y1="290" x2="645" y2="290" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow10)"/>
+
+          <!-- Response Cache -->
+          <rect x="655" y="260" width="95" height="60" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="702" y="283" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">Response</text>
+          <text x="702" y="298" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">Cache</text>
+          <text x="702" y="311" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">semantic match</text>
+
+          <!-- Arrow Response Cache back to Client -->
+          <path d="M 702 260 L 702 30 L 55 30 L 55 50" fill="none" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow10)" stroke-dasharray="6,4"/>
+          <text x="380" y="22" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">response</text>
+
+          <!-- ===== BOTTOM ROW: Infrastructure ===== -->
+
+          <!-- Vector DB -->
+          <rect x="50" y="380" width="95" height="50" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="97" y="402" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="11" font-weight="600">Vector DB</text>
+          <text x="97" y="418" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">Pinecone / Qdrant</text>
+          <!-- Connection to RAG -->
+          <line x1="145" y1="395" x2="220" y2="220" stroke="#a855f7" stroke-width="1" stroke-dasharray="4,3"/>
+
+          <!-- Tool Registry -->
+          <rect x="170" y="380" width="95" height="50" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="217" y="402" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="11" font-weight="600">Tool Registry</text>
+          <text x="217" y="418" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">APIs, functions</text>
+          <!-- Connection to Agent -->
+          <line x1="265" y1="395" x2="360" y2="220" stroke="#a855f7" stroke-width="1" stroke-dasharray="4,3"/>
+
+          <!-- Model Registry -->
+          <rect x="290" y="380" width="95" height="50" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="337" y="402" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="11" font-weight="600">Model Registry</text>
+          <text x="337" y="418" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">versions, adapters</text>
+          <!-- Connection to LLM Pool -->
+          <line x1="370" y1="380" x2="375" y2="325" stroke="#a855f7" stroke-width="1" stroke-dasharray="4,3"/>
+
+          <!-- Fine-Tune Pipeline -->
+          <rect x="410" y="380" width="100" height="50" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="460" y="402" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="11" font-weight="600">Fine-Tune</text>
+          <text x="460" y="418" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">LoRA, eval, deploy</text>
+          <!-- Connection to Model Registry -->
+          <line x1="420" y1="395" x2="385" y2="395" stroke="#a855f7" stroke-width="1" stroke-dasharray="4,3"/>
+
+          <!-- ===== RIGHT SIDE: Observability ===== -->
+
+          <!-- Observability Stack -->
+          <rect x="660" y="370" width="120" height="80" rx="8" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="720" y="392" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">Observability</text>
+          <text x="720" y="410" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="9">Logs / Metrics</text>
+          <text x="720" y="424" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="9">Traces / Alerts</text>
+          <text x="720" y="440" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">OpenTelemetry</text>
+
+          <!-- Cost Tracker (left of observability) -->
+          <rect x="545" y="390" width="95" height="45" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="592" y="410" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="11" font-weight="600">Cost Tracker</text>
+          <text x="592" y="425" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">per team / project</text>
+
+          <!-- Connection lines from Observability to main pipeline -->
+          <line x1="720" y1="370" x2="702" y2="320" stroke="#a855f7" stroke-width="1" stroke-dasharray="4,3"/>
+          <line x1="690" y1="370" x2="567" y2="320" stroke="#a855f7" stroke-width="1" stroke-dasharray="4,3"/>
+
+          <!-- Labels -->
+          <text x="400" y="360" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10" font-style="italic">Infrastructure Layer</text>
+          <text x="400" y="145" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10" font-style="italic">Pipeline Layer</text>
+        </svg>
+        <p class="diagram-caption">Architecture diagram &mdash; Production Platform: end-to-end enterprise GenAI system with gateway, routing, pipelines, model pool, guardrails, caching, and observability</p>
+      </div>
+    </div>
+
+    <!-- 3. COMPONENTS -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Components Deep Dive</h2>
+      </div>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128737;</div>
+            <h4>API Gateway</h4>
+          </div>
+          <p>Single entry point for all GenAI requests. Handles JWT authentication, API key management, per-user/per-team rate limiting, request validation (size, format, content policy), and initial semantic cache lookup. Built with FastAPI, Kong, or AWS API Gateway.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128268;</div>
+            <h4>Request Router</h4>
+          </div>
+          <p>Classifies incoming requests and routes to the appropriate pipeline: RAG for knowledge-grounded queries, Agent for multi-step tool-use tasks, Direct LLM for simple completions. Uses feature flags (LaunchDarkly, Unleash) for model/pipeline experiments.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128218;</div>
+            <h4>Semantic Cache</h4>
+          </div>
+          <p>Embeds the request and searches for semantically similar past queries. If a cached response is found above a similarity threshold (e.g., cosine &gt; 0.95), returns it instantly &mdash; saving LLM cost and latency. Cache TTL and invalidation per use case.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9881;</div>
+            <h4>LLM Pool</h4>
+          </div>
+          <p>Manages connections to multiple LLM providers (Anthropic, OpenAI, self-hosted). Implements fallback chains: if Claude times out, try GPT-4o; if that fails, use a local Llama model. Tracks availability and latency per provider.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128176;</div>
+            <h4>Cost Tracker</h4>
+          </div>
+          <p>Tracks token usage and cost per team, project, and user. Enforces budgets with soft alerts (80% threshold) and hard limits (block requests). Generates daily/weekly cost reports. Essential for multi-tenant platforms.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128200;</div>
+            <h4>Observability Stack</h4>
+          </div>
+          <p>OpenTelemetry-based distributed tracing across all components. Structured JSON logging with request IDs, latency, token counts, and model versions. Prometheus metrics for dashboards. PagerDuty/Slack alerts for anomalies.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128274;</div>
+            <h4>Guardrails Layer</h4>
+          </div>
+          <p>Output validation on every response: PII detection and redaction, toxicity scoring, format validation, hallucination checks against source documents. Configurable per use case &mdash; stricter for customer-facing, relaxed for internal tools.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128203;</div>
+            <h4>Compliance &amp; Audit</h4>
+          </div>
+          <p>Immutable audit logs for every request/response. Data retention policies per regulation (GDPR, HIPAA, SOC2). Tenant isolation ensuring no data leakage between teams. Model governance with approval workflows.</p>
+        </div>
+      </div>
+
+      <h3>Multi-Tenant Isolation</h3>
+      <p>
+        In a shared platform, each team must be isolated. This means separate API keys, independent rate limits,
+        dedicated cost budgets, isolated vector DB namespaces, and no cross-tenant data leakage in logs or caches.
+        The most common approach is namespace-based isolation with strict access controls at the gateway layer.
+      </p>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Isolation Layer</th><th>Implementation</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Authentication</td><td>JWT with team/project claims</td><td>Identity and authorization</td></tr>
+          <tr><td>Rate Limiting</td><td>Per-team token buckets (Redis)</td><td>Fair resource sharing</td></tr>
+          <tr><td>Cost Budgets</td><td>Per-team monthly caps</td><td>Cost control</td></tr>
+          <tr><td>Vector DB</td><td>Namespace per team/project</td><td>Data isolation</td></tr>
+          <tr><td>Cache</td><td>Team-prefixed cache keys</td><td>No cross-tenant cache hits</td></tr>
+          <tr><td>Logs</td><td>Team ID in every log entry</td><td>Audit and debugging</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Fallback Chains</h3>
+      <p>
+        Production systems must handle provider outages gracefully. Define fallback chains per use case:
+      </p>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Use Case</th><th>Primary</th><th>Fallback 1</th><th>Fallback 2</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Customer chat</td><td>Claude Sonnet</td><td>GPT-4o</td><td>Claude Haiku</td></tr>
+          <tr><td>Code generation</td><td>Claude Sonnet</td><td>GPT-4o</td><td>Llama 3.1 70B</td></tr>
+          <tr><td>Summarization</td><td>Claude Haiku</td><td>GPT-4o-mini</td><td>Llama 3.1 8B</td></tr>
+          <tr><td>RAG + analysis</td><td>Claude Sonnet</td><td>GPT-4o</td><td>Queue + retry</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Deployment Strategies</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Strategy</th><th>How It Works</th><th>Risk Level</th><th>Rollback Speed</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Blue-Green</td><td>Two identical environments; switch DNS</td><td>Low (instant rollback)</td><td>Seconds</td></tr>
+          <tr><td>Canary</td><td>Route 5% traffic to new version, ramp up</td><td>Very Low</td><td>Seconds</td></tr>
+          <tr><td>Feature Flags</td><td>Enable new model/pipeline per user/team</td><td>Minimal</td><td>Instant</td></tr>
+          <tr><td>Shadow Mode</td><td>New version runs in parallel, results compared but not served</td><td>Zero</td><td>N/A</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 4. IMPLEMENTATION -->
+    <div class="section" id="implementation">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Implementation</h2>
+      </div>
+
+      <h3>FastAPI Platform Skeleton</h3>
+<pre><code><span class="code-keyword">import</span> time
+<span class="code-keyword">import</span> uuid
+<span class="code-keyword">import</span> logging
+<span class="code-keyword">from</span> contextlib <span class="code-keyword">import</span> asynccontextmanager
+<span class="code-keyword">from</span> fastapi <span class="code-keyword">import</span> FastAPI, Request, HTTPException, Depends
+<span class="code-keyword">from</span> fastapi.middleware.cors <span class="code-keyword">import</span> CORSMiddleware
+<span class="code-keyword">from</span> pydantic <span class="code-keyword">import</span> BaseModel, Field
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Optional
+
+logger = logging.getLogger(<span class="code-string">"genai-platform"</span>)
+
+<span class="code-comment"># ---------- Models ----------</span>
+
+<span class="code-keyword">class</span> <span class="code-fn">GenAIRequest</span>(BaseModel):
+    prompt: <span class="code-fn">str</span> = Field(..., max_length=<span class="code-num">32000</span>)
+    pipeline: <span class="code-fn">str</span> = Field(default=<span class="code-string">"auto"</span>, pattern=<span class="code-string">"^(auto|rag|agent|direct)$"</span>)
+    model: Optional[<span class="code-fn">str</span>] = <span class="code-keyword">None</span>
+    max_tokens: <span class="code-fn">int</span> = Field(default=<span class="code-num">1024</span>, le=<span class="code-num">4096</span>)
+    temperature: <span class="code-fn">float</span> = Field(default=<span class="code-num">0.3</span>, ge=<span class="code-num">0</span>, le=<span class="code-num">1</span>)
+    team_id: Optional[<span class="code-fn">str</span>] = <span class="code-keyword">None</span>
+
+<span class="code-keyword">class</span> <span class="code-fn">GenAIResponse</span>(BaseModel):
+    request_id: <span class="code-fn">str</span>
+    content: <span class="code-fn">str</span>
+    model_used: <span class="code-fn">str</span>
+    pipeline_used: <span class="code-fn">str</span>
+    tokens_in: <span class="code-fn">int</span>
+    tokens_out: <span class="code-fn">int</span>
+    latency_ms: <span class="code-fn">float</span>
+    cached: <span class="code-fn">bool</span> = <span class="code-keyword">False</span>
+    cost_usd: <span class="code-fn">float</span> = <span class="code-num">0.0</span>
+
+<span class="code-comment"># ---------- App ----------</span>
+
+app = FastAPI(title=<span class="code-string">"GenAI Platform"</span>, version=<span class="code-string">"1.0"</span>)
+app.add_middleware(CORSMiddleware, allow_origins=[<span class="code-string">"*"</span>])
+</code></pre>
+
+      <h3>Authentication &amp; Rate Limiting Middleware</h3>
+<pre><code><span class="code-keyword">from</span> collections <span class="code-keyword">import</span> defaultdict
+<span class="code-keyword">import</span> asyncio
+
+<span class="code-comment"># Simple in-memory rate limiter (use Redis in production)</span>
+<span class="code-keyword">class</span> <span class="code-fn">RateLimiter</span>:
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self, requests_per_minute: <span class="code-fn">int</span> = <span class="code-num">60</span>):
+        self.rpm = requests_per_minute
+        self.requests = defaultdict(<span class="code-fn">list</span>)
+
+    <span class="code-keyword">def</span> <span class="code-fn">check</span>(self, team_id: <span class="code-fn">str</span>) -> <span class="code-fn">bool</span>:
+        now = time.time()
+        window = [t <span class="code-keyword">for</span> t <span class="code-keyword">in</span> self.requests[team_id] <span class="code-keyword">if</span> now - t < <span class="code-num">60</span>]
+        self.requests[team_id] = window
+        <span class="code-keyword">if</span> <span class="code-fn">len</span>(window) >= self.rpm:
+            <span class="code-keyword">return</span> <span class="code-keyword">False</span>
+        self.requests[team_id].append(now)
+        <span class="code-keyword">return</span> <span class="code-keyword">True</span>
+
+rate_limiter = RateLimiter(requests_per_minute=<span class="code-num">100</span>)
+
+<span class="code-comment"># Team budgets (USD per month)</span>
+TEAM_BUDGETS = {<span class="code-string">"team-alpha"</span>: <span class="code-num">500.0</span>, <span class="code-string">"team-beta"</span>: <span class="code-num">1000.0</span>, <span class="code-string">"default"</span>: <span class="code-num">100.0</span>}
+team_spend = defaultdict(<span class="code-fn">float</span>)
+
+<span class="code-comment"># Auth dependency</span>
+API_KEYS = {<span class="code-string">"sk-alpha-xxx"</span>: <span class="code-string">"team-alpha"</span>, <span class="code-string">"sk-beta-yyy"</span>: <span class="code-string">"team-beta"</span>}
+
+<span class="code-keyword">async def</span> <span class="code-fn">verify_auth</span>(request: Request) -> <span class="code-fn">str</span>:
+    <span class="code-string">"""Extract and verify API key, return team_id."""</span>
+    auth = request.headers.get(<span class="code-string">"Authorization"</span>, <span class="code-string">""</span>)
+    <span class="code-keyword">if not</span> auth.startswith(<span class="code-string">"Bearer "</span>):
+        <span class="code-keyword">raise</span> HTTPException(<span class="code-num">401</span>, <span class="code-string">"Missing Authorization header"</span>)
+    api_key = auth.split(<span class="code-string">" "</span>, <span class="code-num">1</span>)[<span class="code-num">1</span>]
+    team_id = API_KEYS.get(api_key)
+    <span class="code-keyword">if not</span> team_id:
+        <span class="code-keyword">raise</span> HTTPException(<span class="code-num">401</span>, <span class="code-string">"Invalid API key"</span>)
+    <span class="code-keyword">return</span> team_id
+
+<span class="code-keyword">async def</span> <span class="code-fn">check_rate_limit</span>(team_id: <span class="code-fn">str</span> = Depends(verify_auth)) -> <span class="code-fn">str</span>:
+    <span class="code-keyword">if not</span> rate_limiter.check(team_id):
+        <span class="code-keyword">raise</span> HTTPException(<span class="code-num">429</span>, <span class="code-string">"Rate limit exceeded"</span>)
+    <span class="code-keyword">return</span> team_id
+
+<span class="code-keyword">async def</span> <span class="code-fn">check_budget</span>(team_id: <span class="code-fn">str</span> = Depends(check_rate_limit)) -> <span class="code-fn">str</span>:
+    budget = TEAM_BUDGETS.get(team_id, TEAM_BUDGETS[<span class="code-string">"default"</span>])
+    <span class="code-keyword">if</span> team_spend[team_id] >= budget:
+        <span class="code-keyword">raise</span> HTTPException(<span class="code-num">402</span>, <span class="code-string">f"Monthly budget of ${budget} exceeded"</span>)
+    <span class="code-keyword">return</span> team_id
+</code></pre>
+
+      <h3>Request Router &amp; Cost Tracking</h3>
+<pre><code><span class="code-keyword">import</span> anthropic
+
+client = anthropic.Anthropic()
+
+<span class="code-comment"># Cost per 1M tokens (approximate)</span>
+MODEL_COSTS = {
+    <span class="code-string">"claude-sonnet-4-20250514"</span>: {<span class="code-string">"input"</span>: <span class="code-num">3.0</span>, <span class="code-string">"output"</span>: <span class="code-num">15.0</span>},
+    <span class="code-string">"claude-haiku-4-20250514"</span>:  {<span class="code-string">"input"</span>: <span class="code-num">0.25</span>, <span class="code-string">"output"</span>: <span class="code-num">1.25</span>},
+}
+
+<span class="code-keyword">def</span> <span class="code-fn">calculate_cost</span>(model: <span class="code-fn">str</span>, tokens_in: <span class="code-fn">int</span>, tokens_out: <span class="code-fn">int</span>) -> <span class="code-fn">float</span>:
+    rates = MODEL_COSTS.get(model, {<span class="code-string">"input"</span>: <span class="code-num">5.0</span>, <span class="code-string">"output"</span>: <span class="code-num">15.0</span>})
+    <span class="code-keyword">return</span> (tokens_in * rates[<span class="code-string">"input"</span>] + tokens_out * rates[<span class="code-string">"output"</span>]) / <span class="code-num">1_000_000</span>
+
+<span class="code-keyword">def</span> <span class="code-fn">classify_pipeline</span>(prompt: <span class="code-fn">str</span>) -> <span class="code-fn">str</span>:
+    <span class="code-string">"""Simple classifier to route to the right pipeline."""</span>
+    prompt_lower = prompt.lower()
+    <span class="code-keyword">if any</span>(kw <span class="code-keyword">in</span> prompt_lower <span class="code-keyword">for</span> kw <span class="code-keyword">in</span> [<span class="code-string">"search"</span>, <span class="code-string">"find"</span>, <span class="code-string">"look up"</span>, <span class="code-string">"what is"</span>]):
+        <span class="code-keyword">return</span> <span class="code-string">"rag"</span>
+    <span class="code-keyword">if any</span>(kw <span class="code-keyword">in</span> prompt_lower <span class="code-keyword">for</span> kw <span class="code-keyword">in</span> [<span class="code-string">"run"</span>, <span class="code-string">"execute"</span>, <span class="code-string">"book"</span>, <span class="code-string">"schedule"</span>]):
+        <span class="code-keyword">return</span> <span class="code-string">"agent"</span>
+    <span class="code-keyword">return</span> <span class="code-string">"direct"</span>
+
+@app.post(<span class="code-string">"/v1/generate"</span>, response_model=GenAIResponse)
+<span class="code-keyword">async def</span> <span class="code-fn">generate</span>(
+    req: GenAIRequest,
+    team_id: <span class="code-fn">str</span> = Depends(check_budget),
+):
+    request_id = <span class="code-fn">str</span>(uuid.uuid4())
+    start = time.time()
+
+    <span class="code-comment"># 1. Route to pipeline</span>
+    pipeline = req.pipeline <span class="code-keyword">if</span> req.pipeline != <span class="code-string">"auto"</span> <span class="code-keyword">else</span> classify_pipeline(req.prompt)
+
+    <span class="code-comment"># 2. Check semantic cache (simplified)</span>
+    cached_response = check_semantic_cache(req.prompt, team_id)
+    <span class="code-keyword">if</span> cached_response:
+        <span class="code-keyword">return</span> GenAIResponse(
+            request_id=request_id, content=cached_response,
+            model_used=<span class="code-string">"cache"</span>, pipeline_used=pipeline,
+            tokens_in=<span class="code-num">0</span>, tokens_out=<span class="code-num">0</span>,
+            latency_ms=(time.time() - start) * <span class="code-num">1000</span>, cached=<span class="code-keyword">True</span>,
+        )
+
+    <span class="code-comment"># 3. Call LLM with fallback</span>
+    model = req.model <span class="code-keyword">or</span> <span class="code-string">"claude-sonnet-4-20250514"</span>
+    <span class="code-keyword">try</span>:
+        response = client.messages.create(
+            model=model,
+            max_tokens=req.max_tokens,
+            messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: req.prompt}],
+            temperature=req.temperature,
+        )
+    <span class="code-keyword">except</span> <span class="code-fn">Exception</span>:
+        <span class="code-comment"># Fallback to cheaper model</span>
+        model = <span class="code-string">"claude-haiku-4-20250514"</span>
+        response = client.messages.create(
+            model=model,
+            max_tokens=req.max_tokens,
+            messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: req.prompt}],
+            temperature=req.temperature,
+        )
+
+    content = response.content[<span class="code-num">0</span>].text
+    tokens_in = response.usage.input_tokens
+    tokens_out = response.usage.output_tokens
+    cost = calculate_cost(model, tokens_in, tokens_out)
+
+    <span class="code-comment"># 4. Track cost</span>
+    team_spend[team_id] += cost
+
+    <span class="code-comment"># 5. Apply guardrails</span>
+    content = apply_guardrails(content)
+
+    <span class="code-comment"># 6. Cache response</span>
+    store_in_cache(req.prompt, content, team_id)
+
+    <span class="code-comment"># 7. Log for observability</span>
+    latency_ms = (time.time() - start) * <span class="code-num">1000</span>
+    logger.info(json.dumps({
+        <span class="code-string">"request_id"</span>: request_id, <span class="code-string">"team"</span>: team_id,
+        <span class="code-string">"pipeline"</span>: pipeline, <span class="code-string">"model"</span>: model,
+        <span class="code-string">"tokens_in"</span>: tokens_in, <span class="code-string">"tokens_out"</span>: tokens_out,
+        <span class="code-string">"cost_usd"</span>: cost, <span class="code-string">"latency_ms"</span>: latency_ms,
+    }))
+
+    <span class="code-keyword">return</span> GenAIResponse(
+        request_id=request_id, content=content,
+        model_used=model, pipeline_used=pipeline,
+        tokens_in=tokens_in, tokens_out=tokens_out,
+        latency_ms=latency_ms, cost_usd=cost,
+    )
+</code></pre>
+
+      <h3>Semantic Cache Implementation</h3>
+<pre><code><span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Optional
+
+<span class="code-comment"># Simplified semantic cache (use Qdrant/Pinecone in production)</span>
+<span class="code-keyword">class</span> <span class="code-fn">SemanticCache</span>:
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self, similarity_threshold: <span class="code-fn">float</span> = <span class="code-num">0.95</span>):
+        self.threshold = similarity_threshold
+        self.entries = []  <span class="code-comment"># list of (embedding, response, team_id, timestamp)</span>
+
+    <span class="code-keyword">def</span> <span class="code-fn">lookup</span>(self, query_embedding: np.ndarray, team_id: <span class="code-fn">str</span>) -> Optional[<span class="code-fn">str</span>]:
+        <span class="code-string">"""Find semantically similar cached response."""</span>
+        best_score, best_response = <span class="code-num">0.0</span>, <span class="code-keyword">None</span>
+        <span class="code-keyword">for</span> emb, resp, tid, ts <span class="code-keyword">in</span> self.entries:
+            <span class="code-keyword">if</span> tid != team_id:  <span class="code-comment"># tenant isolation</span>
+                <span class="code-keyword">continue</span>
+            score = np.dot(query_embedding, emb) / (
+                np.linalg.norm(query_embedding) * np.linalg.norm(emb)
+            )
+            <span class="code-keyword">if</span> score > best_score:
+                best_score, best_response = score, resp
+        <span class="code-keyword">return</span> best_response <span class="code-keyword">if</span> best_score >= self.threshold <span class="code-keyword">else</span> <span class="code-keyword">None</span>
+
+    <span class="code-keyword">def</span> <span class="code-fn">store</span>(self, embedding: np.ndarray, response: <span class="code-fn">str</span>, team_id: <span class="code-fn">str</span>):
+        self.entries.append((embedding, response, team_id, time.time()))
+
+cache = SemanticCache(similarity_threshold=<span class="code-num">0.95</span>)
+</code></pre>
+
+      <h3>Observability Middleware</h3>
+<pre><code><span class="code-keyword">from</span> starlette.middleware.base <span class="code-keyword">import</span> BaseHTTPMiddleware
+
+<span class="code-keyword">class</span> <span class="code-fn">ObservabilityMiddleware</span>(BaseHTTPMiddleware):
+    <span class="code-keyword">async def</span> <span class="code-fn">dispatch</span>(self, request: Request, call_next):
+        request_id = <span class="code-fn">str</span>(uuid.uuid4())
+        request.state.request_id = request_id
+        start = time.time()
+
+        <span class="code-comment"># Add trace headers</span>
+        response = <span class="code-keyword">await</span> call_next(request)
+        latency = (time.time() - start) * <span class="code-num">1000</span>
+
+        response.headers[<span class="code-string">"X-Request-Id"</span>] = request_id
+        response.headers[<span class="code-string">"X-Latency-Ms"</span>] = f<span class="code-string">"{latency:.1f}"</span>
+
+        <span class="code-comment"># Structured log entry</span>
+        logger.info(json.dumps({
+            <span class="code-string">"type"</span>: <span class="code-string">"http"</span>,
+            <span class="code-string">"request_id"</span>: request_id,
+            <span class="code-string">"method"</span>: request.method,
+            <span class="code-string">"path"</span>: request.url.path,
+            <span class="code-string">"status"</span>: response.status_code,
+            <span class="code-string">"latency_ms"</span>: latency,
+        }))
+        <span class="code-keyword">return</span> response
+
+app.add_middleware(ObservabilityMiddleware)
+</code></pre>
+
+      <h3>Health &amp; Cost Reporting Endpoints</h3>
+<pre><code>@app.get(<span class="code-string">"/health"</span>)
+<span class="code-keyword">async def</span> <span class="code-fn">health</span>():
+    <span class="code-keyword">return</span> {<span class="code-string">"status"</span>: <span class="code-string">"healthy"</span>, <span class="code-string">"version"</span>: <span class="code-string">"1.0"</span>}
+
+@app.get(<span class="code-string">"/v1/cost-report/{team_id}"</span>)
+<span class="code-keyword">async def</span> <span class="code-fn">cost_report</span>(team_id: <span class="code-fn">str</span>, _: <span class="code-fn">str</span> = Depends(verify_auth)):
+    budget = TEAM_BUDGETS.get(team_id, TEAM_BUDGETS[<span class="code-string">"default"</span>])
+    spent = team_spend[team_id]
+    <span class="code-keyword">return</span> {
+        <span class="code-string">"team_id"</span>: team_id,
+        <span class="code-string">"budget_usd"</span>: budget,
+        <span class="code-string">"spent_usd"</span>: <span class="code-fn">round</span>(spent, <span class="code-num">4</span>),
+        <span class="code-string">"remaining_usd"</span>: <span class="code-fn">round</span>(budget - spent, <span class="code-num">4</span>),
+        <span class="code-string">"utilization_pct"</span>: <span class="code-fn">round</span>(spent / budget * <span class="code-num">100</span>, <span class="code-num">1</span>),
+    }
+
+@app.get(<span class="code-string">"/v1/models"</span>)
+<span class="code-keyword">async def</span> <span class="code-fn">list_models</span>(_: <span class="code-fn">str</span> = Depends(verify_auth)):
+    <span class="code-keyword">return</span> {
+        <span class="code-string">"models"</span>: [
+            {<span class="code-string">"id"</span>: <span class="code-string">"claude-sonnet-4-20250514"</span>, <span class="code-string">"tier"</span>: <span class="code-string">"premium"</span>, <span class="code-string">"status"</span>: <span class="code-string">"available"</span>},
+            {<span class="code-string">"id"</span>: <span class="code-string">"claude-haiku-4-20250514"</span>, <span class="code-string">"tier"</span>: <span class="code-string">"standard"</span>, <span class="code-string">"status"</span>: <span class="code-string">"available"</span>},
+        ],
+        <span class="code-string">"fallback_chain"</span>: [<span class="code-string">"claude-sonnet-4-20250514"</span>, <span class="code-string">"claude-haiku-4-20250514"</span>],
+    }
+</code></pre>
+    </div>
+
+    <!-- 5. DATA FLOW -->
+    <div class="section" id="dataflow">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Data Flow</h2>
+      </div>
+      <p>Here is the end-to-end flow of a request through the Production Platform:</p>
+      <ul class="checklist">
+        <li><span class="check-box done"></span><strong>1. Client sends request</strong> &mdash; HTTP POST to /v1/generate with API key in Authorization header</li>
+        <li><span class="check-box done"></span><strong>2. Authentication</strong> &mdash; Gateway validates API key, extracts team_id and permissions from JWT claims</li>
+        <li><span class="check-box done"></span><strong>3. Rate limiting</strong> &mdash; Per-team token bucket checked; 429 returned if exceeded</li>
+        <li><span class="check-box done"></span><strong>4. Budget check</strong> &mdash; Current month's spend verified against team budget; 402 if exhausted</li>
+        <li><span class="check-box done"></span><strong>5. Request validation</strong> &mdash; Input length, format, and content policy checks applied</li>
+        <li><span class="check-box done"></span><strong>6. Semantic cache lookup</strong> &mdash; Request embedded and searched against cached responses (cosine &gt; 0.95); cache hit returns instantly</li>
+        <li><span class="check-box done"></span><strong>7. Pipeline routing</strong> &mdash; Request classified and routed to RAG, Agent, or Direct LLM pipeline based on content or explicit parameter</li>
+        <li><span class="check-box done"></span><strong>8. Pipeline execution</strong> &mdash; Selected pipeline processes the request (retrieval + augmentation for RAG, tool loops for Agent, direct call for LLM)</li>
+        <li><span class="check-box done"></span><strong>9. LLM pool call</strong> &mdash; Request sent to primary model; on failure, automatic fallback to next model in chain</li>
+        <li><span class="check-box done"></span><strong>10. Guardrails applied</strong> &mdash; Output scanned for PII, toxicity, format compliance; violations trigger redaction or rejection</li>
+        <li><span class="check-box done"></span><strong>11. Response cached</strong> &mdash; Successful response stored in semantic cache for future similar requests</li>
+        <li><span class="check-box done"></span><strong>12. Cost tracked</strong> &mdash; Token usage multiplied by model pricing, added to team's running total</li>
+        <li><span class="check-box done"></span><strong>13. Observability logged</strong> &mdash; Structured log entry with request_id, team, model, tokens, cost, latency, pipeline sent to logging stack</li>
+        <li><span class="check-box done"></span><strong>14. Response returned</strong> &mdash; Final response with metadata (request_id, model_used, cost, latency) sent to client</li>
+      </ul>
+
+      <div class="callout info">
+        <div class="callout-label">Performance Budget</div>
+        <p>Platform overhead (auth + rate limit + cache lookup + guardrails + logging) should add less than 50ms to end-to-end latency. The LLM call itself dominates at 500ms-5s depending on model and output length. Measure and optimize the overhead separately.</p>
+      </div>
+    </div>
+
+    <!-- 6. TRADE-OFFS -->
+    <div class="section" id="tradeoffs">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Trade-offs &amp; Considerations</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Advantage</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Centralized governance, security, and compliance</td><td>Significant engineering investment to build and maintain</td></tr>
+          <tr><td>Shared infrastructure reduces per-team cost</td><td>Platform team becomes a bottleneck if under-resourced</td></tr>
+          <tr><td>Consistent observability and cost tracking</td><td>One-size-fits-all may not fit all team needs</td></tr>
+          <tr><td>Model fallback chains ensure high availability</td><td>Additional latency from platform overhead</td></tr>
+          <tr><td>Semantic caching reduces cost and latency</td><td>Cache invalidation complexity</td></tr>
+          <tr><td>Feature flags enable safe experimentation</td><td>Feature flag debt accumulates over time</td></tr>
+          <tr><td>Multi-tenant isolation protects data</td><td>Noisy neighbor problems under high load</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Infrastructure Options</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Component</th><th>Self-Managed</th><th>Managed Service</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>API Gateway</td><td>FastAPI + Nginx</td><td>AWS API Gateway, Kong Cloud</td></tr>
+          <tr><td>LLM Routing</td><td>Custom router</td><td>LiteLLM, Portkey, Helicone</td></tr>
+          <tr><td>Vector DB</td><td>Qdrant, Milvus</td><td>Pinecone, Weaviate Cloud</td></tr>
+          <tr><td>Observability</td><td>Grafana + Prometheus + Jaeger</td><td>Datadog, New Relic, Langfuse</td></tr>
+          <tr><td>Compute</td><td>Kubernetes (EKS/GKE)</td><td>Cloud Run, Lambda, Fargate</td></tr>
+          <tr><td>Caching</td><td>Redis Cluster</td><td>ElastiCache, Momento</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Starting Small</div>
+        <p>You do not need all components on day one. Start with: API gateway + auth + single pipeline + cost tracking + basic logging. Add semantic caching, multi-model fallback, and guardrails as usage grows. The architecture diagram shows the end state, not the starting state.</p>
+      </div>
+    </div>
+
+    <!-- 7. PRODUCTION CHECKLIST -->
+    <div class="section" id="production">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Production Checklist</h2>
+      </div>
+      <p>This is the most comprehensive checklist in the series &mdash; covering every aspect of running a GenAI platform at enterprise scale:</p>
+
+      <h3>Security &amp; Authentication</h3>
+      <ul class="checklist">
+        <li><span class="check-box"></span>API key rotation with zero-downtime (dual-key support during transition)</li>
+        <li><span class="check-box"></span>JWT-based auth with team/project/role claims</li>
+        <li><span class="check-box"></span>mTLS between internal services</li>
+        <li><span class="check-box"></span>Input sanitization to prevent prompt injection attacks</li>
+        <li><span class="check-box"></span>Secrets management (Vault, AWS Secrets Manager) for LLM provider keys</li>
+      </ul>
+
+      <h3>Rate Limiting &amp; Cost Control</h3>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Per-team and per-user rate limits with configurable RPM/TPM</li>
+        <li><span class="check-box"></span>Monthly budget caps per team with soft (alert at 80%) and hard (block at 100%) limits</li>
+        <li><span class="check-box"></span>Per-request cost estimation before LLM call (reject if over budget)</li>
+        <li><span class="check-box"></span>Daily cost reports emailed to team leads</li>
+        <li><span class="check-box"></span>Cost anomaly detection (alert on 3x daily average)</li>
+      </ul>
+
+      <h3>Reliability &amp; Availability</h3>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Multi-provider LLM fallback chains with automatic failover</li>
+        <li><span class="check-box"></span>Circuit breaker per LLM provider (open after 5 consecutive failures)</li>
+        <li><span class="check-box"></span>Health check endpoints for every service component</li>
+        <li><span class="check-box"></span>Graceful degradation: serve cached responses during outages</li>
+        <li><span class="check-box"></span>Blue-green or canary deployments for all platform updates</li>
+        <li><span class="check-box"></span>Auto-scaling based on request queue depth and latency p99</li>
+      </ul>
+
+      <h3>Observability &amp; Monitoring</h3>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Distributed tracing (OpenTelemetry) across all services</li>
+        <li><span class="check-box"></span>Structured JSON logging with request_id, team_id, model, tokens, cost, latency</li>
+        <li><span class="check-box"></span>Dashboards: requests/sec, latency p50/p95/p99, error rate, cost per team</li>
+        <li><span class="check-box"></span>Alerting on latency spikes, error rate increases, budget thresholds</li>
+        <li><span class="check-box"></span>Log retention policy aligned with compliance requirements</li>
+      </ul>
+
+      <h3>Data &amp; Compliance</h3>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Immutable audit logs for every request/response (write-once storage)</li>
+        <li><span class="check-box"></span>Data retention policies per regulation (GDPR right-to-deletion, HIPAA)</li>
+        <li><span class="check-box"></span>PII detection and redaction in both inputs and outputs</li>
+        <li><span class="check-box"></span>Multi-tenant data isolation verified by automated tests</li>
+        <li><span class="check-box"></span>Model governance: approval workflow before new models go to production</li>
+        <li><span class="check-box"></span>Data residency compliance (ensure data stays in required geographic regions)</li>
+      </ul>
+
+      <h3>Performance &amp; Caching</h3>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Semantic cache with configurable similarity threshold per use case</li>
+        <li><span class="check-box"></span>Cache TTL and invalidation strategy (time-based + event-based)</li>
+        <li><span class="check-box"></span>Platform overhead budget: auth + routing + guardrails &lt; 50ms</li>
+        <li><span class="check-box"></span>Connection pooling to LLM providers</li>
+        <li><span class="check-box"></span>Request queuing with priority levels for burst handling</li>
+      </ul>
+
+      <h3>Operational Runbooks</h3>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Runbook: LLM provider outage (switch fallback, notify teams)</li>
+        <li><span class="check-box"></span>Runbook: Cost spike investigation (identify team, query, model)</li>
+        <li><span class="check-box"></span>Runbook: Security incident (revoke keys, audit logs, notify compliance)</li>
+        <li><span class="check-box"></span>Runbook: New team onboarding (API key, budget, namespace setup)</li>
+        <li><span class="check-box"></span>Runbook: Model upgrade (shadow deploy, compare metrics, gradual rollout)</li>
+        <li><span class="check-box"></span>Disaster recovery tested quarterly with documented RTO/RPO</li>
+      </ul>
+    </div>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Architecture</div>
+        <a href="09-multi-agent.html" class="next-btn">&larr; 09 &middot; Multi-Agent Systems</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">All Architectures</div>
+        <a href="index.html" class="next-btn">View All 10 Architectures &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  CareerAlign.com &middot; GenAI Reference Architectures &middot;
+  <a href="index.html">All Architectures</a>
+</footer>
+
+</body>
+</html>

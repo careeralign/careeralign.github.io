@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>RAG Pipeline — CareerAlign GenAI Architectures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #22c55e;
+  --page-color-04: rgba(34,197,94,0.04);
+  --page-color-07: rgba(34,197,94,0.07);
+  --page-color-12: rgba(34,197,94,0.12);
+  --page-color-15: rgba(34,197,94,0.15);
+  --page-color-25: rgba(34,197,94,0.25);
+  --page-color-30: rgba(34,197,94,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9881;&#65039; <span style="color:#22c55e;">GenAI</span> Architectures</div>
+  <div class="nav-links">
+    <a href="01-simple-chat-api.html">01</a>
+    <a href="02-conversational-chatbot.html">02</a>
+    <a href="03-rag-pipeline.html" class="active">03</a>
+    <a href="04-document-processing.html">04</a>
+    <a href="05-multi-model-router.html">05</a>
+    <a href="06-agentic-tool-use.html">06</a>
+    <a href="07-eval-guardrails.html">07</a>
+    <a href="08-fine-tuning-serving.html">08</a>
+    <a href="09-multi-agent.html">09</a>
+    <a href="10-production-platform.html">10</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; All Architectures</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">&#9889; Architecture 03 &middot; Foundation</div>
+  <h1>RAG <em>Pipeline</em></h1>
+  <p class="hero-desc">
+    Retrieval-Augmented Generation grounds LLM responses in your own data. Instead of relying solely
+    on the model's training knowledge, RAG retrieves relevant documents from a vector database and injects
+    them as context &mdash; dramatically improving accuracy, reducing hallucination, and enabling real-time
+    knowledge updates without retraining.
+  </p>
+  <div class="hero-checklist">
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Chunking Strategies</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Embedding Models</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Vector Search</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Reranking</span>
+  </div>
+  <div style="margin-top:28px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/genai-arch/notebooks/03-rag-pipeline.ipynb" target="_blank" class="btn btn-primary" style="background:#22c55e;">Open Notebook in Colab &rarr;</a>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#overview" class="section">Architecture Overview</a>
+    <a href="#diagram" class="section">Architecture Diagram</a>
+    <a href="#components" class="section">Components Deep Dive</a>
+    <a href="#implementation" class="section">Implementation</a>
+    <a href="#dataflow" class="section">Data Flow</a>
+    <a href="#tradeoffs" class="section">Trade-offs</a>
+    <a href="#production" class="section">Production Checklist</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- 1. OVERVIEW -->
+    <div class="section" id="overview">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>Architecture Overview</h2>
+      </div>
+      <p>
+        <strong>Retrieval-Augmented Generation (RAG)</strong> is the most important architecture pattern in production GenAI.
+        It bridges the gap between a general-purpose LLM and your proprietary data by retrieving relevant context at query time
+        and inserting it into the prompt. The model then generates a grounded response using both its learned knowledge and
+        the retrieved documents.
+      </p>
+      <p>
+        RAG has two distinct phases: an <strong>offline indexing phase</strong> where documents are chunked, embedded, and stored
+        in a vector database, and an <strong>online query phase</strong> where user queries trigger similarity search, context
+        assembly, and LLM generation.
+      </p>
+      <h3>When to Use</h3>
+      <ul>
+        <li>Q&amp;A over proprietary documents (internal wikis, product docs, legal contracts)</li>
+        <li>Customer support bots grounded in your knowledge base</li>
+        <li>Search-enhanced applications where accuracy matters more than creativity</li>
+        <li>Any scenario where the LLM needs information beyond its training cutoff</li>
+        <li>Reducing hallucination by providing verifiable source material</li>
+      </ul>
+      <h3>Complexity Level</h3>
+      <p>
+        <strong>Moderate.</strong> RAG adds a retrieval layer and a vector database to the simple chat pattern.
+        The biggest challenges are chunking strategy, embedding model selection, and retrieval quality tuning.
+        Getting RAG "good enough" is easy; getting it excellent requires systematic evaluation.
+      </p>
+      <div class="callout tip">
+        <div class="callout-label">Tip</div>
+        <p>RAG quality is 80% retrieval quality. If you retrieve the wrong chunks, even the best LLM will produce poor answers. Invest heavily in chunking, embedding selection, and reranking before tuning the generation prompt.</p>
+      </div>
+    </div>
+
+    <!-- 2. DIAGRAM -->
+    <div class="section" id="diagram">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Architecture Diagram</h2>
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 800 420" class="learning-path-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow3" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+            </marker>
+          </defs>
+
+          <!-- Phase Labels -->
+          <text x="400" y="25" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk" font-size="13" font-weight="700" letter-spacing="2">INDEXING PHASE (OFFLINE)</text>
+
+          <!-- Dashed separator -->
+          <line x1="20" y1="195" x2="780" y2="195" stroke="#232840" stroke-width="1.5" stroke-dasharray="8,6"/>
+
+          <text x="400" y="220" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk" font-size="13" font-weight="700" letter-spacing="2">QUERY PHASE (ONLINE)</text>
+
+          <!-- === INDEXING PHASE === -->
+          <!-- Documents -->
+          <rect x="20" y="50" width="120" height="65" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="80" y="78" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Documents</text>
+          <text x="80" y="98" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">PDF, TXT, HTML</text>
+
+          <!-- Arrow -->
+          <line x1="140" y1="82" x2="180" y2="82" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow3)"/>
+
+          <!-- Chunker -->
+          <rect x="190" y="50" width="120" height="65" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="250" y="78" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Chunker</text>
+          <text x="250" y="98" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Split &amp; overlap</text>
+
+          <!-- Arrow -->
+          <line x1="310" y1="82" x2="350" y2="82" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow3)"/>
+
+          <!-- Embedding Model -->
+          <rect x="360" y="50" width="140" height="65" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="430" y="78" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Embed Model</text>
+          <text x="430" y="98" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">text &rarr; vector</text>
+
+          <!-- Arrow -->
+          <line x1="500" y1="82" x2="560" y2="82" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow3)"/>
+
+          <!-- Vector DB -->
+          <rect x="570" y="40" width="180" height="85" rx="8" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="660" y="70" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">Vector DB</text>
+          <text x="660" y="90" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Chroma / Pinecone</text>
+          <text x="660" y="108" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">pgvector / Weaviate</text>
+
+          <!-- === QUERY PHASE === -->
+          <!-- User Query -->
+          <rect x="20" y="245" width="120" height="65" rx="8" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="80" y="273" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">User Query</text>
+          <text x="80" y="293" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Natural language</text>
+
+          <!-- Arrow -->
+          <line x1="140" y1="277" x2="180" y2="277" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow3)"/>
+
+          <!-- Embed Query -->
+          <rect x="190" y="245" width="120" height="65" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="250" y="273" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Embed</text>
+          <text x="250" y="293" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Query &rarr; vector</text>
+
+          <!-- Arrow -->
+          <line x1="310" y1="277" x2="350" y2="277" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow3)"/>
+
+          <!-- Vector Search -->
+          <rect x="360" y="245" width="140" height="65" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="430" y="268" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Vector Search</text>
+          <text x="430" y="288" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Top-K similar</text>
+          <text x="430" y="303" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">+ rerank</text>
+
+          <!-- Arrow to Vector DB (upward) -->
+          <path d="M 660 125 L 660 170 L 430 170 L 430 245" fill="none" stroke="#22d3ee" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrow3)"/>
+          <text x="545" y="163" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">stored vectors</text>
+
+          <!-- Arrow -->
+          <line x1="500" y1="277" x2="540" y2="277" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow3)"/>
+
+          <!-- Context + Query assembled -->
+          <rect x="550" y="245" width="100" height="65" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="600" y="270" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">Context</text>
+          <text x="600" y="288" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Top-K + query</text>
+
+          <!-- Arrow -->
+          <line x1="600" y1="310" x2="600" y2="340" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow3)"/>
+
+          <!-- LLM -->
+          <rect x="530" y="345" width="140" height="60" rx="8" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="600" y="372" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">LLM</text>
+          <text x="600" y="392" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Generate response</text>
+
+          <!-- Return arrow -->
+          <path d="M 530 375 L 80 375 L 80 310" fill="none" stroke="#22d3ee" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrow3)"/>
+          <text x="300" y="393" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="10">grounded response</text>
+        </svg>
+        <p class="diagram-caption">Architecture diagram &mdash; RAG Pipeline: offline indexing + online retrieval-augmented generation</p>
+      </div>
+    </div>
+
+    <!-- 3. COMPONENTS -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Components Deep Dive</h2>
+      </div>
+
+      <h3>Chunking Strategies</h3>
+      <p>How you split documents into chunks has the single biggest impact on retrieval quality. Choose based on your document structure:</p>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Strategy</th><th>How It Works</th><th>Best For</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Fixed-size</strong></td><td>Split every N characters/tokens with M overlap</td><td>Simple, uniform docs (logs, transcripts)</td></tr>
+          <tr><td><strong>Recursive</strong></td><td>Split by hierarchy: paragraphs &rarr; sentences &rarr; words</td><td>General-purpose, most common default</td></tr>
+          <tr><td><strong>Semantic</strong></td><td>Use embedding similarity to find natural break points</td><td>Long-form prose, articles, research papers</td></tr>
+          <tr><td><strong>Document-aware</strong></td><td>Split by headers, sections, or markdown structure</td><td>Structured docs (Markdown, HTML, code)</td></tr>
+          <tr><td><strong>Sliding window</strong></td><td>Overlapping windows for maximum context preservation</td><td>When context boundaries are critical</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">Chunk Size Rule of Thumb</div>
+        <p>Start with 500-1000 tokens per chunk with 10-20% overlap. Too small = fragments lose context. Too large = dilutes relevance signal. Always test with your actual queries.</p>
+      </div>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128270;</div>
+            <h4>Embedding Models</h4>
+          </div>
+          <p>Transform text into dense vector representations. Popular choices: OpenAI text-embedding-3-small (1536d), Cohere embed-v3, Voyage AI, or open-source models like BGE, E5, GTE via sentence-transformers.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128451;</div>
+            <h4>Vector Databases</h4>
+          </div>
+          <p>Purpose-built stores for similarity search. <strong>Chroma</strong> (local/dev), <strong>Pinecone</strong> (managed, scalable), <strong>Weaviate</strong> (hybrid search), <strong>pgvector</strong> (Postgres extension, familiar ops).</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127919;</div>
+            <h4>Similarity Search</h4>
+          </div>
+          <p>Find the most relevant chunks using cosine similarity, dot product, or L2 distance. ANN (Approximate Nearest Neighbor) algorithms like HNSW trade perfect accuracy for speed at scale.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128200;</div>
+            <h4>Reranking</h4>
+          </div>
+          <p>A second-stage ranker (e.g., Cohere Rerank, cross-encoder models) that reorders the initial retrieval results by relevance. Dramatically improves precision at the cost of added latency.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128256;</div>
+            <h4>Hybrid Search</h4>
+          </div>
+          <p>Combines dense vector search with sparse keyword search (BM25/TF-IDF). Catches exact matches that embeddings miss. Most production systems use hybrid with reciprocal rank fusion (RRF).</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128218;</div>
+            <h4>Context Window Management</h4>
+          </div>
+          <p>Assemble retrieved chunks into a prompt that fits the model's context window. Strategies: truncation, summarization of excess context, or hierarchical retrieval (summary first, detail on demand).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. IMPLEMENTATION -->
+    <div class="section" id="implementation">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Implementation</h2>
+      </div>
+      <h3>Step 1: Index Documents with ChromaDB</h3>
+<pre><code><span class="code-keyword">import</span> chromadb
+<span class="code-keyword">from</span> chromadb.utils <span class="code-keyword">import</span> embedding_functions
+
+<span class="code-comment"># Initialize client and embedding function</span>
+client = chromadb.PersistentClient(path=<span class="code-string">"./chroma_db"</span>)
+embed_fn = embedding_functions.OpenAIEmbeddingFunction(
+    api_key=<span class="code-string">"sk-..."</span>,
+    model_name=<span class="code-string">"text-embedding-3-small"</span>
+)
+
+<span class="code-comment"># Create or get collection</span>
+collection = client.get_or_create_collection(
+    name=<span class="code-string">"knowledge_base"</span>,
+    embedding_function=embed_fn,
+    metadata={<span class="code-string">"hnsw:space"</span>: <span class="code-string">"cosine"</span>}
+)
+
+<span class="code-comment"># Chunk documents</span>
+<span class="code-keyword">def</span> <span class="code-fn">chunk_text</span>(text: <span class="code-fn">str</span>, chunk_size=<span class="code-num">500</span>, overlap=<span class="code-num">50</span>) -> <span class="code-fn">list</span>[<span class="code-fn">str</span>]:
+    <span class="code-string">"""Split text into overlapping chunks."""</span>
+    chunks = []
+    <span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-fn">range</span>(<span class="code-num">0</span>, <span class="code-fn">len</span>(text), chunk_size - overlap):
+        chunks.append(text[i : i + chunk_size])
+    <span class="code-keyword">return</span> chunks
+
+<span class="code-comment"># Add documents to collection</span>
+docs = [<span class="code-string">"Your document text here..."</span>, <span class="code-string">"Another document..."</span>]
+<span class="code-keyword">for</span> doc_id, doc <span class="code-keyword">in</span> <span class="code-fn">enumerate</span>(docs):
+    chunks = chunk_text(doc)
+    collection.add(
+        documents=chunks,
+        ids=[<span class="code-string">f"doc{doc_id}_chunk{i}"</span> <span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-fn">range</span>(<span class="code-fn">len</span>(chunks))],
+        metadatas=[{<span class="code-string">"source"</span>: <span class="code-string">f"doc_{doc_id}"</span>, <span class="code-string">"chunk"</span>: i} <span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-fn">range</span>(<span class="code-fn">len</span>(chunks))]
+    )
+</code></pre>
+
+      <h3>Step 2: Retrieve Relevant Context</h3>
+<pre><code><span class="code-keyword">def</span> <span class="code-fn">retrieve</span>(query: <span class="code-fn">str</span>, n_results: <span class="code-fn">int</span> = <span class="code-num">5</span>) -> <span class="code-fn">list</span>[<span class="code-fn">dict</span>]:
+    <span class="code-string">"""Retrieve top-K relevant chunks for a query."""</span>
+    results = collection.query(
+        query_texts=[query],
+        n_results=n_results,
+        include=[<span class="code-string">"documents"</span>, <span class="code-string">"distances"</span>, <span class="code-string">"metadatas"</span>]
+    )
+    <span class="code-keyword">return</span> [
+        {<span class="code-string">"text"</span>: doc, <span class="code-string">"score"</span>: <span class="code-num">1</span> - dist, <span class="code-string">"metadata"</span>: meta}
+        <span class="code-keyword">for</span> doc, dist, meta <span class="code-keyword">in</span> <span class="code-fn">zip</span>(
+            results[<span class="code-string">"documents"</span>][<span class="code-num">0</span>],
+            results[<span class="code-string">"distances"</span>][<span class="code-num">0</span>],
+            results[<span class="code-string">"metadatas"</span>][<span class="code-num">0</span>]
+        )
+    ]
+</code></pre>
+
+      <h3>Step 3: Generate Grounded Response</h3>
+<pre><code><span class="code-keyword">import</span> anthropic
+
+client_llm = anthropic.Anthropic()
+
+<span class="code-keyword">def</span> <span class="code-fn">rag_query</span>(question: <span class="code-fn">str</span>) -> <span class="code-fn">str</span>:
+    <span class="code-string">"""Full RAG pipeline: retrieve + generate."""</span>
+    <span class="code-comment"># 1. Retrieve relevant chunks</span>
+    chunks = retrieve(question, n_results=<span class="code-num">5</span>)
+    context = <span class="code-string">"\n\n---\n\n"</span>.join([c[<span class="code-string">"text"</span>] <span class="code-keyword">for</span> c <span class="code-keyword">in</span> chunks])
+
+    <span class="code-comment"># 2. Build prompt with context</span>
+    system = <span class="code-string">"""You are a helpful assistant. Answer questions using ONLY
+the provided context. If the context doesn't contain the answer,
+say "I don't have enough information to answer that."
+Always cite which source document you used."""</span>
+
+    user_msg = <span class="code-string">f"""Context:\n{context}\n\nQuestion: {question}"""</span>
+
+    <span class="code-comment"># 3. Generate response</span>
+    response = client_llm.messages.create(
+        model=<span class="code-string">"claude-sonnet-4-20250514"</span>,
+        max_tokens=<span class="code-num">1024</span>,
+        system=system,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: user_msg}],
+        temperature=<span class="code-num">0.2</span>,
+    )
+    <span class="code-keyword">return</span> response.content[<span class="code-num">0</span>].text
+
+<span class="code-comment"># Usage</span>
+answer = rag_query(<span class="code-string">"What is the refund policy for enterprise plans?"</span>)
+<span class="code-fn">print</span>(answer)
+</code></pre>
+
+      <h3>Advanced: Hybrid Search with Reranking</h3>
+<pre><code><span class="code-keyword">from</span> rank_bm25 <span class="code-keyword">import</span> BM25Okapi
+<span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np
+
+<span class="code-keyword">class</span> <span class="code-fn">HybridRetriever</span>:
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self, collection, documents):
+        self.collection = collection
+        self.documents = documents
+        <span class="code-comment"># Build BM25 index for keyword search</span>
+        tokenized = [doc.lower().split() <span class="code-keyword">for</span> doc <span class="code-keyword">in</span> documents]
+        self.bm25 = BM25Okapi(tokenized)
+
+    <span class="code-keyword">def</span> <span class="code-fn">search</span>(self, query, k=<span class="code-num">10</span>, alpha=<span class="code-num">0.5</span>):
+        <span class="code-string">"""Hybrid search: alpha * dense + (1-alpha) * sparse."""</span>
+        <span class="code-comment"># Dense retrieval (vector)</span>
+        dense = self.collection.query(query_texts=[query], n_results=k)
+
+        <span class="code-comment"># Sparse retrieval (BM25)</span>
+        bm25_scores = self.bm25.get_scores(query.lower().split())
+        sparse_top_k = np.argsort(bm25_scores)[-k:][::-<span class="code-num">1</span>]
+
+        <span class="code-comment"># Reciprocal Rank Fusion</span>
+        fused = self._rrf_fuse(dense, sparse_top_k, k=<span class="code-num">60</span>)
+        <span class="code-keyword">return</span> fused[:k]
+
+    <span class="code-keyword">def</span> <span class="code-fn">_rrf_fuse</span>(self, dense_results, sparse_ids, k=<span class="code-num">60</span>):
+        <span class="code-string">"""Reciprocal Rank Fusion combining two ranked lists."""</span>
+        scores = {}
+        <span class="code-keyword">for</span> rank, doc_id <span class="code-keyword">in</span> <span class="code-fn">enumerate</span>(dense_results[<span class="code-string">"ids"</span>][<span class="code-num">0</span>]):
+            scores[doc_id] = scores.get(doc_id, <span class="code-num">0</span>) + <span class="code-num">1</span> / (k + rank + <span class="code-num">1</span>)
+        <span class="code-keyword">for</span> rank, idx <span class="code-keyword">in</span> <span class="code-fn">enumerate</span>(sparse_ids):
+            doc_id = <span class="code-string">f"doc_chunk{idx}"</span>
+            scores[doc_id] = scores.get(doc_id, <span class="code-num">0</span>) + <span class="code-num">1</span> / (k + rank + <span class="code-num">1</span>)
+        <span class="code-keyword">return</span> <span class="code-fn">sorted</span>(scores, key=scores.get, reverse=<span class="code-keyword">True</span>)
+</code></pre>
+    </div>
+
+    <!-- 5. DATA FLOW -->
+    <div class="section" id="dataflow">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Data Flow</h2>
+      </div>
+      <h3>Indexing Phase (Offline)</h3>
+      <ul class="checklist">
+        <li><span class="check-box done"></span><strong>1. Load documents</strong> &mdash; Ingest from file system, S3, database, or API (PDF, TXT, HTML, Markdown)</li>
+        <li><span class="check-box done"></span><strong>2. Clean and preprocess</strong> &mdash; Remove boilerplate, normalize formatting, extract metadata</li>
+        <li><span class="check-box done"></span><strong>3. Chunk documents</strong> &mdash; Split into overlapping segments using chosen strategy (recursive, semantic, etc.)</li>
+        <li><span class="check-box done"></span><strong>4. Generate embeddings</strong> &mdash; Pass each chunk through embedding model to get dense vector</li>
+        <li><span class="check-box done"></span><strong>5. Store in vector DB</strong> &mdash; Insert vectors + metadata + original text into vector database</li>
+      </ul>
+      <h3>Query Phase (Online)</h3>
+      <ul class="checklist">
+        <li><span class="check-box done"></span><strong>1. User submits query</strong> &mdash; Natural language question arrives via API</li>
+        <li><span class="check-box done"></span><strong>2. Embed query</strong> &mdash; Same embedding model converts query to vector</li>
+        <li><span class="check-box done"></span><strong>3. Similarity search</strong> &mdash; Vector DB returns top-K most similar chunks</li>
+        <li><span class="check-box done"></span><strong>4. Rerank (optional)</strong> &mdash; Cross-encoder reorders results for precision</li>
+        <li><span class="check-box done"></span><strong>5. Assemble context</strong> &mdash; Top chunks + user query formatted into LLM prompt</li>
+        <li><span class="check-box done"></span><strong>6. Generate response</strong> &mdash; LLM produces answer grounded in retrieved context</li>
+        <li><span class="check-box done"></span><strong>7. Return with citations</strong> &mdash; Response includes source references for verification</li>
+      </ul>
+    </div>
+
+    <!-- 6. TRADE-OFFS -->
+    <div class="section" id="tradeoffs">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Trade-offs &amp; Considerations</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Advantage</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Grounds responses in real data, reducing hallucination</td><td>Retrieval quality bottleneck: garbage in, garbage out</td></tr>
+          <tr><td>No model retraining needed for knowledge updates</td><td>Added latency from embedding + vector search</td></tr>
+          <tr><td>Provides verifiable sources and citations</td><td>Chunk boundaries can split important context</td></tr>
+          <tr><td>Works with any LLM (model-agnostic)</td><td>Embedding model choice significantly impacts quality</td></tr>
+          <tr><td>Scales to millions of documents</td><td>Vector DB adds infrastructure complexity and cost</td></tr>
+          <tr><td>Supports incremental updates (add new docs anytime)</td><td>Multi-hop reasoning across documents is challenging</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Vector Database Comparison</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Database</th><th>Type</th><th>Strengths</th><th>Best For</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>ChromaDB</strong></td><td>Embedded</td><td>Zero config, Python-native</td><td>Prototyping, small datasets</td></tr>
+          <tr><td><strong>Pinecone</strong></td><td>Managed</td><td>Scalable, serverless option</td><td>Production, no-ops teams</td></tr>
+          <tr><td><strong>Weaviate</strong></td><td>Open-source</td><td>Hybrid search built-in</td><td>Complex search requirements</td></tr>
+          <tr><td><strong>pgvector</strong></td><td>Extension</td><td>Uses existing Postgres</td><td>Teams already on Postgres</td></tr>
+          <tr><td><strong>Qdrant</strong></td><td>Open-source</td><td>High performance, filtering</td><td>Large-scale, self-hosted</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">When to upgrade</div>
+        <p>If your documents require complex extraction (OCR, table parsing), move to Architecture 04 (Document Processing). If users need multi-step reasoning with external tools, consider Architecture 06 (Agentic Tool Use).</p>
+      </div>
+    </div>
+
+    <!-- 7. PRODUCTION CHECKLIST -->
+    <div class="section" id="production">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Production Checklist</h2>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Evaluate chunking strategy with representative queries (use recall@k metrics)</li>
+        <li><span class="check-box"></span>Benchmark embedding models on your domain data (MTEB leaderboard as starting point)</li>
+        <li><span class="check-box"></span>Implement hybrid search (dense + sparse) for robust retrieval</li>
+        <li><span class="check-box"></span>Add reranking stage for precision-critical applications</li>
+        <li><span class="check-box"></span>Set up incremental indexing pipeline for new/updated documents</li>
+        <li><span class="check-box"></span>Monitor retrieval quality: track query-to-answer relevance scores</li>
+        <li><span class="check-box"></span>Implement metadata filtering (date range, source, category) for targeted search</li>
+        <li><span class="check-box"></span>Cache frequent queries and their retrieved contexts</li>
+        <li><span class="check-box"></span>Add citation extraction: return source document + chunk location with every answer</li>
+        <li><span class="check-box"></span>Set up automated evaluation pipeline (ground truth Q&amp;A pairs, RAGAS metrics)</li>
+        <li><span class="check-box"></span>Plan vector DB backup and disaster recovery</li>
+        <li><span class="check-box"></span>Monitor embedding drift when switching models or adding new document types</li>
+      </ul>
+    </div>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Architecture</div>
+        <a href="02-conversational-chatbot.html" class="next-btn">&larr; 02 &middot; Conversational Chatbot</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Architecture</div>
+        <a href="04-document-processing.html" class="next-btn">04 &middot; Document Processing &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  CareerAlign.com &middot; GenAI Reference Architectures &middot;
+  <a href="index.html">All Architectures</a>
+</footer>
+
+</body>
+</html>

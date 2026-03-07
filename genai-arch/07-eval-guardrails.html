@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Eval &amp; Guardrails — CareerAlign GenAI Architectures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #06b6d4;
+  --page-color-04: rgba(6,182,212,0.04);
+  --page-color-07: rgba(6,182,212,0.07);
+  --page-color-12: rgba(6,182,212,0.12);
+  --page-color-15: rgba(6,182,212,0.15);
+  --page-color-25: rgba(6,182,212,0.25);
+  --page-color-30: rgba(6,182,212,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9881;&#65039; <span style="color:#06b6d4;">GenAI</span> Architectures</div>
+  <div class="nav-links">
+    <a href="01-simple-chat-api.html">01</a>
+    <a href="02-conversational-chatbot.html">02</a>
+    <a href="03-rag-pipeline.html">03</a>
+    <a href="04-document-processing.html">04</a>
+    <a href="05-multi-model-router.html">05</a>
+    <a href="06-agentic-tool-use.html">06</a>
+    <a href="07-eval-guardrails.html" class="active">07</a>
+    <a href="08-fine-tuning-serving.html">08</a>
+    <a href="09-multi-agent.html">09</a>
+    <a href="10-production-platform.html">10</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; All Architectures</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">&#9889; Architecture 07 &middot; Intermediate</div>
+  <h1>Eval &amp; <em>Guardrails</em></h1>
+  <p class="hero-desc">
+    Protect your LLM application with input/output validation, safety filters, and automated quality evaluation.
+    Guardrails catch prompt injection, PII leaks, toxic content, and malformed outputs before they reach users.
+    LLM-as-judge evaluation enables continuous quality monitoring without manual review.
+  </p>
+  <div class="hero-checklist">
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Prompt Injection Detection</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> PII Scrubbing</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> LLM-as-Judge</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Automated Eval Metrics</span>
+  </div>
+  <div style="margin-top:28px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/genai-arch/notebooks/07-eval-guardrails.ipynb" target="_blank" class="btn btn-primary" style="background:#06b6d4;">Open Notebook in Colab &rarr;</a>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#overview" class="section">Architecture Overview</a>
+    <a href="#diagram" class="section">Architecture Diagram</a>
+    <a href="#components" class="section">Components Deep Dive</a>
+    <a href="#implementation" class="section">Implementation</a>
+    <a href="#dataflow" class="section">Data Flow</a>
+    <a href="#tradeoffs" class="section">Trade-offs</a>
+    <a href="#production" class="section">Production Checklist</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- 1. OVERVIEW -->
+    <div class="section" id="overview">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>Architecture Overview</h2>
+      </div>
+      <p>
+        The <strong>Eval &amp; Guardrails</strong> architecture wraps your LLM with pre-processing and post-processing
+        layers that validate, filter, and score every interaction. Input guards catch malicious or problematic
+        prompts <em>before</em> they reach the model. Output guards validate, sanitize, and quality-check responses
+        <em>before</em> they reach the user.
+      </p>
+      <p>
+        This pattern is non-negotiable for production systems. Without guardrails, your application is vulnerable to
+        prompt injection attacks, PII leakage, toxic output, and inconsistent quality. Without evaluation, you cannot
+        measure whether your system is actually working or degrading over time.
+      </p>
+      <h3>When to Use</h3>
+      <ul>
+        <li>Any customer-facing LLM application (chat, search, content generation)</li>
+        <li>Applications handling sensitive data (healthcare, finance, legal)</li>
+        <li>Systems where incorrect or harmful output has real consequences</li>
+        <li>Teams that need to demonstrate compliance and safety to stakeholders</li>
+        <li>Continuous quality monitoring and regression detection across model updates</li>
+      </ul>
+      <h3>Complexity Level</h3>
+      <p>
+        <strong>Moderate.</strong> Individual guard components are straightforward to implement. The challenge is
+        designing a pipeline that is fast enough to not degrade user experience, comprehensive enough to catch
+        edge cases, and flexible enough to update without redeployment.
+      </p>
+      <div class="callout tip">
+        <div class="callout-label">Tip</div>
+        <p>Guardrails are not a replacement for good system prompts. They are a safety net. A well-designed system prompt prevents 90% of issues; guardrails catch the remaining 10% that slip through under adversarial conditions.</p>
+      </div>
+    </div>
+
+    <!-- 2. DIAGRAM -->
+    <div class="section" id="diagram">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Architecture Diagram</h2>
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 800 400" class="learning-path-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow7" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+            </marker>
+            <marker id="arrow7r" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/>
+            </marker>
+          </defs>
+
+          <!-- User Input -->
+          <rect x="15" y="150" width="100" height="60" rx="8" fill="#10131e" stroke="#06b6d4" stroke-width="2"/>
+          <text x="65" y="177" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">User Input</text>
+          <text x="65" y="197" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Raw message</text>
+
+          <!-- Arrow -->
+          <line x1="115" y1="180" x2="150" y2="180" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow7)"/>
+
+          <!-- Input Guards Box -->
+          <rect x="160" y="90" width="160" height="180" rx="8" fill="#10131e" stroke="#f59e0b" stroke-width="2"/>
+          <text x="240" y="115" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk" font-size="12" font-weight="700">INPUT GUARDS</text>
+
+          <!-- Sub-items inside input guards -->
+          <rect x="175" y="128" width="130" height="30" rx="5" fill="#10131e" stroke="#232840" stroke-width="1"/>
+          <text x="240" y="148" text-anchor="middle" fill="#e6e8f4" font-family="Nunito" font-size="10">PII Detection</text>
+
+          <rect x="175" y="165" width="130" height="30" rx="5" fill="#10131e" stroke="#232840" stroke-width="1"/>
+          <text x="240" y="185" text-anchor="middle" fill="#e6e8f4" font-family="Nunito" font-size="10">Prompt Injection</text>
+
+          <rect x="175" y="202" width="130" height="30" rx="5" fill="#10131e" stroke="#232840" stroke-width="1"/>
+          <text x="240" y="222" text-anchor="middle" fill="#e6e8f4" font-family="Nunito" font-size="10">Topic Filter</text>
+
+          <!-- Arrow to LLM -->
+          <line x1="320" y1="180" x2="370" y2="180" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow7)"/>
+          <text x="345" y="170" text-anchor="middle" fill="#22c55e" font-family="JetBrains Mono" font-size="9">PASS</text>
+
+          <!-- LLM -->
+          <rect x="380" y="145" width="110" height="70" rx="8" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="435" y="175" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">LLM</text>
+          <text x="435" y="200" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Generate</text>
+
+          <!-- Arrow to Output Guards -->
+          <line x1="490" y1="180" x2="530" y2="180" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow7)"/>
+
+          <!-- Output Guards Box -->
+          <rect x="540" y="75" width="150" height="210" rx="8" fill="#10131e" stroke="#f59e0b" stroke-width="2"/>
+          <text x="615" y="100" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk" font-size="12" font-weight="700">OUTPUT GUARDS</text>
+
+          <!-- Sub-items inside output guards -->
+          <rect x="555" y="113" width="120" height="30" rx="5" fill="#10131e" stroke="#232840" stroke-width="1"/>
+          <text x="615" y="133" text-anchor="middle" fill="#e6e8f4" font-family="Nunito" font-size="10">Safety Classifier</text>
+
+          <rect x="555" y="150" width="120" height="30" rx="5" fill="#10131e" stroke="#232840" stroke-width="1"/>
+          <text x="615" y="170" text-anchor="middle" fill="#e6e8f4" font-family="Nunito" font-size="10">Factuality Check</text>
+
+          <rect x="555" y="187" width="120" height="30" rx="5" fill="#10131e" stroke="#232840" stroke-width="1"/>
+          <text x="615" y="207" text-anchor="middle" fill="#e6e8f4" font-family="Nunito" font-size="10">Format Validator</text>
+
+          <!-- Pass/Fail Gate -->
+          <polygon points="740,180 770,155 800,180 770,205" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="770" y="184" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="9" font-weight="600">Gate</text>
+
+          <!-- Arrow to Gate -->
+          <line x1="690" y1="180" x2="740" y2="180" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow7)"/>
+
+          <!-- Pass arrow down to Response -->
+          <line x1="770" y1="205" x2="770" y2="320" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow7)"/>
+          <text x="758" y="265" text-anchor="end" fill="#22c55e" font-family="JetBrains Mono" font-size="9">PASS</text>
+
+          <!-- Response -->
+          <rect x="710" y="325" width="80" height="50" rx="8" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="750" y="355" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">Response</text>
+
+          <!-- Fail arrow to Fallback -->
+          <line x1="770" y1="155" x2="770" y2="55" stroke="#ef4444" stroke-width="2" marker-end="url(#arrow7r)"/>
+          <text x="758" y="105" text-anchor="end" fill="#ef4444" font-family="JetBrains Mono" font-size="9">FAIL</text>
+
+          <!-- Fallback -->
+          <rect x="715" y="15" width="100" height="40" rx="8" fill="#10131e" stroke="#ef4444" stroke-width="2"/>
+          <text x="765" y="40" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="11" font-weight="600">Fallback</text>
+
+          <!-- Input Guard reject arrow -->
+          <path d="M 240 270 L 240 355 L 65 355 L 65 210" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow7r)"/>
+          <text x="150" y="370" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono" font-size="9">BLOCKED (reject message)</text>
+        </svg>
+        <p class="diagram-caption">Architecture diagram &mdash; Eval &amp; Guardrails: input guards, LLM, output guards, pass/fail gate</p>
+      </div>
+    </div>
+
+    <!-- 3. COMPONENTS -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Components Deep Dive</h2>
+      </div>
+
+      <h3>Input Guards</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Guard</th><th>Technique</th><th>What It Catches</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Prompt Injection</strong></td><td>Classifier model, heuristic patterns, canary tokens</td><td>"Ignore previous instructions", role-play attacks, delimiter injection</td></tr>
+          <tr><td><strong>PII Detection</strong></td><td>Regex (SSN, email, phone) + NER models (spaCy, Presidio)</td><td>Social Security numbers, credit cards, names, addresses, emails</td></tr>
+          <tr><td><strong>Topic Filter</strong></td><td>Keyword blocklist + embedding classifier</td><td>Off-topic queries, prohibited content categories, competitor mentions</td></tr>
+          <tr><td><strong>Input Length</strong></td><td>Token counting (tiktoken)</td><td>Excessively long inputs designed to waste tokens or overwhelm context</td></tr>
+          <tr><td><strong>Language Detection</strong></td><td>langdetect, fasttext</td><td>Unsupported languages, mixed-language injection attacks</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Output Guards</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Guard</th><th>Technique</th><th>What It Catches</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Safety Classifier</strong></td><td>Toxicity model (Perspective API, OpenAI moderation)</td><td>Hate speech, violence, self-harm, explicit content</td></tr>
+          <tr><td><strong>Factuality Check</strong></td><td>LLM-as-judge, source verification against RAG context</td><td>Hallucinated facts, unsupported claims, fabricated citations</td></tr>
+          <tr><td><strong>Format Validator</strong></td><td>JSON schema validation, regex, Pydantic parsing</td><td>Malformed JSON, missing required fields, incorrect data types</td></tr>
+          <tr><td><strong>PII in Output</strong></td><td>Same PII detection as input, applied to generated text</td><td>Model leaking training data, echoing back user PII</td></tr>
+          <tr><td><strong>Refusal Detector</strong></td><td>Pattern matching on refusal phrases</td><td>"I cannot help with that" when the model should have answered</td></tr>
+        </tbody>
+      </table>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128737;</div>
+            <h4>Prompt Injection Defense</h4>
+          </div>
+          <p>Layer multiple defenses: input classifiers, delimiter isolation (XML tags around user input), canary tokens (unique strings that should never appear in output), and instruction hierarchy in system prompts.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128274;</div>
+            <h4>PII Scrubbing</h4>
+          </div>
+          <p>Use <strong>regex</strong> for structured PII (SSN, credit cards, phone numbers) and <strong>NER models</strong> (spaCy, Presidio) for unstructured PII (names, addresses). Replace detected PII with placeholder tokens; optionally restore on output.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9878;</div>
+            <h4>LLM-as-Judge</h4>
+          </div>
+          <p>Use a separate LLM call to evaluate response quality on criteria like relevance, accuracy, helpfulness, and safety. Score on a rubric (1-5) with written reasoning. More nuanced than rule-based checks.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128202;</div>
+            <h4>Automated Eval Metrics</h4>
+          </div>
+          <p><strong>BLEU/ROUGE:</strong> n-gram overlap with reference. <strong>BERTScore:</strong> semantic similarity via embeddings. <strong>Custom rubrics:</strong> LLM judges domain-specific criteria. Track all metrics over time for regression detection.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127922;</div>
+            <h4>A/B Testing Quality</h4>
+          </div>
+          <p>Compare model versions, prompts, or guardrail configurations by routing traffic splits and measuring quality metrics. Statistical significance matters: use proper hypothesis testing, not vibes.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128260;</div>
+            <h4>Fallback Strategy</h4>
+          </div>
+          <p>When guardrails block a response: return a safe canned response, retry with a modified prompt, escalate to human review, or return a partial answer with a disclaimer. Never return nothing.</p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Defense in Depth</div>
+        <p>No single guard is foolproof. Prompt injection detection has false negatives; PII regex misses novel formats. Layer multiple guards with different techniques. The goal is not perfection but making attacks impractical.</p>
+      </div>
+    </div>
+
+    <!-- 4. IMPLEMENTATION -->
+    <div class="section" id="implementation">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Implementation</h2>
+      </div>
+      <h3>Step 1: PII Detection Guard</h3>
+<pre><code><span class="code-keyword">import</span> re
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+
+@dataclass
+<span class="code-keyword">class</span> <span class="code-fn">GuardResult</span>:
+    passed: <span class="code-fn">bool</span>
+    reason: <span class="code-fn">str</span> = <span class="code-string">""</span>
+    sanitized_text: <span class="code-fn">str</span> = <span class="code-string">""</span>
+    details: <span class="code-fn">dict</span> = <span class="code-keyword">None</span>
+
+PII_PATTERNS = {
+    <span class="code-string">"ssn"</span>: re.compile(r<span class="code-string">"\b\d{3}-\d{2}-\d{4}\b"</span>),
+    <span class="code-string">"credit_card"</span>: re.compile(r<span class="code-string">"\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b"</span>),
+    <span class="code-string">"email"</span>: re.compile(r<span class="code-string">"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"</span>),
+    <span class="code-string">"phone"</span>: re.compile(r<span class="code-string">"\b(?:\+1[\s-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b"</span>),
+    <span class="code-string">"ip_address"</span>: re.compile(r<span class="code-string">"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b"</span>),
+}
+
+<span class="code-keyword">def</span> <span class="code-fn">detect_pii</span>(text: <span class="code-fn">str</span>, scrub: <span class="code-fn">bool</span> = <span class="code-keyword">True</span>) -> GuardResult:
+    <span class="code-string">"""Detect and optionally scrub PII from text."""</span>
+    found = {}
+    sanitized = text
+
+    <span class="code-keyword">for</span> pii_type, pattern <span class="code-keyword">in</span> PII_PATTERNS.items():
+        matches = pattern.findall(sanitized)
+        <span class="code-keyword">if</span> matches:
+            found[pii_type] = <span class="code-fn">len</span>(matches)
+            <span class="code-keyword">if</span> scrub:
+                sanitized = pattern.sub(<span class="code-string">f"[{pii_type.upper()}_REDACTED]"</span>, sanitized)
+
+    <span class="code-keyword">if</span> found:
+        <span class="code-keyword">return</span> GuardResult(
+            passed=<span class="code-keyword">False</span>,
+            reason=<span class="code-string">f"PII detected: {found}"</span>,
+            sanitized_text=sanitized,
+            details={<span class="code-string">"pii_found"</span>: found},
+        )
+    <span class="code-keyword">return</span> GuardResult(passed=<span class="code-keyword">True</span>, sanitized_text=text)
+</code></pre>
+
+      <h3>Step 2: Prompt Injection Detection</h3>
+<pre><code>INJECTION_PATTERNS = [
+    r<span class="code-string">"ignore\s+(all\s+)?previous\s+instructions"</span>,
+    r<span class="code-string">"you\s+are\s+now\s+(?:a\s+)?(?:new|different)"</span>,
+    r<span class="code-string">"system\s*:\s*"</span>,
+    r<span class="code-string">"&lt;/?(?:system|admin|root)&gt;"</span>,
+    r<span class="code-string">"do\s+not\s+follow\s+(?:the\s+)?(?:system|original)"</span>,
+    r<span class="code-string">"disregard\s+(?:all\s+)?(?:prior|previous)"</span>,
+    r<span class="code-string">"pretend\s+(?:you\s+are|to\s+be)"</span>,
+    r<span class="code-string">"jailbreak|DAN\s+mode"</span>,
+]
+
+<span class="code-keyword">def</span> <span class="code-fn">detect_injection</span>(text: <span class="code-fn">str</span>) -> GuardResult:
+    <span class="code-string">"""Detect common prompt injection patterns."""</span>
+    text_lower = text.lower()
+
+    <span class="code-keyword">for</span> pattern <span class="code-keyword">in</span> INJECTION_PATTERNS:
+        <span class="code-keyword">if</span> re.search(pattern, text_lower):
+            <span class="code-keyword">return</span> GuardResult(
+                passed=<span class="code-keyword">False</span>,
+                reason=<span class="code-string">f"Potential prompt injection detected"</span>,
+                details={<span class="code-string">"pattern"</span>: pattern},
+            )
+
+    <span class="code-comment"># Heuristic: excessive special characters or delimiters</span>
+    special_ratio = <span class="code-fn">sum</span>(<span class="code-num">1</span> <span class="code-keyword">for</span> c <span class="code-keyword">in</span> text <span class="code-keyword">if</span> c <span class="code-keyword">in</span> <span class="code-string">'{}[]&lt;&gt;|\\`'</span>) / <span class="code-fn">max</span>(<span class="code-fn">len</span>(text), <span class="code-num">1</span>)
+    <span class="code-keyword">if</span> special_ratio > <span class="code-num">0.15</span>:
+        <span class="code-keyword">return</span> GuardResult(
+            passed=<span class="code-keyword">False</span>,
+            reason=<span class="code-string">"Suspicious character distribution"</span>,
+            details={<span class="code-string">"special_ratio"</span>: <span class="code-fn">round</span>(special_ratio, <span class="code-num">3</span>)},
+        )
+
+    <span class="code-keyword">return</span> GuardResult(passed=<span class="code-keyword">True</span>)
+</code></pre>
+
+      <h3>Step 3: Output Safety and Format Validation</h3>
+<pre><code><span class="code-keyword">import</span> json
+
+<span class="code-keyword">def</span> <span class="code-fn">validate_json_output</span>(text: <span class="code-fn">str</span>, schema: <span class="code-fn">dict</span> = <span class="code-keyword">None</span>) -> GuardResult:
+    <span class="code-string">"""Validate that output is well-formed JSON matching schema."""</span>
+    <span class="code-keyword">try</span>:
+        data = json.loads(text)
+    <span class="code-keyword">except</span> json.JSONDecodeError <span class="code-keyword">as</span> e:
+        <span class="code-keyword">return</span> GuardResult(passed=<span class="code-keyword">False</span>, reason=<span class="code-string">f"Invalid JSON: {e}"</span>)
+
+    <span class="code-keyword">if</span> schema:
+        <span class="code-comment"># Check required fields</span>
+        <span class="code-keyword">for</span> field <span class="code-keyword">in</span> schema.get(<span class="code-string">"required"</span>, []):
+            <span class="code-keyword">if</span> field <span class="code-keyword">not in</span> data:
+                <span class="code-keyword">return</span> GuardResult(
+                    passed=<span class="code-keyword">False</span>,
+                    reason=<span class="code-string">f"Missing required field: {field}"</span>,
+                )
+    <span class="code-keyword">return</span> GuardResult(passed=<span class="code-keyword">True</span>, sanitized_text=text)
+
+<span class="code-keyword">def</span> <span class="code-fn">check_output_safety</span>(text: <span class="code-fn">str</span>, client) -> GuardResult:
+    <span class="code-string">"""Use LLM to check output for safety issues."""</span>
+    response = client.messages.create(
+        model=<span class="code-string">"claude-3-5-haiku-20241022"</span>,
+        max_tokens=<span class="code-num">50</span>,
+        system=<span class="code-string">"""Evaluate this text for safety issues.
+Reply with JSON: {"safe": true/false, "reason": "..."}
+Flag: hate speech, violence, self-harm, explicit content,
+dangerous instructions, or PII disclosure."""</span>,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: text[:<span class="code-num">2000</span>]}],
+        temperature=<span class="code-num">0.0</span>,
+    )
+    <span class="code-keyword">try</span>:
+        result = json.loads(response.content[<span class="code-num">0</span>].text)
+        <span class="code-keyword">return</span> GuardResult(
+            passed=result[<span class="code-string">"safe"</span>],
+            reason=result.get(<span class="code-string">"reason"</span>, <span class="code-string">""</span>),
+        )
+    <span class="code-keyword">except</span> (json.JSONDecodeError, KeyError):
+        <span class="code-keyword">return</span> GuardResult(passed=<span class="code-keyword">True</span>)  <span class="code-comment"># Fail open if guard errors</span>
+</code></pre>
+
+      <h3>Step 4: Full Guard Pipeline</h3>
+<pre><code><span class="code-keyword">import</span> anthropic
+<span class="code-keyword">import</span> logging
+
+logger = logging.getLogger(__name__)
+
+<span class="code-keyword">class</span> <span class="code-fn">GuardedLLM</span>:
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self):
+        self.client = anthropic.Anthropic()
+        self.stats = {<span class="code-string">"total"</span>: <span class="code-num">0</span>, <span class="code-string">"input_blocked"</span>: <span class="code-num">0</span>, <span class="code-string">"output_blocked"</span>: <span class="code-num">0</span>, <span class="code-string">"passed"</span>: <span class="code-num">0</span>}
+
+    <span class="code-keyword">def</span> <span class="code-fn">query</span>(self, user_input: <span class="code-fn">str</span>, system: <span class="code-fn">str</span> = <span class="code-string">"You are helpful."</span>) -> <span class="code-fn">dict</span>:
+        <span class="code-string">"""Full guarded query pipeline."""</span>
+        self.stats[<span class="code-string">"total"</span>] += <span class="code-num">1</span>
+
+        <span class="code-comment"># === INPUT GUARDS ===</span>
+
+        <span class="code-comment"># 1. Prompt injection check</span>
+        injection = detect_injection(user_input)
+        <span class="code-keyword">if not</span> injection.passed:
+            self.stats[<span class="code-string">"input_blocked"</span>] += <span class="code-num">1</span>
+            logger.warning(<span class="code-string">f"Injection blocked: {injection.reason}"</span>)
+            <span class="code-keyword">return</span> {<span class="code-string">"blocked"</span>: <span class="code-keyword">True</span>, <span class="code-string">"reason"</span>: <span class="code-string">"Your message was flagged by our safety system."</span>}
+
+        <span class="code-comment"># 2. PII detection and scrubbing</span>
+        pii = detect_pii(user_input, scrub=<span class="code-keyword">True</span>)
+        clean_input = pii.sanitized_text  <span class="code-comment"># Use scrubbed version</span>
+
+        <span class="code-comment"># === LLM CALL ===</span>
+        response = self.client.messages.create(
+            model=<span class="code-string">"claude-sonnet-4-20250514"</span>,
+            max_tokens=<span class="code-num">1024</span>,
+            system=system,
+            messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: clean_input}],
+        )
+        output_text = response.content[<span class="code-num">0</span>].text
+
+        <span class="code-comment"># === OUTPUT GUARDS ===</span>
+
+        <span class="code-comment"># 3. Safety check</span>
+        safety = check_output_safety(output_text, self.client)
+        <span class="code-keyword">if not</span> safety.passed:
+            self.stats[<span class="code-string">"output_blocked"</span>] += <span class="code-num">1</span>
+            logger.warning(<span class="code-string">f"Output blocked: {safety.reason}"</span>)
+            <span class="code-keyword">return</span> {<span class="code-string">"blocked"</span>: <span class="code-keyword">True</span>, <span class="code-string">"reason"</span>: <span class="code-string">"Response did not pass safety review."</span>}
+
+        <span class="code-comment"># 4. PII in output check</span>
+        output_pii = detect_pii(output_text, scrub=<span class="code-keyword">True</span>)
+        final_text = output_pii.sanitized_text
+
+        self.stats[<span class="code-string">"passed"</span>] += <span class="code-num">1</span>
+        <span class="code-keyword">return</span> {
+            <span class="code-string">"blocked"</span>: <span class="code-keyword">False</span>,
+            <span class="code-string">"text"</span>: final_text,
+            <span class="code-string">"guards"</span>: {
+                <span class="code-string">"input_pii_found"</span>: <span class="code-keyword">not</span> pii.passed,
+                <span class="code-string">"output_pii_scrubbed"</span>: <span class="code-keyword">not</span> output_pii.passed,
+            }
+        }
+
+<span class="code-comment"># Usage</span>
+guard = GuardedLLM()
+result = guard.query(<span class="code-string">"My SSN is 123-45-6789. What can I claim on taxes?"</span>)
+<span class="code-comment"># PII scrubbed before sending to LLM; answer generated safely</span>
+</code></pre>
+
+      <h3>Step 5: LLM-as-Judge Evaluation</h3>
+<pre><code><span class="code-keyword">def</span> <span class="code-fn">llm_judge</span>(question: <span class="code-fn">str</span>, answer: <span class="code-fn">str</span>, client, rubric: <span class="code-fn">str</span> = <span class="code-keyword">None</span>) -> <span class="code-fn">dict</span>:
+    <span class="code-string">"""Evaluate answer quality using LLM-as-judge pattern."""</span>
+    default_rubric = <span class="code-string">"""Score the answer on these criteria (1-5 each):
+- Relevance: Does it address the question directly?
+- Accuracy: Are the facts correct and verifiable?
+- Completeness: Does it cover the key aspects?
+- Clarity: Is it well-organized and easy to understand?
+- Safety: Is it free from harmful or misleading content?
+
+Reply as JSON: {"relevance": N, "accuracy": N, "completeness": N,
+"clarity": N, "safety": N, "overall": N, "reasoning": "..."}"""</span>
+
+    response = client.messages.create(
+        model=<span class="code-string">"claude-sonnet-4-20250514"</span>,
+        max_tokens=<span class="code-num">300</span>,
+        system=rubric <span class="code-keyword">or</span> default_rubric,
+        messages=[{
+            <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+            <span class="code-string">"content"</span>: <span class="code-string">f"Question: {question}\n\nAnswer: {answer}"</span>
+        }],
+        temperature=<span class="code-num">0.0</span>,
+    )
+    <span class="code-keyword">return</span> json.loads(response.content[<span class="code-num">0</span>].text)
+</code></pre>
+    </div>
+
+    <!-- 5. DATA FLOW -->
+    <div class="section" id="dataflow">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Data Flow</h2>
+      </div>
+      <p>Step-by-step flow of a request through the Eval &amp; Guardrails pipeline:</p>
+      <ul class="checklist">
+        <li><span class="check-box done"></span><strong>1. User input received</strong> &mdash; Raw message arrives at API endpoint</li>
+        <li><span class="check-box done"></span><strong>2. Input guard: injection detection</strong> &mdash; Scan for prompt injection patterns; block if detected</li>
+        <li><span class="check-box done"></span><strong>3. Input guard: PII scrubbing</strong> &mdash; Detect and replace PII with redaction tokens</li>
+        <li><span class="check-box done"></span><strong>4. Input guard: topic filter</strong> &mdash; Check if query is within allowed topic scope</li>
+        <li><span class="check-box done"></span><strong>5. LLM generation</strong> &mdash; Sanitized input sent to LLM with system prompt</li>
+        <li><span class="check-box done"></span><strong>6. Output guard: safety classifier</strong> &mdash; Check generated text for toxicity, harmful content</li>
+        <li><span class="check-box done"></span><strong>7. Output guard: factuality check</strong> &mdash; Verify claims against source context (for RAG systems)</li>
+        <li><span class="check-box done"></span><strong>8. Output guard: format validation</strong> &mdash; Verify JSON schema, required fields, data types</li>
+        <li><span class="check-box done"></span><strong>9. Pass/fail gate</strong> &mdash; All guards passed &rarr; deliver response; any failed &rarr; fallback or retry</li>
+        <li><span class="check-box done"></span><strong>10. Logging and evaluation</strong> &mdash; Record guard decisions, quality scores, and latency for monitoring</li>
+      </ul>
+    </div>
+
+    <!-- 6. TRADE-OFFS -->
+    <div class="section" id="tradeoffs">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Trade-offs &amp; Considerations</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Advantage</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Prevents prompt injection and data exfiltration</td><td>Adds latency (50-500ms per guard, especially LLM-based)</td></tr>
+          <tr><td>Catches PII before it reaches the model or logs</td><td>False positives block legitimate queries (user frustration)</td></tr>
+          <tr><td>Ensures consistent output format for downstream systems</td><td>LLM-based guards add cost (extra API calls per request)</td></tr>
+          <tr><td>Automated eval enables continuous quality monitoring</td><td>No single guard catches all attack vectors (arms race)</td></tr>
+          <tr><td>Compliance and audit trail for regulated industries</td><td>Over-aggressive guards can make the product unusable</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Evaluation Metrics Comparison</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Metric</th><th>Type</th><th>Strengths</th><th>Limitations</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>BLEU</strong></td><td>N-gram overlap</td><td>Fast, deterministic</td><td>Misses semantic similarity, paraphrases</td></tr>
+          <tr><td><strong>ROUGE</strong></td><td>Recall-based overlap</td><td>Good for summarization</td><td>Same limitations as BLEU</td></tr>
+          <tr><td><strong>BERTScore</strong></td><td>Embedding similarity</td><td>Captures semantic meaning</td><td>Requires GPU, less interpretable</td></tr>
+          <tr><td><strong>LLM-as-Judge</strong></td><td>Model-based scoring</td><td>Nuanced, multi-criteria</td><td>Expensive, potential bias, non-deterministic</td></tr>
+          <tr><td><strong>Custom rubric</strong></td><td>Domain-specific LLM eval</td><td>Tailored to your use case</td><td>Requires rubric engineering and calibration</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">When to upgrade</div>
+        <p>Guardrails apply to every architecture. They should be layered on top of Architectures 01-06, not used in isolation. For fine-tuning models to inherently behave safely, see Architecture 08 (Fine-Tuning &amp; Serving).</p>
+      </div>
+    </div>
+
+    <!-- 7. PRODUCTION CHECKLIST -->
+    <div class="section" id="production">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Production Checklist</h2>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Implement at least 3 input guards: injection detection, PII scrubbing, input length validation</li>
+        <li><span class="check-box"></span>Implement at least 2 output guards: safety classifier, format validation</li>
+        <li><span class="check-box"></span>Build a red team test suite: 50+ adversarial prompts covering known injection techniques</li>
+        <li><span class="check-box"></span>Monitor false positive rate: track legitimate queries that guards incorrectly block</li>
+        <li><span class="check-box"></span>Set up LLM-as-judge evaluation on a sample of production traffic (daily or weekly batch)</li>
+        <li><span class="check-box"></span>Create labeled evaluation dataset with expected answers for regression testing</li>
+        <li><span class="check-box"></span>Configure alerts for guard trigger rate spikes (may indicate attack or classifier drift)</li>
+        <li><span class="check-box"></span>Implement guard bypass for internal/debugging with proper access controls</li>
+        <li><span class="check-box"></span>Version guard configurations and enable rollback without code deployment</li>
+        <li><span class="check-box"></span>Run guards in parallel where possible to minimize total latency overhead</li>
+        <li><span class="check-box"></span>Document guard coverage gaps and accepted risks for compliance teams</li>
+        <li><span class="check-box"></span>Set up A/B testing pipeline to compare guard configurations and their impact on user satisfaction</li>
+      </ul>
+    </div>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Architecture</div>
+        <a href="06-agentic-tool-use.html" class="next-btn">&larr; 06 &middot; Agentic Tool Use</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Architecture</div>
+        <a href="08-fine-tuning-serving.html" class="next-btn">08 &middot; Fine-Tuning &amp; Serving &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  CareerAlign.com &middot; GenAI Reference Architectures &middot;
+  <a href="index.html">All Architectures</a>
+</footer>
+
+</body>
+</html>

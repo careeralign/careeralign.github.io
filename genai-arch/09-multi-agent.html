@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Multi-Agent Systems — CareerAlign GenAI Architectures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #a855f7;
+  --page-color-04: rgba(168,85,247,0.04);
+  --page-color-07: rgba(168,85,247,0.07);
+  --page-color-12: rgba(168,85,247,0.12);
+  --page-color-15: rgba(168,85,247,0.15);
+  --page-color-25: rgba(168,85,247,0.25);
+  --page-color-30: rgba(168,85,247,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9881;&#65039; <span style="color:#a855f7;">GenAI</span> Architectures</div>
+  <div class="nav-links">
+    <a href="01-simple-chat-api.html">01</a>
+    <a href="02-conversational-chatbot.html">02</a>
+    <a href="03-rag-pipeline.html">03</a>
+    <a href="04-document-processing.html">04</a>
+    <a href="05-multi-model-router.html">05</a>
+    <a href="06-agentic-tool-use.html">06</a>
+    <a href="07-eval-guardrails.html">07</a>
+    <a href="08-fine-tuning-serving.html">08</a>
+    <a href="09-multi-agent.html" class="active">09</a>
+    <a href="10-production-platform.html">10</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; All Architectures</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">&#9889; Architecture 09 &middot; Advanced</div>
+  <h1>Multi-Agent <em>Systems</em></h1>
+  <p class="hero-desc">
+    Orchestrate multiple specialized AI agents that collaborate to solve complex, multi-step problems.
+    Each agent has a defined role, tool access, and communication protocol &mdash; coordinated by an
+    orchestrator that plans, delegates, synthesizes results, and handles failures gracefully.
+  </p>
+  <div class="hero-checklist">
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Agent Specialization</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Communication Patterns</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Handoff Protocols</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Cost Control</span>
+  </div>
+  <div style="margin-top:28px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/genai-arch/notebooks/09-multi-agent.ipynb" target="_blank" class="btn btn-primary" style="background:#a855f7;">Open Notebook in Colab &rarr;</a>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#overview" class="section">Architecture Overview</a>
+    <a href="#diagram" class="section">Architecture Diagram</a>
+    <a href="#components" class="section">Components Deep Dive</a>
+    <a href="#implementation" class="section">Implementation</a>
+    <a href="#dataflow" class="section">Data Flow</a>
+    <a href="#tradeoffs" class="section">Trade-offs</a>
+    <a href="#production" class="section">Production Checklist</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- 1. OVERVIEW -->
+    <div class="section" id="overview">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>Architecture Overview</h2>
+      </div>
+      <p>
+        The <strong>Multi-Agent System</strong> architecture deploys multiple specialized AI agents, each with
+        a focused role, distinct tool access, and dedicated system prompts. An orchestrator agent plans the
+        overall task, delegates sub-tasks to specialist agents, collects their results, and synthesizes a
+        final response. This pattern excels when no single agent can efficiently handle the full breadth
+        of a complex workflow.
+      </p>
+      <h3>When to Use</h3>
+      <ul>
+        <li>Tasks require multiple distinct capabilities (research, coding, analysis, review)</li>
+        <li>A single agent's context window cannot hold all necessary information simultaneously</li>
+        <li>Different sub-tasks benefit from different models, prompts, or temperature settings</li>
+        <li>You need separation of concerns for security (e.g., only one agent accesses production databases)</li>
+        <li>Complex workflows need iterative refinement with feedback loops between specialists</li>
+      </ul>
+      <h3>Complexity Level</h3>
+      <p>
+        <strong>High.</strong> Multi-agent systems multiply the complexity of single-agent architectures. Only use
+        this pattern when you have proven that a single agent with tools cannot meet your quality or capability
+        requirements. Start with 2 agents before scaling to more.
+      </p>
+      <div class="callout tip">
+        <div class="callout-label">Tip</div>
+        <p>The most common mistake is creating too many agents. Each additional agent adds latency, cost, and failure modes. Start with the minimum viable agent count and add specialists only when you have clear evidence of improvement.</p>
+      </div>
+    </div>
+
+    <!-- 2. DIAGRAM -->
+    <div class="section" id="diagram">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Architecture Diagram</h2>
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 800 450" class="learning-path-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow9" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+            </marker>
+            <marker id="arrow9p" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#a855f7"/>
+            </marker>
+          </defs>
+
+          <!-- Title -->
+          <text x="400" y="25" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="16" font-weight="700">Multi-Agent Orchestration</text>
+
+          <!-- User -->
+          <rect x="20" y="175" width="100" height="60" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="70" y="202" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">User</text>
+          <text x="70" y="220" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Request</text>
+
+          <!-- Arrow User to Orchestrator -->
+          <line x1="120" y1="205" x2="195" y2="205" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow9)"/>
+          <text x="157" y="197" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">task</text>
+
+          <!-- Orchestrator Agent -->
+          <rect x="205" y="155" width="140" height="100" rx="8" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="275" y="183" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">Orchestrator</text>
+          <text x="275" y="200" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">Agent</text>
+          <text x="275" y="220" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="10">plan &amp; delegate</text>
+          <text x="275" y="236" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">synthesize results</text>
+
+          <!-- Fan-out arrows from Orchestrator to 3 agents -->
+          <!-- To Researcher (top) -->
+          <line x1="345" y1="185" x2="430" y2="100" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow9)"/>
+          <!-- To Coder (middle) -->
+          <line x1="345" y1="205" x2="430" y2="205" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow9)"/>
+          <!-- To Reviewer (bottom) -->
+          <line x1="345" y1="225" x2="430" y2="320" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow9)"/>
+
+          <!-- Researcher Agent -->
+          <rect x="440" y="55" width="130" height="80" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="505" y="82" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Researcher</text>
+          <text x="505" y="100" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Agent</text>
+          <text x="505" y="120" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">gather information</text>
+
+          <!-- Search Tool -->
+          <rect x="610" y="55" width="100" height="40" rx="8" fill="#10131e" stroke="#232840" stroke-width="1.5"/>
+          <text x="660" y="72" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="10">Search Tool</text>
+          <text x="660" y="86" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">web, docs, DB</text>
+          <line x1="570" y1="80" x2="610" y2="78" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrow9)"/>
+
+          <!-- Coder Agent -->
+          <rect x="440" y="170" width="130" height="80" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="505" y="197" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Coder</text>
+          <text x="505" y="215" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Agent</text>
+          <text x="505" y="235" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">write &amp; execute code</text>
+
+          <!-- Code Executor -->
+          <rect x="610" y="170" width="100" height="40" rx="8" fill="#10131e" stroke="#232840" stroke-width="1.5"/>
+          <text x="660" y="187" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="10">Code Executor</text>
+          <text x="660" y="201" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">sandbox, REPL</text>
+          <line x1="570" y1="200" x2="610" y2="192" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrow9)"/>
+
+          <!-- Reviewer Agent -->
+          <rect x="440" y="285" width="130" height="80" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="505" y="312" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Reviewer</text>
+          <text x="505" y="330" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Agent</text>
+          <text x="505" y="350" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">lint, test, verify</text>
+
+          <!-- Lint/Test Tools -->
+          <rect x="610" y="285" width="100" height="40" rx="8" fill="#10131e" stroke="#232840" stroke-width="1.5"/>
+          <text x="660" y="302" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="10">Lint / Test</text>
+          <text x="660" y="316" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">pytest, ruff, mypy</text>
+          <line x1="570" y1="315" x2="610" y2="307" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrow9)"/>
+
+          <!-- Bidirectional dashed lines between agents -->
+          <line x1="505" y1="135" x2="505" y2="170" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <line x1="505" y1="250" x2="505" y2="285" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <text x="525" y="155" fill="#a855f7" font-family="JetBrains Mono" font-size="8">messages</text>
+          <text x="525" y="272" fill="#a855f7" font-family="JetBrains Mono" font-size="8">messages</text>
+
+          <!-- Fan-in arrows back to Orchestrator -->
+          <line x1="440" y1="110" x2="345" y2="185" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow9)"/>
+          <line x1="440" y1="215" x2="345" y2="210" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow9)"/>
+          <line x1="440" y1="310" x2="345" y2="230" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow9)"/>
+
+          <!-- Synthesize Response -->
+          <rect x="205" y="300" width="140" height="50" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="275" y="322" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Synthesize</text>
+          <text x="275" y="340" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">merge &amp; format</text>
+
+          <!-- Arrow Orchestrator to Synthesize -->
+          <line x1="275" y1="255" x2="275" y2="300" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow9)"/>
+
+          <!-- Arrow Synthesize back to User -->
+          <path d="M 205 325 L 70 325 L 70 235" fill="none" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow9)"/>
+          <text x="137" y="345" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">final response</text>
+
+          <!-- Iteration label -->
+          <text x="400" y="440" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">Agents may iterate multiple rounds before the orchestrator is satisfied with results</text>
+        </svg>
+        <p class="diagram-caption">Architecture diagram &mdash; Multi-Agent: orchestrator fans out to specialized agents with tools, collects results, and synthesizes a unified response</p>
+      </div>
+    </div>
+
+    <!-- 3. COMPONENTS -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Components Deep Dive</h2>
+      </div>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127919;</div>
+            <h4>Orchestrator Agent</h4>
+          </div>
+          <p>The central coordinator that decomposes tasks, assigns work to specialists, tracks progress, handles failures, and merges results. Uses a planner prompt that understands all available agents and their capabilities.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128269;</div>
+            <h4>Researcher Agent</h4>
+          </div>
+          <p>Specializes in information gathering using search tools, document retrieval, and knowledge bases. Returns structured findings with source citations. Optimized for breadth and accuracy over speed.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128187;</div>
+            <h4>Coder Agent</h4>
+          </div>
+          <p>Writes, debugs, and executes code in a sandboxed environment. Has access to a code executor (REPL, Docker container) and can install packages, run tests, and iterate on errors autonomously.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128270;</div>
+            <h4>Reviewer Agent</h4>
+          </div>
+          <p>Reviews outputs from other agents for correctness, quality, and safety. Runs linting, type checking, and test suites. Can request revisions from the coder agent before approving.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128172;</div>
+            <h4>Message Bus</h4>
+          </div>
+          <p>Structured communication layer between agents. Messages include sender, recipient, action type (request, response, error), payload, and metadata. Enables logging and replay for debugging.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128737;</div>
+            <h4>Safety Controls</h4>
+          </div>
+          <p>Max iteration limits prevent infinite loops. Token budgets cap total cost. Human-in-the-loop escalation triggers when confidence is low or stakes are high. Circuit breakers halt on repeated failures.</p>
+        </div>
+      </div>
+
+      <h3>Communication Patterns Comparison</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Pattern</th><th>How It Works</th><th>Pros</th><th>Cons</th><th>Best For</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Hierarchical</td>
+            <td>Orchestrator delegates to agents; agents only talk to orchestrator</td>
+            <td>Clear control flow, easy to debug</td>
+            <td>Bottleneck at orchestrator, more round trips</td>
+            <td>Most production systems</td>
+          </tr>
+          <tr>
+            <td>Peer-to-Peer</td>
+            <td>Agents communicate directly with each other</td>
+            <td>Lower latency, parallel work</td>
+            <td>Hard to track state, potential loops</td>
+            <td>Tightly coupled tasks (code + review)</td>
+          </tr>
+          <tr>
+            <td>Blackboard</td>
+            <td>Shared workspace; agents read/write to common state</td>
+            <td>Flexible, decoupled agents</td>
+            <td>Race conditions, complex state management</td>
+            <td>Collaborative document editing</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Framework Comparison</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Framework</th><th>Architecture</th><th>Strengths</th><th>Considerations</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>LangGraph</td>
+            <td>State machine / graph-based</td>
+            <td>Explicit control flow, persistence, human-in-the-loop</td>
+            <td>Steeper learning curve, LangChain ecosystem</td>
+          </tr>
+          <tr>
+            <td>CrewAI</td>
+            <td>Role-based crew</td>
+            <td>Simple API, role/goal/backstory abstractions</td>
+            <td>Less control over execution order</td>
+          </tr>
+          <tr>
+            <td>Autogen</td>
+            <td>Conversational agents</td>
+            <td>Natural multi-turn dialogue, code execution built in</td>
+            <td>Can be chatty, harder to constrain</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 4. IMPLEMENTATION -->
+    <div class="section" id="implementation">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Implementation</h2>
+      </div>
+
+      <h3>Three-Agent System with Orchestrator</h3>
+<pre><code><span class="code-keyword">import</span> anthropic
+<span class="code-keyword">import</span> json
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass, field
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Optional
+
+client = anthropic.Anthropic()
+
+<span class="code-comment"># ---------- Agent definitions ----------</span>
+
+@dataclass
+<span class="code-keyword">class</span> <span class="code-fn">Agent</span>:
+    name: <span class="code-fn">str</span>
+    role: <span class="code-fn">str</span>
+    system_prompt: <span class="code-fn">str</span>
+    tools: <span class="code-fn">list</span> = field(default_factory=<span class="code-fn">list</span>)
+    model: <span class="code-fn">str</span> = <span class="code-string">"claude-sonnet-4-20250514"</span>
+    temperature: <span class="code-fn">float</span> = <span class="code-num">0.3</span>
+    max_tokens: <span class="code-fn">int</span> = <span class="code-num">2048</span>
+
+<span class="code-comment"># Define specialist agents</span>
+researcher = Agent(
+    name=<span class="code-string">"researcher"</span>,
+    role=<span class="code-string">"Information gathering and analysis"</span>,
+    system_prompt=<span class="code-string">"""You are a research specialist. Your job is to:
+1. Search for relevant information on the given topic
+2. Summarize findings with source citations
+3. Identify key facts, statistics, and expert opinions
+Return structured JSON with keys: findings, sources, confidence."""</span>,
+    tools=[{
+        <span class="code-string">"name"</span>: <span class="code-string">"web_search"</span>,
+        <span class="code-string">"description"</span>: <span class="code-string">"Search the web for information"</span>,
+        <span class="code-string">"input_schema"</span>: {
+            <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+            <span class="code-string">"properties"</span>: {<span class="code-string">"query"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>}},
+            <span class="code-string">"required"</span>: [<span class="code-string">"query"</span>]
+        }
+    }]
+)
+
+coder = Agent(
+    name=<span class="code-string">"coder"</span>,
+    role=<span class="code-string">"Code writing and execution"</span>,
+    system_prompt=<span class="code-string">"""You are a coding specialist. Your job is to:
+1. Write clean, well-documented code for the given task
+2. Execute code and verify it works correctly
+3. Fix any errors and iterate until tests pass
+Return the final working code with explanation."""</span>,
+    tools=[{
+        <span class="code-string">"name"</span>: <span class="code-string">"execute_code"</span>,
+        <span class="code-string">"description"</span>: <span class="code-string">"Execute Python code in a sandbox"</span>,
+        <span class="code-string">"input_schema"</span>: {
+            <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+            <span class="code-string">"properties"</span>: {<span class="code-string">"code"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>}},
+            <span class="code-string">"required"</span>: [<span class="code-string">"code"</span>]
+        }
+    }]
+)
+
+reviewer = Agent(
+    name=<span class="code-string">"reviewer"</span>,
+    role=<span class="code-string">"Quality assurance and review"</span>,
+    system_prompt=<span class="code-string">"""You are a code reviewer. Your job is to:
+1. Review code for correctness, security, and best practices
+2. Run linting and type checking
+3. Identify bugs, edge cases, and improvements
+Return JSON: {approved: bool, issues: [...], suggestions: [...]}"""</span>,
+    tools=[{
+        <span class="code-string">"name"</span>: <span class="code-string">"run_tests"</span>,
+        <span class="code-string">"description"</span>: <span class="code-string">"Run pytest, ruff, and mypy on code"</span>,
+        <span class="code-string">"input_schema"</span>: {
+            <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+            <span class="code-string">"properties"</span>: {<span class="code-string">"code"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>}},
+            <span class="code-string">"required"</span>: [<span class="code-string">"code"</span>]
+        }
+    }]
+)
+
+AGENTS = {<span class="code-string">"researcher"</span>: researcher, <span class="code-string">"coder"</span>: coder, <span class="code-string">"reviewer"</span>: reviewer}
+</code></pre>
+
+      <h3>Orchestrator with Function Calling</h3>
+<pre><code><span class="code-comment"># ---------- Orchestrator ----------</span>
+
+ORCHESTRATOR_SYSTEM = <span class="code-string">"""You are an orchestrator managing a team of specialist agents.
+
+Available agents:
+- researcher: Searches and analyzes information
+- coder: Writes and executes code
+- reviewer: Reviews code quality and runs tests
+
+For each user request:
+1. Break the task into sub-tasks
+2. Use the delegate_to_agent tool to assign work
+3. Collect results and iterate if needed
+4. Synthesize a final response
+
+Rules:
+- Max 10 total delegations per request
+- Always have the reviewer check code before finalizing
+- If an agent fails twice, escalate to the user"""</span>
+
+orchestrator_tools = [{
+    <span class="code-string">"name"</span>: <span class="code-string">"delegate_to_agent"</span>,
+    <span class="code-string">"description"</span>: <span class="code-string">"Delegate a sub-task to a specialist agent"</span>,
+    <span class="code-string">"input_schema"</span>: {
+        <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+        <span class="code-string">"properties"</span>: {
+            <span class="code-string">"agent_name"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"string"</span>,
+                <span class="code-string">"enum"</span>: [<span class="code-string">"researcher"</span>, <span class="code-string">"coder"</span>, <span class="code-string">"reviewer"</span>]
+            },
+            <span class="code-string">"task"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>},
+            <span class="code-string">"context"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"default"</span>: <span class="code-string">""</span>}
+        },
+        <span class="code-string">"required"</span>: [<span class="code-string">"agent_name"</span>, <span class="code-string">"task"</span>]
+    }
+}]
+
+<span class="code-keyword">def</span> <span class="code-fn">call_agent</span>(agent: Agent, task: <span class="code-fn">str</span>, context: <span class="code-fn">str</span> = <span class="code-string">""</span>) -> <span class="code-fn">str</span>:
+    <span class="code-string">"""Call a specialist agent with a task."""</span>
+    message = f<span class="code-string">"Task: {task}"</span>
+    <span class="code-keyword">if</span> context:
+        message += f<span class="code-string">"\n\nContext from other agents:\n{context}"</span>
+
+    response = client.messages.create(
+        model=agent.model,
+        max_tokens=agent.max_tokens,
+        system=agent.system_prompt,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: message}],
+        temperature=agent.temperature,
+    )
+    <span class="code-keyword">return</span> response.content[<span class="code-num">0</span>].text
+
+<span class="code-keyword">def</span> <span class="code-fn">run_multi_agent</span>(user_request: <span class="code-fn">str</span>, max_delegations: <span class="code-fn">int</span> = <span class="code-num">10</span>) -> <span class="code-fn">str</span>:
+    <span class="code-string">"""Run the multi-agent orchestration loop."""</span>
+    messages = [{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: user_request}]
+    delegation_count = <span class="code-num">0</span>
+    total_tokens = <span class="code-num">0</span>
+
+    <span class="code-keyword">while</span> delegation_count < max_delegations:
+        response = client.messages.create(
+            model=<span class="code-string">"claude-sonnet-4-20250514"</span>,
+            max_tokens=<span class="code-num">4096</span>,
+            system=ORCHESTRATOR_SYSTEM,
+            messages=messages,
+            tools=orchestrator_tools,
+        )
+        total_tokens += response.usage.input_tokens + response.usage.output_tokens
+
+        <span class="code-comment"># Check if orchestrator wants to delegate</span>
+        <span class="code-keyword">if</span> response.stop_reason == <span class="code-string">"tool_use"</span>:
+            tool_results = []
+            <span class="code-keyword">for</span> block <span class="code-keyword">in</span> response.content:
+                <span class="code-keyword">if</span> block.type == <span class="code-string">"tool_use"</span>:
+                    agent = AGENTS[block.input[<span class="code-string">"agent_name"</span>]]
+                    result = call_agent(
+                        agent,
+                        block.input[<span class="code-string">"task"</span>],
+                        block.input.get(<span class="code-string">"context"</span>, <span class="code-string">""</span>),
+                    )
+                    tool_results.append({
+                        <span class="code-string">"type"</span>: <span class="code-string">"tool_result"</span>,
+                        <span class="code-string">"tool_use_id"</span>: block.id,
+                        <span class="code-string">"content"</span>: result,
+                    })
+                    delegation_count += <span class="code-num">1</span>
+                    <span class="code-fn">print</span>(f<span class="code-string">"  [{delegation_count}] {agent.name}: {block.input['task'][:80]}"</span>)
+
+            messages.append({<span class="code-string">"role"</span>: <span class="code-string">"assistant"</span>, <span class="code-string">"content"</span>: response.content})
+            messages.append({<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: tool_results})
+        <span class="code-keyword">else</span>:
+            <span class="code-comment"># Orchestrator has synthesized the final answer</span>
+            <span class="code-fn">print</span>(f<span class="code-string">"\nCompleted in {delegation_count} delegations, ~{total_tokens} tokens"</span>)
+            <span class="code-keyword">return</span> response.content[<span class="code-num">0</span>].text
+
+    <span class="code-keyword">return</span> <span class="code-string">"Max delegations reached. Partial results returned."</span>
+
+<span class="code-comment"># Usage</span>
+result = run_multi_agent(
+    <span class="code-string">"Research best practices for rate limiting APIs, then write a Python "
+    "implementation with tests, and have it reviewed for production readiness."</span>
+)
+</code></pre>
+    </div>
+
+    <!-- 5. DATA FLOW -->
+    <div class="section" id="dataflow">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Data Flow</h2>
+      </div>
+      <p>Here is the step-by-step flow through the Multi-Agent orchestration:</p>
+      <ul class="checklist">
+        <li><span class="check-box done"></span><strong>1. User submits request</strong> &mdash; A complex task that requires multiple capabilities (research, coding, review)</li>
+        <li><span class="check-box done"></span><strong>2. Orchestrator plans</strong> &mdash; Breaks the task into sub-tasks, identifies which agents to involve, determines ordering</li>
+        <li><span class="check-box done"></span><strong>3. Fan-out delegation</strong> &mdash; Orchestrator calls delegate_to_agent for each sub-task; independent tasks can run in parallel</li>
+        <li><span class="check-box done"></span><strong>4. Agents execute</strong> &mdash; Each specialist processes its sub-task using its tools (search, code execution, testing)</li>
+        <li><span class="check-box done"></span><strong>5. Results returned</strong> &mdash; Agent outputs flow back to the orchestrator as tool results</li>
+        <li><span class="check-box done"></span><strong>6. Iterate if needed</strong> &mdash; Orchestrator may request revisions, send coder output to reviewer, or ask researcher for more data</li>
+        <li><span class="check-box done"></span><strong>7. Synthesize response</strong> &mdash; Orchestrator merges all agent outputs into a coherent final answer</li>
+        <li><span class="check-box done"></span><strong>8. Return to user</strong> &mdash; Final response includes contributions from all agents, with provenance tracking</li>
+      </ul>
+
+      <div class="callout info">
+        <div class="callout-label">State Management</div>
+        <p><strong>Shared context</strong> passes relevant results from one agent to another via the orchestrator. <strong>Isolated state</strong> keeps each agent's working memory separate, preventing context pollution. Most production systems use a hybrid: shared task context with isolated agent scratchpads.</p>
+      </div>
+    </div>
+
+    <!-- 6. TRADE-OFFS -->
+    <div class="section" id="tradeoffs">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Trade-offs &amp; Considerations</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Advantage</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Handles complex, multi-step tasks beyond single agent capability</td><td>Significantly higher latency (multiple LLM calls in sequence)</td></tr>
+          <tr><td>Separation of concerns: each agent is focused and testable</td><td>Cost multiplied by number of agents and iterations</td></tr>
+          <tr><td>Different models/configs per agent (cost vs quality optimization)</td><td>Harder to debug: failures can cascade across agents</td></tr>
+          <tr><td>Built-in quality control via reviewer agent</td><td>Risk of infinite loops or excessive iterations</td></tr>
+          <tr><td>Naturally supports human-in-the-loop at any stage</td><td>Complex state management and error recovery</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Cost Control Strategies</h3>
+      <ul>
+        <li><strong>Token budgets:</strong> Set per-agent and per-request token limits; terminate early if exceeded</li>
+        <li><strong>Iteration caps:</strong> Hard limit on total delegations (typically 5-15 per request)</li>
+        <li><strong>Model tiering:</strong> Use cheaper models for simple agents (researcher: Haiku), expensive models only for the orchestrator</li>
+        <li><strong>Caching:</strong> Cache agent results for repeated sub-tasks across requests</li>
+        <li><strong>Early termination:</strong> Stop when the orchestrator has sufficient confidence, even if not all agents have been consulted</li>
+      </ul>
+
+      <div class="callout info">
+        <div class="callout-label">When to upgrade</div>
+        <p>When you need to run multi-agent systems at enterprise scale with shared infrastructure, model management, and observability, move to Architecture 10 (Production Platform).</p>
+      </div>
+    </div>
+
+    <!-- 7. PRODUCTION CHECKLIST -->
+    <div class="section" id="production">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Production Checklist</h2>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Max iteration limits per request (prevent infinite agent loops)</li>
+        <li><span class="check-box"></span>Per-agent and per-request token budgets with cost tracking</li>
+        <li><span class="check-box"></span>Structured logging of all inter-agent messages for debugging and replay</li>
+        <li><span class="check-box"></span>Timeout per agent call with graceful degradation</li>
+        <li><span class="check-box"></span>Human-in-the-loop escalation for low-confidence or high-stakes decisions</li>
+        <li><span class="check-box"></span>Sandboxed code execution (Docker containers, no network access)</li>
+        <li><span class="check-box"></span>Agent-level error recovery: retry with backoff, fallback to simpler approach</li>
+        <li><span class="check-box"></span>Circuit breaker: halt entire workflow if error rate exceeds threshold</li>
+        <li><span class="check-box"></span>Observability: distributed traces linking all agent calls in a single request</li>
+        <li><span class="check-box"></span>A/B test agent configurations (prompts, models, tools) independently</li>
+        <li><span class="check-box"></span>Rate limiting on tool calls to prevent abuse of external APIs</li>
+        <li><span class="check-box"></span>Replay capability: re-run any request with the same agent state for debugging</li>
+      </ul>
+    </div>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Architecture</div>
+        <a href="08-fine-tuning-serving.html" class="next-btn">&larr; 08 &middot; Fine-Tuning &amp; Serving</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Architecture</div>
+        <a href="10-production-platform.html" class="next-btn">10 &middot; Production Platform &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  CareerAlign.com &middot; GenAI Reference Architectures &middot;
+  <a href="index.html">All Architectures</a>
+</footer>
+
+</body>
+</html>

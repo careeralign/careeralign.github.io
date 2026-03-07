@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Document Processing — CareerAlign GenAI Architectures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #06b6d4;
+  --page-color-04: rgba(6,182,212,0.04);
+  --page-color-07: rgba(6,182,212,0.07);
+  --page-color-12: rgba(6,182,212,0.12);
+  --page-color-15: rgba(6,182,212,0.15);
+  --page-color-25: rgba(6,182,212,0.25);
+  --page-color-30: rgba(6,182,212,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9881;&#65039; <span style="color:#06b6d4;">GenAI</span> Architectures</div>
+  <div class="nav-links">
+    <a href="01-simple-chat-api.html">01</a>
+    <a href="02-conversational-chatbot.html">02</a>
+    <a href="03-rag-pipeline.html">03</a>
+    <a href="04-document-processing.html" class="active">04</a>
+    <a href="05-multi-model-router.html">05</a>
+    <a href="06-agentic-tool-use.html">06</a>
+    <a href="07-eval-guardrails.html">07</a>
+    <a href="08-fine-tuning-serving.html">08</a>
+    <a href="09-multi-agent.html">09</a>
+    <a href="10-production-platform.html">10</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; All Architectures</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">&#9889; Architecture 04 &middot; Intermediate</div>
+  <h1>Document <em>Processing</em></h1>
+  <p class="hero-desc">
+    Automated document ingestion and structured extraction at scale. Parse PDFs, images, and raw text
+    into clean data, then use LLMs to summarize, classify, and extract structured entities &mdash; producing
+    reliable JSON output ready for downstream databases and APIs.
+  </p>
+  <div class="hero-checklist">
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> PDF &amp; OCR Parsing</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Structured Output</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Multimodal Extraction</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Batch Processing</span>
+  </div>
+  <div style="margin-top:28px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/genai-arch/notebooks/04-document-processing.ipynb" target="_blank" class="btn btn-primary" style="background:#06b6d4;">Open Notebook in Colab &rarr;</a>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#overview" class="section">Architecture Overview</a>
+    <a href="#diagram" class="section">Architecture Diagram</a>
+    <a href="#components" class="section">Components Deep Dive</a>
+    <a href="#implementation" class="section">Implementation</a>
+    <a href="#dataflow" class="section">Data Flow</a>
+    <a href="#tradeoffs" class="section">Trade-offs</a>
+    <a href="#production" class="section">Production Checklist</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- 1. OVERVIEW -->
+    <div class="section" id="overview">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>Architecture Overview</h2>
+      </div>
+      <p>
+        The <strong>Document Processing</strong> architecture automates the extraction of structured information
+        from unstructured documents. It combines traditional parsing tools (PDF libraries, OCR engines) with
+        LLM-powered extraction to convert messy real-world documents into clean, typed data structures.
+      </p>
+      <p>
+        This pattern is essential for any business that processes invoices, contracts, resumes, medical records,
+        legal filings, or research papers at scale. The key insight is that LLMs excel at understanding document
+        <em>semantics</em>, while traditional tools handle document <em>mechanics</em> (rendering, OCR, layout).
+      </p>
+      <h3>When to Use</h3>
+      <ul>
+        <li>Invoice and receipt processing (extract line items, totals, vendor info)</li>
+        <li>Contract analysis (identify clauses, obligations, dates, parties)</li>
+        <li>Resume parsing (extract skills, experience, education into structured profiles)</li>
+        <li>Medical record extraction (diagnoses, medications, lab results)</li>
+        <li>Compliance document review (flag missing sections, policy violations)</li>
+        <li>Batch processing of document backlogs for data migration</li>
+      </ul>
+      <h3>Complexity Level</h3>
+      <p>
+        <strong>Moderate to High.</strong> The parsing layer requires handling diverse document formats, OCR quality
+        issues, and layout variations. The LLM extraction layer requires careful schema design and output validation.
+        Error handling is critical because real-world documents are messy.
+      </p>
+      <div class="callout tip">
+        <div class="callout-label">Tip</div>
+        <p>For documents with complex tables and layouts, consider multimodal models (send page images directly) rather than trying to extract text first. Vision models often handle formatting that text extraction completely mangles.</p>
+      </div>
+    </div>
+
+    <!-- 2. DIAGRAM -->
+    <div class="section" id="diagram">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Architecture Diagram</h2>
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 800 400" class="learning-path-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow4" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+            </marker>
+          </defs>
+
+          <!-- Documents Input -->
+          <rect x="20" y="140" width="110" height="100" rx="8" fill="#10131e" stroke="#06b6d4" stroke-width="2"/>
+          <text x="75" y="170" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Documents</text>
+          <text x="75" y="192" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">PDF</text>
+          <text x="75" y="206" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Images</text>
+          <text x="75" y="220" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">TXT / DOCX</text>
+
+          <!-- Arrow -->
+          <line x1="130" y1="190" x2="170" y2="190" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow4)"/>
+
+          <!-- Parser -->
+          <rect x="180" y="130" width="120" height="120" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="240" y="160" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Parser</text>
+          <text x="240" y="182" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">OCR / PyPDF</text>
+          <text x="240" y="198" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Unstructured</text>
+          <text x="240" y="214" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Document AI</text>
+          <text x="240" y="234" text-anchor="middle" fill="#06b6d4" font-family="JetBrains Mono" font-size="9">layout detection</text>
+
+          <!-- Arrow -->
+          <line x1="300" y1="190" x2="340" y2="190" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow4)"/>
+
+          <!-- Chunker -->
+          <rect x="350" y="155" width="100" height="70" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="400" y="183" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Chunker</text>
+          <text x="400" y="203" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Section splitter</text>
+
+          <!-- Branching arrows to three LLM tasks -->
+          <line x1="450" y1="175" x2="510" y2="100" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow4)"/>
+          <line x1="450" y1="190" x2="510" y2="190" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow4)"/>
+          <line x1="450" y1="205" x2="510" y2="280" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow4)"/>
+
+          <!-- Summarizer LLM -->
+          <rect x="520" y="65" width="120" height="65" rx="8" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="580" y="90" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">Summarizer</text>
+          <text x="580" y="110" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">LLM summary</text>
+
+          <!-- Classifier LLM -->
+          <rect x="520" y="157" width="120" height="65" rx="8" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="580" y="182" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">Classifier</text>
+          <text x="580" y="202" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">LLM categorize</text>
+
+          <!-- Entity Extractor LLM -->
+          <rect x="520" y="250" width="120" height="65" rx="8" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="580" y="275" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">Extractor</text>
+          <text x="580" y="295" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">LLM entities</text>
+
+          <!-- Converging arrows to Structured JSON -->
+          <line x1="640" y1="100" x2="680" y2="175" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow4)"/>
+          <line x1="640" y1="190" x2="680" y2="190" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow4)"/>
+          <line x1="640" y1="280" x2="680" y2="205" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow4)"/>
+
+          <!-- Structured JSON -->
+          <rect x="690" y="155" width="90" height="70" rx="8" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="735" y="183" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">JSON</text>
+          <text x="735" y="203" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Structured</text>
+
+          <!-- Arrow to Database -->
+          <line x1="735" y1="225" x2="735" y2="310" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow4)"/>
+
+          <!-- Database -->
+          <rect x="680" y="315" width="110" height="60" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="735" y="342" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Database</text>
+          <text x="735" y="362" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">SQL / NoSQL</text>
+        </svg>
+        <p class="diagram-caption">Architecture diagram &mdash; Document Processing: parse, chunk, extract, and store structured data</p>
+      </div>
+    </div>
+
+    <!-- 3. COMPONENTS -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Components Deep Dive</h2>
+      </div>
+
+      <h3>Document Parsing Libraries</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Library</th><th>Format</th><th>Strengths</th><th>Limitations</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>PyPDF2 / pypdf</strong></td><td>PDF (text)</td><td>Fast, lightweight, no dependencies</td><td>No OCR, poor with scanned PDFs</td></tr>
+          <tr><td><strong>pdfplumber</strong></td><td>PDF (tables)</td><td>Excellent table extraction</td><td>Slower, text-layer PDFs only</td></tr>
+          <tr><td><strong>Unstructured</strong></td><td>All formats</td><td>Unified API, layout detection</td><td>Heavy dependency tree</td></tr>
+          <tr><td><strong>Tesseract</strong></td><td>Images/scans</td><td>Free, widely supported OCR</td><td>Quality varies, needs preprocessing</td></tr>
+          <tr><td><strong>Google Document AI</strong></td><td>All formats</td><td>Best-in-class OCR + layout</td><td>Cloud-only, costs per page</td></tr>
+          <tr><td><strong>Amazon Textract</strong></td><td>All formats</td><td>Table + form extraction</td><td>AWS-only, pricing per page</td></tr>
+        </tbody>
+      </table>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128196;</div>
+            <h4>PDF Parsing</h4>
+          </div>
+          <p>Start with PyPDF2 for text-layer PDFs. Use pdfplumber for table-heavy docs. Fall back to OCR (Tesseract or Document AI) for scanned documents. Always check if the PDF has a text layer first.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128247;</div>
+            <h4>Multimodal Extraction</h4>
+          </div>
+          <p>Send page images directly to vision-capable models (GPT-4V, Claude 3) for complex layouts. Bypasses OCR entirely. Especially powerful for forms, receipts, and handwritten documents.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128203;</div>
+            <h4>Structured Output</h4>
+          </div>
+          <p>Use JSON mode or Pydantic models to enforce schema. Define expected fields, types, and validation rules upfront. Retry with error feedback when output doesn't match schema.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9881;</div>
+            <h4>Batch Processing</h4>
+          </div>
+          <p>Process documents in parallel with async/await or job queues (Celery, Bull). Implement progress tracking, error recovery, and partial result storage for large batches.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9888;</div>
+            <h4>Error Handling</h4>
+          </div>
+          <p>Documents fail in surprising ways: corrupted PDFs, password-protected files, unsupported encodings, empty pages. Build robust fallback chains and quarantine problematic files.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128272;</div>
+            <h4>Data Validation</h4>
+          </div>
+          <p>Validate extracted data against business rules: required fields present, dates are valid, amounts sum correctly, cross-reference entities. Flag low-confidence extractions for human review.</p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Multimodal vs. OCR Pipeline</div>
+        <p>For high-volume, simple documents (receipts, invoices), OCR + text extraction is cheaper. For complex, variable layouts (contracts, medical forms), multimodal models are more accurate and require less engineering. Calculate cost per page for your volume.</p>
+      </div>
+    </div>
+
+    <!-- 4. IMPLEMENTATION -->
+    <div class="section" id="implementation">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Implementation</h2>
+      </div>
+      <h3>Step 1: Parse a PDF Document</h3>
+<pre><code><span class="code-keyword">import</span> pdfplumber
+<span class="code-keyword">from</span> pathlib <span class="code-keyword">import</span> Path
+
+<span class="code-keyword">def</span> <span class="code-fn">parse_pdf</span>(file_path: <span class="code-fn">str</span>) -> <span class="code-fn">list</span>[<span class="code-fn">dict</span>]:
+    <span class="code-string">"""Extract text and tables from a PDF, page by page."""</span>
+    pages = []
+    <span class="code-keyword">with</span> pdfplumber.open(file_path) <span class="code-keyword">as</span> pdf:
+        <span class="code-keyword">for</span> i, page <span class="code-keyword">in</span> <span class="code-fn">enumerate</span>(pdf.pages):
+            text = page.extract_text() <span class="code-keyword">or</span> <span class="code-string">""</span>
+            tables = page.extract_tables() <span class="code-keyword">or</span> []
+
+            <span class="code-comment"># Convert tables to structured format</span>
+            parsed_tables = []
+            <span class="code-keyword">for</span> table <span class="code-keyword">in</span> tables:
+                <span class="code-keyword">if</span> table <span class="code-keyword">and</span> <span class="code-fn">len</span>(table) > <span class="code-num">1</span>:
+                    headers = [h.strip() <span class="code-keyword">if</span> h <span class="code-keyword">else</span> <span class="code-string">""</span> <span class="code-keyword">for</span> h <span class="code-keyword">in</span> table[<span class="code-num">0</span>]]
+                    rows = [
+                        <span class="code-fn">dict</span>(<span class="code-fn">zip</span>(headers, row))
+                        <span class="code-keyword">for</span> row <span class="code-keyword">in</span> table[<span class="code-num">1</span>:]
+                    ]
+                    parsed_tables.append(rows)
+
+            pages.append({
+                <span class="code-string">"page"</span>: i + <span class="code-num">1</span>,
+                <span class="code-string">"text"</span>: text,
+                <span class="code-string">"tables"</span>: parsed_tables,
+                <span class="code-string">"has_content"</span>: <span class="code-fn">bool</span>(text.strip()),
+            })
+    <span class="code-keyword">return</span> pages
+</code></pre>
+
+      <h3>Step 2: Define Extraction Schema with Pydantic</h3>
+<pre><code><span class="code-keyword">from</span> pydantic <span class="code-keyword">import</span> BaseModel, Field
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Optional
+<span class="code-keyword">from</span> datetime <span class="code-keyword">import</span> date
+
+<span class="code-keyword">class</span> <span class="code-fn">LineItem</span>(BaseModel):
+    description: <span class="code-fn">str</span> = Field(..., description=<span class="code-string">"Item description"</span>)
+    quantity: <span class="code-fn">int</span> = Field(..., ge=<span class="code-num">1</span>)
+    unit_price: <span class="code-fn">float</span> = Field(..., ge=<span class="code-num">0</span>)
+    total: <span class="code-fn">float</span> = Field(..., ge=<span class="code-num">0</span>)
+
+<span class="code-keyword">class</span> <span class="code-fn">Invoice</span>(BaseModel):
+    invoice_number: <span class="code-fn">str</span>
+    vendor_name: <span class="code-fn">str</span>
+    invoice_date: date
+    due_date: Optional[date] = <span class="code-keyword">None</span>
+    line_items: <span class="code-fn">list</span>[LineItem]
+    subtotal: <span class="code-fn">float</span>
+    tax: <span class="code-fn">float</span> = <span class="code-num">0.0</span>
+    total: <span class="code-fn">float</span>
+    currency: <span class="code-fn">str</span> = <span class="code-string">"USD"</span>
+    confidence: <span class="code-fn">float</span> = Field(..., ge=<span class="code-num">0</span>, le=<span class="code-num">1</span>, description=<span class="code-string">"Extraction confidence"</span>)
+</code></pre>
+
+      <h3>Step 3: LLM Extraction with Structured Output</h3>
+<pre><code><span class="code-keyword">import</span> anthropic
+<span class="code-keyword">import</span> json
+
+client = anthropic.Anthropic()
+
+<span class="code-keyword">def</span> <span class="code-fn">extract_invoice</span>(document_text: <span class="code-fn">str</span>) -> Invoice:
+    <span class="code-string">"""Extract structured invoice data using LLM."""</span>
+    schema_json = json.dumps(Invoice.model_json_schema(), indent=<span class="code-num">2</span>)
+
+    response = client.messages.create(
+        model=<span class="code-string">"claude-sonnet-4-20250514"</span>,
+        max_tokens=<span class="code-num">2048</span>,
+        system=<span class="code-string">f"""You are a document extraction specialist.
+Extract invoice data from the provided text and return valid JSON
+matching this exact schema:
+
+{schema_json}
+
+Rules:
+- Extract ALL line items found in the document
+- Use ISO 8601 date format (YYYY-MM-DD)
+- Set confidence between 0 and 1 based on extraction certainty
+- If a field is unclear, make your best guess and lower confidence
+- Return ONLY valid JSON, no markdown or explanation"""</span>,
+        messages=[{
+            <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+            <span class="code-string">"content"</span>: <span class="code-string">f"Extract invoice data:\n\n{document_text}"</span>
+        }],
+        temperature=<span class="code-num">0.0</span>,
+    )
+
+    <span class="code-comment"># Parse and validate with Pydantic</span>
+    raw = json.loads(response.content[<span class="code-num">0</span>].text)
+    <span class="code-keyword">return</span> Invoice.model_validate(raw)
+</code></pre>
+
+      <h3>Step 4: Multimodal Extraction (Send Image Directly)</h3>
+<pre><code><span class="code-keyword">import</span> base64
+
+<span class="code-keyword">def</span> <span class="code-fn">extract_from_image</span>(image_path: <span class="code-fn">str</span>) -> Invoice:
+    <span class="code-string">"""Extract invoice data from an image using vision model."""</span>
+    <span class="code-keyword">with</span> <span class="code-fn">open</span>(image_path, <span class="code-string">"rb"</span>) <span class="code-keyword">as</span> f:
+        img_b64 = base64.standard_b64encode(f.read()).decode()
+
+    ext = Path(image_path).suffix.lower()
+    media_type = {<span class="code-string">".png"</span>: <span class="code-string">"image/png"</span>, <span class="code-string">".jpg"</span>: <span class="code-string">"image/jpeg"</span>}.get(ext, <span class="code-string">"image/png"</span>)
+
+    response = client.messages.create(
+        model=<span class="code-string">"claude-sonnet-4-20250514"</span>,
+        max_tokens=<span class="code-num">2048</span>,
+        system=<span class="code-string">"Extract invoice data as JSON. Return only valid JSON."</span>,
+        messages=[{
+            <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+            <span class="code-string">"content"</span>: [
+                {<span class="code-string">"type"</span>: <span class="code-string">"image"</span>, <span class="code-string">"source"</span>: {
+                    <span class="code-string">"type"</span>: <span class="code-string">"base64"</span>,
+                    <span class="code-string">"media_type"</span>: media_type,
+                    <span class="code-string">"data"</span>: img_b64,
+                }},
+                {<span class="code-string">"type"</span>: <span class="code-string">"text"</span>, <span class="code-string">"text"</span>: <span class="code-string">"Extract all invoice data from this image."</span>}
+            ]
+        }],
+        temperature=<span class="code-num">0.0</span>,
+    )
+
+    raw = json.loads(response.content[<span class="code-num">0</span>].text)
+    <span class="code-keyword">return</span> Invoice.model_validate(raw)
+</code></pre>
+
+      <h3>Step 5: Batch Processing Pipeline</h3>
+<pre><code><span class="code-keyword">import</span> asyncio
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+
+@dataclass
+<span class="code-keyword">class</span> <span class="code-fn">ProcessingResult</span>:
+    file_path: <span class="code-fn">str</span>
+    status: <span class="code-fn">str</span>  <span class="code-comment"># "success" | "error" | "low_confidence"</span>
+    data: Optional[Invoice] = <span class="code-keyword">None</span>
+    error: Optional[<span class="code-fn">str</span>] = <span class="code-keyword">None</span>
+
+<span class="code-keyword">async def</span> <span class="code-fn">process_batch</span>(file_paths: <span class="code-fn">list</span>[<span class="code-fn">str</span>], concurrency=<span class="code-num">5</span>) -> <span class="code-fn">list</span>[ProcessingResult]:
+    <span class="code-string">"""Process multiple documents with controlled concurrency."""</span>
+    semaphore = asyncio.Semaphore(concurrency)
+    results = []
+
+    <span class="code-keyword">async def</span> <span class="code-fn">process_one</span>(path):
+        <span class="code-keyword">async with</span> semaphore:
+            <span class="code-keyword">try</span>:
+                pages = parse_pdf(path)
+                text = <span class="code-string">"\n"</span>.join(p[<span class="code-string">"text"</span>] <span class="code-keyword">for</span> p <span class="code-keyword">in</span> pages <span class="code-keyword">if</span> p[<span class="code-string">"has_content"</span>])
+                invoice = extract_invoice(text)
+
+                status = <span class="code-string">"success"</span> <span class="code-keyword">if</span> invoice.confidence >= <span class="code-num">0.8</span> <span class="code-keyword">else</span> <span class="code-string">"low_confidence"</span>
+                <span class="code-keyword">return</span> ProcessingResult(path, status, data=invoice)
+            <span class="code-keyword">except</span> <span class="code-fn">Exception</span> <span class="code-keyword">as</span> e:
+                <span class="code-keyword">return</span> ProcessingResult(path, <span class="code-string">"error"</span>, error=<span class="code-fn">str</span>(e))
+
+    tasks = [process_one(p) <span class="code-keyword">for</span> p <span class="code-keyword">in</span> file_paths]
+    results = <span class="code-keyword">await</span> asyncio.gather(*tasks)
+    <span class="code-keyword">return</span> results
+</code></pre>
+    </div>
+
+    <!-- 5. DATA FLOW -->
+    <div class="section" id="dataflow">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Data Flow</h2>
+      </div>
+      <p>Step-by-step flow of a document through the processing pipeline:</p>
+      <ul class="checklist">
+        <li><span class="check-box done"></span><strong>1. Document ingestion</strong> &mdash; File uploaded via API, watched folder, or S3 event trigger</li>
+        <li><span class="check-box done"></span><strong>2. Format detection</strong> &mdash; Identify file type (PDF, image, DOCX) and choose appropriate parser</li>
+        <li><span class="check-box done"></span><strong>3. Text extraction</strong> &mdash; Parse document using best available method (text layer, OCR, or multimodal)</li>
+        <li><span class="check-box done"></span><strong>4. Preprocessing</strong> &mdash; Clean text, normalize whitespace, detect language, split into sections</li>
+        <li><span class="check-box done"></span><strong>5. LLM extraction</strong> &mdash; Send cleaned text to LLM with structured output schema (parallel tasks possible)</li>
+        <li><span class="check-box done"></span><strong>6. Validation</strong> &mdash; Validate extracted data against Pydantic schema and business rules</li>
+        <li><span class="check-box done"></span><strong>7. Confidence routing</strong> &mdash; High confidence &rarr; auto-approve; Low confidence &rarr; human review queue</li>
+        <li><span class="check-box done"></span><strong>8. Storage</strong> &mdash; Write structured JSON to database, archive original document</li>
+      </ul>
+    </div>
+
+    <!-- 6. TRADE-OFFS -->
+    <div class="section" id="tradeoffs">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Trade-offs &amp; Considerations</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Advantage</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Handles diverse, unstructured document formats</td><td>OCR quality varies significantly with document quality</td></tr>
+          <tr><td>LLMs understand document semantics beyond keyword matching</td><td>Cost per document can be high for multimodal processing</td></tr>
+          <tr><td>Structured output enforces consistent data schemas</td><td>Complex tables and nested layouts still challenge LLMs</td></tr>
+          <tr><td>Scales with batch processing and job queues</td><td>Latency per document (seconds to minutes with OCR + LLM)</td></tr>
+          <tr><td>Confidence scoring enables human-in-the-loop review</td><td>Sensitive documents (medical, legal) need compliance review</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Parsing Approach Comparison</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Approach</th><th>Cost</th><th>Accuracy</th><th>Speed</th><th>Best For</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Text extraction only</strong></td><td>Free</td><td>Medium</td><td>Fast</td><td>Clean, text-layer PDFs</td></tr>
+          <tr><td><strong>OCR + Text LLM</strong></td><td>Low</td><td>High</td><td>Medium</td><td>Scanned docs, standard layouts</td></tr>
+          <tr><td><strong>Multimodal (image to LLM)</strong></td><td>High</td><td>Highest</td><td>Slow</td><td>Complex layouts, handwriting</td></tr>
+          <tr><td><strong>Document AI (managed)</strong></td><td>Medium</td><td>High</td><td>Medium</td><td>High volume, standard forms</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">When to upgrade</div>
+        <p>If you need to answer questions over processed documents, feed the extracted data into Architecture 03 (RAG Pipeline). If processing requires multiple tool calls and decision-making, consider Architecture 06 (Agentic Tool Use).</p>
+      </div>
+    </div>
+
+    <!-- 7. PRODUCTION CHECKLIST -->
+    <div class="section" id="production">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Production Checklist</h2>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Build fallback chain: text extraction &rarr; OCR &rarr; multimodal for each document</li>
+        <li><span class="check-box"></span>Validate Pydantic schemas with edge cases (empty fields, unusual formats)</li>
+        <li><span class="check-box"></span>Implement confidence thresholds and human review queue for low-confidence extractions</li>
+        <li><span class="check-box"></span>Set up dead letter queue for persistently failing documents</li>
+        <li><span class="check-box"></span>Monitor extraction accuracy with labeled test sets (precision, recall per field)</li>
+        <li><span class="check-box"></span>Handle PII: mask or encrypt sensitive fields (SSN, credit cards) before storage</li>
+        <li><span class="check-box"></span>Implement idempotent processing (reprocessing same document produces same result)</li>
+        <li><span class="check-box"></span>Add progress tracking and estimated completion time for batch jobs</li>
+        <li><span class="check-box"></span>Archive original documents alongside extracted data for audit trails</li>
+        <li><span class="check-box"></span>Set cost alerts for multimodal processing (track per-page and per-document costs)</li>
+        <li><span class="check-box"></span>Test with adversarial documents (rotated pages, mixed languages, watermarks)</li>
+      </ul>
+    </div>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Architecture</div>
+        <a href="03-rag-pipeline.html" class="next-btn">&larr; 03 &middot; RAG Pipeline</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Architecture</div>
+        <a href="05-multi-model-router.html" class="next-btn">05 &middot; Multi-Model Router &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  CareerAlign.com &middot; GenAI Reference Architectures &middot;
+  <a href="index.html">All Architectures</a>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Simple Chat API — CareerAlign GenAI Architectures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #22c55e;
+  --page-color-04: rgba(34,197,94,0.04);
+  --page-color-07: rgba(34,197,94,0.07);
+  --page-color-12: rgba(34,197,94,0.12);
+  --page-color-15: rgba(34,197,94,0.15);
+  --page-color-25: rgba(34,197,94,0.25);
+  --page-color-30: rgba(34,197,94,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9881;&#65039; <span style="color:#22c55e;">GenAI</span> Architectures</div>
+  <div class="nav-links">
+    <a href="01-simple-chat-api.html" class="active">01</a>
+    <a href="02-conversational-chatbot.html">02</a>
+    <a href="03-rag-pipeline.html">03</a>
+    <a href="04-document-processing.html">04</a>
+    <a href="05-multi-model-router.html">05</a>
+    <a href="06-agentic-tool-use.html">06</a>
+    <a href="07-eval-guardrails.html">07</a>
+    <a href="08-fine-tuning-serving.html">08</a>
+    <a href="09-multi-agent.html">09</a>
+    <a href="10-production-platform.html">10</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; All Architectures</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">&#9889; Architecture 01 &middot; Foundation</div>
+  <h1>Simple <em>Chat API</em></h1>
+  <p class="hero-desc">
+    The most fundamental GenAI pattern: a single stateless LLM call with a system prompt.
+    Every generative AI application starts here. Understand request/response flow, prompt design,
+    temperature tuning, token limits, streaming, and error handling.
+  </p>
+  <div class="hero-checklist">
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> System Prompts</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Temperature &amp; Sampling</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Streaming Responses</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Error Handling</span>
+  </div>
+  <div style="margin-top:28px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/genai-arch/notebooks/01-simple-chat-api.ipynb" target="_blank" class="btn btn-primary" style="background:#22c55e;">Open Notebook in Colab &rarr;</a>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#overview" class="section">Architecture Overview</a>
+    <a href="#diagram" class="section">Architecture Diagram</a>
+    <a href="#components" class="section">Components Deep Dive</a>
+    <a href="#implementation" class="section">Implementation</a>
+    <a href="#dataflow" class="section">Data Flow</a>
+    <a href="#tradeoffs" class="section">Trade-offs</a>
+    <a href="#production" class="section">Production Checklist</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- 1. OVERVIEW -->
+    <div class="section" id="overview">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>Architecture Overview</h2>
+      </div>
+      <p>
+        The <strong>Simple Chat API</strong> is the most basic GenAI architecture pattern. It consists of a single,
+        stateless request-response cycle: a user sends a message, the system prepends a system prompt, calls an LLM,
+        and returns the generated text. No memory, no retrieval, no tool use &mdash; just a direct conversation turn.
+      </p>
+      <h3>When to Use</h3>
+      <ul>
+        <li>Single-turn Q&amp;A applications (FAQ bots, helpdesk)</li>
+        <li>Text transformation tasks (summarization, translation, reformatting)</li>
+        <li>Code generation or completion from a single prompt</li>
+        <li>Prototyping and validating prompt designs before adding complexity</li>
+      </ul>
+      <h3>Complexity Level</h3>
+      <p>
+        <strong>Low.</strong> This is the starting point for every GenAI project. If this pattern solves your problem,
+        do not add additional complexity. Many production applications are just well-crafted system prompts
+        with good error handling.
+      </p>
+      <div class="callout tip">
+        <div class="callout-label">Tip</div>
+        <p>Start with the simplest architecture that works. You can always layer on memory, RAG, or tool use later &mdash; but premature complexity is the biggest mistake in GenAI engineering.</p>
+      </div>
+    </div>
+
+    <!-- 2. DIAGRAM -->
+    <div class="section" id="diagram">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Architecture Diagram</h2>
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 800 300" class="learning-path-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow1" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+            </marker>
+          </defs>
+          <!-- User -->
+          <rect x="30" y="100" width="140" height="80" rx="12" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="100" y="135" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="15" font-weight="600">User</text>
+          <text x="100" y="158" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="12">Sends message</text>
+
+          <!-- Arrow 1 -->
+          <line x1="170" y1="140" x2="270" y2="140" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow1)"/>
+          <text x="220" y="130" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="10">prompt</text>
+
+          <!-- API / System Prompt -->
+          <rect x="280" y="80" width="200" height="120" rx="12" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="380" y="115" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="15" font-weight="600">API Gateway</text>
+          <text x="380" y="138" text-anchor="middle" fill="#22c55e" font-family="JetBrains Mono" font-size="11">+ system prompt</text>
+          <text x="380" y="158" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">temperature, max_tokens</text>
+          <text x="380" y="178" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">validation, rate limit</text>
+
+          <!-- Arrow 2 -->
+          <line x1="480" y1="140" x2="580" y2="140" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow1)"/>
+          <text x="530" y="130" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="10">API call</text>
+
+          <!-- LLM -->
+          <rect x="590" y="100" width="160" height="80" rx="12" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="670" y="135" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="15" font-weight="600">LLM</text>
+          <text x="670" y="158" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="12">Generate response</text>
+
+          <!-- Return arrow -->
+          <path d="M 590 190 L 590 240 L 170 240 L 170 190" fill="none" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow1)" stroke-dasharray="6,4"/>
+          <text x="380" y="258" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="10">response (text or stream)</text>
+        </svg>
+        <p class="diagram-caption">Architecture diagram &mdash; Simple Chat API: stateless request-response with system prompt injection</p>
+      </div>
+    </div>
+
+    <!-- 3. COMPONENTS -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Components Deep Dive</h2>
+      </div>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128172;</div>
+            <h4>System Prompt</h4>
+          </div>
+          <p>Defines the LLM's role, personality, constraints, and output format. This is your primary lever for controlling behavior. Keep it clear, specific, and tested.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127777;</div>
+            <h4>Temperature</h4>
+          </div>
+          <p>Controls randomness in token selection. 0.0 = deterministic (factual tasks), 0.7 = creative balance, 1.0+ = highly creative. Always tune for your use case.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128207;</div>
+            <h4>Max Tokens</h4>
+          </div>
+          <p>Upper bound on output length. Set this to avoid runaway generation costs. Consider: input tokens + max_tokens must fit within the model's context window.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9889;</div>
+            <h4>Streaming</h4>
+          </div>
+          <p>Delivers tokens incrementally via SSE (Server-Sent Events). Reduces perceived latency from seconds to milliseconds for first visible token. Essential for chat UIs.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128737;</div>
+            <h4>API Gateway</h4>
+          </div>
+          <p>Handles authentication, rate limiting, request validation, and API key management. Sits between the client and the LLM provider to add security and control.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9888;</div>
+            <h4>Error Handling</h4>
+          </div>
+          <p>Handle rate limits (429), timeouts, malformed responses, and provider outages. Implement retries with exponential backoff and circuit breaker patterns.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. IMPLEMENTATION -->
+    <div class="section" id="implementation">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Implementation</h2>
+      </div>
+      <h3>Basic Chat Completion</h3>
+<pre><code><span class="code-keyword">import</span> anthropic
+
+client = anthropic.Anthropic()
+
+<span class="code-keyword">def</span> <span class="code-fn">chat</span>(user_message: <span class="code-fn">str</span>, system: <span class="code-fn">str</span> = <span class="code-string">"You are a helpful assistant."</span>) -> <span class="code-fn">str</span>:
+    <span class="code-string">"""Single-turn chat completion."""</span>
+    response = client.messages.create(
+        model=<span class="code-string">"claude-sonnet-4-20250514"</span>,
+        max_tokens=<span class="code-num">1024</span>,
+        system=system,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: user_message}],
+        temperature=<span class="code-num">0.3</span>,
+    )
+    <span class="code-keyword">return</span> response.content[<span class="code-num">0</span>].text
+</code></pre>
+
+      <h3>Streaming Response</h3>
+<pre><code><span class="code-keyword">def</span> <span class="code-fn">chat_stream</span>(user_message: <span class="code-fn">str</span>, system: <span class="code-fn">str</span> = <span class="code-string">"You are a helpful assistant."</span>):
+    <span class="code-string">"""Stream tokens as they are generated."""</span>
+    <span class="code-keyword">with</span> client.messages.stream(
+        model=<span class="code-string">"claude-sonnet-4-20250514"</span>,
+        max_tokens=<span class="code-num">1024</span>,
+        system=system,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: user_message}],
+    ) <span class="code-keyword">as</span> stream:
+        <span class="code-keyword">for</span> text <span class="code-keyword">in</span> stream.text_stream:
+            <span class="code-keyword">print</span>(text, end=<span class="code-string">""</span>, flush=<span class="code-keyword">True</span>)
+</code></pre>
+
+      <h3>Error Handling with Retry</h3>
+<pre><code><span class="code-keyword">import</span> time
+<span class="code-keyword">from</span> anthropic <span class="code-keyword">import</span> RateLimitError, APITimeoutError
+
+<span class="code-keyword">def</span> <span class="code-fn">chat_with_retry</span>(user_message, max_retries=<span class="code-num">3</span>):
+    <span class="code-keyword">for</span> attempt <span class="code-keyword">in</span> <span class="code-fn">range</span>(max_retries):
+        <span class="code-keyword">try</span>:
+            <span class="code-keyword">return</span> chat(user_message)
+        <span class="code-keyword">except</span> RateLimitError:
+            wait = <span class="code-num">2</span> ** attempt  <span class="code-comment"># exponential backoff</span>
+            <span class="code-fn">print</span>(<span class="code-string">f"Rate limited. Retrying in {wait}s..."</span>)
+            time.sleep(wait)
+        <span class="code-keyword">except</span> APITimeoutError:
+            <span class="code-fn">print</span>(<span class="code-string">"Timeout. Retrying..."</span>)
+    <span class="code-keyword">raise</span> <span class="code-fn">Exception</span>(<span class="code-string">"Max retries exceeded"</span>)
+</code></pre>
+    </div>
+
+    <!-- 5. DATA FLOW -->
+    <div class="section" id="dataflow">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Data Flow</h2>
+      </div>
+      <p>Here is the step-by-step flow of a single request through the Simple Chat API architecture:</p>
+      <ul class="checklist">
+        <li><span class="check-box done"></span><strong>1. Client sends request</strong> &mdash; User message + optional parameters (temperature, max_tokens) via HTTP POST</li>
+        <li><span class="check-box done"></span><strong>2. API gateway validates</strong> &mdash; Check auth token, rate limits, input length, and content policy</li>
+        <li><span class="check-box done"></span><strong>3. System prompt prepended</strong> &mdash; Server-side system prompt is added to the messages array (never exposed to client)</li>
+        <li><span class="check-box done"></span><strong>4. LLM API called</strong> &mdash; Request forwarded to the model provider (Anthropic, OpenAI, etc.)</li>
+        <li><span class="check-box done"></span><strong>5. Tokens generated</strong> &mdash; Model generates output tokens autoregressively</li>
+        <li><span class="check-box done"></span><strong>6. Response returned</strong> &mdash; Complete text (or streamed chunks) sent back to client</li>
+        <li><span class="check-box done"></span><strong>7. Logging &amp; metrics</strong> &mdash; Log latency, token counts, and errors for observability</li>
+      </ul>
+    </div>
+
+    <!-- 6. TRADE-OFFS -->
+    <div class="section" id="tradeoffs">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Trade-offs &amp; Considerations</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Advantage</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Simplest possible architecture</td><td>No conversation memory (stateless)</td></tr>
+          <tr><td>Low latency (single API call)</td><td>Cannot access external data or tools</td></tr>
+          <tr><td>Easy to debug and test</td><td>Limited to model's training knowledge</td></tr>
+          <tr><td>Minimal infrastructure needed</td><td>System prompt engineering can be finicky</td></tr>
+          <tr><td>Low cost per request</td><td>No built-in content grounding</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">When to upgrade</div>
+        <p>Move to Architecture 02 (Conversational Chatbot) when users need multi-turn context. Move to Architecture 03 (RAG) when the model needs access to your proprietary data.</p>
+      </div>
+    </div>
+
+    <!-- 7. PRODUCTION CHECKLIST -->
+    <div class="section" id="production">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Production Checklist</h2>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>API key rotation and secrets management (e.g., AWS Secrets Manager, GCP Secret Manager)</li>
+        <li><span class="check-box"></span>Rate limiting per user/API key to prevent abuse</li>
+        <li><span class="check-box"></span>Input validation: max length, content filtering, injection detection</li>
+        <li><span class="check-box"></span>Output validation: format checks, PII scanning, toxicity filtering</li>
+        <li><span class="check-box"></span>Structured logging: request ID, latency, token usage, model version</li>
+        <li><span class="check-box"></span>Retry logic with exponential backoff and circuit breaker</li>
+        <li><span class="check-box"></span>Cost monitoring and alerting on token spend</li>
+        <li><span class="check-box"></span>Prompt versioning and A/B testing framework</li>
+        <li><span class="check-box"></span>Health check endpoint for load balancer</li>
+        <li><span class="check-box"></span>Graceful degradation when LLM provider is down</li>
+      </ul>
+    </div>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div></div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Architecture</div>
+        <a href="02-conversational-chatbot.html" class="next-btn">02 &middot; Conversational Chatbot &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  CareerAlign.com &middot; GenAI Reference Architectures &middot;
+  <a href="index.html">All Architectures</a>
+</footer>
+
+</body>
+</html>

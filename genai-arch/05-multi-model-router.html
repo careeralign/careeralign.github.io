@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Multi-Model Router — CareerAlign GenAI Architectures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #06b6d4;
+  --page-color-04: rgba(6,182,212,0.04);
+  --page-color-07: rgba(6,182,212,0.07);
+  --page-color-12: rgba(6,182,212,0.12);
+  --page-color-15: rgba(6,182,212,0.15);
+  --page-color-25: rgba(6,182,212,0.25);
+  --page-color-30: rgba(6,182,212,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9881;&#65039; <span style="color:#06b6d4;">GenAI</span> Architectures</div>
+  <div class="nav-links">
+    <a href="01-simple-chat-api.html">01</a>
+    <a href="02-conversational-chatbot.html">02</a>
+    <a href="03-rag-pipeline.html">03</a>
+    <a href="04-document-processing.html">04</a>
+    <a href="05-multi-model-router.html" class="active">05</a>
+    <a href="06-agentic-tool-use.html">06</a>
+    <a href="07-eval-guardrails.html">07</a>
+    <a href="08-fine-tuning-serving.html">08</a>
+    <a href="09-multi-agent.html">09</a>
+    <a href="10-production-platform.html">10</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; All Architectures</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">&#9889; Architecture 05 &middot; Intermediate</div>
+  <h1>Multi-Model <em>Router</em></h1>
+  <p class="hero-desc">
+    Intelligently route requests to different LLMs based on task complexity, cost, and latency requirements.
+    Use cheap, fast models for simple tasks and reserve expensive, capable models for complex reasoning &mdash;
+    cutting costs by 60-80% without sacrificing quality where it matters.
+  </p>
+  <div class="hero-checklist">
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Complexity Classification</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Cost Optimization</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Fallback Chains</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> A/B Testing</span>
+  </div>
+  <div style="margin-top:28px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/genai-arch/notebooks/05-multi-model-router.ipynb" target="_blank" class="btn btn-primary" style="background:#06b6d4;">Open Notebook in Colab &rarr;</a>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#overview" class="section">Architecture Overview</a>
+    <a href="#diagram" class="section">Architecture Diagram</a>
+    <a href="#components" class="section">Components Deep Dive</a>
+    <a href="#implementation" class="section">Implementation</a>
+    <a href="#dataflow" class="section">Data Flow</a>
+    <a href="#tradeoffs" class="section">Trade-offs</a>
+    <a href="#production" class="section">Production Checklist</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- 1. OVERVIEW -->
+    <div class="section" id="overview">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>Architecture Overview</h2>
+      </div>
+      <p>
+        The <strong>Multi-Model Router</strong> pattern replaces a single LLM with a routing layer that dispatches
+        requests to the most appropriate model. Not every request needs the most powerful (and expensive) model.
+        A simple greeting can go to a tiny model; a complex legal analysis needs a frontier model. The router
+        classifies incoming requests and selects the optimal model for each.
+      </p>
+      <p>
+        This is fundamentally a <strong>cost optimization</strong> architecture. In production, 60-80% of requests
+        are simple enough for small, fast models. By routing those away from expensive models, you can dramatically
+        reduce costs while maintaining quality for the requests that truly need it.
+      </p>
+      <h3>When to Use</h3>
+      <ul>
+        <li>High-volume applications where LLM costs are a primary concern</li>
+        <li>Products serving diverse request types (simple FAQ to complex analysis)</li>
+        <li>Latency-sensitive applications where fast responses matter for simple queries</li>
+        <li>Multi-provider strategies for redundancy and best-of-breed selection</li>
+        <li>Gradual model migration (test new models on a subset of traffic)</li>
+      </ul>
+      <h3>Complexity Level</h3>
+      <p>
+        <strong>Moderate.</strong> The routing logic itself is straightforward, but building a good classifier
+        and managing multiple model integrations adds operational complexity. The real challenge is defining
+        "complexity" in a way that reliably predicts which model will produce an acceptable response.
+      </p>
+      <div class="callout tip">
+        <div class="callout-label">Tip</div>
+        <p>Start with a simple keyword-based or rule-based router. Only graduate to an LLM-based classifier when you have enough data to understand your traffic patterns. Over-engineering the router is a common mistake.</p>
+      </div>
+    </div>
+
+    <!-- 2. DIAGRAM -->
+    <div class="section" id="diagram">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Architecture Diagram</h2>
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 800 400" class="learning-path-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow5" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+            </marker>
+          </defs>
+
+          <!-- User Request -->
+          <rect x="20" y="155" width="130" height="70" rx="8" fill="#10131e" stroke="#06b6d4" stroke-width="2"/>
+          <text x="85" y="185" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">User Request</text>
+          <text x="85" y="205" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Any complexity</text>
+
+          <!-- Arrow to Classifier -->
+          <line x1="150" y1="190" x2="210" y2="190" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow5)"/>
+
+          <!-- Complexity Classifier -->
+          <rect x="220" y="145" width="140" height="90" rx="8" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="290" y="175" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Complexity</text>
+          <text x="290" y="195" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Classifier</text>
+          <text x="290" y="218" text-anchor="middle" fill="#06b6d4" font-family="JetBrains Mono" font-size="10">keyword / LLM / embed</text>
+
+          <!-- Diamond Decision -->
+          <polygon points="430,190 470,155 510,190 470,225" fill="#10131e" stroke="#f59e0b" stroke-width="2"/>
+          <text x="470" y="194" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="11" font-weight="600">Route</text>
+
+          <!-- Arrow to Diamond -->
+          <line x1="360" y1="190" x2="430" y2="190" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow5)"/>
+
+          <!-- === Three Model Paths === -->
+
+          <!-- Path 1: Simple - Haiku/Flash (top) -->
+          <line x1="470" y1="155" x2="470" y2="75" stroke="#22d3ee" stroke-width="2"/>
+          <line x1="470" y1="75" x2="590" y2="75" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow5)"/>
+          <text x="528" y="65" text-anchor="middle" fill="#22c55e" font-family="JetBrains Mono" font-size="9">SIMPLE</text>
+
+          <rect x="600" y="45" width="160" height="60" rx="8" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="680" y="70" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Haiku / Flash</text>
+          <text x="680" y="90" text-anchor="middle" fill="#22c55e" font-family="JetBrains Mono" font-size="10">$0.25/M &middot; 80ms</text>
+
+          <!-- Path 2: Medium - Sonnet (middle) -->
+          <line x1="510" y1="190" x2="590" y2="190" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow5)"/>
+          <text x="550" y="180" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono" font-size="9">MEDIUM</text>
+
+          <rect x="600" y="160" width="160" height="60" rx="8" fill="#10131e" stroke="#f59e0b" stroke-width="2"/>
+          <text x="680" y="185" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Sonnet / GPT-4o</text>
+          <text x="680" y="205" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono" font-size="10">$3/M &middot; 300ms</text>
+
+          <!-- Path 3: Complex - Opus/Pro (bottom) -->
+          <line x1="470" y1="225" x2="470" y2="305" stroke="#22d3ee" stroke-width="2"/>
+          <line x1="470" y1="305" x2="590" y2="305" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow5)"/>
+          <text x="528" y="295" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono" font-size="9">COMPLEX</text>
+
+          <rect x="600" y="275" width="160" height="60" rx="8" fill="#10131e" stroke="#ef4444" stroke-width="2"/>
+          <text x="680" y="300" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Opus / o1-Pro</text>
+          <text x="680" y="320" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono" font-size="10">$15/M &middot; 2000ms</text>
+
+          <!-- All converge to Response -->
+          <line x1="760" y1="75" x2="775" y2="75" stroke="#22d3ee" stroke-width="1"/>
+          <line x1="775" y1="75" x2="775" y2="370" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="5,4"/>
+          <line x1="760" y1="190" x2="775" y2="190" stroke="#22d3ee" stroke-width="1"/>
+          <line x1="760" y1="305" x2="775" y2="305" stroke="#22d3ee" stroke-width="1"/>
+
+          <text x="775" y="390" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="10">Response</text>
+        </svg>
+        <p class="diagram-caption">Architecture diagram &mdash; Multi-Model Router: classify complexity, route to cost-appropriate model</p>
+      </div>
+    </div>
+
+    <!-- 3. COMPONENTS -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Components Deep Dive</h2>
+      </div>
+
+      <h3>Model Selection Criteria</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Criterion</th><th>Cheap/Fast Model</th><th>Balanced Model</th><th>Premium Model</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Cost (per 1M tokens)</strong></td><td>$0.10 - $0.50</td><td>$2 - $5</td><td>$10 - $30</td></tr>
+          <tr><td><strong>Latency (TTFT)</strong></td><td>50-150ms</td><td>200-500ms</td><td>500-3000ms</td></tr>
+          <tr><td><strong>Reasoning ability</strong></td><td>Simple extraction, classification</td><td>Multi-step, synthesis</td><td>Complex analysis, math, code</td></tr>
+          <tr><td><strong>Context window</strong></td><td>8K-32K tokens</td><td>128K-200K tokens</td><td>128K-200K tokens</td></tr>
+          <tr><td><strong>Example models</strong></td><td>Haiku, Flash, GPT-4o-mini</td><td>Sonnet, GPT-4o</td><td>Opus, o1, o3</td></tr>
+          <tr><td><strong>Use cases</strong></td><td>Greetings, FAQ, simple format</td><td>Summaries, analysis, code</td><td>Legal, math, research, safety</td></tr>
+        </tbody>
+      </table>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128300;</div>
+            <h4>Classifier Approaches</h4>
+          </div>
+          <p><strong>Keyword rules:</strong> pattern matching on input. <strong>LLM-based:</strong> use a tiny model to classify complexity. <strong>Embedding similarity:</strong> compare query embedding to cluster centroids of known complexity levels.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128257;</div>
+            <h4>Fallback Chains</h4>
+          </div>
+          <p>Try the cheapest viable model first. If response quality is low (detected by a quality check), automatically escalate to the next tier. Balances cost with quality guarantees.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128176;</div>
+            <h4>Cost Tracking</h4>
+          </div>
+          <p>Log token usage, model selection, and cost per request. Build dashboards showing cost distribution across models, average cost per user, and savings vs. single-model baseline.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127922;</div>
+            <h4>A/B Testing</h4>
+          </div>
+          <p>Route a percentage of traffic to different models and compare quality metrics (user satisfaction, task completion, accuracy). Use this data to continuously refine routing rules.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9889;</div>
+            <h4>Cascading Strategy</h4>
+          </div>
+          <p>Start with the cheapest model. Run a quality check on the output. If quality is below threshold, re-run with a more capable model. Only ~20% of requests typically need escalation.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128737;</div>
+            <h4>Provider Redundancy</h4>
+          </div>
+          <p>Route across multiple providers (Anthropic, OpenAI, Google) for reliability. If one provider is down or rate-limited, automatically failover to an equivalent model on another provider.</p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">The 80/20 Rule of Model Routing</div>
+        <p>In most applications, ~80% of requests are simple enough for the cheapest model tier. The router's job is to identify the 20% that genuinely need more capability. Even a crude classifier saves significant money.</p>
+      </div>
+    </div>
+
+    <!-- 4. IMPLEMENTATION -->
+    <div class="section" id="implementation">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Implementation</h2>
+      </div>
+      <h3>Step 1: Define Model Tiers</h3>
+<pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> enum <span class="code-keyword">import</span> Enum
+
+<span class="code-keyword">class</span> <span class="code-fn">Complexity</span>(Enum):
+    SIMPLE = <span class="code-string">"simple"</span>
+    MEDIUM = <span class="code-string">"medium"</span>
+    COMPLEX = <span class="code-string">"complex"</span>
+
+@dataclass
+<span class="code-keyword">class</span> <span class="code-fn">ModelConfig</span>:
+    name: <span class="code-fn">str</span>
+    model_id: <span class="code-fn">str</span>
+    cost_per_1m_input: <span class="code-fn">float</span>
+    cost_per_1m_output: <span class="code-fn">float</span>
+    max_tokens: <span class="code-fn">int</span>
+
+MODELS = {
+    Complexity.SIMPLE: ModelConfig(
+        name=<span class="code-string">"Haiku"</span>, model_id=<span class="code-string">"claude-3-5-haiku-20241022"</span>,
+        cost_per_1m_input=<span class="code-num">0.25</span>, cost_per_1m_output=<span class="code-num">1.25</span>, max_tokens=<span class="code-num">1024</span>,
+    ),
+    Complexity.MEDIUM: ModelConfig(
+        name=<span class="code-string">"Sonnet"</span>, model_id=<span class="code-string">"claude-sonnet-4-20250514"</span>,
+        cost_per_1m_input=<span class="code-num">3.0</span>, cost_per_1m_output=<span class="code-num">15.0</span>, max_tokens=<span class="code-num">2048</span>,
+    ),
+    Complexity.COMPLEX: ModelConfig(
+        name=<span class="code-string">"Opus"</span>, model_id=<span class="code-string">"claude-opus-4-20250514"</span>,
+        cost_per_1m_input=<span class="code-num">15.0</span>, cost_per_1m_output=<span class="code-num">75.0</span>, max_tokens=<span class="code-num">4096</span>,
+    ),
+}
+</code></pre>
+
+      <h3>Step 2: Build the Complexity Classifier</h3>
+<pre><code><span class="code-keyword">import</span> re
+
+<span class="code-comment"># Approach 1: Rule-based classifier (fast, free)</span>
+COMPLEX_PATTERNS = [
+    r<span class="code-string">"analyz"</span>, r<span class="code-string">"compar.*and.*contrast"</span>, r<span class="code-string">"step.by.step"</span>,
+    r<span class="code-string">"explain.*why"</span>, r<span class="code-string">"write.*code"</span>, r<span class="code-string">"debug"</span>,
+    r<span class="code-string">"legal"</span>, r<span class="code-string">"contract"</span>, r<span class="code-string">"math.*proof"</span>,
+]
+SIMPLE_PATTERNS = [
+    r<span class="code-string">"^(hi|hello|hey)"</span>, r<span class="code-string">"^what is"</span>, r<span class="code-string">"^define"</span>,
+    r<span class="code-string">"translate"</span>, r<span class="code-string">"summarize this"</span>, r<span class="code-string">"^yes$|^no$"</span>,
+]
+
+<span class="code-keyword">def</span> <span class="code-fn">classify_rule_based</span>(query: <span class="code-fn">str</span>) -> Complexity:
+    <span class="code-string">"""Fast, zero-cost classification using regex patterns."""</span>
+    q = query.lower().strip()
+    <span class="code-keyword">if</span> <span class="code-fn">any</span>(re.search(p, q) <span class="code-keyword">for</span> p <span class="code-keyword">in</span> COMPLEX_PATTERNS):
+        <span class="code-keyword">return</span> Complexity.COMPLEX
+    <span class="code-keyword">if</span> <span class="code-fn">any</span>(re.search(p, q) <span class="code-keyword">for</span> p <span class="code-keyword">in</span> SIMPLE_PATTERNS) <span class="code-keyword">or</span> <span class="code-fn">len</span>(q) < <span class="code-num">50</span>:
+        <span class="code-keyword">return</span> Complexity.SIMPLE
+    <span class="code-keyword">return</span> Complexity.MEDIUM
+
+<span class="code-comment"># Approach 2: LLM-based classifier (more accurate, costs tokens)</span>
+<span class="code-keyword">def</span> <span class="code-fn">classify_llm_based</span>(query: <span class="code-fn">str</span>, client) -> Complexity:
+    <span class="code-string">"""Use a tiny model to classify complexity."""</span>
+    response = client.messages.create(
+        model=<span class="code-string">"claude-3-5-haiku-20241022"</span>,
+        max_tokens=<span class="code-num">10</span>,
+        system=<span class="code-string">"""Classify the user's query complexity.
+Reply with exactly one word: SIMPLE, MEDIUM, or COMPLEX.
+SIMPLE: greetings, definitions, basic factual questions, translations
+MEDIUM: summaries, explanations, moderate analysis
+COMPLEX: multi-step reasoning, code, math, legal, detailed analysis"""</span>,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: query}],
+        temperature=<span class="code-num">0.0</span>,
+    )
+    label = response.content[<span class="code-num">0</span>].text.strip().upper()
+    <span class="code-keyword">return</span> Complexity(label.lower()) <span class="code-keyword">if</span> label.lower() <span class="code-keyword">in</span> [<span class="code-string">"simple"</span>, <span class="code-string">"medium"</span>, <span class="code-string">"complex"</span>] <span class="code-keyword">else</span> Complexity.MEDIUM
+</code></pre>
+
+      <h3>Step 3: Router with Fallback Chain</h3>
+<pre><code><span class="code-keyword">import</span> anthropic
+<span class="code-keyword">import</span> time
+<span class="code-keyword">import</span> logging
+
+logger = logging.getLogger(__name__)
+
+<span class="code-keyword">class</span> <span class="code-fn">ModelRouter</span>:
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self):
+        self.client = anthropic.Anthropic()
+        self.request_log = []
+
+    <span class="code-keyword">def</span> <span class="code-fn">route</span>(self, query: <span class="code-fn">str</span>, system: <span class="code-fn">str</span> = <span class="code-string">"You are helpful."</span>) -> <span class="code-fn">dict</span>:
+        <span class="code-string">"""Route query to appropriate model with fallback."""</span>
+        complexity = classify_rule_based(query)
+        model_config = MODELS[complexity]
+
+        <span class="code-comment"># Try primary model, fall back to next tier on failure</span>
+        fallback_order = [complexity]
+        <span class="code-keyword">if</span> complexity == Complexity.SIMPLE:
+            fallback_order += [Complexity.MEDIUM, Complexity.COMPLEX]
+        <span class="code-keyword">elif</span> complexity == Complexity.MEDIUM:
+            fallback_order += [Complexity.COMPLEX]
+
+        <span class="code-keyword">for</span> tier <span class="code-keyword">in</span> fallback_order:
+            config = MODELS[tier]
+            <span class="code-keyword">try</span>:
+                start = time.time()
+                response = self.client.messages.create(
+                    model=config.model_id,
+                    max_tokens=config.max_tokens,
+                    system=system,
+                    messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: query}],
+                )
+                latency = time.time() - start
+
+                <span class="code-comment"># Log routing decision</span>
+                usage = response.usage
+                cost = (
+                    usage.input_tokens * config.cost_per_1m_input / <span class="code-num">1_000_000</span>
+                    + usage.output_tokens * config.cost_per_1m_output / <span class="code-num">1_000_000</span>
+                )
+                self._log(query, config.name, tier.value, latency, cost)
+
+                <span class="code-keyword">return</span> {
+                    <span class="code-string">"text"</span>: response.content[<span class="code-num">0</span>].text,
+                    <span class="code-string">"model"</span>: config.name,
+                    <span class="code-string">"tier"</span>: tier.value,
+                    <span class="code-string">"latency"</span>: <span class="code-fn">round</span>(latency, <span class="code-num">3</span>),
+                    <span class="code-string">"cost"</span>: <span class="code-fn">round</span>(cost, <span class="code-num">6</span>),
+                }
+            <span class="code-keyword">except</span> <span class="code-fn">Exception</span> <span class="code-keyword">as</span> e:
+                logger.warning(<span class="code-string">f"Model {config.name} failed: {e}. Trying next tier."</span>)
+
+        <span class="code-keyword">raise</span> <span class="code-fn">Exception</span>(<span class="code-string">"All model tiers exhausted"</span>)
+
+    <span class="code-keyword">def</span> <span class="code-fn">_log</span>(self, query, model, tier, latency, cost):
+        self.request_log.append({
+            <span class="code-string">"query_preview"</span>: query[:<span class="code-num">80</span>],
+            <span class="code-string">"model"</span>: model, <span class="code-string">"tier"</span>: tier,
+            <span class="code-string">"latency"</span>: latency, <span class="code-string">"cost"</span>: cost,
+        })
+
+<span class="code-comment"># Usage</span>
+router = ModelRouter()
+result = router.route(<span class="code-string">"What is Python?"</span>)       <span class="code-comment"># &rarr; Haiku ($0.0001)</span>
+result = router.route(<span class="code-string">"Analyze this contract for liability clauses..."</span>)  <span class="code-comment"># &rarr; Opus ($0.02)</span>
+</code></pre>
+
+      <h3>Advanced: Cascading (Try Cheap First, Escalate)</h3>
+<pre><code><span class="code-keyword">def</span> <span class="code-fn">cascade</span>(self, query: <span class="code-fn">str</span>, quality_threshold=<span class="code-num">0.7</span>) -> <span class="code-fn">dict</span>:
+    <span class="code-string">"""Try cheapest model first, escalate if quality is low."""</span>
+    <span class="code-keyword">for</span> tier <span class="code-keyword">in</span> [Complexity.SIMPLE, Complexity.MEDIUM, Complexity.COMPLEX]:
+        result = self._call_model(query, MODELS[tier])
+
+        <span class="code-comment"># Quality check using a fast heuristic or small LLM</span>
+        quality = self._check_quality(query, result[<span class="code-string">"text"</span>])
+        <span class="code-keyword">if</span> quality >= quality_threshold:
+            result[<span class="code-string">"quality_score"</span>] = quality
+            <span class="code-keyword">return</span> result
+
+        logger.info(<span class="code-string">f"{tier.value} quality {quality:.2f} below threshold, escalating"</span>)
+
+    <span class="code-keyword">return</span> result  <span class="code-comment"># Return best effort from top tier</span>
+
+<span class="code-keyword">def</span> <span class="code-fn">_check_quality</span>(self, query: <span class="code-fn">str</span>, answer: <span class="code-fn">str</span>) -> <span class="code-fn">float</span>:
+    <span class="code-string">"""Quick quality check: is the answer relevant and complete?"""</span>
+    response = self.client.messages.create(
+        model=<span class="code-string">"claude-3-5-haiku-20241022"</span>,
+        max_tokens=<span class="code-num">5</span>,
+        system=<span class="code-string">"Rate answer quality 0.0-1.0. Reply with just the number."</span>,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+                   <span class="code-string">"content"</span>: <span class="code-string">f"Q: {query}\nA: {answer[:500]}"</span>}],
+        temperature=<span class="code-num">0.0</span>,
+    )
+    <span class="code-keyword">try</span>:
+        <span class="code-keyword">return</span> <span class="code-fn">float</span>(response.content[<span class="code-num">0</span>].text.strip())
+    <span class="code-keyword">except</span> ValueError:
+        <span class="code-keyword">return</span> <span class="code-num">0.5</span>  <span class="code-comment"># Default to medium if parsing fails</span>
+</code></pre>
+    </div>
+
+    <!-- 5. DATA FLOW -->
+    <div class="section" id="dataflow">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Data Flow</h2>
+      </div>
+      <p>Step-by-step flow of a request through the Multi-Model Router:</p>
+      <ul class="checklist">
+        <li><span class="check-box done"></span><strong>1. Request received</strong> &mdash; User query arrives at the API gateway</li>
+        <li><span class="check-box done"></span><strong>2. Classify complexity</strong> &mdash; Router analyzes query using rules, embeddings, or a classifier LLM</li>
+        <li><span class="check-box done"></span><strong>3. Select model</strong> &mdash; Map complexity tier to model configuration (model ID, max tokens, temperature)</li>
+        <li><span class="check-box done"></span><strong>4. Call selected model</strong> &mdash; Forward request to the chosen LLM provider</li>
+        <li><span class="check-box done"></span><strong>5. Quality gate (optional)</strong> &mdash; Check response quality; escalate to higher tier if below threshold</li>
+        <li><span class="check-box done"></span><strong>6. Log routing decision</strong> &mdash; Record model used, latency, token count, cost, and quality score</li>
+        <li><span class="check-box done"></span><strong>7. Return response</strong> &mdash; Send generated text back to user with model metadata</li>
+      </ul>
+    </div>
+
+    <!-- 6. TRADE-OFFS -->
+    <div class="section" id="tradeoffs">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Trade-offs &amp; Considerations</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Advantage</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>60-80% cost reduction vs. using premium model for everything</td><td>Classifier adds latency and (if LLM-based) its own cost</td></tr>
+          <tr><td>Faster responses for simple queries (small models are faster)</td><td>Misrouting degrades user experience (complex query to weak model)</td></tr>
+          <tr><td>Provider redundancy improves reliability</td><td>More models = more API integrations to maintain</td></tr>
+          <tr><td>Enables A/B testing and gradual model migration</td><td>Quality consistency across models requires careful prompt tuning</td></tr>
+          <tr><td>Cascading guarantees quality floor at reasonable cost</td><td>Cascading worst case is slower and costlier than direct premium call</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Classifier Approach Comparison</h3>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Approach</th><th>Accuracy</th><th>Latency</th><th>Cost</th><th>Maintenance</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Keyword / regex rules</strong></td><td>Low-Medium</td><td>~0ms</td><td>Free</td><td>Manual rule updates</td></tr>
+          <tr><td><strong>ML classifier (sklearn)</strong></td><td>Medium-High</td><td>~5ms</td><td>Free</td><td>Needs labeled data + retraining</td></tr>
+          <tr><td><strong>Embedding similarity</strong></td><td>Medium</td><td>~50ms</td><td>Minimal</td><td>Maintain cluster centroids</td></tr>
+          <tr><td><strong>LLM-as-classifier</strong></td><td>High</td><td>~200ms</td><td>$0.0001/req</td><td>Prompt tuning</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <div class="callout-label">When to upgrade</div>
+        <p>If routing decisions need to consider tool availability and multi-step planning, move to Architecture 06 (Agentic Tool Use). If you need to validate outputs before delivery, add Architecture 07 (Eval &amp; Guardrails).</p>
+      </div>
+    </div>
+
+    <!-- 7. PRODUCTION CHECKLIST -->
+    <div class="section" id="production">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Production Checklist</h2>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Build routing dashboard: model distribution, cost by tier, escalation rate</li>
+        <li><span class="check-box"></span>Set up A/B testing framework to compare routing strategies</li>
+        <li><span class="check-box"></span>Implement automatic fallback when a provider returns errors or high latency</li>
+        <li><span class="check-box"></span>Monitor misrouting rate: track user feedback to detect complexity misclassification</li>
+        <li><span class="check-box"></span>Set cost budgets per user/team with automatic tier restrictions when exceeded</li>
+        <li><span class="check-box"></span>Cache responses for identical queries to avoid re-routing and re-generation</li>
+        <li><span class="check-box"></span>Maintain prompt compatibility across models (different models may need prompt tweaks)</li>
+        <li><span class="check-box"></span>Log routing decisions with enough context to debug misroutes after the fact</li>
+        <li><span class="check-box"></span>Build a labeled test set of queries at each complexity level for classifier evaluation</li>
+        <li><span class="check-box"></span>Implement circuit breakers per provider to prevent cascade failures</li>
+        <li><span class="check-box"></span>Track and alert on routing distribution drift (sudden shift to more complex queries)</li>
+      </ul>
+    </div>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Architecture</div>
+        <a href="04-document-processing.html" class="next-btn">&larr; 04 &middot; Document Processing</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Architecture</div>
+        <a href="06-agentic-tool-use.html" class="next-btn">06 &middot; Agentic Tool Use &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  CareerAlign.com &middot; GenAI Reference Architectures &middot;
+  <a href="index.html">All Architectures</a>
+</footer>
+
+</body>
+</html>

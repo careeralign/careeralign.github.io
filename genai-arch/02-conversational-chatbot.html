@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<title>Conversational Chatbot — CareerAlign GenAI Architectures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #22c55e;
+  --page-color-04: rgba(34,197,94,0.04);
+  --page-color-07: rgba(34,197,94,0.07);
+  --page-color-12: rgba(34,197,94,0.12);
+  --page-color-15: rgba(34,197,94,0.15);
+  --page-color-25: rgba(34,197,94,0.25);
+  --page-color-30: rgba(34,197,94,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#9881;&#65039; <span style="color:#22c55e;">GenAI</span> Architectures</div>
+  <div class="nav-links">
+    <a href="01-simple-chat-api.html">01</a>
+    <a href="02-conversational-chatbot.html" class="active">02</a>
+    <a href="03-rag-pipeline.html">03</a>
+    <a href="04-document-processing.html">04</a>
+    <a href="05-multi-model-router.html">05</a>
+    <a href="06-agentic-tool-use.html">06</a>
+    <a href="07-eval-guardrails.html">07</a>
+    <a href="08-fine-tuning-serving.html">08</a>
+    <a href="09-multi-agent.html">09</a>
+    <a href="10-production-platform.html">10</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; All Architectures</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">&#128172; Architecture 02 &middot; Foundation</div>
+  <h1>Conversational <em>Chatbot</em></h1>
+  <p class="hero-desc">
+    Multi-turn chat with memory and session management. The chatbot remembers previous messages,
+    maintains context across turns, and manages conversation state &mdash; the backbone of every
+    conversational AI product.
+  </p>
+  <div class="hero-checklist">
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Conversation Memory</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Session Management</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Window Buffering</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Summary Memory</span>
+  </div>
+  <div style="margin-top:28px;">
+    <a href="https://colab.research.google.com/github/rajvermatx/careeralign.com/blob/main/genai-arch/notebooks/02-conversational-chatbot.ipynb" target="_blank" class="btn btn-primary" style="background:#22c55e;">Open Notebook in Colab &rarr;</a>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#overview" class="section">Architecture Overview</a>
+    <a href="#diagram" class="section">Architecture Diagram</a>
+    <a href="#components" class="section">Components Deep Dive</a>
+    <a href="#implementation" class="section">Implementation</a>
+    <a href="#dataflow" class="section">Data Flow</a>
+    <a href="#tradeoffs" class="section">Trade-offs</a>
+    <a href="#production" class="section">Production Checklist</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- 1. OVERVIEW -->
+    <div class="section" id="overview">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>Architecture Overview</h2>
+      </div>
+      <p>
+        The <strong>Conversational Chatbot</strong> extends the Simple Chat API by adding <strong>memory</strong>. Instead of treating
+        each message independently, it maintains a history of the conversation and sends previous turns along with each new
+        request. This enables the LLM to understand references like "it", "that", and "as I mentioned".
+      </p>
+      <h3>When to Use</h3>
+      <ul>
+        <li>Customer support chatbots that need to track issue context</li>
+        <li>Interactive tutoring or coaching systems</li>
+        <li>Any application where users expect follow-up questions to work</li>
+        <li>Internal knowledge assistants with extended dialogues</li>
+      </ul>
+      <h3>Complexity Level</h3>
+      <p>
+        <strong>Low-Medium.</strong> The core pattern is simple (append messages to an array), but memory
+        management becomes critical as conversations grow. You need strategies for context window limits
+        and session persistence.
+      </p>
+      <div class="callout tip">
+        <div class="callout-label">Key Insight</div>
+        <p>The hardest part of building a chatbot is not the LLM call &mdash; it is managing memory efficiently. A conversation that exceeds the context window will either fail or lose important context.</p>
+      </div>
+    </div>
+
+    <!-- 2. DIAGRAM -->
+    <div class="section" id="diagram">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Architecture Diagram</h2>
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 800 400" class="learning-path-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow2" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+            </marker>
+          </defs>
+
+          <!-- User -->
+          <rect x="30" y="130" width="130" height="70" rx="12" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="95" y="162" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="15" font-weight="600">User</text>
+          <text x="95" y="182" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">New message</text>
+
+          <!-- Arrow to API -->
+          <line x1="160" y1="165" x2="240" y2="165" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow2)"/>
+
+          <!-- API Layer -->
+          <rect x="250" y="110" width="160" height="110" rx="12" fill="#10131e" stroke="#232840" stroke-width="2"/>
+          <text x="330" y="140" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">Chat Server</text>
+          <text x="330" y="160" text-anchor="middle" fill="#22c55e" font-family="JetBrains Mono" font-size="10">+ system prompt</text>
+          <text x="330" y="178" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Load history</text>
+          <text x="330" y="194" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Assemble messages[]</text>
+
+          <!-- Memory Store -->
+          <rect x="240" y="280" width="180" height="70" rx="12" fill="#10131e" stroke="#f59e0b" stroke-width="2"/>
+          <text x="330" y="310" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">Session Store</text>
+          <text x="330" y="330" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">Redis / DB / In-Memory</text>
+
+          <!-- Arrow API to Memory (load) -->
+          <line x1="300" y1="220" x2="300" y2="275" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow2)"/>
+          <text x="276" y="250" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">load</text>
+
+          <!-- Arrow Memory to API (history) -->
+          <line x1="360" y1="275" x2="360" y2="220" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow2)" stroke-dasharray="5,3"/>
+          <text x="384" y="250" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">history</text>
+
+          <!-- Arrow API to LLM -->
+          <line x1="410" y1="165" x2="520" y2="165" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow2)"/>
+          <text x="465" y="155" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="10">messages[]</text>
+
+          <!-- LLM -->
+          <rect x="530" y="130" width="140" height="70" rx="12" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="600" y="162" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="15" font-weight="600">LLM</text>
+          <text x="600" y="182" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">Generate reply</text>
+
+          <!-- Return flow -->
+          <path d="M 600 200 L 600 240 L 330 240 L 330 220" fill="none" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow2)" stroke-dasharray="6,4"/>
+          <text x="465" y="235" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">response</text>
+
+          <!-- Store arrow -->
+          <text x="465" y="260" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono" font-size="9">save turn to store</text>
+
+          <!-- Return to user -->
+          <path d="M 250 175 L 160 175" fill="none" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow2)" stroke-dasharray="6,4"/>
+          <text x="205" y="188" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">reply</text>
+
+          <!-- Loop indicator -->
+          <rect x="620" y="40" width="140" height="50" rx="10" fill="#10131e" stroke="#22c55e" stroke-width="1" stroke-dasharray="4,3"/>
+          <text x="690" y="62" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk" font-size="11" font-weight="600">Conversation Loop</text>
+          <text x="690" y="78" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Repeats each turn</text>
+        </svg>
+        <p class="diagram-caption">Architecture diagram &mdash; Conversational Chatbot with session store and memory loop</p>
+      </div>
+    </div>
+
+    <!-- 3. COMPONENTS -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Components Deep Dive</h2>
+      </div>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128218;</div>
+            <h4>Window Buffer Memory</h4>
+          </div>
+          <p>Keep the last N message pairs (e.g., 10 turns). Simple, predictable token usage. Older context is dropped entirely. Best for short, focused conversations.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128221;</div>
+            <h4>Summary Memory</h4>
+          </div>
+          <p>Periodically summarize older messages into a condensed form. Keeps key context while reducing tokens. Use the LLM itself to generate the running summary.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128256;</div>
+            <h4>Hybrid Memory</h4>
+          </div>
+          <p>Combine summary of old turns + full recent turns. Best of both worlds: preserves long-term context while keeping recent detail. Most production chatbots use this pattern.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128273;</div>
+            <h4>Session Management</h4>
+          </div>
+          <p>Each conversation gets a unique session ID. Map session IDs to message histories in your store. Handle session creation, expiry, and cleanup.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128451;</div>
+            <h4>Storage Backend</h4>
+          </div>
+          <p>Redis for fast, ephemeral sessions. PostgreSQL for persistent history. DynamoDB for serverless scale. In-memory dict for prototyping only.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9986;</div>
+            <h4>Context Truncation</h4>
+          </div>
+          <p>When conversation exceeds context window, truncate strategically. Always keep the system prompt and most recent messages. Never silently fail on context overflow.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. IMPLEMENTATION -->
+    <div class="section" id="implementation">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Implementation</h2>
+      </div>
+      <h3>Window Buffer Chatbot</h3>
+<pre><code><span class="code-keyword">import</span> anthropic
+
+client = anthropic.Anthropic()
+
+<span class="code-keyword">class</span> <span class="code-fn">ChatBot</span>:
+    <span class="code-keyword">def</span> <span class="code-fn">__init__</span>(self, system_prompt, max_history=<span class="code-num">20</span>):
+        self.system = system_prompt
+        self.max_history = max_history
+        self.messages = []  <span class="code-comment"># list of {role, content} dicts</span>
+
+    <span class="code-keyword">def</span> <span class="code-fn">chat</span>(self, user_message: <span class="code-fn">str</span>) -> <span class="code-fn">str</span>:
+        <span class="code-comment"># Add user message</span>
+        self.messages.append({<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: user_message})
+
+        <span class="code-comment"># Truncate to window</span>
+        <span class="code-keyword">if</span> <span class="code-fn">len</span>(self.messages) > self.max_history:
+            self.messages = self.messages[-self.max_history:]
+
+        <span class="code-comment"># Call LLM with full history</span>
+        response = client.messages.create(
+            model=<span class="code-string">"claude-sonnet-4-20250514"</span>,
+            max_tokens=<span class="code-num">1024</span>,
+            system=self.system,
+            messages=self.messages,
+        )
+        assistant_msg = response.content[<span class="code-num">0</span>].text
+
+        <span class="code-comment"># Store assistant reply</span>
+        self.messages.append({<span class="code-string">"role"</span>: <span class="code-string">"assistant"</span>, <span class="code-string">"content"</span>: assistant_msg})
+        <span class="code-keyword">return</span> assistant_msg
+</code></pre>
+
+      <h3>Session-Based with Redis</h3>
+<pre><code><span class="code-keyword">import</span> json, redis, uuid
+
+r = redis.Redis(host=<span class="code-string">"localhost"</span>, port=<span class="code-num">6379</span>, decode_responses=<span class="code-keyword">True</span>)
+
+<span class="code-keyword">def</span> <span class="code-fn">create_session</span>() -> <span class="code-fn">str</span>:
+    session_id = <span class="code-fn">str</span>(uuid.uuid4())
+    r.setex(session_id, <span class="code-num">3600</span>, json.dumps([]))  <span class="code-comment"># 1hr TTL</span>
+    <span class="code-keyword">return</span> session_id
+
+<span class="code-keyword">def</span> <span class="code-fn">chat_with_session</span>(session_id: <span class="code-fn">str</span>, user_msg: <span class="code-fn">str</span>) -> <span class="code-fn">str</span>:
+    <span class="code-comment"># Load history</span>
+    history = json.loads(r.get(session_id) <span class="code-keyword">or</span> <span class="code-string">"[]"</span>)
+    history.append({<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: user_msg})
+
+    <span class="code-comment"># Call LLM</span>
+    response = client.messages.create(
+        model=<span class="code-string">"claude-sonnet-4-20250514"</span>,
+        max_tokens=<span class="code-num">1024</span>,
+        system=<span class="code-string">"You are a helpful assistant."</span>,
+        messages=history[-<span class="code-num">20</span>:],  <span class="code-comment"># window of last 20</span>
+    )
+    reply = response.content[<span class="code-num">0</span>].text
+    history.append({<span class="code-string">"role"</span>: <span class="code-string">"assistant"</span>, <span class="code-string">"content"</span>: reply})
+
+    <span class="code-comment"># Save back</span>
+    r.setex(session_id, <span class="code-num">3600</span>, json.dumps(history))
+    <span class="code-keyword">return</span> reply
+</code></pre>
+    </div>
+
+    <!-- 5. DATA FLOW -->
+    <div class="section" id="dataflow">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Data Flow</h2>
+      </div>
+      <p>Step-by-step flow for each conversation turn:</p>
+      <ul class="checklist">
+        <li><span class="check-box done"></span><strong>1. User sends message</strong> &mdash; Includes session ID in request header or body</li>
+        <li><span class="check-box done"></span><strong>2. Load session history</strong> &mdash; Retrieve previous messages from session store using session ID</li>
+        <li><span class="check-box done"></span><strong>3. Apply memory strategy</strong> &mdash; Truncate to window, summarize old turns, or hybrid approach</li>
+        <li><span class="check-box done"></span><strong>4. Build messages array</strong> &mdash; System prompt + trimmed history + new user message</li>
+        <li><span class="check-box done"></span><strong>5. Call LLM</strong> &mdash; Send assembled messages to the model</li>
+        <li><span class="check-box done"></span><strong>6. Save both turns</strong> &mdash; Store user message + assistant reply back to session store</li>
+        <li><span class="check-box done"></span><strong>7. Return response</strong> &mdash; Stream or return complete text to the user</li>
+      </ul>
+    </div>
+
+    <!-- 6. TRADE-OFFS -->
+    <div class="section" id="tradeoffs">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Trade-offs &amp; Considerations</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Memory Strategy</th><th>Pros</th><th>Cons</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Window Buffer</td><td>Simple, predictable token cost</td><td>Loses early context entirely</td></tr>
+          <tr><td>Summary Memory</td><td>Preserves key context long-term</td><td>Extra LLM call to summarize, may lose detail</td></tr>
+          <tr><td>Hybrid</td><td>Best balance of context and cost</td><td>More complex to implement</td></tr>
+          <tr><td>Full History</td><td>Never loses context</td><td>Hits context window limit, expensive</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <div class="callout-label">Watch Out</div>
+        <p>Token costs scale linearly with conversation length. A 50-turn conversation sends all 50 turns with every request. This is the #1 cost trap in chatbot architectures.</p>
+      </div>
+    </div>
+
+    <!-- 7. PRODUCTION CHECKLIST -->
+    <div class="section" id="production">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Production Checklist</h2>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Session store with TTL and automatic cleanup (Redis, DynamoDB)</li>
+        <li><span class="check-box"></span>Token counting before sending to detect context window overflow</li>
+        <li><span class="check-box"></span>Graceful degradation when history is truncated (inform the user)</li>
+        <li><span class="check-box"></span>Session authentication &mdash; users can only access their own sessions</li>
+        <li><span class="check-box"></span>Conversation export for user data portability</li>
+        <li><span class="check-box"></span>Memory strategy selection based on conversation type</li>
+        <li><span class="check-box"></span>Concurrent request handling per session (queue or lock)</li>
+        <li><span class="check-box"></span>Analytics: conversation length distribution, drop-off turn number</li>
+      </ul>
+    </div>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous</div>
+        <a href="01-simple-chat-api.html" class="prev-btn">&larr; 01 &middot; Simple Chat API</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Architecture</div>
+        <a href="03-rag-pipeline.html" class="next-btn">03 &middot; RAG Pipeline &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  CareerAlign.com &middot; GenAI Reference Architectures &middot;
+  <a href="index.html">All Architectures</a>
+</footer>
+
+</body>
+</html>
