@@ -108,6 +108,7 @@
     <a href="#selection-plain" class="sub">Plain Language</a>
     <a href="#selection-decision" class="sub">Decision Tree</a>
     <a href="#selection-pricing" class="sub">Pricing &amp; Benchmarks</a>
+    <a href="#interview" class="section">&#127919; Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -1189,6 +1190,95 @@ result = <span class="code-fn">estimate_cost</span>(long_prompt, <span class="co
           <p>More than 1M daily queries. Build a golden eval set, verify a cheaper model hits your quality bar, then self-host or use Gemini Flash / GPT-4o-mini at scale.</p>
         </div>
       </div>
+    </section>
+
+    <!-- INTERVIEW READY -->
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">&#127919;</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Elevator Pitch &mdash; 2-Minute Interview Explanation</div>
+        <p>
+          "The modern model landscape spans three categories. <strong>Large Language Models</strong> like GPT-4o and Claude Sonnet have hundreds of billions of parameters, deliver frontier reasoning and multimodal capabilities, and are accessed through paid APIs. <strong>Small Language Models</strong> like Phi-4 (14B) and Gemma 2 (9B) have fewer than 15 billion parameters, can run on a single consumer GPU or even a laptop, and are the right choice when you need privacy, offline access, or high-volume inference at near-zero marginal cost. <strong>Multimodal models</strong> extend beyond text to accept images, audio, and video &mdash; they use a Vision Transformer to split images into 16x16 patches, encode them, and project the resulting embeddings into the same vector space as text tokens so the decoder processes a unified sequence. The key engineering decision is not picking the 'best' model &mdash; it is building an evaluation set for your specific task and finding the model at the knee of the quality-per-dollar curve. A quantized 7B model running locally can replace a $500K/year API bill if the task is well-defined and bounded."
+        </p>
+      </div>
+
+      <h3>Interview Questions</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Question</th>
+            <th>What They&rsquo;re Really Asking</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>What is the difference between an LLM and an SLM, and when would you choose each?</td>
+            <td>Can you make practical cost-quality tradeoffs, not just chase the biggest model?</td>
+          </tr>
+          <tr>
+            <td>How does a multimodal model process an image alongside text?</td>
+            <td>Do you understand the Vision Transformer + projection architecture, or do you treat it as magic?</td>
+          </tr>
+          <tr>
+            <td>What is Mixture-of-Experts and why does it matter?</td>
+            <td>Can you explain how MoE decouples total parameters from inference cost?</td>
+          </tr>
+          <tr>
+            <td>How would you decide between a closed-weight API and a self-hosted open-weight model?</td>
+            <td>Do you think about data privacy, cost at scale, latency, and operational burden holistically?</td>
+          </tr>
+          <tr>
+            <td>What is quantization and what are the tradeoffs?</td>
+            <td>Can you explain how reducing precision (float32 &rarr; int4) shrinks memory 8x with only 3-7% quality loss, and when that tradeoff is worth it?</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <p>
+        <strong>1. LLM vs. SLM &mdash; when to choose each:</strong>
+        LLMs (70B+ parameters) excel at complex reasoning, multi-step code generation, and tasks requiring broad world knowledge &mdash; they are the right choice when quality is the primary constraint and you can absorb API costs or have GPU infrastructure. SLMs (under 10B parameters) are the right choice when data cannot leave your premises, when you need offline or edge deployment, or when you are running millions of queries per day and the task is well-defined enough that a smaller model meets your quality bar. The decision framework is: establish a quality ceiling with a frontier model, build a golden eval set of 50-200 representative examples, then systematically test smaller and cheaper alternatives to find the point where quality drops below your acceptable threshold.
+      </p>
+      <p>
+        <strong>2. How multimodal models process images:</strong>
+        The image is divided into a grid of non-overlapping 16x16 pixel patches &mdash; a 224x224 image yields 196 patches. Each patch is flattened into a pixel vector and passed through a Vision Transformer (ViT) encoder, often CLIP-based, which applies self-attention across patches to produce a sequence of visual embeddings. A learned linear projection layer maps these visual embeddings into the same dimensional space as the language model's token embeddings. The visual embeddings are then concatenated with the text token embeddings into a single unified sequence, and the LLM decoder processes this combined sequence with standard self-attention, treating image patches essentially as "visual tokens."
+      </p>
+      <p>
+        <strong>3. Mixture-of-Experts (MoE):</strong>
+        In a standard dense transformer, every token passes through the same feed-forward network (FFN). In an MoE architecture, there are multiple FFN blocks called "experts" &mdash; for example, Mixtral 8x7B has 8 experts &mdash; and a learned routing network selects a small subset (typically 2) for each token. This means Mixtral has 46B total parameters but only activates about 12B per inference step, giving quality comparable to a 40B+ dense model at the speed of a 12B model. MoE is central to frontier scaling strategy because it lets labs train larger effective models without proportionally increasing inference compute costs.
+      </p>
+      <p>
+        <strong>4. Closed-weight API vs. self-hosted open-weight:</strong>
+        Closed-weight APIs (OpenAI, Anthropic, Google) offer frontier quality, zero infrastructure management, continuous updates, and built-in safety features &mdash; but your data leaves your premises, you are subject to pricing changes, and costs scale linearly with volume. Self-hosted open-weight models (Llama 3, Mistral, Phi-4) keep data on-premises, allow fine-tuning for your domain, and offer near-zero marginal cost at high volume &mdash; but require GPU infrastructure, operational monitoring, and manual model updates. The decision depends on data sensitivity (regulated industries often mandate self-hosting), volume (at 10M+ daily queries the cost savings from self-hosting can be 25x), and whether the quality gap on your specific task is acceptable.
+      </p>
+      <p>
+        <strong>5. Quantization and its tradeoffs:</strong>
+        Quantization reduces model weight precision from float32 (4 bytes per parameter) to int8 (1 byte) or int4 (0.5 bytes), shrinking memory requirements by 4-8x. A 7B parameter model at float16 needs ~14GB VRAM; at int4 it needs ~3.5GB, making it runnable on consumer hardware. The quality penalty is typically 1-3% on benchmarks for int8 and 3-7% for int4. The dominant format is GGUF, used by llama.cpp and Ollama. Quantization is worth it when deployment constraints (edge devices, cost-sensitive infrastructure) outweigh the modest quality loss, and when the task is well-defined enough that the degradation can be measured against a golden eval set.
+      </p>
+
+      <div class="callout tip">
+        <div class="callout-label">System Design Scenario</div>
+        <p>
+          <strong>Challenge:</strong> "Design a document processing pipeline for a law firm that receives 5,000 scanned contracts per day. Each contract is 10-30 pages. The system must extract party names, dates, dollar amounts, and clause summaries. The data is highly confidential and cannot leave the firm's private cloud."
+        </p>
+        <p>
+          <strong>What a good answer covers:</strong> (1) Self-hosted model is mandatory due to data sensitivity &mdash; Llama 3 70B or Phi-4 via vLLM on A100 GPUs. (2) Use a multimodal approach: render each page as an image and send to the vision-capable model rather than relying on brittle OCR + text extraction pipelines. (3) For high throughput at 5,000 docs &times; 20 pages = 100K pages/day, use a two-stage architecture: a fast SLM (Phi-4 quantized) for initial classification and field extraction, escalating only ambiguous pages to the larger 70B model. (4) Build a golden eval set of 200 manually-verified contracts to measure extraction accuracy. (5) Consider ColPali-style page-image embeddings for a retrieval layer that lets lawyers search across the contract corpus by meaning rather than keyword.
+        </p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+
+      <ul>
+        <li><strong>Defaulting to the largest model for every task.</strong> Using GPT-4o or Claude Opus for simple classification or extraction tasks wastes money and adds latency. Many production tasks are better served by GPT-4o-mini, Gemini Flash, or a fine-tuned 7B model &mdash; the key is measuring quality on your specific task rather than assuming bigger is better.</li>
+        <li><strong>Ignoring parameter count when planning infrastructure.</strong> A 70B model at float16 requires ~140GB of VRAM &mdash; that is two A100 80GB GPUs minimum. Candidates who propose "just deploy Llama 70B" without accounting for hardware requirements, quantization strategy, or inference throughput targets reveal a gap between theory and production readiness.</li>
+        <li><strong>Treating multimodal as text extraction plus a language model.</strong> The value of native multimodal models is that they process layout, figures, and text together in a unified representation. Candidates who describe a pipeline of "OCR the document, then send the text to an LLM" are missing the architectural shift &mdash; direct image input via ViT encoders handles tables, charts, and mixed-format pages far more reliably than text-only extraction.</li>
+      </ul>
     </section>
 
     <!-- NAVIGATION FOOTER -->

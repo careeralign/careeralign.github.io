@@ -93,6 +93,7 @@
     <a href="#production" class="section">6 · Production Patterns</a>
     <a href="#prod-plain" class="sub">Plain Language</a>
     <a href="#prod-deep" class="sub">Deep Dive</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <main class="main">
@@ -761,6 +762,142 @@ logger = logging.<span class="code-fn">getLogger</span>(__name__)
         <p>Begin with basic RAG + hybrid search + reranking. This covers 80% of use cases. Add parent-child chunks if users complain about incomplete answers. Add query transformation if retrieval fails on paraphrased queries. Add self-corrective loops only for high-stakes domains where answer accuracy is critical.</p>
       </div>
     </div>
+
+    <!-- INTERVIEW READY -->
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>
+          Advanced RAG goes beyond the basic retrieve-and-stuff pattern by adding layers of intelligence at every stage
+          of the pipeline. Before retrieval, query expansion and rewriting techniques generate multiple reformulations of
+          the user's question to cast a wider net. During retrieval, hybrid search combines dense vector similarity with
+          sparse keyword matching (BM25) to catch both semantic and lexical matches. After retrieval, a cross-encoder
+          reranker scores each query-document pair jointly to surface the truly relevant chunks, discarding false positives
+          that fooled the initial similarity search. Self-RAG and CRAG add self-corrective loops — the system evaluates
+          whether retrieved documents actually support an answer and, if not, falls back to web search or re-retrieves
+          with a rewritten query. Evaluation metrics like context relevance, faithfulness, and answer completeness
+          (automated via frameworks like RAGAS) close the feedback loop, letting you measure and continuously improve
+          each stage. These techniques collectively transform demo-quality RAG into production-grade systems that handle
+          ambiguous, multi-hop, and adversarial queries reliably.
+        </p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>What is hybrid search and why is it better than pure vector search for RAG?</td><td>Do you understand the complementary strengths of dense embeddings (semantic similarity) and sparse retrieval (exact keyword matching via BM25)?</td></tr>
+          <tr><td>Explain how reranking works and where it fits in a RAG pipeline.</td><td>Can you distinguish between bi-encoder retrieval (fast, approximate) and cross-encoder reranking (slow, precise), and articulate why the two-stage approach is necessary?</td></tr>
+          <tr><td>What query expansion techniques would you use to improve retrieval recall?</td><td>Do you know about HyDE (Hypothetical Document Embeddings), multi-query generation, and step-back prompting — and when each is appropriate?</td></tr>
+          <tr><td>How do Self-RAG and CRAG differ from standard RAG?</td><td>Can you explain self-corrective loops, reflection tokens, retrieval grading, and the concept of the LLM deciding when retrieval is needed vs. when it already knows the answer?</td></tr>
+          <tr><td>How do you evaluate an advanced RAG system end to end?</td><td>Do you know the key metrics — context precision, context recall, faithfulness, answer relevancy — and how frameworks like RAGAS automate LLM-as-judge evaluation across retrieval and generation stages?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <p>
+        <strong>1. Hybrid search vs. pure vector search</strong> —
+        Pure vector search excels at semantic matching — it finds passages that mean the same thing even if they use
+        different words. But it struggles with exact keyword queries like product codes, error messages, or proper nouns
+        where lexical matching is critical. Hybrid search combines dense vector retrieval with sparse BM25 retrieval
+        using Reciprocal Rank Fusion (RRF) to merge the two result sets. RRF assigns each document a score of
+        <code>1 / (k + rank)</code> from each retrieval method and sums them, naturally boosting documents that appear
+        in both lists. In practice, hybrid search improves recall by 10–20% over either method alone because dense
+        and sparse retrievers have complementary failure modes — vectors miss exact matches, BM25 misses paraphrases.
+        Most production vector databases (Weaviate, Qdrant, Pinecone) support hybrid search natively with a configurable
+        alpha parameter to weight dense vs. sparse contributions.
+      </p>
+
+      <p>
+        <strong>2. Reranking in the RAG pipeline</strong> —
+        The retrieval stage uses a bi-encoder — query and documents are embedded independently, and similarity is computed
+        via dot product or cosine distance. This is fast (sub-millisecond over millions of vectors) but approximate,
+        because the query and document never "see" each other during encoding. A cross-encoder reranker takes each
+        (query, document) pair as a single input and produces a joint relevance score. This is far more accurate because
+        the model attends across both texts simultaneously, catching nuances a bi-encoder misses. The two-stage pattern
+        is: retrieve top-20 to top-50 candidates with the bi-encoder (fast, high recall), then rerank to select the
+        top-3 to top-5 with the cross-encoder (slow, high precision). Models like Cohere Rerank, BGE-Reranker, or
+        <code>cross-encoder/ms-marco-MiniLM-L-6-v2</code> add 100–300ms of latency but improve answer quality by
+        15–25%. Always set a relevance threshold — if no reranked chunk scores above the threshold, return "I don't
+        have enough information" rather than hallucinating.
+      </p>
+
+      <p>
+        <strong>3. Query expansion techniques</strong> —
+        Query expansion rewrites the user's original question into multiple forms to improve retrieval coverage. HyDE
+        (Hypothetical Document Embeddings) asks the LLM to generate a hypothetical answer, then embeds that answer
+        instead of the question — this works because a hypothetical answer is closer in embedding space to the actual
+        documents than a short question is. Multi-query generation produces 3–5 diverse reformulations of the question,
+        runs retrieval for each, and merges the results. Step-back prompting transforms a specific question ("What was
+        Apple's Q3 2024 revenue?") into a broader one ("What were Apple's recent financial results?") to retrieve more
+        comprehensive context. Sub-question decomposition breaks multi-hop questions into atomic parts, retrieves for
+        each, and synthesizes. The choice depends on query type: HyDE for factual lookups, multi-query for ambiguous
+        questions, step-back for overly specific queries, and decomposition for complex multi-part questions.
+      </p>
+
+      <p>
+        <strong>4. Self-RAG and CRAG</strong> —
+        Standard RAG always retrieves and always uses retrieved context, even when the LLM already knows the answer or
+        when the retrieved documents are irrelevant. Self-RAG introduces reflection tokens that let the model decide at
+        each step: (1) should I retrieve at all? (2) are the retrieved documents relevant? (3) is my generated response
+        supported by the evidence? (4) is the response useful to the user? The model is trained to emit these reflection
+        tokens, enabling it to skip retrieval for simple factual queries and to self-correct when retrieved context is
+        insufficient. CRAG (Corrective RAG) takes a different approach — it grades retrieved documents using a
+        lightweight evaluator, and if the documents score below a confidence threshold, it triggers a corrective action:
+        re-retrieving with a rewritten query, falling back to web search, or decomposing the question into sub-queries.
+        CRAG is more practical for production because it works with any off-the-shelf LLM without special training,
+        while Self-RAG requires fine-tuning the model to produce reflection tokens.
+      </p>
+
+      <p>
+        <strong>5. Evaluating advanced RAG systems</strong> —
+        Advanced RAG evaluation measures both retrieval and generation quality across four key metrics. Context precision
+        asks: of the chunks we retrieved, what fraction are actually relevant to the question? Context recall asks: of
+        all the relevant information that exists in the corpus, what fraction did we retrieve? Faithfulness measures
+        whether the generated answer is supported by the retrieved context — every claim in the answer should trace back
+        to a specific passage. Answer relevancy checks whether the response actually addresses the question asked.
+        RAGAS automates these using LLM-as-judge: it prompts a strong model (e.g., GPT-4) to decompose the answer into
+        individual claims, verify each claim against the context, and score the overall alignment. Beyond RAGAS, you
+        should build golden evaluation sets — 50–100 question-answer-source triples curated by domain experts — and
+        track metrics over time as you modify the pipeline. The most actionable insight comes from failure analysis:
+        categorize bad answers into retrieval failures (right answer exists but was not retrieved) vs. generation failures
+        (right context was retrieved but the LLM misinterpreted it) and address each with targeted improvements.
+      </p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>
+          You are redesigning a customer support RAG system that currently uses basic vector search. The system handles
+          10,000 queries per day across 200,000 support articles, but users report that 30% of answers are irrelevant
+          or incomplete. Queries range from simple ("How do I reset my password?") to complex multi-hop questions
+          ("My payment failed after I changed my address and updated my card — what went wrong?"). Design an advanced
+          RAG architecture to reduce the irrelevant answer rate below 5%.
+        </p>
+        <p>A strong answer should cover:</p>
+        <ul>
+          <li><strong>Query classification and routing</strong> — classify incoming queries by complexity (simple factual, comparative, multi-hop, troubleshooting) and route each to an appropriate pipeline: simple queries get basic retrieval, multi-hop queries get sub-question decomposition, and troubleshooting queries get step-back prompting followed by sequential reasoning</li>
+          <li><strong>Hybrid search with reranking</strong> — replace pure vector search with hybrid retrieval (dense + BM25 via RRF), retrieve top-20 candidates, then rerank with a cross-encoder to select top-5, with a minimum relevance threshold to avoid injecting low-quality context</li>
+          <li><strong>Self-corrective loop (CRAG pattern)</strong> — after initial retrieval, grade the relevance of retrieved documents; if confidence is below threshold, rewrite the query using the LLM and re-retrieve; if still below threshold, escalate to a human agent rather than generating an unreliable answer</li>
+          <li><strong>Evaluation and monitoring pipeline</strong> — implement RAGAS metrics (faithfulness, context precision, context recall, answer relevancy) on a sampled stream of production queries, build a dashboard tracking these metrics daily, and create an automated alert when any metric drops below its threshold</li>
+          <li><strong>Feedback loop</strong> — capture user thumbs-up/thumbs-down signals, map negative feedback to retrieval vs. generation failures, and use the failure analysis to continuously refine chunking strategy, reranker fine-tuning, and prompt templates</li>
+        </ul>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Adding every advanced technique at once instead of iterating</strong> — Teams often implement hybrid search, reranking, query expansion, and self-corrective loops simultaneously, making it impossible to measure which technique actually improved results. Start with hybrid search + reranking (the highest-impact changes), measure the improvement, then layer on query expansion and CRAG patterns incrementally. Each addition should be A/B tested against the previous baseline.</li>
+        <li><strong>Using query expansion without deduplication or fusion</strong> — Multi-query expansion generates multiple reformulations and retrieves for each, but naively concatenating the results produces duplicate chunks and exceeds the context window. Always apply Reciprocal Rank Fusion to merge results and deduplicate by chunk ID. Without fusion, you waste context window tokens on redundant passages and may push the most relevant unique chunks out of the top-k selection.</li>
+        <li><strong>Treating reranker scores as absolute confidence and skipping the relevance threshold</strong> — Cross-encoder rerankers produce relative scores, not calibrated probabilities. A top-ranked chunk with a score of 0.6 might still be irrelevant — it is simply less irrelevant than the alternatives. Always set a minimum relevance threshold (calibrated on your evaluation set) below which the system responds with "I could not find a reliable answer" instead of generating from poor context. This single safeguard prevents the majority of confidently wrong answers that erode user trust.</li>
+      </ul>
+    </section>
 
     <!-- NEXT / PREV -->
     <div class="next-section">

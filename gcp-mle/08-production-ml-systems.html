@@ -394,6 +394,7 @@ code {
     <a href="#troubleshooting" class="section">7 &middot; Troubleshooting</a>
     <a href="#patterns" class="section">8 &middot; System Design Patterns</a>
     <a href="#exam" class="section">9 &middot; Exam Focus</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -962,6 +963,90 @@ df.<span class="code-fn">to_gbq</span>(<span class="code-string">"my_dataset.pre
         <div class="callout-label">High-Frequency Exam Topics</div>
         <p>Training-serving skew prevention (tf.Transform), data drift vs concept drift distinction, TPU vs GPU selection criteria, mixed precision output layer (must be float32), batch vs online serving decision, and A/B testing for model deployment are the most frequently tested topics from this module.</p>
       </div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 10: INTERVIEW READY
+    ════════════════════════════════════════════ -->
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">&#127919;</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>
+          Production ML systems are fundamentally different from notebook prototypes. The model is often the <strong>smallest component</strong> in a production system &mdash; the real complexity lies in data pipelines, serving infrastructure, monitoring, and feedback loops. Key architectural decisions include <strong>static vs dynamic training</strong> (retrain on a schedule or continuously) and <strong>static vs dynamic serving</strong> (precompute predictions or serve on demand). <strong>Training-serving skew</strong> is the most common source of silent production failures, prevented by embedding preprocessing in the model graph via tf.Transform or Keras preprocessing layers. <strong>Technical debt</strong> accumulates through glue code, pipeline jungles, and undeclared data dependencies &mdash; Google's famous paper argues that ML systems have a natural tendency toward high-debt architectures. Production systems must handle <strong>concept drift</strong> (the real-world relationship changes) and <strong>data drift</strong> (input distributions shift) through continuous monitoring with Vertex AI Model Monitoring and TFDV. Performance optimization spans <strong>distributed training</strong> (data parallelism, model parallelism, mixed precision), <strong>hardware selection</strong> (TPU for large-batch TF/JAX, GPU for PyTorch and diverse workloads), and <strong>serving optimization</strong> (model quantization, caching, autoscaling). Understanding these production concerns &mdash; not just model accuracy &mdash; is what separates ML engineers from data scientists.
+        </p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>What is training-serving skew and how do you prevent it?</td><td>Do you understand the most common production ML failure mode and its architectural solutions?</td></tr>
+          <tr><td>How do you decide between batch prediction and online prediction?</td><td>Can you reason about latency, throughput, cost, and use-case requirements?</td></tr>
+          <tr><td>What is the difference between data drift and concept drift?</td><td>Do you know how to diagnose and respond to model degradation in production?</td></tr>
+          <tr><td>When would you choose TPUs over GPUs for training?</td><td>Can you match hardware to workload characteristics beyond just "TPUs are faster"?</td></tr>
+          <tr><td>How do you safely deploy a new model version to production?</td><td>Do you understand A/B testing, canary deployments, and rollback strategies for ML?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <div class="callout">
+        <div class="callout-label">Q1 &mdash; Training-Serving Skew</div>
+        <p>
+          Training-serving skew is any difference between the data or preprocessing seen during training and what the model encounters at serving time. It has three forms: <strong>data skew</strong> (training data does not represent production data), <strong>feature skew</strong> (feature computation differs between training and serving pipelines), and <strong>distribution skew</strong> (production data distribution shifts over time). Feature skew is the most insidious because it is silent &mdash; the model still returns predictions, they are just wrong. Prevention: use <strong>tf.Transform</strong> to embed preprocessing in the SavedModel graph (single code path), use <strong>Keras preprocessing layers</strong> that become part of the model, or use BQML's <code>TRANSFORM</code> clause. Monitor with <strong>Vertex AI Model Monitoring</strong> which compares serving input distributions against training baselines and alerts on divergence.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q2 &mdash; Batch vs Online Prediction</div>
+        <p>
+          <strong>Batch prediction</strong>: precompute predictions for all inputs on a schedule (hourly, nightly). Use when latency is not critical, the input space is bounded (e.g., predict churn for all 1M users), and you want to minimize serving infrastructure costs. Results are stored in BigQuery or GCS for downstream consumption. <strong>Online prediction</strong>: compute predictions on demand via an API endpoint. Use when latency matters (user-facing features, real-time recommendations), the input space is unbounded (any user query), or predictions depend on real-time context. Online requires always-on infrastructure (Vertex AI Endpoints with autoscaling) and is more expensive per prediction. Many production systems use both &mdash; batch for background analytics, online for user-facing features.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q3 &mdash; Data Drift vs Concept Drift</div>
+        <p>
+          <strong>Data drift</strong> (covariate shift) means the distribution of input features has changed &mdash; for example, your model was trained on users aged 25-45 but production traffic includes teenagers. The model's learned relationships are still valid, but it is being asked to extrapolate. Fix: retrain on recent data that includes the new distribution. <strong>Concept drift</strong> means the relationship between features and the target has changed &mdash; for example, a fraud model trained pre-COVID where spending patterns fundamentally shifted. The input distribution may look the same, but the correct predictions have changed. Fix: retrain with new labeled data that reflects the changed relationship. Detection: monitor feature distributions (TFDV, Vertex AI Model Monitoring) for data drift, monitor prediction metrics (accuracy, AUC) for concept drift. Both require different monitoring signals and different remediation strategies.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q4 &mdash; TPU vs GPU Selection</div>
+        <p>
+          <strong>Choose TPUs when:</strong> training large-batch, matrix-heavy models (transformers, large CNNs); using TensorFlow or JAX; the workload is primarily dense matrix multiplication; you need cost-efficient scaling across hundreds of accelerators (TPU pods). <strong>Choose GPUs when:</strong> using PyTorch (limited TPU support); custom CUDA kernels are required; workloads include sparse operations, dynamic shapes, or conditional logic; you need flexible hardware for diverse tasks (training, inference, data processing). TPU-specific constraints: batch size must be a multiple of 8 (cores per chip), prefer bfloat16 precision, avoid Python-side preprocessing in the training loop, and use <code>tf.data</code> for all input processing. For inference serving, GPUs are almost always preferred due to better framework support and lower latency for single-request scenarios.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q5 &mdash; Safe Model Deployment</div>
+        <p>
+          Never deploy a new model by replacing the existing one entirely. Use <strong>A/B testing</strong>: route a percentage of traffic (e.g., 5%) to the new model (challenger) while the rest goes to the current model (champion). Compare business metrics (click-through rate, revenue, user engagement) over a statistically significant period. If the challenger wins, gradually increase traffic. <strong>Canary deployment</strong> is similar but focuses on detecting failures: send a small percentage of traffic to the new model and monitor for errors, latency spikes, or anomalous predictions before broader rollout. Always maintain the ability to <strong>rollback</strong> instantly by keeping the previous model version deployed. On Vertex AI, this means keeping the old model endpoint active and using traffic splitting. Shadow mode (serving both models but only returning the champion's predictions) is useful for testing without user impact.
+        </p>
+      </div>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>
+          <strong>Scenario:</strong> Your company's fraud detection model processes 10,000 transactions per second. The current model was trained 6 months ago and accuracy has dropped from 97% to 91%. Latency requirement is under 50ms per prediction. Design a system to continuously maintain model quality.<br><br>
+          <strong>A strong answer covers:</strong> (1) Diagnosis &mdash; determine whether the drop is data drift (new transaction patterns) or concept drift (fraud tactics changed). Use Vertex AI Model Monitoring to compare current feature distributions against training baselines and track prediction confidence over time. (2) Continuous training pipeline &mdash; automated TFX pipeline triggered weekly: ingest labeled data (fraud/not-fraud from human review), validate with TFDV, retrain, evaluate against the champion model on a holdout set, and promote only if metrics improve. (3) Serving architecture &mdash; Vertex AI online prediction with GPU-backed endpoints, autoscaling from 2 to 20 replicas based on QPS, model quantization (INT8) to meet 50ms latency. (4) Safe deployment &mdash; shadow mode first (new model runs but does not affect decisions), then A/B test with 5% traffic, then gradual rollout. (5) Feedback loop &mdash; human fraud analysts label flagged transactions, creating a continuous labeled dataset. (6) Monitoring &mdash; alert on prediction latency P99, feature drift scores, prediction distribution shifts, and accuracy on labeled examples.
+        </p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Confusing data drift with concept drift</strong> &mdash; Data drift means input distributions changed; concept drift means the target relationship changed. The distinction matters because data drift can be detected by monitoring features alone (no labels needed), while concept drift requires monitoring prediction quality (which needs labels). Treating all model degradation as "the model needs more data" misses the root cause and leads to wasted retraining cycles.</li>
+        <li><strong>Deploying models without A/B testing</strong> &mdash; Replacing a production model wholesale because it has better offline metrics is a common and costly mistake. Offline evaluation does not capture all production dynamics (traffic patterns, feature distributions, business metrics). Always A/B test in production. Even a 1% traffic canary for 24 hours can catch catastrophic issues that offline evaluation misses.</li>
+        <li><strong>Using float32 for the output layer with mixed precision training</strong> &mdash; Mixed precision (float16/bfloat16) dramatically speeds up training and reduces memory, but the <strong>output layer must remain float32</strong> to maintain numerical stability in the loss computation. Forgetting this causes NaN losses or degraded accuracy. In Keras, use <code>tf.keras.mixed_precision.set_global_policy('mixed_float16')</code> and explicitly set <code>dtype='float32'</code> on the final Dense layer.</li>
+      </ul>
 
       <!-- NAVIGATION -->
       <div class="next-section">

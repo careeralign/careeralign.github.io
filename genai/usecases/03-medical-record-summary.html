@@ -89,6 +89,7 @@
     <a href="#hipaa" class="sub">HIPAA Compliance</a>
     <a href="#clinician-loop" class="sub">Clinician-in-the-Loop</a>
     <a href="#ehr-integration" class="sub">EHR Integration</a>
+    <a href="#portfolio" class="section">🛠️ Build Your Portfolio</a>
   </aside>
 
   <main class="main">
@@ -966,6 +967,47 @@ Flag any active drug interactions or critical lab trends."""</span>
         <div class="callout-label">Regulatory Landscape</div>
         <p>The FDA is actively developing guidance for AI/ML-based Software as a Medical Device (SaMD). Clinical NLP systems that influence treatment decisions may fall under FDA oversight. The 21st Century Cures Act and the ONC Health IT Certification Program also impose requirements on EHR-integrated AI systems. Consult with regulatory affairs and legal counsel before deploying any clinical AI system in a patient care setting.</p>
       </div>
+    </div>
+
+    <div class="section" id="portfolio">
+      <div class="section-header">
+        <div class="section-num">🛠️</div>
+        <h2>Build Your Portfolio</h2>
+      </div>
+
+      <h3>Fork &amp; Extend</h3>
+      <p>Turn this notebook into a portfolio project in 5 steps:</p>
+      <ol>
+        <li><strong>Fork the notebook</strong> &mdash; Clone the repo and open in Google Colab or locally.</li>
+        <li><strong>Swap in real data</strong> &mdash; Replace the synthetic records with the <a href="https://physionet.org/content/mimic-iv-note/2.2/" target="_blank">MIMIC-IV Clinical Notes</a> dataset from PhysioNet. Requires a free credentialed account and CITI training certificate, but it contains real de-identified clinical notes from ICU patients.</li>
+        <li><strong>Add medication interaction checking</strong> &mdash; Integrate the extracted medication list with the <a href="https://rxnav.nlm.nih.gov/InteractionAPIs.html" target="_blank">RxNorm Interaction API</a> to automatically flag dangerous drug-drug interactions in the summary output.</li>
+        <li><strong>Deploy it</strong> &mdash; Wrap it in a Streamlit app. Build a HIPAA-aware interface where clinicians paste or upload a clinical note and receive a structured SOAP summary with highlighted entities (medications, diagnoses, procedures) and interaction warnings.</li>
+        <li><strong>Write a README</strong> &mdash; Include architecture diagram, setup instructions, sample outputs, and metrics.</li>
+      </ol>
+
+      <h3>What Hiring Managers Look For</h3>
+      <div class="callout">
+        <div class="callout-label">Pro Tip</div>
+        <p>Health-tech hiring managers prioritize safety and compliance above all else. Demonstrate that your system never fabricates clinical information by implementing hallucination detection that cross-references every extracted entity against the source text. Include ROUGE and entity-level F1 scores, show how PHI is detected and redacted before any data leaves the system, and document your clinician-in-the-loop review workflow for edge cases like ambiguous abbreviations or conflicting records.</p>
+      </div>
+
+      <h3>Public Datasets to Use</h3>
+      <ul>
+        <li><strong>MIMIC-IV Clinical Notes</strong> &mdash; Real de-identified ICU clinical notes including discharge summaries, radiology reports, and nursing notes. Available on <a href="https://physionet.org/content/mimic-iv-note/2.2/" target="_blank">PhysioNet</a> (requires credentialing). The gold standard for clinical NLP research.</li>
+        <li><strong>MTSamples</strong> &mdash; 5,000+ sample medical transcription reports across 40 specialties. Available on <a href="https://mtsamples.com/" target="_blank">mtsamples.com</a>. Great for testing across different medical specialties without access restrictions.</li>
+        <li><strong>n2c2 / i2b2 NLP Datasets</strong> &mdash; Shared tasks for clinical NLP including medication extraction, relation classification, and de-identification. Available via <a href="https://portal.dbmi.hms.harvard.edu/" target="_blank">Harvard DBMI</a>. Excellent for benchmarking NER and relation extraction.</li>
+      </ul>
+
+      <h3>Deployment Options</h3>
+      <table>
+        <thead><tr><th>Platform</th><th>Best For</th><th>Effort</th></tr></thead>
+        <tbody>
+          <tr><td>Streamlit</td><td>Clinical note upload with structured SOAP summary and entity highlights</td><td>Low</td></tr>
+          <tr><td>Gradio</td><td>Quick demo with text input and annotated NER output visualization</td><td>Low</td></tr>
+          <tr><td>FastAPI</td><td>FHIR-compatible API endpoint for EHR system integration</td><td>Medium</td></tr>
+          <tr><td>Docker + Cloud Run</td><td>HIPAA-compliant containerized service with encryption at rest and in transit</td><td>High</td></tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- NEXT / PREV -->

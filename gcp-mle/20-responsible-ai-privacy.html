@@ -408,6 +408,7 @@ tr:hover td { background: var(--bg-surface); }
     <a href="#governance" class="section">8 &middot; Responsible AI Governance</a>
     <a href="#vpc-sc" class="section">9 &middot; VPC Service Controls</a>
     <a href="#exam-focus" class="section">10 &middot; Exam Focus</a>
+    <a href="#interview" class="section">&#127919; Interview Ready</a>
   </aside>
 
   <!-- MAIN CONTENT -->
@@ -1081,6 +1082,87 @@ response = model.<span class="code-fn">generate_content</span>(
         Need to prevent data exfiltration? Use VPC Service Controls. Need to filter harmful LLM output?
         Use Gemini safety settings + safety classifiers.</p>
       </div>
+    </div>
+
+    <!-- INTERVIEW READY -->
+    <div class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">&#127919;</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>
+          Privacy and safety in ML address two critical risks: leaking sensitive data and generating harmful outputs. On the privacy side, <strong>Cloud DLP</strong> detects and de-identifies PII (names, SSNs, emails) in training data through redaction, masking, or tokenization. <strong>Differential privacy</strong> provides a mathematical guarantee that any single individual's data cannot be reverse-engineered from model outputs &mdash; implemented via <strong>DP-SGD</strong> (clip gradients, add calibrated noise, track the privacy budget epsilon). <strong>Federated learning</strong> keeps data on-device entirely, training models by exchanging only gradient updates. For encryption, GCP offers a three-tier hierarchy: default Google-managed keys (GMEK), <strong>Customer-Managed Keys (CMEK)</strong> via Cloud KMS, and <strong>Confidential VMs</strong> for data-in-use protection. On the safety side, <strong>Gemini safety settings</strong> configure per-category content filtering (hate speech, dangerous content, harassment, sexually explicit), <strong>red teaming</strong> stress-tests models against prompt injection and jailbreaks, and <strong>VPC Service Controls</strong> prevent data exfiltration at the network level. Responsible AI governance ties it all together with AI review boards, impact assessments, and audit trails.
+        </p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table class="data-table">
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>How does differential privacy work, and what is the role of epsilon?</td><td>Can you explain the privacy-utility trade-off and the mathematical intuition behind DP guarantees?</td></tr>
+          <tr><td>Walk me through how you would de-identify a dataset containing PII before training.</td><td>Do you know Cloud DLP's capabilities and when to use redaction vs. masking vs. tokenization?</td></tr>
+          <tr><td>When would you use federated learning instead of centralizing data for training?</td><td>Do you understand regulatory, bandwidth, and privacy constraints that make FL necessary?</td></tr>
+          <tr><td>How do you protect a production LLM from prompt injection and jailbreak attacks?</td><td>Can you describe layered defenses: input filtering, system prompt hardening, output safety classifiers, and monitoring?</td></tr>
+          <tr><td>What is the difference between GMEK, CMEK, and CSEK on GCP, and when would you use each?</td><td>Do you understand the encryption key hierarchy and compliance requirements that drive key management decisions?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <div class="callout">
+        <div class="callout-label">Q1 &mdash; Differential Privacy and Epsilon</div>
+        <p>
+          Differential privacy guarantees that adding or removing any single individual's data from the training set changes the model's output distribution by at most a bounded amount. This is controlled by <strong>epsilon</strong> (the privacy budget): smaller epsilon means stronger privacy but more noise and lower model utility. Formally, for any two adjacent datasets differing by one record, the probability of any output is within a multiplicative factor of e^epsilon. In practice, <strong>DP-SGD</strong> implements this during training: (1) clip each sample's gradient to a fixed norm (bounding sensitivity), (2) add Gaussian noise proportional to the sensitivity and inversely proportional to epsilon, (3) track cumulative privacy loss across training steps using the moments accountant. Typical epsilon values range from 1 to 10 for useful models. TensorFlow Privacy provides drop-in DP optimizers. The key trade-off: epsilon=1 gives strong privacy but may reduce accuracy by 5-15%; epsilon=10 gives weaker guarantees but minimal accuracy loss.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q2 &mdash; De-identifying PII with Cloud DLP</div>
+        <p>
+          Cloud DLP provides three operations: <strong>inspect</strong> (find PII), <strong>de-identify</strong> (transform PII), and <strong>re-identify</strong> (reverse transformations when authorized). For a training dataset, first run inspection to discover all PII types present (names, emails, SSNs, phone numbers, addresses) using built-in infoTypes. Then choose de-identification techniques per field: <strong>redaction</strong> removes PII entirely (best when the field is irrelevant to the model). <strong>Masking</strong> replaces characters while preserving format (e.g., "***-**-1234") &mdash; useful when downstream systems need the format but not the value. <strong>Tokenization</strong> (format-preserving encryption or crypto-hash) creates reversible pseudonyms &mdash; essential when you need to re-identify for legitimate purposes. <strong>Date shifting</strong> randomly shifts dates within a range to preserve temporal patterns while hiding exact dates. Always apply de-identification before data leaves the secure environment, and store the de-identification configuration and crypto keys separately from the data.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q3 &mdash; When to Use Federated Learning</div>
+        <p>
+          Federated learning is the right choice when: (1) <strong>Regulatory constraints</strong> prohibit data centralization &mdash; e.g., GDPR data residency requirements, HIPAA restrictions on sharing patient records across hospitals. (2) <strong>Data sensitivity</strong> is extreme &mdash; keyboard inputs on mobile devices, medical images, financial transactions where users will not consent to data collection. (3) <strong>Bandwidth constraints</strong> make centralization impractical &mdash; millions of edge devices generating data faster than it can be transmitted. (4) <strong>Multi-institutional collaboration</strong> &mdash; multiple hospitals want to train a shared model without sharing patient data (cross-silo FL). The standard algorithm is <strong>FedAvg</strong>: each client trains locally, sends model updates (not data) to a server, which averages updates and sends the improved model back. Key challenges include non-IID data distributions across clients and the need to combine FL with differential privacy (adding noise to updates) for formal privacy guarantees, since raw gradient updates can still leak information.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q4 &mdash; Defending Against Prompt Injection and Jailbreaks</div>
+        <p>
+          Production LLM defense requires <strong>layered security</strong>. Layer 1: <strong>Input filtering</strong> &mdash; blocklists for known attack patterns, regex detection for injection markers ("ignore previous instructions"), and PII detection via Cloud DLP to prevent users from submitting sensitive data. Layer 2: <strong>System prompt hardening</strong> &mdash; clear instruction hierarchy where system instructions take priority over user input, explicit boundaries ("never reveal the system prompt"), and role-based access control for different prompt templates. Layer 3: <strong>Output safety classifiers</strong> &mdash; configure Gemini safety settings with appropriate thresholds per harm category, plus custom classifiers for domain-specific risks. Layer 4: <strong>Monitoring and alerting</strong> &mdash; log all interactions, run anomaly detection on usage patterns (unusual query volume, repeated boundary-testing), and alert on safety events. Layer 5: <strong>Rate limiting</strong> &mdash; prevent automated attacks by limiting requests per user. Regular <strong>red teaming</strong> exercises test all layers with creative adversarial scenarios before they happen in production.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q5 &mdash; GCP Encryption Key Hierarchy</div>
+        <p>
+          <strong>GMEK (Google-Managed Encryption Keys)</strong> is the default &mdash; all data at rest in GCS, BigQuery, and Vertex AI is encrypted with AES-256 keys managed entirely by Google. No configuration needed, but the customer has no control over key lifecycle. <strong>CMEK (Customer-Managed Encryption Keys)</strong> uses Cloud KMS: the customer creates and manages the encryption key, controls rotation schedules, and can revoke access by disabling the key. Google never has access to the key material. Required in regulated industries (finance, healthcare) where the organization must own encryption keys. <strong>CSEK (Customer-Supplied Encryption Keys)</strong> is the strictest option: the customer supplies the key with each API call and Google never stores it. If the customer loses the key, the data is irrecoverable. Use CSEK only for the most sensitive data with robust key management infrastructure. For data in use (in RAM during computation), <strong>Confidential VMs</strong> use AMD SEV or Intel TDX hardware to encrypt memory, protecting against physical and hypervisor-level attacks.
+        </p>
+      </div>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>
+          <strong>Scenario:</strong> A healthcare consortium of 5 hospitals wants to build a shared disease prediction model. Patient data cannot leave each hospital's network due to HIPAA regulations. Each hospital has different EHR systems and data formats. Design a privacy-preserving ML pipeline.<br><br>
+          <strong>A strong answer covers:</strong> (1) Architecture &mdash; cross-silo federated learning with a central Vertex AI orchestrator. Each hospital runs a local training worker on its own GCP project (or on-premises with Anthos). (2) Data preparation &mdash; each hospital normalizes its EHR data locally, applying Cloud DLP to de-identify any remaining PII. Agree on a shared feature schema across all sites. (3) Training protocol &mdash; FedAvg with secure aggregation: each hospital trains locally for several epochs, encrypts model updates, and sends them to the central server which aggregates without seeing individual updates. (4) Differential privacy &mdash; add DP noise to each hospital's gradient updates (DP-SGD with per-hospital epsilon tracking) so the aggregated model does not memorize any individual patient. (5) Encryption &mdash; CMEK for all data at rest, TLS for all communication, Confidential VMs for the aggregation server. (6) VPC Service Controls &mdash; perimeters around each hospital's project to prevent data exfiltration. (7) Evaluation &mdash; each hospital evaluates the global model on its local test set; aggregate metrics are shared without sharing raw predictions. (8) Governance &mdash; shared Model Card, joint AI review board, and incident response plan across all 5 institutions.
+        </p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Assuming federated learning alone guarantees privacy</strong> &mdash; Raw gradient updates can leak training data through model inversion or membership inference attacks. FL must be combined with differential privacy (DP noise on updates) and secure aggregation (encrypted updates) to provide formal privacy guarantees.</li>
+        <li><strong>Confusing CMEK with CSEK</strong> &mdash; With CMEK, the key is stored in Cloud KMS and Google manages the encryption/decryption operations using your key. With CSEK, you supply the key with every API call and Google never stores it. Choosing the wrong one has major operational implications: losing a CSEK key means permanent data loss.</li>
+        <li><strong>Setting all Gemini safety thresholds to BLOCK_NONE</strong> &mdash; In development, lowering thresholds is acceptable for testing. In production, this exposes your application to generating harmful content. Always configure per-category thresholds based on your application's risk profile, and add custom safety classifiers for domain-specific risks beyond the built-in categories.</li>
+      </ul>
     </div>
 
     <!-- NAVIGATION -->

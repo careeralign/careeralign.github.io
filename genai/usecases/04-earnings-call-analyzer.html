@@ -92,6 +92,7 @@
     <a href="#components" class="section">10 · Key Components</a>
     <a href="#results" class="section">11 · Results &amp; Benchmarks</a>
     <a href="#production" class="section">12 · Production Considerations</a>
+    <a href="#portfolio" class="section">🛠️ Build Your Portfolio</a>
   </aside>
 
   <main class="main">
@@ -909,6 +910,47 @@ Topic Segments: {segments_json}
           <tr><td>Cost optimization</td><td>Model tiering + caching + batching</td><td>Medium</td></tr>
           <tr><td>Error resilience</td><td>Retry logic + fallbacks + partial results</td><td>High</td></tr>
           <tr><td>Historical database</td><td>Structured storage for QoQ trending</td><td>Medium</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section" id="portfolio">
+      <div class="section-header">
+        <div class="section-num">🛠️</div>
+        <h2>Build Your Portfolio</h2>
+      </div>
+
+      <h3>Fork &amp; Extend</h3>
+      <p>Turn this notebook into a portfolio project in 5 steps:</p>
+      <ol>
+        <li><strong>Fork the notebook</strong> &mdash; Clone the repo and open in Google Colab or locally.</li>
+        <li><strong>Swap in real data</strong> &mdash; Replace the synthetic transcripts with real earnings call transcripts from the <a href="https://huggingface.co/datasets/lamini/earnings-calls-intent" target="_blank">Lamini Earnings Calls dataset</a> on Hugging Face, or scrape free transcripts from <a href="https://www.fool.com/earnings-call-transcripts/" target="_blank">Motley Fool</a> or SEC EDGAR.</li>
+        <li><strong>Add temporal trend analysis</strong> &mdash; Track how sentiment, guidance language, and key financial metrics evolve across consecutive quarters for the same company, generating trend charts and detecting narrative shifts.</li>
+        <li><strong>Deploy it</strong> &mdash; Wrap it in a Streamlit app. Build a dashboard where users enter a stock ticker, view the latest call summary with sentiment gauges, extracted KPIs in a table, and quarter-over-quarter trend charts.</li>
+        <li><strong>Write a README</strong> &mdash; Include architecture diagram, setup instructions, sample outputs, and metrics.</li>
+      </ol>
+
+      <h3>What Hiring Managers Look For</h3>
+      <div class="callout">
+        <div class="callout-label">Pro Tip</div>
+        <p>Fintech hiring managers value quantitative rigor and domain awareness. Show that your system correctly distinguishes between GAAP and non-GAAP metrics, handles hedging language (&ldquo;we expect,&rdquo; &ldquo;approximately&rdquo;) with appropriate confidence scores, and validates extracted numbers against structured financial data sources. Include backtesting results that correlate your sentiment scores with actual post-earnings stock price movements, and demonstrate graceful handling of poor-quality transcripts with missing speaker labels.</p>
+      </div>
+
+      <h3>Public Datasets to Use</h3>
+      <ul>
+        <li><strong>Lamini Earnings Calls</strong> &mdash; Thousands of real earnings call transcripts with intent labels. Available on <a href="https://huggingface.co/datasets/lamini/earnings-calls-intent" target="_blank">Hugging Face</a>. Ready-to-use for sentiment and intent classification tasks.</li>
+        <li><strong>Financial PhraseBank</strong> &mdash; 5,000 sentences from financial news annotated with positive/negative/neutral sentiment by 16 finance experts. Available on <a href="https://huggingface.co/datasets/financial_phrasebank" target="_blank">Hugging Face</a>. Excellent for fine-tuning sentiment classifiers on financial language.</li>
+        <li><strong>SEC EDGAR Full-Text Search</strong> &mdash; Free access to 10-K, 10-Q, and 8-K filings with earnings data. Available via the <a href="https://efts.sec.gov/LATEST/search-index?q=%22earnings%20call%22" target="_blank">SEC EDGAR API</a>. Useful for cross-referencing extracted metrics against official filings.</li>
+      </ul>
+
+      <h3>Deployment Options</h3>
+      <table>
+        <thead><tr><th>Platform</th><th>Best For</th><th>Effort</th></tr></thead>
+        <tbody>
+          <tr><td>Streamlit</td><td>Interactive earnings dashboard with ticker lookup and trend charts</td><td>Low</td></tr>
+          <tr><td>Gradio</td><td>Quick transcript upload with sentiment gauges and KPI extraction</td><td>Low</td></tr>
+          <tr><td>FastAPI</td><td>REST API for integration with trading platforms and Bloomberg terminals</td><td>Medium</td></tr>
+          <tr><td>Docker + Cloud Run</td><td>Scheduled pipeline processing earnings calls as they are published</td><td>High</td></tr>
         </tbody>
       </table>
     </div>

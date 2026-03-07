@@ -115,6 +115,7 @@
     <a href="#neural-nets" class="section">8 · Neural Networks</a>
     <a href="#json" class="section">9 · JSON</a>
     <a href="#tools" class="section">Tools Checklist</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -871,6 +872,140 @@ python -c <span class="code-string">"import anthropic, openai, langchain, chroma
         <li><div class="check-box"></div>AWS CLI installed and configured with your credentials</li>
         <li><div class="check-box"></div>Jupyter notebook opens in browser without errors</li>
         <li><div class="check-box"></div>You can make a successful API call to at least one LLM provider</li>
+      </ul>
+    </section>
+
+    <!-- INTERVIEW READY -->
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>
+          Building production GenAI systems is fundamentally a software engineering discipline, not a research exercise.
+          Before you ever touch a large language model, you need fluency in the tools that surround it — Python for
+          orchestration, REST APIs for communicating with model endpoints, environment variables for secrets management,
+          Git for version control, and libraries like NumPy and Pandas for data manipulation. You also need a conceptual
+          grasp of neural networks — not enough to derive backpropagation, but enough to understand why a model produces
+          embeddings, what a softmax layer does, and why temperature affects output randomness. These aren't nice-to-haves;
+          every single module in a GenAI pipeline assumes you can write async Python, parse JSON responses, manage virtual
+          environments, and navigate a terminal without hesitation. Getting these foundations right means you spend your
+          time solving actual AI engineering problems instead of fighting your toolchain.
+        </p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>Why do GenAI projects use async Python, and when would you choose it over synchronous code?</td><td>Do you understand I/O-bound vs CPU-bound workloads and how LLM API calls benefit from concurrency?</td></tr>
+          <tr><td>How do you securely manage API keys in a project that calls multiple LLM providers?</td><td>Do you follow production security practices or do you hardcode secrets?</td></tr>
+          <tr><td>Explain what a virtual environment is and why it matters in ML/AI projects.</td><td>Can you manage dependency isolation and avoid the "works on my machine" problem?</td></tr>
+          <tr><td>What is a neural network embedding, and why does it matter for tasks like search or RAG?</td><td>Do you have the conceptual ML foundation to understand vector representations?</td></tr>
+          <tr><td>Walk me through how you would consume a streaming REST API response from an LLM endpoint.</td><td>Can you integrate with real-world LLM APIs beyond just calling a wrapper library?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <p>
+        <strong>1. Why async Python for GenAI?</strong> —
+        LLM API calls are I/O-bound — you send a prompt and wait hundreds of milliseconds to seconds for a response.
+        With synchronous code, your program blocks during that wait. Using <code>async</code>/<code>await</code>, you can
+        fire off multiple LLM calls concurrently with <code>asyncio.gather()</code>, dramatically improving throughput.
+        This matters in production when you need to process batches of documents or run parallel chains. You would
+        <em>not</em> use async for CPU-bound work like heavy NumPy computation — that needs multiprocessing instead.
+      </p>
+<pre><code><span class="code-keyword">import</span> asyncio
+<span class="code-keyword">import</span> httpx
+
+<span class="code-keyword">async def</span> <span class="code-fn">call_llm</span>(client, prompt):
+    resp = <span class="code-keyword">await</span> client.post(<span class="code-string">"/v1/chat/completions"</span>, json={<span class="code-string">"prompt"</span>: prompt})
+    <span class="code-keyword">return</span> resp.json()
+
+<span class="code-keyword">async def</span> <span class="code-fn">main</span>():
+    <span class="code-keyword">async with</span> httpx.AsyncClient(base_url=BASE_URL) <span class="code-keyword">as</span> client:
+        results = <span class="code-keyword">await</span> asyncio.gather(*[call_llm(client, p) <span class="code-keyword">for</span> p <span class="code-keyword">in</span> prompts])</code></pre>
+
+      <p>
+        <strong>2. Secure API key management</strong> —
+        Never hardcode keys. Store them in a <code>.env</code> file that is listed in <code>.gitignore</code>, then load
+        them at runtime with <code>python-dotenv</code>. In production, use a secrets manager like AWS Secrets Manager
+        or environment variables injected by your deployment platform. When calling multiple providers (OpenAI, Anthropic,
+        Cohere), each key gets its own variable — <code>OPENAI_API_KEY</code>, <code>ANTHROPIC_API_KEY</code>, etc. — and
+        your code reads them via <code>os.getenv()</code> with a clear error if any are missing.
+      </p>
+<pre><code><span class="code-keyword">import</span> os
+<span class="code-keyword">from</span> dotenv <span class="code-keyword">import</span> load_dotenv
+
+load_dotenv()  <span class="code-comment"># reads .env into os.environ</span>
+
+api_key = os.getenv(<span class="code-string">"OPENAI_API_KEY"</span>)
+<span class="code-keyword">if not</span> api_key:
+    <span class="code-keyword">raise</span> <span class="code-fn">EnvironmentError</span>(<span class="code-string">"OPENAI_API_KEY not set"</span>)</code></pre>
+
+      <p>
+        <strong>3. Virtual environments</strong> —
+        A virtual environment is an isolated Python installation with its own <code>site-packages</code>. AI projects are
+        particularly sensitive to dependency conflicts — PyTorch, transformers, LangChain, and dozens of other packages
+        each pin specific versions. Without isolation, installing one project's dependencies can break another's. I create
+        a venv per project using <code>python -m venv .venv</code>, activate it, then pin dependencies with
+        <code>pip freeze > requirements.txt</code> so that any team member can reproduce the exact environment.
+      </p>
+
+      <p>
+        <strong>4. Neural network embeddings</strong> —
+        An embedding is a dense vector representation of input data — text, images, or anything else — produced by a
+        neural network's internal layers. Instead of treating words as discrete symbols, embeddings place semantically
+        similar content near each other in vector space. This is the foundation of RAG systems: you embed documents and
+        queries into the same space, then retrieve the closest matches using cosine similarity or dot product. Without
+        understanding embeddings, you cannot reason about why retrieval works, why chunk size matters, or how to debug
+        poor search results.
+      </p>
+
+      <p>
+        <strong>5. Consuming a streaming REST response</strong> —
+        LLM endpoints often support server-sent events (SSE) so tokens arrive incrementally. You make a POST request with
+        <code>"stream": true</code>, then iterate over the response line by line. Each line prefixed with <code>data:</code>
+        contains a JSON chunk with the next token. This lets you display output to users in real time rather than waiting
+        for the entire completion. In Python, <code>httpx</code> or <code>requests</code> both support streaming iteration.
+      </p>
+<pre><code><span class="code-keyword">import</span> httpx
+
+<span class="code-keyword">with</span> httpx.stream(<span class="code-string">"POST"</span>, url, json={<span class="code-string">"stream"</span>: <span class="code-keyword">True</span>, **payload}) <span class="code-keyword">as</span> resp:
+    <span class="code-keyword">for</span> line <span class="code-keyword">in</span> resp.iter_lines():
+        <span class="code-keyword">if</span> line.startswith(<span class="code-string">"data: "</span>):
+            chunk = json.loads(line[<span class="code-num">6</span>:])
+            print(chunk[<span class="code-string">"choices"</span>][<span class="code-num">0</span>][<span class="code-string">"delta"</span>][<span class="code-string">"content"</span>], end=<span class="code-string">""</span>)</code></pre>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>
+          You are setting up the development environment for a new team of five engineers who will build a
+          multi-model GenAI application that calls OpenAI, Anthropic, and a self-hosted model. The app
+          processes financial documents using Pandas, stores embeddings in a vector database, and deploys
+          on AWS. Design the project structure, environment management, and secrets handling strategy.
+        </p>
+        <p>A strong answer should cover:</p>
+        <ul>
+          <li><strong>Monorepo vs multi-repo</strong> — a single repo with clear package boundaries, a shared <code>pyproject.toml</code>, and Git branching strategy</li>
+          <li><strong>Dependency management</strong> — pinned requirements per service, separate venvs or Docker containers, and a CI step that validates environment reproducibility</li>
+          <li><strong>Secrets architecture</strong> — <code>.env</code> files for local dev (gitignored), AWS Secrets Manager for production, and a config module that validates all keys at startup</li>
+          <li><strong>Data pipeline tooling</strong> — Pandas for preprocessing, NumPy for numerical operations, and a clear boundary between data prep code and LLM orchestration code</li>
+          <li><strong>Onboarding automation</strong> — a <code>Makefile</code> or setup script that creates the venv, installs dependencies, copies <code>.env.example</code> to <code>.env</code>, and runs a smoke test against each API</li>
+        </ul>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Committing API keys to Git</strong> — Even if you delete them in a later commit, they remain in history. Always use <code>.env</code> files with <code>.gitignore</code>, and rotate any key that has ever been committed.</li>
+        <li><strong>Confusing async with parallel</strong> — <code>asyncio</code> runs in a single thread and only helps with I/O waits. CPU-heavy work like tokenization on large datasets needs <code>multiprocessing</code> or offloading to a worker. Candidates often claim async "makes things parallel" — it does not.</li>
+        <li><strong>Installing packages globally instead of in a virtual environment</strong> — This leads to version conflicts that surface as mysterious import errors. Every project should have its own isolated environment, especially in AI work where library version mismatches can silently change model behavior.</li>
       </ul>
     </section>
 

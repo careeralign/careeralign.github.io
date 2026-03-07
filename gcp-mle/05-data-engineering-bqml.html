@@ -403,6 +403,7 @@ code {
     <a href="#cost-slots" class="sub">Slots &amp; Pricing</a>
     <a href="#cost-storage" class="sub">Storage Management</a>
     <a href="#exam" class="section">9 &middot; Exam Focus</a>
+    <a href="#interview" class="section">&#127919; Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -1027,6 +1028,89 @@ code {
         <div class="callout-label">Common Exam Traps</div>
         <p>1) Dataprep vs Dataflow: Dataprep is NOT code &mdash; it is visual. If the question says "write custom logic," choose Dataflow. 2) BQML handles categorical encoding automatically for strings &mdash; you do NOT need to one-hot encode manually. 3) Partition pruning requires filtering on the partition column, not a derived expression. 4) <code>auto_class_weights</code> is the simplest BQML answer for imbalance.</p>
       </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 10: INTERVIEW READY
+    ════════════════════════════════════════════ -->
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">&#127919;</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>
+          Data engineering for ML on GCP is about building <strong>reliable, cost-efficient pipelines</strong> that transform raw data into clean, feature-rich tables ready for training. The stack centers on three tools: <strong>Cloud Dataprep</strong> for visual, no-code wrangling by analysts; <strong>Dataflow</strong> (Apache Beam) for programmatic, scalable batch and streaming ETL; and <strong>BigQuery</strong> for in-warehouse SQL transformations and BQML training. Data quality is enforced through schema validation (TFDV), missing-value imputation, and outlier capping. Features are engineered directly in SQL using BQML's <code>TRANSFORM</code> clause, which guarantees training-serving consistency. Tables are <strong>partitioned</strong> by date and <strong>clustered</strong> by high-cardinality filter columns to minimize scan costs &mdash; partition pruning alone can deliver 10x cost savings. The entire pipeline is orchestrated by <strong>Cloud Composer</strong> (managed Airflow), which handles scheduling, retries, and dependency management across services. Understanding this end-to-end flow &mdash; ingestion, cleaning, feature engineering, partitioning, and orchestration &mdash; is essential for building production ML systems that are both performant and cost-effective.
+        </p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>When would you choose Dataflow over Dataprep for an ETL pipeline?</td><td>Do you understand the no-code vs programmatic tradeoff and when custom logic requires Beam?</td></tr>
+          <tr><td>How does Cloud Composer orchestrate an ML pipeline?</td><td>Can you describe DAGs, task dependencies, retry policies, and how Airflow coordinates GCP services?</td></tr>
+          <tr><td>What is partition pruning in BigQuery and why does it matter for ML?</td><td>Do you understand how partitioning reduces cost and speeds up training data queries?</td></tr>
+          <tr><td>How do you handle missing values and class imbalance in a BQML workflow?</td><td>Can you articulate imputation strategies and <code>auto_class_weights</code> in practical terms?</td></tr>
+          <tr><td>Explain the role of the BQML TRANSFORM clause and why it prevents training-serving skew.</td><td>Do you understand how embedding preprocessing in the model graph ensures consistency at prediction time?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <div class="callout">
+        <div class="callout-label">Q1 &mdash; Dataflow vs Dataprep</div>
+        <p>
+          <strong>Dataprep</strong> is a visual, no-code tool built for analysts who need to explore, clean, and reshape data without writing code. It auto-generates Dataflow jobs under the hood. <strong>Dataflow</strong> is the programmatic option using Apache Beam &mdash; you write ParDo transforms, handle windowing for streaming data, and implement custom business logic that cannot be expressed visually. Choose Dataprep when the task is interactive exploration and simple cleaning. Choose Dataflow when you need custom Python/Java logic, streaming pipelines, or CI/CD integration. Choose Dataproc if you have existing Spark/Hadoop code to migrate.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q2 &mdash; Cloud Composer Orchestration</div>
+        <p>
+          Cloud Composer is managed Apache Airflow. You define a <strong>DAG</strong> (directed acyclic graph) where each node is a task &mdash; e.g., run a Dataflow job, execute a BigQuery query, trigger a BQML training run. Composer handles scheduling (cron-based or event-driven), retries on failure, SLA alerts, and cross-service authentication via service accounts. For ML pipelines, a typical DAG might be: ingest from GCS &rarr; validate schema with TFDV &rarr; run Dataflow transforms &rarr; load into partitioned BigQuery table &rarr; train BQML model &rarr; evaluate and promote. The key advantage over manual scripts is <strong>idempotency and observability</strong> &mdash; every run is logged, failures are isolated, and retries do not duplicate data.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q3 &mdash; Partition Pruning</div>
+        <p>
+          BigQuery tables can be <strong>partitioned</strong> by a date/timestamp column (or integer range), splitting data into physical segments. When a query filters on the partition column (e.g., <code>WHERE event_date BETWEEN '2024-01-01' AND '2024-03-31'</code>), BigQuery only scans those partitions &mdash; this is <strong>partition pruning</strong>. For a 500 GB table where your training query only needs 3 months of data (50 GB), pruning reduces cost from $3.13 to $0.31 at on-demand pricing. <strong>Clustering</strong> further sorts data within partitions by specified columns, enabling block-level pruning for additional savings. The critical rule: the filter must be on the partition column directly, not a derived expression, or pruning will not activate.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q4 &mdash; Missing Values and Class Imbalance</div>
+        <p>
+          For <strong>missing values</strong>: if less than 5% of rows are affected, drop them. Otherwise, impute &mdash; mean/median for numeric columns, mode for categorical. In BigQuery SQL, use <code>IFNULL(col, avg_value)</code> or <code>COALESCE</code>. For <strong>class imbalance</strong>, BQML provides <code>auto_class_weights=TRUE</code>, which automatically upweights the minority class during training proportional to class frequency. This is the simplest and most exam-relevant solution. For severe imbalance, you can also undersample the majority class or use SMOTE-like techniques in a Dataflow preprocessing step, but BQML's built-in option is usually the best first approach.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q5 &mdash; BQML TRANSFORM Clause</div>
+        <p>
+          The <code>TRANSFORM</code> clause in a BQML <code>CREATE MODEL</code> statement defines feature preprocessing steps &mdash; such as <code>ML.BUCKETIZE</code>, <code>ML.FEATURE_CROSS</code>, or <code>ML.HASH_BUCKETS</code> &mdash; that are <strong>saved as part of the model graph</strong>. This means when you call <code>ML.PREDICT</code>, the exact same transformations are applied to raw input data automatically. Without TRANSFORM, you would need to replicate preprocessing logic in your serving pipeline, creating risk of <strong>training-serving skew</strong> where slight differences in transformation code cause silent prediction errors. The TRANSFORM clause eliminates this by making preprocessing and prediction a single atomic operation.
+        </p>
+      </div>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>
+          <strong>Scenario:</strong> Your e-commerce company receives 50 million clickstream events per day from web and mobile. You need to build a pipeline that transforms this raw data into daily-updated training tables for a BQML recommendation model, with end-to-end latency under 2 hours and monthly cost under $500.<br><br>
+          <strong>A strong answer covers:</strong> (1) Ingestion &mdash; stream events via Pub/Sub into a GCS landing zone or directly into BigQuery streaming inserts. (2) Transformation &mdash; Dataflow batch job (triggered by Composer) to sessionize clicks, compute features (session duration, pages per session, category affinity scores), and handle late-arriving data with watermarks. (3) Storage &mdash; BigQuery table partitioned by event_date and clustered by user_id for efficient per-user queries. (4) Feature engineering &mdash; BQML TRANSFORM clause with ML.BUCKETIZE for session duration bins and ML.FEATURE_CROSS for user_segment x product_category. (5) Cost control &mdash; partition pruning to limit training scans to the last 90 days, flat-rate slots if query volume justifies it, and Dataflow autoscaling with maxWorkers cap. (6) Orchestration &mdash; Cloud Composer DAG: ingest &rarr; validate &rarr; transform &rarr; train &rarr; evaluate &rarr; deploy, with Slack alerts on failure.
+        </p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Confusing Dataprep with Dataflow</strong> &mdash; Dataprep is a visual, no-code UI that generates Dataflow jobs. It is not a coding tool. If an interview question mentions "write custom transformation logic" or "streaming pipeline," the answer is Dataflow (Beam), not Dataprep. Candidates who conflate the two signal they have not used either tool hands-on.</li>
+        <li><strong>Filtering on derived expressions and expecting partition pruning</strong> &mdash; A query like <code>WHERE EXTRACT(YEAR FROM event_date) = 2024</code> does NOT trigger partition pruning because BigQuery cannot map the expression back to partition boundaries. You must filter directly on the partition column: <code>WHERE event_date BETWEEN '2024-01-01' AND '2024-12-31'</code>. This is a subtle but costly mistake in both cost and interview credibility.</li>
+        <li><strong>Manually encoding categoricals for BQML</strong> &mdash; BQML automatically one-hot encodes string columns during training. Candidates who describe building a manual one-hot encoding step in SQL are adding unnecessary complexity and showing unfamiliarity with BQML's built-in feature handling. The same applies to label encoding &mdash; BQML handles it internally.</li>
+      </ul>
     </section>
 
     <!-- PREV / NEXT -->

@@ -120,6 +120,7 @@
     <a href="#openai-api" class="section">7 &middot; OpenAI FT API</a>
     <a href="#openai-plain" class="sub">Plain Language</a>
     <a href="#openai-deep" class="sub">Deep Dive</a>
+    <a href="#interview" class="section">&#127919; Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -1395,6 +1396,135 @@ response = client.chat.completions.<span class="code-fn">create</span>(
         <div class="callout-label">Best Practice</div>
         <p>Always supply a validation file when fine-tuning via OpenAI. Even if your dataset is small, the validation loss curve gives you objective evidence of whether training is helping or overfitting. Start with the "auto" hyperparameters for your first run, inspect the loss curves, and adjust from there on subsequent runs.</p>
       </div>
+
+    </section>
+
+    <!-- INTERVIEW READY -->
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">&#127919;</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>
+          Fine-tuning is how you teach a pre-trained LLM new behaviors — a specific tone, output format,
+          or reasoning pattern — that prompt engineering alone cannot reliably produce. Rather than updating
+          all billions of parameters (full fine-tuning), modern techniques like LoRA inject small trainable
+          matrices into the model's attention layers, cutting GPU memory by 10x or more while achieving
+          comparable quality. QLoRA goes further by quantizing the base model to 4-bit precision, making it
+          possible to fine-tune a 65B-parameter model on a single 48 GB GPU. On the alignment side, RLHF
+          uses a reward model trained on human preference data to steer the model toward helpful, harmless
+          outputs, while DPO simplifies the process by directly optimizing on preference pairs without a
+          separate reward model. The practical workflow is: prepare a high-quality dataset in the right format,
+          decide whether LoRA/QLoRA on your own hardware or a hosted API (like OpenAI's) fits your budget and
+          latency needs, run training, evaluate on held-out data, and iterate. The cardinal rule is to exhaust
+          prompt engineering and RAG first — fine-tuning is for behavior, not knowledge.
+        </p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>What is LoRA and why is it more practical than full fine-tuning?</td><td>Do you understand low-rank decomposition, parameter efficiency, and the memory savings that make LoRA viable on commodity hardware?</td></tr>
+          <tr><td>How does QLoRA differ from LoRA, and when would you choose it?</td><td>Can you explain 4-bit NormalFloat quantization, double quantization, and the trade-off between memory reduction and potential quality loss?</td></tr>
+          <tr><td>What is PEFT and how does it relate to LoRA, prefix tuning, and adapters?</td><td>Do you know the HuggingFace PEFT ecosystem and can you compare different parameter-efficient strategies beyond just LoRA?</td></tr>
+          <tr><td>Walk me through how you would prepare a fine-tuning dataset for a customer-support chatbot.</td><td>Can you handle real-world data engineering — collection, cleaning, formatting (chat-style JSONL), train/val splits, and quality filtering?</td></tr>
+          <tr><td>When should you fine-tune a model versus using RAG, and can you combine both?</td><td>Do you understand that fine-tuning changes behavior while RAG injects knowledge, and can you articulate when each approach (or both together) is appropriate?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <p>
+        <strong>1. LoRA and its practicality</strong> —
+        Full fine-tuning updates every parameter in the model, which for a 7B-parameter LLM means storing
+        a full copy of gradients and optimizer states — easily 60+ GB of GPU memory. LoRA (Low-Rank Adaptation)
+        freezes the entire pre-trained model and injects pairs of small trainable matrices (A and B) into each
+        attention layer. Because the rank r is typically 8–64, the number of trainable parameters drops to less
+        than 1% of the original. At inference time, the adapter weights can be merged back into the base model
+        with zero additional latency. This makes LoRA practical on a single consumer GPU (24 GB), enables
+        serving multiple task-specific adapters from one base model by hot-swapping adapter weights, and
+        drastically reduces storage since each adapter is only a few hundred megabytes.
+      </p>
+
+      <p>
+        <strong>2. QLoRA versus LoRA</strong> —
+        QLoRA combines LoRA with 4-bit quantization of the base model using a novel NormalFloat4 data type
+        that is information-theoretically optimal for normally distributed weights. It also introduces double
+        quantization — quantizing the quantization constants themselves — saving an additional ~0.4 bits per
+        parameter. Paged optimizers handle memory spikes by offloading optimizer state to CPU RAM when the GPU
+        runs out of memory. The result is that you can fine-tune a 65B model on a single 48 GB GPU (A6000 or A100),
+        which is impossible with standard LoRA. You choose QLoRA when your model is too large to fit in GPU memory
+        even with LoRA alone, or when you want to maximize model size within a fixed hardware budget. The quality
+        trade-off is minimal — the original QLoRA paper showed results matching full 16-bit fine-tuning on
+        benchmarks.
+      </p>
+
+      <p>
+        <strong>3. Dataset preparation for a customer-support chatbot</strong> —
+        Start by mining real support transcripts, filtering for conversations where the customer issue was
+        resolved successfully and the customer rated the interaction positively. Convert each conversation into
+        the chat-completion format: a system message defining the bot persona and policies, followed by alternating
+        user/assistant turns. Clean the data by removing PII, normalizing formatting, and discarding incomplete
+        or off-topic exchanges. Aim for at least 500–1,000 high-quality examples; more data with lower quality
+        is worse than less data with high quality. Split 90/10 into train and validation sets, ensuring no
+        conversation appears in both. Validate the JSONL format programmatically before uploading. After fine-tuning,
+        evaluate on the validation set using both automated metrics (loss, BLEU) and human evaluation of tone,
+        accuracy, and policy compliance.
+      </p>
+
+      <p>
+        <strong>4. Fine-tuning versus RAG</strong> —
+        Fine-tuning teaches the model how to behave — a particular tone, output format, or reasoning chain.
+        RAG teaches the model what to know — injecting up-to-date, domain-specific facts at query time.
+        If your problem is that the model does not know your company's product catalog, use RAG. If the
+        problem is that the model produces verbose, generic responses instead of concise, brand-voice answers,
+        fine-tune. In many production systems you combine both: fine-tune a base model to follow your output
+        conventions and citation style, then use RAG to supply the actual knowledge. This separation keeps
+        the fine-tuned model small and focused while the knowledge layer stays dynamic and auditable.
+      </p>
+
+      <p>
+        <strong>5. PEFT ecosystem</strong> —
+        PEFT (Parameter-Efficient Fine-Tuning) is HuggingFace's library that provides a unified interface for
+        multiple adaptation strategies. LoRA is the most popular, but the library also supports prefix tuning
+        (prepending trainable virtual tokens to every layer's input), prompt tuning (a simpler variant that only
+        adds tokens at the input layer), and adapter layers (small bottleneck MLPs inserted between transformer
+        blocks). LoRA is generally preferred because it adds no inference latency after merging, while prefix
+        tuning and adapters slightly increase the effective sequence length or model depth. The PEFT library
+        integrates with the TRL (Transformer Reinforcement Learning) library for RLHF and DPO workflows,
+        making it possible to do efficient alignment training with minimal code.
+      </p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>
+          Your company has a 13B-parameter open-source LLM deployed for internal code review. Developers
+          complain that the model's suggestions are too generic and don't follow the team's coding standards
+          (naming conventions, error-handling patterns, comment style). You have access to 2,000 high-quality
+          code review comments written by senior engineers. Design a fine-tuning pipeline to customize the model.
+        </p>
+        <p>A strong answer should cover:</p>
+        <ul>
+          <li><strong>Technique selection</strong> — Use QLoRA to fine-tune the 13B model on a single A100 (80 GB) or two A6000 (48 GB) GPUs. Quantize the base model to 4-bit, apply LoRA adapters with rank 16 to the query and value projection matrices, yielding roughly 20M trainable parameters.</li>
+          <li><strong>Dataset preparation</strong> — Structure each example as a chat turn: system prompt defining the reviewer persona, user message containing the code diff, assistant message containing the senior engineer's review comment. Split 1,800 / 200 for train / validation. Augment with synthetic examples by having the base model generate reviews and having senior engineers rank them (preference data for a potential DPO pass).</li>
+          <li><strong>Training and evaluation</strong> — Train for 3–5 epochs with the SFTTrainer from TRL, monitoring validation loss for early stopping. Evaluate with a blind test: present 50 code diffs to senior engineers, show the fine-tuned model's review alongside the base model's review (randomized order), and measure win rate. Target at least 70% preference for the fine-tuned model.</li>
+          <li><strong>Deployment</strong> — Merge the LoRA adapter into the base model for serving (zero latency overhead). Use vLLM or TGI for efficient inference. Keep the adapter weights versioned in a model registry so you can roll back or A/B test different adapter versions without reloading the base model.</li>
+          <li><strong>Iteration</strong> — Collect ongoing developer feedback on review quality, add highly-rated reviews to the training set, and retrain monthly. Consider a DPO pass using the preference data from engineer rankings to further align the model with team standards.</li>
+        </ul>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Fine-tuning for knowledge instead of behavior</strong> — Developers often try to "teach" a model new facts through fine-tuning when RAG would be cheaper, more accurate, and easier to update. Fine-tuning bakes information into weights where it cannot be cited, verified, or refreshed without retraining. Use fine-tuning only when you need to change how the model responds, not what it knows.</li>
+        <li><strong>Training on too little or low-quality data</strong> — Fine-tuning with fewer than 100 examples or with noisy, inconsistent examples leads to overfitting or conflicting learned behaviors. Quality matters far more than quantity: 500 carefully curated examples outperform 5,000 scraped, unchecked ones. Always inspect your data manually before training.</li>
+        <li><strong>Ignoring the validation loss curve</strong> — Without a validation split, you cannot detect overfitting. Many practitioners train for too many epochs, see training loss decrease, and assume the model is improving — when in reality it is memorizing the training set and degrading on unseen inputs. Always reserve 10–20% of data for validation and stop training when validation loss plateaus or increases.</li>
+      </ul>
 
       <!-- NEXT/PREV NAV -->
       <div class="next-section">

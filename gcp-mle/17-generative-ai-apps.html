@@ -405,6 +405,7 @@ tr:hover td { background: var(--bg-surface); }
     <a href="#multimodal" class="section">8 &middot; Multimodal Apps</a>
     <a href="#deployment" class="section">9 &middot; Deploying GenAI Apps</a>
     <a href="#exam-focus" class="section">10 &middot; Exam Focus</a>
+    <a href="#interview" class="section">&#127919; Interview Ready</a>
   </aside>
 
   <div class="main">
@@ -1029,6 +1030,87 @@ gcloud run deploy genai-app \
         <div class="callout-label">High-Frequency Exam Topics</div>
         <p>Function calling vs code execution, RAG vs fine-tuning, Agent Builder vs custom, grounding with Google Search vs data stores, Cloud Run for serving GenAI, and safety settings configuration &mdash; these appear repeatedly.</p>
       </div>
+    </div>
+
+    <!-- INTERVIEW READY -->
+    <div class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">&#127919;</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>
+          Building generative AI applications on Google Cloud revolves around the <strong>Vertex AI SDK</strong> and a set of composable patterns. At the simplest level, you send prompts to foundation models like <strong>Gemini</strong> through the API, controlling output with temperature, top-p, and safety settings. To improve factual accuracy, you <strong>ground</strong> responses &mdash; either via Google Search or enterprise data stores. For proprietary knowledge, you build a <strong>RAG pipeline</strong>: documents are chunked, embedded, and stored in a vector database (Vertex AI Vector Search), then relevant chunks are retrieved at query time and injected into the prompt context. <strong>Agent Builder</strong> provides a no-code path for search and conversation apps, while <strong>function calling</strong> lets models invoke external APIs and tools. For production deployment, GenAI apps run on <strong>Cloud Run</strong> or <strong>GKE</strong>, with Vertex AI endpoints handling model serving. Understanding when to use grounding vs. RAG vs. fine-tuning, and choosing between Agent Builder and custom pipelines, are the core architectural decisions every GCP GenAI project requires.
+        </p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table class="data-table">
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>When would you use RAG vs. fine-tuning for a GenAI application?</td><td>Do you understand that RAG is for dynamic, retrievable knowledge while fine-tuning changes model behavior/style?</td></tr>
+          <tr><td>Explain grounding in Vertex AI. What are the different grounding sources?</td><td>Can you distinguish Google Search grounding from custom data store grounding and articulate when each applies?</td></tr>
+          <tr><td>How does function calling work with Gemini, and how is it different from code execution?</td><td>Do you understand that function calling returns a structured request for the app to execute, while code execution runs code server-side?</td></tr>
+          <tr><td>Walk me through designing a RAG pipeline on GCP end-to-end.</td><td>Can you describe the full pipeline: document ingestion, chunking, embedding, vector store, retrieval, and prompt augmentation?</td></tr>
+          <tr><td>When would you choose Agent Builder over building a custom GenAI application?</td><td>Do you understand the trade-offs between no-code convenience and full architectural control?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <div class="callout">
+        <div class="callout-label">Q1 &mdash; RAG vs. Fine-Tuning</div>
+        <p>
+          <strong>RAG</strong> is the right choice when you need the model to reference specific, frequently updated knowledge (product catalogs, internal docs, policies). It keeps the model frozen and injects relevant context at query time via retrieval. <strong>Fine-tuning</strong> is appropriate when you need to change the model's tone, style, or teach it a specialized task format &mdash; not when you need it to "know" specific facts. Fine-tuning bakes knowledge into weights (which can go stale), while RAG dynamically retrieves current information. On GCP, RAG uses Vertex AI Vector Search + embeddings, while fine-tuning uses Vertex AI supervised tuning jobs. A common pattern is combining both: fine-tune for style, RAG for knowledge.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q2 &mdash; Grounding in Vertex AI</div>
+        <p>
+          Grounding attaches external knowledge to model responses to reduce hallucination. <strong>Google Search grounding</strong> uses live web results &mdash; ideal for current events and general factual questions. <strong>Custom data store grounding</strong> connects to your enterprise data via Vertex AI Search data stores &mdash; ideal for internal knowledge bases. Grounding is configured as a parameter in the API call, and the response includes grounding metadata with source citations. The key distinction from RAG is that grounding is a built-in API feature with no custom retrieval pipeline to manage, while RAG gives you full control over chunking, embedding models, vector stores, and retrieval logic.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q3 &mdash; Function Calling vs. Code Execution</div>
+        <p>
+          <strong>Function calling</strong> lets you declare available tools (as JSON schemas) to the model. When the model determines a tool is needed, it returns a structured function call request &mdash; but your application code executes the actual function and returns the result. The model never runs code itself. <strong>Code execution</strong> (available in Gemini) lets the model write and execute Python code in a sandboxed environment on Google's servers. Use function calling when you need to invoke external APIs, databases, or business logic. Use code execution when the model needs to perform calculations, data transformations, or generate charts.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q4 &mdash; End-to-End RAG Pipeline on GCP</div>
+        <p>
+          (1) <strong>Ingestion</strong>: Documents are loaded from Cloud Storage or other sources. (2) <strong>Chunking</strong>: Documents are split into semantically meaningful chunks (typically 256&ndash;1024 tokens) using overlap to preserve context. (3) <strong>Embedding</strong>: Each chunk is converted to a vector using Vertex AI text embedding models (e.g., textembedding-gecko). (4) <strong>Indexing</strong>: Vectors are stored in Vertex AI Vector Search (formerly Matching Engine) with metadata for filtering. (5) <strong>Retrieval</strong>: At query time, the user query is embedded, and the top-k nearest neighbors are retrieved using approximate nearest neighbor (ANN) search. (6) <strong>Augmented generation</strong>: Retrieved chunks are inserted into the prompt context, and Gemini generates a grounded response. Vertex AI RAG Engine provides a managed version of this entire pipeline.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q5 &mdash; Agent Builder vs. Custom</div>
+        <p>
+          <strong>Agent Builder</strong> (Vertex AI Search and Conversation) is the right choice when you need a search or chatbot application quickly, your data fits supported formats (websites, Cloud Storage documents, BigQuery), and you don't need custom retrieval logic. It handles chunking, embedding, indexing, and serving automatically. Choose a <strong>custom pipeline</strong> when you need control over embedding models, chunking strategies, retrieval algorithms, re-ranking, multi-step reasoning, or integration with external tools via function calling. Custom also makes sense when you need to combine RAG with agents, chain multiple model calls, or implement complex guardrails. Most production systems start with Agent Builder for prototyping, then migrate to custom when requirements exceed its capabilities.
+        </p>
+      </div>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>
+          <strong>Scenario:</strong> Your company has 50,000 internal policy documents that update weekly. Customer service agents need a chatbot that answers policy questions with source citations and handles 200 concurrent users with sub-3-second responses.<br><br>
+          <strong>A strong answer covers:</strong> (1) Data pipeline &mdash; Cloud Storage for documents, a Dataflow or Cloud Function pipeline that detects new/changed documents and triggers re-chunking and re-embedding. (2) Chunking strategy &mdash; semantic chunking with ~512 token chunks and 50-token overlap, preserving document metadata (title, date, section). (3) Vector store &mdash; Vertex AI Vector Search with metadata filtering (by department, document type). (4) Retrieval &mdash; hybrid search combining vector similarity with keyword matching, top-10 retrieval with a cross-encoder re-ranker to select top-3. (5) Generation &mdash; Gemini with retrieved chunks in context, system prompt enforcing citation format, low temperature (0.1&ndash;0.2). (6) Serving &mdash; Cloud Run with auto-scaling, connection pooling to Vector Search. (7) Weekly refresh &mdash; incremental index updates rather than full rebuilds. (8) Evaluation &mdash; track retrieval precision/recall and answer faithfulness with human review samples.
+        </p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Choosing fine-tuning when RAG is needed</strong> &mdash; Fine-tuning does not reliably teach a model new factual knowledge. If users ask about specific documents, policies, or data, RAG is the correct pattern. Fine-tuning is for behavior and style, not knowledge injection.</li>
+        <li><strong>Ignoring chunk size trade-offs</strong> &mdash; Chunks that are too small lose context and produce fragmented answers. Chunks that are too large dilute relevance and waste context window tokens. Always experiment with chunk sizes (256, 512, 1024 tokens) and measure retrieval quality on representative queries.</li>
+        <li><strong>Using Google Search grounding for internal data</strong> &mdash; Google Search grounding only accesses public web content. For proprietary or internal documents, you must use custom data store grounding or a RAG pipeline. Mixing these up is a common exam and interview pitfall.</li>
+      </ul>
     </div>
 
     <!-- NAVIGATION -->

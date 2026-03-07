@@ -91,6 +91,7 @@
   <a href="#structured-outputs" class="section">6 &middot; Structured Outputs</a>
   <a href="#instructor-lib" class="sub">Instructor &amp; Pydantic</a>
   <a href="#diagrams" class="section">Diagrams</a>
+  <a href="#interview" class="section">&#127919; Interview Ready</a>
 </aside>
 
 <main class="main">
@@ -798,6 +799,135 @@ result2 = ant_client.messages.<span class="code-fn">create</span>(
   </svg>
   <p class="diagram-caption">Figure 2 -- LiteLLM Router fallback chain: requests go to GPT-4o first; on failure they fall back to Claude Sonnet, then Llama 3.1 on Groq.</p>
 </div>
+</section>
+
+<!-- ===== INTERVIEW READY ===== -->
+<section class="section" id="interview">
+<div class="section-header"><div class="section-num">&#127919;</div><h2>Interview Ready</h2></div>
+
+<div class="callout info">
+  <div class="callout-label">Elevator Pitch (2 Minutes)</div>
+  <p>LLM APIs expose large language models as stateless HTTP services. You send a messages array containing system, user, and assistant roles along with configuration like model name, temperature, and max_tokens to a chat completions endpoint, and you receive generated text plus token usage metadata. The API is inherently stateless so your application must manage conversation history. Provider SDKs from OpenAI and Anthropic handle authentication, serialization, retries, and type safety. Streaming via Server-Sent Events delivers tokens incrementally for responsive UIs with 200-500ms time to first token. Structured outputs using JSON schema mode or the instructor library guarantee parseable responses conforming to a Pydantic schema. Cost management revolves around token economics: choosing the right model tier, caching prompts, counting tokens with tiktoken before sending, and monitoring spend. LiteLLM provides a unified interface across 100+ providers with automatic fallbacks, load balancing, and cost tracking, making your application provider-agnostic. Production resilience comes from exponential backoff retries with tenacity, distinguishing retryable errors like 429 and 503 from non-retryable ones like 400 and 401.</p>
+</div>
+
+<h3>Common Interview Questions</h3>
+
+<table class="price-table">
+<thead>
+  <tr><th>Question</th><th>What They're Really Asking</th></tr>
+</thead>
+<tbody>
+  <tr><td>How does the Chat Completions API work and what are the message roles?</td><td>Do you understand the stateless request/response contract and the semantic difference between system, user, and assistant messages?</td></tr>
+  <tr><td>How do you handle streaming responses from an LLM API in a production web application?</td><td>Can you implement SSE-based streaming with async clients, forward streams through FastAPI, and handle mid-stream errors and client disconnections?</td></tr>
+  <tr><td>What strategies do you use to manage LLM API costs at scale?</td><td>Do you think about model tiering, token counting with tiktoken, prompt caching, response caching with Redis, batch APIs, and spend monitoring?</td></tr>
+  <tr><td>How do you guarantee structured output from an LLM?</td><td>Can you compare prompt-based JSON, OpenAI's native json_schema mode, Anthropic's tool-use-as-schema pattern, and instructor with Pydantic validation and retries?</td></tr>
+  <tr><td>How do you build a resilient LLM client that handles rate limits, outages, and provider switching?</td><td>Do you know exponential backoff with tenacity, which HTTP errors are retryable, and how LiteLLM Router provides fallback chains and load balancing?</td></tr>
+</tbody>
+</table>
+
+<h3>Model Answers</h3>
+
+<p><strong>Q1: How does the Chat Completions API work and what are the message roles?</strong></p>
+<p>The Chat Completions API accepts a JSON payload containing a <code>model</code> identifier, a <code>messages</code> array, and generation parameters like <code>temperature</code> and <code>max_tokens</code>. Each message has a <code>role</code> and <code>content</code>. The <strong>system</strong> role sets behavioral instructions and persona for the model. The <strong>user</strong> role carries the human input. The <strong>assistant</strong> role contains prior model responses for multi-turn context. The API is completely stateless, so every request must include the full conversation history. The response returns generated text in a <code>choices</code> array, a <code>finish_reason</code> indicating why generation stopped (stop, length, or tool_calls), and a <code>usage</code> object reporting prompt and completion token counts for cost calculation.</p>
+
+<pre><code><span class="code-comment"># Minimal chat completions call</span>
+response = client.chat.completions.<span class="code-fn">create</span>(
+    model=<span class="code-string">"gpt-4o"</span>,
+    messages=[
+        {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: <span class="code-string">"You are a code reviewer."</span>},
+        {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>,   <span class="code-string">"content"</span>: <span class="code-string">"Review this function for bugs."</span>},
+    ],
+    temperature=<span class="code-num">0</span>,
+    max_tokens=<span class="code-num">1024</span>,
+)
+<span class="code-comment"># Always check finish_reason -- "length" means truncated output</span>
+<span class="code-keyword">if</span> response.choices[<span class="code-num">0</span>].finish_reason == <span class="code-string">"length"</span>:
+    <span class="code-keyword">raise</span> ValueError(<span class="code-string">"Response was truncated"</span>)</code></pre>
+
+<p><strong>Q2: How do you handle streaming responses from an LLM API in a production web application?</strong></p>
+<p>You set <code>stream=True</code> in the API call, which returns tokens incrementally via Server-Sent Events rather than waiting for the full response. Each SSE event contains a delta with a content fragment that you accumulate into the complete response. In a FastAPI application, you use <code>AsyncOpenAI</code> or <code>AsyncAnthropic</code> to avoid blocking the event loop, wrap the token stream in an async generator, and return it via <code>StreamingResponse</code> with media type <code>text/event-stream</code>. Critical production considerations include detecting client disconnections to cancel upstream API calls and avoid wasting tokens, handling mid-stream errors that arrive as stream events rather than HTTP error codes, and using the async client exclusively in async contexts since the sync client blocks the entire event loop.</p>
+
+<pre><code><span class="code-keyword">async def</span> <span class="code-fn">stream_to_client</span>(prompt: str):
+    client = AsyncOpenAI()
+    stream = <span class="code-keyword">await</span> client.chat.completions.<span class="code-fn">create</span>(
+        model=<span class="code-string">"gpt-4o"</span>,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: prompt}],
+        stream=<span class="code-num">True</span>, max_tokens=<span class="code-num">2048</span>,
+    )
+    <span class="code-keyword">async for</span> chunk <span class="code-keyword">in</span> stream:
+        delta = chunk.choices[<span class="code-num">0</span>].delta
+        <span class="code-keyword">if</span> delta.content:
+            <span class="code-keyword">yield</span> f<span class="code-string">"data: {delta.content}\n\n"</span>
+    <span class="code-keyword">yield</span> <span class="code-string">"data: [DONE]\n\n"</span></code></pre>
+
+<p><strong>Q3: What strategies do you use to manage LLM API costs at scale?</strong></p>
+<p>The highest-impact optimization is <strong>model tiering</strong>: routing simple tasks like classification to cheap models like GPT-4o-mini at $0.15/$0.60 per million tokens while reserving expensive models like GPT-4o at $2.50/$10.00 for complex reasoning. Second, I use <strong>token counting</strong> with tiktoken before sending requests to predict costs, enforce per-request budgets, and catch accidentally large prompts. Third, <strong>prompt caching</strong> at the provider level gives 50-90% discounts on repeated prefixes. Fourth, <strong>application-level caching</strong> with Redis eliminates redundant API calls entirely by hashing the messages array and serving cached responses. Fifth, I monitor every call's token usage and cost, aggregate by user and feature, and set daily budget alerts. The OpenAI Batch API provides an additional 50% discount for non-real-time workloads.</p>
+
+<pre><code><span class="code-keyword">import</span> tiktoken
+
+enc = tiktoken.<span class="code-fn">encoding_for_model</span>(<span class="code-string">"gpt-4o"</span>)
+input_tokens = <span class="code-fn">len</span>(enc.<span class="code-fn">encode</span>(prompt_text))
+est_cost = (input_tokens / <span class="code-num">1_000_000</span>) * <span class="code-num">2.50</span>  <span class="code-comment"># input rate for gpt-4o</span>
+<span class="code-keyword">if</span> est_cost > MAX_BUDGET:
+    <span class="code-keyword">raise</span> ValueError(f<span class="code-string">"Request would cost ${est_cost:.4f}, exceeds budget"</span>)</code></pre>
+
+<p><strong>Q4: How do you guarantee structured output from an LLM?</strong></p>
+<p>There are three levels of reliability. The weakest is prompt-based: asking the model to return JSON, which provides no schema guarantee. The strongest for OpenAI is <strong>native json_schema mode</strong> via the <code>response_format</code> parameter, which constrains token generation at inference time so the model physically cannot produce invalid JSON. For Anthropic, you repurpose the <strong>tool use</strong> mechanism by defining a tool whose input schema matches your desired output structure. The most practical approach across both providers is the <strong>instructor</strong> library, which wraps the SDK with Pydantic models as output schemas. You define your structure as a Pydantic class with validators, and instructor handles schema conversion, API calls, parsing, and automatic retries on validation failure, feeding the error back to the model so it can self-correct.</p>
+
+<pre><code><span class="code-keyword">import</span> instructor
+<span class="code-keyword">from</span> pydantic <span class="code-keyword">import</span> BaseModel, Field
+
+<span class="code-keyword">class</span> <span class="code-fn">SentimentResult</span>(BaseModel):
+    reasoning: str = Field(..., description=<span class="code-string">"Explain your analysis"</span>)
+    sentiment: str = Field(..., pattern=<span class="code-string">"^(positive|negative|neutral)$"</span>)
+    confidence: float = Field(..., ge=<span class="code-num">0.0</span>, le=<span class="code-num">1.0</span>)
+
+client = instructor.<span class="code-fn">from_openai</span>(OpenAI())
+result = client.chat.completions.<span class="code-fn">create</span>(
+    model=<span class="code-string">"gpt-4o"</span>, response_model=SentimentResult, max_retries=<span class="code-num">3</span>,
+    messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: <span class="code-string">"Analyze: 'The product is great!'"</span>}],
+)  <span class="code-comment"># result is a validated Pydantic object, never raw text</span></code></pre>
+
+<p><strong>Q5: How do you build a resilient LLM client that handles rate limits, outages, and provider switching?</strong></p>
+<p>Resilience starts with <strong>retry logic using tenacity</strong> with exponential backoff and jitter. I only retry transient errors: 429 (rate limit), 500/502/503 (server errors), and connection errors. I never retry 400 (bad request) or 401 (auth error) since those indicate code bugs, not transient failures. For provider-level resilience, I use <strong>LiteLLM Router</strong> with a fallback chain: the primary model is tried first, and on failure the Router automatically tries the next provider in the chain. Load balancing across multiple API keys multiplies effective rate limits. The Router also tracks per-request cost and can enforce spending limits. For maximum reliability, I configure a three-tier fallback like GPT-4o primary, Claude Sonnet fallback, and Llama on Groq as the final fallback, ensuring the application stays responsive even during a full provider outage.</p>
+
+<pre><code><span class="code-keyword">from</span> litellm <span class="code-keyword">import</span> Router
+
+router = Router(
+    model_list=[
+        {<span class="code-string">"model_name"</span>: <span class="code-string">"llm"</span>, <span class="code-string">"litellm_params"</span>: {<span class="code-string">"model"</span>: <span class="code-string">"gpt-4o"</span>}},
+        {<span class="code-string">"model_name"</span>: <span class="code-string">"llm"</span>, <span class="code-string">"litellm_params"</span>: {<span class="code-string">"model"</span>: <span class="code-string">"anthropic/claude-sonnet-4-20250514"</span>}},
+        {<span class="code-string">"model_name"</span>: <span class="code-string">"llm"</span>, <span class="code-string">"litellm_params"</span>: {<span class="code-string">"model"</span>: <span class="code-string">"groq/llama-3.1-70b-versatile"</span>}},
+    ],
+    fallbacks=[{<span class="code-string">"llm"</span>: [<span class="code-string">"llm"</span>]}],
+    num_retries=<span class="code-num">2</span>, timeout=<span class="code-num">30</span>,
+)
+<span class="code-comment"># Automatically tries next provider on 429/503/timeout</span>
+resp = <span class="code-keyword">await</span> router.<span class="code-fn">acompletion</span>(model=<span class="code-string">"llm"</span>, messages=msgs)</code></pre>
+
+<div class="callout info">
+  <div class="callout-label">System Design Scenario</div>
+  <p><strong>Scenario:</strong> Design the LLM API layer for a customer support chatbot serving 10,000 concurrent users with sub-second response times and a monthly budget of $5,000.</p>
+  <p><strong>Approach:</strong> Use a tiered model strategy: route FAQ-style questions through a classifier to GPT-4o-mini ($0.15/$0.60 per 1M tokens) handling 80% of traffic, and escalate complex queries to GPT-4o. Implement streaming via SSE for all user-facing responses to achieve 200-400ms time to first token. Deploy a Redis response cache keyed on normalized message hashes to eliminate redundant calls, targeting 30-40% cache hit rate. Use LiteLLM Router with Claude Sonnet as a fallback for GPT-4o outages. Count tokens with tiktoken before each request and enforce a per-user daily budget of $0.50. Use Anthropic prompt caching for the system prompt (90% discount on cached tokens). Set up cost monitoring with daily alerts at 80% of the $167 daily budget threshold. Use the async SDK exclusively with connection pooling to handle concurrency without thread overhead. Manage conversation history with a sliding window of the last 10 messages plus a summarized context block, keeping each request under 4,000 input tokens.</p>
+</div>
+
+<h3>Common Mistakes to Avoid</h3>
+
+<div class="callout warn">
+  <div class="callout-label">Mistake 1: Using the Synchronous SDK Client in Async Code</div>
+  <p>Using <code>openai.OpenAI()</code> inside a FastAPI endpoint blocks the entire event loop, serializing all requests and destroying server throughput. Always use <code>openai.AsyncOpenAI()</code> in async contexts. This single mistake can reduce your server's capacity from thousands of concurrent requests to effectively one at a time.</p>
+</div>
+
+<div class="callout warn">
+  <div class="callout-label">Mistake 2: Retrying Non-Retryable Errors</div>
+  <p>Retrying <code>400 Bad Request</code> or <code>401 Unauthorized</code> errors wastes time and money because these indicate bugs in your code or invalid credentials, not transient failures. Only retry <code>429</code> (rate limit), <code>500</code>/<code>502</code>/<code>503</code> (server errors), and connection timeouts. Use tenacity's <code>retry_if_exception_type</code> to target specific exception classes rather than catching all errors.</p>
+</div>
+
+<div class="callout warn">
+  <div class="callout-label">Mistake 3: Ignoring finish_reason in API Responses</div>
+  <p>When <code>finish_reason</code> is <code>"length"</code> instead of <code>"stop"</code>, the model's response was truncated at the <code>max_tokens</code> limit and you are missing content. Production code must check this field and either increase <code>max_tokens</code>, request a continuation, or log a warning. Silently accepting truncated responses leads to incomplete data extraction, broken JSON, and subtle downstream bugs that are extremely difficult to diagnose.</p>
+</div>
+
 </section>
 
 <!-- PREV / NEXT -->

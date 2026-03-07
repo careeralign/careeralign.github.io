@@ -77,6 +77,7 @@
     <a href="#framework" class="section">6 · Guardrails AI Framework</a>
     <a href="#fw-plain" class="sub">Plain Language</a>
     <a href="#fw-deep" class="sub">Deep Dive</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <main class="main">
@@ -543,6 +544,46 @@ result = guard(
         <div class="callout-label">Start Here</div>
         <p>For most applications, start with: (1) OpenAI Moderation API for content safety, (2) regex + Presidio for PII, (3) custom Python for business rules. Add Guardrails AI or NeMo Guardrails when you need declarative validation with automatic retries across multiple complex validators.</p>
       </div>
+    </div>
+
+    <div class="section" id="interview">
+      <div class="section-header"><div class="section-num">🎯</div><h2>Interview Ready</h2></div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout tip">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>Guardrails are the safety layer between users and LLMs that validate inputs and outputs in real time. On the input side, we defend against prompt injection attacks, detect PII before it reaches the model, and enforce topic boundaries. On the output side, we filter toxic or harmful content, validate structured responses against schemas, and ensure the model stays within policy. Frameworks like NeMo Guardrails let you define these rules declaratively using Colang, while tools like Presidio handle PII detection with regex and NER models. In production, guardrails are non-negotiable — they prevent data leaks, brand damage, and compliance violations. The key design principle is defense in depth: layer multiple validators so that no single point of failure can let bad content through.</p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table class="comp-table">
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>How do you prevent prompt injection in production?</td><td>Do you understand that input sanitization alone is insufficient and that layered defenses (instruction hierarchy, input classification, output validation) are required?</td></tr>
+          <tr><td>How would you handle PII in an LLM pipeline?</td><td>Can you design a system that detects, redacts, or anonymizes sensitive data before it reaches the model, and can you name specific tools like Presidio or regex-based detectors?</td></tr>
+          <tr><td>What is NeMo Guardrails and when would you use it?</td><td>Do you know the difference between programmatic guardrails and declarative rule engines, and can you articulate when the added complexity of a framework is justified?</td></tr>
+          <tr><td>How do you filter toxic or unsafe LLM outputs?</td><td>Can you explain content classification approaches (OpenAI Moderation API, custom classifiers, keyword blocklists) and their tradeoffs in latency and accuracy?</td></tr>
+          <tr><td>What metrics would you track for a guardrails system?</td><td>Do you think about guardrails operationally — false positive rates, latency overhead, bypass attempts — not just as a one-time implementation?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+      <p><strong>Prompt Injection Defense:</strong> I implement a layered defense strategy. First, I use an input classifier that detects injection patterns before the prompt reaches the LLM. Second, I structure system prompts using instruction hierarchy so the model prioritizes system instructions over user input. Third, I validate outputs against expected schemas and topic boundaries. Finally, I log all flagged inputs for continuous improvement of detection rules. No single layer is foolproof, but together they reduce risk to acceptable levels.</p>
+      <p><strong>PII Handling:</strong> I use Microsoft Presidio as the primary PII detection engine because it combines regex patterns with spaCy NER models for high recall across entity types like SSNs, credit cards, emails, and names. Before any user input reaches the LLM, Presidio scans and redacts detected entities, replacing them with placeholder tokens. On the output side, I run the same detection to catch any PII the model might hallucinate or reproduce from its training data. For high-sensitivity applications, I add a human review queue for edge cases where confidence scores are borderline.</p>
+      <p><strong>Guardrails Architecture:</strong> I design guardrails as middleware in the LLM pipeline — a chain of validators that run before and after each model call. Input validators check for injection patterns, PII, and off-topic requests. Output validators check for toxicity, hallucination indicators, and schema compliance. I prefer starting with simple Python validators and the OpenAI Moderation API, then graduating to NeMo Guardrails or Guardrails AI when the rule set grows complex enough to benefit from declarative configuration. The key metric I track is the false positive rate — guardrails that block too many legitimate requests erode user trust.</p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout tip">
+        <div class="callout-label">Design Prompt</div>
+        <p>Design a guardrails system for a customer-facing banking chatbot that must prevent PII leakage, block prompt injection, enforce topic boundaries (only banking-related queries), and comply with financial regulations. The system handles 10,000 concurrent users and must add no more than 200ms of latency per request. Describe the architecture, the specific validators you would use at each stage, how you would handle false positives without degrading user experience, and how you would monitor and update the rules over time.</p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Relying on a single guardrail layer:</strong> Using only output filtering or only input validation creates a single point of failure. Production systems need defense in depth with multiple independent validators at both input and output stages.</li>
+        <li><strong>Ignoring false positive rates:</strong> Overly aggressive guardrails that block legitimate user requests cause frustration and abandonment. Always measure and tune the tradeoff between safety and usability, and provide graceful fallback messages when content is blocked.</li>
+        <li><strong>Treating guardrails as a one-time setup:</strong> Attack patterns evolve, new jailbreak techniques emerge, and model behavior changes with updates. Guardrails require continuous monitoring, logging of bypass attempts, and regular rule updates to remain effective.</li>
+      </ul>
     </div>
 
     <!-- NEXT / PREV -->

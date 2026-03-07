@@ -93,6 +93,7 @@
     <a href="#safety" class="section">6 · Agent Safety &amp; Reliability</a>
     <a href="#safety-plain" class="sub">Plain Language</a>
     <a href="#safety-deep" class="sub">Deep Dive</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <main class="main">
@@ -782,6 +783,174 @@ logger = logging.<span class="code-fn">getLogger</span>(<span class="code-string
         </tbody>
       </table>
     </div>
+
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>
+          Agents are the leap from LLMs that answer questions to LLMs that take actions. A basic LLM generates one
+          response and stops, but an agent follows the ReAct loop — Reason about the task, Act by calling a tool (an API,
+          a database query, a code interpreter), Observe the result, and repeat until the goal is met. Tool use is
+          implemented through function calling: you declare tool schemas in the API request, the model returns a
+          structured JSON call instead of plain text, your code executes the tool and feeds the result back, and the
+          model continues reasoning. For complex workflows with branching, cycles, and state, LangGraph models the
+          agent as a stateful graph where nodes are processing steps and edges are conditional transitions. When a
+          single agent is not enough, multi-agent architectures let specialized agents — a planner, a researcher, a
+          coder, a reviewer — collaborate through message passing or a shared state, orchestrated by a supervisor agent.
+          Human-in-the-loop checkpoints ensure that high-stakes actions (sending emails, modifying databases, approving
+          transactions) require explicit human approval before execution. Safety comes from sandboxing tool execution,
+          setting token and iteration budgets, and implementing structured audit logging at every step.
+        </p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>Walk me through the ReAct pattern and how it differs from a single-shot LLM call.</td><td>Do you understand the Reason-Act-Observe loop and why iterative tool use produces better results than one-pass generation?</td></tr>
+          <tr><td>How does function calling work at the API level, and how do you define tool schemas?</td><td>Can you explain the mechanics — JSON schema declarations, the model returning tool call objects, your code executing and returning results — not just the concept?</td></tr>
+          <tr><td>When would you use LangGraph over a simple chain, and how do you model conditional workflows?</td><td>Do you know when a DAG or cyclic graph is needed, and can you reason about nodes, edges, state, and conditional routing?</td></tr>
+          <tr><td>How do you design a multi-agent system, and how do agents communicate?</td><td>Can you articulate supervisor vs. peer-to-peer topologies, message passing patterns, and when to split responsibilities across agents?</td></tr>
+          <tr><td>What safety mechanisms would you implement for an agent that can take real-world actions?</td><td>Do you understand sandboxing, human-in-the-loop approval gates, token/iteration budgets, audit logging, and how to prevent runaway agent behavior?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <p>
+        <strong>1. The ReAct pattern</strong> —
+        ReAct (Reasoning + Acting) interleaves chain-of-thought reasoning with tool execution. In a single-shot call,
+        the LLM generates one response from its training data and has no way to verify facts or gather new information.
+        In ReAct, the model first produces a Thought explaining its reasoning and what it needs to find out, then
+        generates an Action specifying which tool to call with what arguments, the system executes the tool and returns
+        an Observation, and the model incorporates this new evidence into its next Thought. This loop repeats until the
+        model has enough information to produce a final answer. The key insight is that reasoning guides better tool
+        selection, and tool results ground the reasoning in real data — each reinforces the other. In practice, you
+        implement this by providing tool schemas in the system prompt or API tools parameter, parsing the model's
+        structured output to detect tool calls, executing them, and appending the results as new messages in the
+        conversation history.
+      </p>
+
+      <p>
+        <strong>2. Function calling mechanics</strong> —
+        Function calling is the API-level mechanism that makes tool use reliable. You declare tools as JSON Schema
+        objects in the API request — each tool has a name, description, and a parameters schema defining the expected
+        arguments with types and constraints. When the model decides to use a tool, instead of returning a plain text
+        response, it returns a message with <code>tool_calls</code> — an array of objects each containing the tool name
+        and arguments as structured JSON. Your application code parses these tool calls, executes the corresponding
+        functions (API calls, database queries, calculations), and sends the results back as tool-role messages. The
+        model then continues generating, either calling another tool or producing the final response. This structured
+        approach is far more reliable than prompting the model to output tool calls as text, because the API enforces
+        valid JSON and the schema constrains the arguments to valid types and values.
+      </p>
+<pre><code><span class="code-comment"># Function calling with OpenAI API</span>
+<span class="code-keyword">import</span> openai, json
+
+tools = [{
+    <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+    <span class="code-string">"function"</span>: {
+        <span class="code-string">"name"</span>: <span class="code-string">"get_weather"</span>,
+        <span class="code-string">"description"</span>: <span class="code-string">"Get current weather for a city"</span>,
+        <span class="code-string">"parameters"</span>: {
+            <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+            <span class="code-string">"properties"</span>: {
+                <span class="code-string">"city"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>}
+            },
+            <span class="code-string">"required"</span>: [<span class="code-string">"city"</span>]
+        }
+    }
+}]
+
+<span class="code-comment"># Agent loop</span>
+messages = [{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: <span class="code-string">"Weather in Tokyo?"</span>}]
+response = openai.chat.completions.create(
+    model=<span class="code-string">"gpt-4"</span>, messages=messages, tools=tools
+)
+
+<span class="code-comment"># Model returns tool_call → execute → feed back</span>
+tool_call = response.choices[<span class="code-num">0</span>].message.tool_calls[<span class="code-num">0</span>]
+result = get_weather(json.loads(tool_call.function.arguments))
+messages.append(response.choices[<span class="code-num">0</span>].message)
+messages.append({
+    <span class="code-string">"role"</span>: <span class="code-string">"tool"</span>,
+    <span class="code-string">"tool_call_id"</span>: tool_call.id,
+    <span class="code-string">"content"</span>: json.dumps(result)
+})</code></pre>
+
+      <p>
+        <strong>3. LangGraph vs simple chains</strong> —
+        A simple LangChain chain is a linear sequence: input goes through step A, then B, then C, then output.
+        LangGraph is needed when your workflow has conditional branching (take different paths based on classification),
+        cycles (retry or refine until quality is sufficient), parallel execution (run multiple tools simultaneously),
+        or persistent state that accumulates across steps. In LangGraph, you define a <code>StateGraph</code> with a
+        typed state schema, add nodes (Python functions that read and update state), and connect them with edges —
+        including conditional edges that route to different nodes based on state values. The graph compiles into a
+        runnable that manages state transitions automatically. A common pattern is a router node that classifies the
+        user's intent and routes to specialized subgraphs, with a quality-check node that loops back to retry if the
+        output does not meet a threshold. LangGraph also provides built-in checkpointing for persistence and
+        <code>interrupt_before</code> / <code>interrupt_after</code> for human-in-the-loop approval gates.
+      </p>
+
+      <p>
+        <strong>4. Multi-agent system design</strong> —
+        In a multi-agent system, you decompose a complex task into roles and assign each role to a specialized agent
+        with its own system prompt, tools, and model configuration. The two main topologies are supervisor-based (a
+        coordinator agent delegates subtasks to worker agents and synthesizes their outputs) and peer-to-peer (agents
+        communicate directly through a shared message bus or state object). For example, a research report system might
+        have a Planner agent that breaks the query into sub-questions, a Researcher agent with web search tools, a
+        Writer agent that drafts sections, and a Reviewer agent that critiques and requests revisions. Communication
+        happens through a shared state in LangGraph — each agent reads the current state, performs its work, and writes
+        results back. The supervisor pattern is easier to debug because there is a single control flow, while
+        peer-to-peer scales better for loosely coupled tasks. The key design decision is granularity: too many agents
+        add coordination overhead and latency; too few lose the specialization benefit.
+      </p>
+
+      <p>
+        <strong>5. Agent safety mechanisms</strong> —
+        Safety for action-taking agents requires multiple layers. First, sandboxing: tool execution should happen in
+        isolated environments (Docker containers, serverless functions) so a malicious or buggy tool call cannot access
+        the host system. Second, human-in-the-loop gates: use LangGraph's <code>interrupt_before</code> to pause
+        execution before high-stakes actions (sending emails, modifying production databases, making purchases) and
+        require explicit human approval. Third, budget controls: set maximum token usage, maximum number of iterations
+        (typically 5–15 for most tasks), and wall-clock timeouts to prevent runaway loops where the agent keeps calling
+        tools without converging. Fourth, structured audit logging: log every thought, action, tool call, tool result,
+        and decision at each step with timestamps and trace IDs, so you can replay and debug any agent run. Fifth,
+        least-privilege tool access: each agent should only have access to the specific tools it needs, with scoped
+        API keys and permissions — a research agent should not have write access to production databases.
+      </p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>
+          You are building a multi-agent customer support system for an e-commerce platform handling 10,000 tickets per
+          day. The system must classify incoming tickets, retrieve relevant order and product information, draft responses,
+          escalate complex issues to human agents, and learn from human corrections. Some actions are irreversible
+          (issuing refunds, canceling orders). Design the complete agent architecture.
+        </p>
+        <p>A strong answer should cover:</p>
+        <ul>
+          <li><strong>Agent topology</strong> — a supervisor/router agent that classifies ticket intent (order status, refund request, product question, complaint) and delegates to specialized worker agents, each with tailored system prompts and tool access scoped to their role</li>
+          <li><strong>Tool integration</strong> — function calling schemas for order lookup, refund processing, inventory checking, and CRM updates, with each tool returning structured JSON that the agent can reason about and cite in its response</li>
+          <li><strong>Human-in-the-loop gates</strong> — LangGraph <code>interrupt_before</code> on all irreversible actions (refunds over $100, order cancellations, account modifications), with a review queue that presents the agent's reasoning and proposed action to a human supervisor for approval</li>
+          <li><strong>Safety and guardrails</strong> — iteration limits (max 8 tool calls per ticket), token budgets, sandboxed tool execution, PII redaction in logs, and a confidence threshold below which tickets are automatically escalated to human agents rather than auto-resolved</li>
+          <li><strong>Feedback loop</strong> — logging human corrections and escalation patterns to identify weak spots, using these corrections to refine system prompts and add new few-shot examples, and tracking resolution rate, escalation rate, and customer satisfaction as key metrics</li>
+        </ul>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Building an agent when a simple chain would suffice</strong> — Agents add complexity, latency, and cost. If your task is a linear pipeline (classify, retrieve, generate), use a chain. Agents are only justified when the task requires dynamic decision-making, variable numbers of tool calls, or iterative refinement. The overhead of the ReAct loop — multiple LLM calls per request — can increase latency by 3-5x and cost by 5-10x compared to a single call.</li>
+        <li><strong>Not setting iteration and token budgets</strong> — Without explicit limits, an agent can enter infinite loops — for example, repeatedly calling a search tool with slightly different queries because it is never satisfied with the results. Always set a maximum iteration count (e.g., 10), a maximum token budget, and a wall-clock timeout. When the budget is exhausted, the agent should return the best answer it has so far with an explicit disclaimer, not silently fail or crash.</li>
+        <li><strong>Giving agents unrestricted tool access without human approval gates</strong> — An agent with write access to production systems and no approval checkpoints is a liability. A single hallucinated tool call argument — wrong customer ID, wrong refund amount, wrong email recipient — can cause real damage. Every irreversible action should require human approval in production, and all tool executions should be logged with full arguments and results for audit and rollback.</li>
+      </ul>
+    </section>
 
     <!-- NEXT / PREV -->
     <div class="next-section">

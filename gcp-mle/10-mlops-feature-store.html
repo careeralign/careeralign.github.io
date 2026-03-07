@@ -413,6 +413,7 @@ code {
     <a href="#pipeline-integration" class="section">8 &middot; Pipeline Integration</a>
     <a href="#bq-vs-legacy" class="section">9 &middot; New vs Legacy Architecture</a>
     <a href="#exam-focus" class="section">10 &middot; Exam Focus</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -1253,6 +1254,130 @@ feature_groups = feature_store.FeatureGroup.<span class="code-fn">list</span>()
           New architecture uses <strong>Feature Groups + Feature Views</strong>; legacy used <strong>Featurestore + EntityTypes</strong>.
         </li>
       </ul>
+
+    <!-- ═══════════════════════════════════════════
+         INTERVIEW READY
+         ═══════════════════════════════════════════ -->
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>
+          A Feature Store is a centralized repository that manages the computation, storage, and serving of ML features
+          across an organization. It solves the critical <strong>training-serving skew</strong> problem — ensuring that
+          the exact same feature transformations used during training are applied at inference time. Vertex AI Feature
+          Store provides two serving paths: an <strong>offline store</strong> (backed by BigQuery) for batch training
+          data retrieval with point-in-time correctness, and an <strong>online store</strong> (backed by Bigtable) for
+          low-latency feature lookups during real-time prediction. The new architecture uses Feature Groups to organize
+          related features and Feature Views to define which features are synced to the online store. Key capabilities
+          include automatic feature freshness monitoring, drift detection, point-in-time joins that prevent data leakage
+          in training sets, and feature sharing across teams. The decision framework is simple: use Feature Store for
+          <strong>entity-level precomputed features</strong> (user history, product stats), and compute
+          <strong>request-level features</strong> (query text, session context) inline at serving time.
+        </p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>What is a Feature Store and why would you use one instead of computing features on the fly?</td><td>Do you understand training-serving skew and the value of centralized feature management?</td></tr>
+          <tr><td>Explain the difference between online and offline feature serving.</td><td>Can you articulate latency requirements and the architectural trade-offs between batch and real-time serving?</td></tr>
+          <tr><td>What is point-in-time correctness and why does it matter for ML training?</td><td>Do you understand data leakage and how temporal feature joins prevent using future information during training?</td></tr>
+          <tr><td>How do you monitor feature quality in production?</td><td>Can you describe drift detection, staleness monitoring, and distribution validation for feature pipelines?</td></tr>
+          <tr><td>When should you NOT use a Feature Store?</td><td>Do you understand that request-level features, simple models, and early-stage projects may not justify the operational overhead?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <p>
+        <strong>1. Why use a Feature Store</strong> —
+        Without a Feature Store, training and serving code compute features independently, which leads to training-serving
+        skew — subtle differences in feature values that silently degrade model performance. A Feature Store centralizes
+        feature definitions: features are computed once via batch or streaming pipelines, stored in a managed repository,
+        and served consistently to both training jobs and prediction endpoints. This also enables feature reuse across
+        teams — a "user_purchase_count_30d" feature computed by the fraud team can be discovered and used by the
+        recommendation team without duplicating the computation logic. On Vertex AI, Feature Groups define the schema
+        and source, while Feature Views control which features are materialized to the online store for low-latency access.
+      </p>
+
+      <p>
+        <strong>2. Online vs offline serving</strong> —
+        The offline store (BigQuery-backed) is optimized for batch reads — training jobs that need millions of feature
+        vectors with point-in-time correctness. Latency is seconds to minutes, but throughput is massive. The online
+        store (Bigtable-backed) is optimized for single-entity lookups — a prediction endpoint that needs the latest
+        features for one user in under 10 milliseconds. Features are synced from offline to online via materialization
+        jobs. The architectural trade-off: the online store only holds the <em>latest</em> feature values (no history),
+        while the offline store maintains full temporal history for time-travel queries. You configure sync schedules
+        in Feature Views — high-frequency features (e.g., click counts) may sync every few minutes, while stable
+        features (e.g., user demographics) sync daily.
+      </p>
+
+      <p>
+        <strong>3. Point-in-time correctness</strong> —
+        Point-in-time correctness ensures that when you create training data, each example only uses feature values that
+        were available <em>at the time the event occurred</em>. Without this, you get data leakage — the model trains on
+        future information it would not have at prediction time, producing artificially inflated metrics that do not
+        generalize. For example, if you are predicting whether a user will churn this month, the "user_login_count"
+        feature must reflect the count <em>before</em> the prediction date, not the final count including days after.
+        Vertex AI Feature Store handles this with temporal joins — given a set of entity IDs and timestamps, it retrieves
+        the feature values that were valid at each specific timestamp, preventing accidental leakage.
+      </p>
+
+      <p>
+        <strong>4. Feature monitoring</strong> —
+        Feature monitoring has two dimensions: <strong>freshness</strong> and <strong>drift</strong>. Freshness monitoring
+        checks whether features are being updated on schedule — if a daily batch pipeline fails, the online store serves
+        stale features, and predictions silently degrade. Drift monitoring compares the statistical distribution of
+        feature values in production against a training-time baseline using tests like KL divergence, Jensen-Shannon
+        distance, or population stability index. Significant drift indicates that the real-world data distribution has
+        changed and the model may need retraining. Vertex AI Feature Store provides built-in monitoring that alerts when
+        features go stale or distributions shift beyond configured thresholds. This ties into the broader MLOps monitoring
+        story — feature drift is often the leading indicator of model performance degradation.
+      </p>
+
+      <p>
+        <strong>5. When NOT to use a Feature Store</strong> —
+        Feature Stores add operational complexity and cost. Skip them when: the model is simple with few features that
+        can be computed inline, the project is in early prototyping and features are still changing rapidly, features are
+        entirely request-level (e.g., raw text from the user query) with no entity-level precomputation needed, or the
+        team is small and a shared BigQuery table provides sufficient consistency. The Feature Store becomes valuable when
+        you have multiple models sharing entity features, strict training-serving consistency requirements, need for
+        point-in-time correctness in training data, or organizational feature discovery and reuse across teams.
+      </p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>
+          You are building a real-time fraud detection system for a payment processor handling 10,000 transactions per
+          second. The model needs both historical user features (transaction patterns over 7/30/90 days) and real-time
+          features (current session behavior). Latency budget for the entire prediction is 50ms. Design the feature
+          architecture using Vertex AI Feature Store.
+        </p>
+        <p>A strong answer should cover:</p>
+        <ul>
+          <li><strong>Feature categorization</strong> — entity features (user transaction history, merchant risk scores, device fingerprints) in Feature Store for precomputed low-latency access; request-level features (transaction amount, time of day, IP geolocation) computed inline at prediction time</li>
+          <li><strong>Online store configuration</strong> — Bigtable-backed online store with regional replication for low-latency reads, Feature Views configured for 5-minute sync on high-velocity features (recent transaction counts) and hourly sync on stable aggregates (90-day averages)</li>
+          <li><strong>Streaming feature updates</strong> — Dataflow streaming pipeline consuming transaction events from Pub/Sub, computing real-time aggregates (rolling window counts), and writing directly to the online store for sub-minute feature freshness</li>
+          <li><strong>Training data generation</strong> — point-in-time correct joins against the offline store to create training datasets without data leakage, using labeled fraud cases with feature snapshots from the exact transaction timestamp</li>
+          <li><strong>Monitoring</strong> — feature freshness alerts (critical for fraud — stale features mean missed patterns), distribution drift monitoring comparing production feature distributions against training baseline, and staleness circuit breakers that fall back to a simpler model if key features are unavailable</li>
+        </ul>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Putting all features in the Feature Store</strong> — Request-level features (user query text, session ID, current timestamp) should be computed inline at serving time. The Feature Store is for precomputed entity features that need consistency between training and serving. Storing everything adds unnecessary latency and operational burden.</li>
+        <li><strong>Ignoring point-in-time correctness during training</strong> — Using the latest feature values when creating training data introduces data leakage. If your training labels are from January but features reflect March values, the model learns patterns it cannot exploit at prediction time. Always use temporal joins with event timestamps.</li>
+        <li><strong>Conflating the new and legacy Feature Store architectures</strong> — The legacy architecture used Featurestore, EntityTypes, and Features as separate resources. The new BigQuery-backed architecture uses Feature Groups and Feature Views with direct BigQuery integration. The exam tests whether you know the current architecture — answers referencing EntityTypes signal outdated knowledge.</li>
+      </ul>
+    </section>
 
       <!-- NAVIGATION -->
       <div class="next-section">

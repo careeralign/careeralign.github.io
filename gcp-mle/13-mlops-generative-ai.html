@@ -408,6 +408,7 @@ code {
     <a href="#monitoring-genai" class="section">8 &middot; Monitoring GenAI</a>
     <a href="#rag-operations" class="section">9 &middot; RAG Operations</a>
     <a href="#exam-focus" class="section">10 &middot; Exam Focus</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -1110,6 +1111,55 @@ index_endpoint.<span class="code-fn">deploy_index</span>(
         <li><div class="check-box done"></div>If the question mentions "monitoring output quality" &rarr; Continuous evaluation + LLM-as-judge</li>
         <li><div class="check-box done"></div>If the question mentions "cost optimization" &rarr; Context caching, model distillation, or routing to Flash</li>
         <li><div class="check-box done"></div>If the question mentions "prompt management" &rarr; Version control, prompt registry, A/B testing</li>
+      </ul>
+    </section>
+
+    <!-- INTERVIEW READY -->
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout tip">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>MLOps for generative AI extends traditional MLOps with new challenges: prompts become first-class artifacts that need versioning, testing, and A/B experimentation just like model weights. Evaluation shifts from simple metrics like accuracy to nuanced assessments using LLM-as-judge, RAGAS, and human preference alignment. Fine-tuning operations (SFT, RLHF) require specialized pipelines for dataset curation, training orchestration, and adapter management. On Vertex AI, the GenAI lifecycle is managed through prompt registries, the Gen AI Evaluation Service, supervised fine-tuning APIs, and continuous evaluation with automated drift detection&mdash;all integrated into a single platform that treats prompts, models, and RAG configurations as versioned, auditable artifacts.</p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead>
+          <tr><th>Question</th><th>What They're Really Asking</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>How does MLOps for GenAI differ from traditional MLOps?</td><td>Can you articulate the new artifact types (prompts, adapters, RAG configs) and why they need their own lifecycle management?</td></tr>
+          <tr><td>How would you implement prompt management in production?</td><td>Do you understand version control, A/B testing, and rollback strategies for prompts as production artifacts?</td></tr>
+          <tr><td>How do you evaluate a generative AI model in production?</td><td>Can you go beyond BLEU/ROUGE and explain LLM-as-judge, pointwise vs pairwise evaluation, and continuous evaluation pipelines?</td></tr>
+          <tr><td>When would you fine-tune versus use RAG?</td><td>Do you know the decision framework: RAG for knowledge/freshness, fine-tuning for style/format, and when to combine both?</td></tr>
+          <tr><td>How do you monitor a GenAI application for quality degradation?</td><td>Can you describe continuous evaluation, hallucination detection, toxicity checks, and automated alerting on LLM output quality?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+      <p><strong>GenAI MLOps vs Traditional:</strong> Traditional MLOps manages code, data, and model weights through CI/CD pipelines. GenAI MLOps adds prompts as versioned artifacts, requires evaluation beyond numeric metrics (using LLM-as-judge and human preference), manages adapter weights from fine-tuning separately from base models, and must handle RAG pipeline configurations (chunk size, embedding model, retrieval strategy) as additional deployable artifacts. The feedback loop also changes&mdash;instead of periodic retraining, you iterate on prompts, update retrieval corpora, or fine-tune adapters on a much faster cadence.</p>
+
+      <p><strong>Prompt Management:</strong> I would implement a prompt registry where each prompt template is versioned with its system instructions, few-shot examples, and output parsing logic. Changes go through code review. In production, I use traffic splitting to A/B test prompt variants, measuring quality via automated LLM-as-judge scoring and business metrics. Rollback is instant because switching prompts doesn&rsquo;t require model redeployment. On Vertex AI, this integrates with the Gen AI Evaluation Service for automated quality gating before promoting a prompt to production.</p>
+
+      <p><strong>Fine-Tuning vs RAG Decision:</strong> If the user needs up-to-date factual information or domain-specific knowledge, I use RAG&mdash;it avoids retraining and lets me update the knowledge base in real time. If the requirement is consistent output style, specific formatting, or behavioral alignment, I use supervised fine-tuning. For complex production systems, I combine both: fine-tune the model for tone and format, then use RAG to ground responses in current data. The key signal is whether the gap is in what the model knows versus how it communicates.</p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout info">
+        <div class="callout-label">Design Prompt</div>
+        <p><strong>Scenario:</strong> A financial services company wants to deploy a GenAI assistant that answers customer questions about their accounts, policies, and regulations. Responses must be accurate, compliant, and auditable. Design the MLOps pipeline.</p>
+        <p><strong>Approach:</strong> Use RAG with a Vertex AI Search corpus containing policy documents and regulatory filings, updated nightly via a Cloud Composer pipeline. The base model is Gemini, accessed through Vertex AI endpoints with system prompts versioned in a prompt registry. Implement guardrails: input classification to reject out-of-scope queries, output grounding checks against the retrieved context, and a toxicity/compliance filter. Continuous evaluation uses LLM-as-judge with domain-expert-curated golden datasets, running hourly. Evaluation scores below threshold trigger alerts to the ML team. All prompt-response pairs are logged to BigQuery for audit. Fine-tune an adapter quarterly on expert-corrected responses to improve compliance language. Deploy with traffic splitting for canary rollouts of prompt or adapter changes.</p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Treating prompts as configuration, not artifacts</strong> &mdash; Prompts in production need the same rigor as code: version control, testing, staged rollout, and rollback capability. Hardcoding prompts in application code makes iteration slow and error-prone.</li>
+        <li><strong>Relying solely on automated metrics for GenAI evaluation</strong> &mdash; BLEU and ROUGE measure surface overlap, not quality. Production GenAI systems need LLM-based evaluation for nuance and periodic human evaluation to calibrate the automated judges.</li>
+        <li><strong>Fine-tuning when RAG would suffice</strong> &mdash; Fine-tuning is expensive, creates model management overhead, and bakes knowledge into weights that become stale. Default to RAG for knowledge augmentation and reserve fine-tuning for behavioral changes that prompting alone cannot achieve.</li>
       </ul>
     </section>
 

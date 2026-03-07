@@ -112,6 +112,7 @@
     <a href="#key-components" class="section">8 &middot; Key Components</a>
     <a href="#results" class="section">9 &middot; Results</a>
     <a href="#production" class="section">10 &middot; Production Considerations</a>
+    <a href="#portfolio" class="section">🛠️ Build Your Portfolio</a>
   </aside>
 
   <!-- MAIN -->
@@ -1183,6 +1184,53 @@ user_features = entity_type.read(
           data. (5) Document the recommendation logic for regulatory transparency.
         </p>
       </div>
+    </section>
+
+    <!-- ════════════════ BUILD YOUR PORTFOLIO ════════════════ -->
+    <section class="section" id="portfolio">
+      <div class="section-header">
+        <div class="section-num">🛠️</div>
+        <h2>Build Your Portfolio</h2>
+      </div>
+
+      <h3>Fork &amp; Extend</h3>
+      <p>Turn this notebook into a portfolio project in 5 steps:</p>
+      <ol>
+        <li><strong>Fork the notebook</strong> — Clone the repo and open in Google Colab or locally.</li>
+        <li><strong>Swap in real data</strong> — Replace the synthetic dataset with the <strong>Amazon Product Reviews</strong> dataset (233M reviews across 29 product categories with star ratings, review text, and metadata). Download it at <a href="https://cseweb.ucsd.edu/~jmcauley/datasets/amazon_v2/" target="_blank" rel="noopener">cseweb.ucsd.edu/~jmcauley/datasets/amazon_v2/</a>.</li>
+        <li><strong>Add a two-tower neural retrieval model</strong> — Implement a TensorFlow Recommenders (TFRS) two-tower model with separate user and item embedding towers. Show how neural collaborative filtering outperforms matrix factorization on cold-start users by incorporating user metadata (signup recency, browse category distribution).</li>
+        <li><strong>Deploy it</strong> — Wrap it in a Streamlit app with a user profile panel, a "Recommended For You" carousel, a "Because You Bought X" section, and real-time filtering by category and price range.</li>
+        <li><strong>Write a README</strong> — Include architecture diagram, setup instructions, sample outputs, and metrics.</li>
+      </ol>
+
+      <h3>What Hiring Managers Look For</h3>
+      <div class="callout">
+        <div class="callout-label">Pro Tip</div>
+        <p>
+          Recommendation engine portfolios impress when they demonstrate <strong>offline-to-online evaluation awareness</strong>.
+          Show offline metrics (Precision@K, NDCG@K, MAP) but explain why they do not always correlate with online metrics (CTR, conversion rate, revenue per session).
+          Include a cold-start strategy that gracefully degrades from personalized recommendations to popularity-based or content-based fallbacks for new users.
+          Bonus: implement a diversity metric (intra-list diversity or coverage) and show the trade-off between relevance and catalog exploration.
+        </p>
+      </div>
+
+      <h3>Public Datasets to Use</h3>
+      <ul>
+        <li><strong>Amazon Product Reviews (2018)</strong> — 233M reviews across 29 categories with star ratings, review text, product metadata, and "also bought" links. Available at UCSD. The most comprehensive e-commerce recommendation dataset available.</li>
+        <li><strong>MovieLens 25M</strong> — 25M ratings from 162K users on 62K movies with tag annotations and genome scores. Available at grouplens.org. The classic benchmark for collaborative filtering research with rich metadata.</li>
+        <li><strong>H&amp;M Personalized Fashion Recommendations</strong> — 31M purchase records from 1.3M customers across 105K fashion articles with product images and descriptions. Available on Kaggle. Excellent for multimodal recommendations combining visual and behavioral signals.</li>
+      </ul>
+
+      <h3>Deployment Options</h3>
+      <table>
+        <thead><tr><th>Platform</th><th>Best For</th><th>Effort</th></tr></thead>
+        <tbody>
+          <tr><td>Streamlit</td><td>Interactive recommendation explorer with user profiles, product carousels, and A/B test results</td><td>Low</td></tr>
+          <tr><td>Gradio</td><td>Quick demo where users select liked products and see personalized recommendations update in real time</td><td>Low</td></tr>
+          <tr><td>FastAPI</td><td>Recommendation API returning top-K items with scores, supporting candidate retrieval and re-ranking stages</td><td>Medium</td></tr>
+          <tr><td>Docker + Cloud Run</td><td>Production recommendation service with feature store integration, model versioning, and sub-100ms latency</td><td>High</td></tr>
+        </tbody>
+      </table>
     </section>
 
     <!-- PREV / NEXT -->

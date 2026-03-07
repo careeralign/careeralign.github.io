@@ -101,6 +101,7 @@
     <a href="#inference" class="section">5 &middot; Inference Mechanics</a>
     <a href="#inference-plain" class="sub">Plain Language</a>
     <a href="#inference-deep" class="sub">Deep Dive</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -830,6 +831,90 @@ size_large = <span class="code-fn">kv_cache_bytes</span>(<span class="code-num">
         <div class="callout-label">Key Insight</div>
         <p>The KV cache calculation explains why batching large-context requests is GPU-memory-intensive. At 128K tokens and 96 layers, a single request's KV cache can exceed the available SRAM on an A100 (80GB HBM). This is why context length and batch size are in fundamental tension, and why techniques like sliding window attention (Mistral) and grouped-query attention (Llama 3) exist &mdash; they reduce KV cache size while preserving most of the quality.</p>
       </div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 6: INTERVIEW READY
+    ════════════════════════════════════════════ -->
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>
+          Modern generative AI is built on the <strong>Transformer architecture</strong>, introduced in the 2017 "Attention Is All You Need" paper. At its core, a Transformer converts raw text into numerical <strong>tokens</strong>, maps those tokens to high-dimensional <strong>embeddings</strong>, then passes them through a stack of layers where <strong>self-attention</strong> lets every token weigh how relevant every other token is. This is fundamentally different from older recurrent models because attention operates in parallel over the full sequence &mdash; making training massively scalable on GPUs. The model is first <strong>pre-trained</strong> on vast internet text using next-token prediction (a self-supervised objective), then <strong>fine-tuned</strong> with human feedback (RLHF) to follow instructions and be safe. At <strong>inference</strong> time, it generates text autoregressively &mdash; one token at a time &mdash; with parameters like temperature and top-p controlling the creativity-vs-accuracy tradeoff. Understanding this pipeline &mdash; tokenization, embeddings, attention, training, and inference &mdash; is essential for making informed decisions about prompt design, model selection, cost optimization, and debugging unexpected outputs.
+        </p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>What is the Transformer architecture and why did it replace RNNs/LSTMs?</td><td>Do you understand parallelism, self-attention, and why sequence models evolved?</td></tr>
+          <tr><td>Explain the self-attention mechanism. What are Q, K, and V?</td><td>Can you go beyond buzzwords and describe the actual matrix operations?</td></tr>
+          <tr><td>How does tokenization work, and why does it matter for LLM applications?</td><td>Do you understand BPE/subword tokenization and its impact on cost, context limits, and multilingual performance?</td></tr>
+          <tr><td>What is the difference between generative (autoregressive) and discriminative models?</td><td>Can you articulate why GPT generates text token-by-token vs. BERT predicting masked tokens?</td></tr>
+          <tr><td>Walk me through how an LLM is trained end-to-end: pre-training, SFT, and RLHF.</td><td>Do you understand the full training pipeline and why each stage exists?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <div class="callout">
+        <div class="callout-label">Q1 &mdash; Transformers vs. RNNs</div>
+        <p>
+          RNNs process tokens sequentially &mdash; token 500 must wait for tokens 1&ndash;499 to finish, making training slow and causing the vanishing gradient problem over long sequences. Transformers replace recurrence with <strong>self-attention</strong>, which computes relationships between all token pairs in parallel. This means an entire 8,192-token sequence is processed simultaneously on a GPU. The positional encoding component preserves order information without sequential computation. This parallelism is why Transformers can be trained on trillions of tokens in weeks, whereas an equivalent RNN would take months.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q2 &mdash; Self-Attention and Q, K, V</div>
+        <p>
+          Each token's embedding is linearly projected into three vectors: <strong>Query (Q)</strong>, <strong>Key (K)</strong>, and <strong>Value (V)</strong>. Attention scores are computed as <code>softmax(QK&#7488; / &radic;d<sub>k</sub>)</code>, producing a weight matrix that tells each token how much to attend to every other token. These weights are multiplied by V to get a context-aware representation. The &radic;d<sub>k</sub> scaling prevents dot products from growing too large and pushing softmax into saturated regions. Multi-head attention repeats this with different learned projections so the model can capture different relationship types (syntactic, semantic, positional) simultaneously.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q3 &mdash; Tokenization</div>
+        <p>
+          LLMs do not see raw characters or whole words. They use <strong>subword tokenization</strong> (typically BPE or SentencePiece) that splits text into frequent subword units. For example, "unhappiness" might become ["un", "happi", "ness"]. This balances vocabulary size (~32K&ndash;128K tokens) against sequence length. Tokenization directly impacts cost (APIs charge per token), context window utilization, and multilingual capability &mdash; languages with fewer training tokens get less efficient tokenization, meaning the same sentence uses more tokens in Japanese than in English. Understanding tokenization is critical for prompt engineering and cost estimation.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q4 &mdash; Generative vs. Discriminative</div>
+        <p>
+          <strong>Generative (autoregressive) models</strong> like GPT are trained to predict the next token given all previous tokens &mdash; they model P(x<sub>t</sub> | x<sub>1</sub>...x<sub>t-1</sub>) and generate text by sampling from this distribution repeatedly. <strong>Discriminative models</strong> like BERT are trained with masked language modeling (predicting a hidden token given surrounding context in both directions) and are designed for classification, extraction, and understanding tasks rather than open-ended generation. GPT-style models see only leftward context (causal mask), while BERT sees the full sequence bidirectionally. This is why BERT excels at NER and sentiment analysis while GPT excels at chat and content creation.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q5 &mdash; Training Pipeline</div>
+        <p>
+          The pipeline has three stages. <strong>Pre-training</strong>: the model learns general language by predicting the next token on trillions of tokens of internet text &mdash; this is the expensive stage (millions of GPU-hours). <strong>Supervised Fine-Tuning (SFT)</strong>: the pre-trained model is trained on curated prompt-response pairs to follow instructions. <strong>RLHF</strong>: a reward model trained on human preference rankings is used to further optimize the model via Proximal Policy Optimization (PPO), aligning outputs with human expectations for helpfulness, harmlessness, and honesty. Each stage is orders of magnitude cheaper than the previous one, which is why fine-tuning is accessible but pre-training is not.
+        </p>
+      </div>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>
+          <strong>Scenario:</strong> Your team needs to build a real-time customer support chatbot that handles 500 concurrent users with responses under 2 seconds. The product supports 5 languages. Design the inference infrastructure.<br><br>
+          <strong>A strong answer covers:</strong> (1) Model selection &mdash; choosing a model size that fits GPU memory while maintaining quality, likely a 7&ndash;13B parameter model with grouped-query attention to reduce KV cache overhead. (2) Tokenization awareness &mdash; non-English languages consume more tokens per message, so context window budgets differ by language. (3) KV cache management &mdash; calculating memory per concurrent session (e.g., 32 layers &times; 8 KV heads &times; 128 d_head &times; 4096 tokens &times; 2 bytes &approx; 256 MB per session &times; 500 users = 128 GB). (4) Batching strategy &mdash; continuous batching (vLLM/TGI) to maximize throughput. (5) Temperature settings &mdash; low temperature (0.1&ndash;0.3) for factual support answers. (6) Scaling &mdash; horizontal scaling across multiple GPU nodes with a load balancer routing by language to optimize tokenizer-specific caches.
+        </p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Confusing parameters with tokens</strong> &mdash; A 7B-parameter model does not have 7 billion tokens. Parameters are learned weights; tokens are input/output units. Model size (parameters) determines capability and memory footprint; token count determines training data volume and context length.</li>
+        <li><strong>Thinking attention is free</strong> &mdash; Self-attention has O(n&sup2;) complexity in sequence length. Doubling context from 4K to 8K tokens quadruples attention computation. This is why long-context models use optimizations like FlashAttention, sliding window attention, or sparse attention patterns.</li>
+        <li><strong>Ignoring the tokenizer when estimating costs</strong> &mdash; A "short" prompt in English might be 50 tokens but 150 tokens in Korean due to tokenizer efficiency differences. Always run text through the actual tokenizer (e.g., <code>tiktoken</code>) to get accurate token counts before estimating API costs or context window usage.</li>
+      </ul>
 
       <!-- NAVIGATION -->
       <div class="next-section">

@@ -406,6 +406,7 @@ tr:hover td { background: var(--bg-surface); }
     <a href="#bqml-vertex" class="section">9 &middot; BQML to Vertex</a>
     <a href="#cost" class="section">10 &middot; Cost Optimization</a>
     <a href="#exam-focus" class="section">11 &middot; Exam Focus</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <!-- MAIN CONTENT -->
@@ -1203,6 +1204,55 @@ endpoint = model.deploy(
         always "set up model monitoring for prediction drift and feature skew" &mdash; not "retrain immediately"
         or "add more training data." Monitoring gives you the signal; retraining is the response.</p>
       </div>
+    </div>
+
+    <!-- INTERVIEW READY -->
+    <div class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout tip">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>Vertex AI is Google Cloud&rsquo;s unified platform for the full ML lifecycle&mdash;from training to deployment to monitoring. For training, you choose between AutoML (automated architecture search and hyperparameter tuning for standard tasks) and custom training (full control with pre-built or custom containers for novel architectures). For deployment, online endpoints serve real-time predictions with autoscaling and traffic splitting for canary rollouts, while batch prediction handles high-throughput offline scoring. Endpoint management includes traffic splitting across model versions for A/B testing and gradual rollouts. Model monitoring continuously watches for feature skew (training vs serving distributions diverge) and prediction drift (output distribution changes over time), alerting you before degraded models impact users. The architecture principle is: start with AutoML for speed, graduate to custom training for performance, and always deploy with monitoring enabled.</p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead>
+          <tr><th>Question</th><th>What They're Really Asking</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>When would you use AutoML versus custom training?</td><td>Can you match team capability, timeline, and problem complexity to the right training approach?</td></tr>
+          <tr><td>How do you deploy an ML model for real-time serving on GCP?</td><td>Do you understand Vertex AI Endpoints, container serving, autoscaling configuration, and traffic management?</td></tr>
+          <tr><td>How do you handle model versioning and rollbacks in production?</td><td>Can you explain traffic splitting, canary deployments, and the Model Registry&rsquo;s role in version management?</td></tr>
+          <tr><td>What is model monitoring and why is it critical?</td><td>Do you understand feature skew, prediction drift, and how monitoring detects silent model degradation before business impact?</td></tr>
+          <tr><td>How do you optimize ML serving costs on GCP?</td><td>Can you discuss autoscaling policies, machine type selection, batch prediction for offline workloads, and the cost trade-offs of GPUs vs CPUs?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+      <p><strong>AutoML vs Custom Training:</strong> I default to AutoML when the problem maps to a supported task type (image classification, tabular regression, text sentiment), the team doesn&rsquo;t have deep ML expertise, and the timeline is tight. AutoML handles neural architecture search and hyperparameter tuning automatically, often delivering 90%+ of custom model performance in days instead of weeks. I switch to custom training when I need a specific architecture (transformers, graph neural networks), custom loss functions, multi-task learning, or when AutoML&rsquo;s accuracy plateau doesn&rsquo;t meet the business threshold. On Vertex AI, custom training supports pre-built containers (TensorFlow, PyTorch, XGBoost) for standard frameworks and custom containers for anything else.</p>
+
+      <p><strong>Production Deployment:</strong> I upload the trained model to the Vertex AI Model Registry, then deploy it to an endpoint. For real-time serving, I configure the machine type based on latency requirements (GPU for large models, CPU for lightweight ones), set min/max replica counts for autoscaling based on traffic patterns, and use traffic splitting to route 10% of traffic to the new model version while 90% stays on the proven version. I monitor latency, error rates, and prediction distributions. If the canary performs well over 24&ndash;48 hours, I gradually shift traffic to 100%. For high-throughput offline scoring (e.g., nightly batch recommendations), I use batch prediction jobs that spin up resources, process all inputs, write results to BigQuery or Cloud Storage, and shut down&mdash;eliminating idle endpoint costs.</p>
+
+      <p><strong>Model Monitoring:</strong> I configure Vertex AI Model Monitoring with two key detection types. Feature skew monitoring compares the statistical distribution of input features at serving time against the training data baseline&mdash;if a feature&rsquo;s distribution shifts beyond a configured threshold, it triggers an alert. Prediction drift monitoring watches the model&rsquo;s output distribution over time&mdash;if predictions start clustering differently than the baseline period, it signals concept drift. I set up notification channels to Cloud Monitoring and configure sampling rates to balance monitoring coverage against cost. When alerts fire, I investigate whether it&rsquo;s a data pipeline issue or genuine distribution shift, then trigger a retraining pipeline if needed.</p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout info">
+        <div class="callout-label">Design Prompt</div>
+        <p><strong>Scenario:</strong> A ride-sharing company wants to deploy a real-time surge pricing model that predicts demand in each city zone for the next 15 minutes. The model must handle 10,000 predictions per second at peak, update hourly with new data, and minimize serving costs during off-peak hours. Design the architecture.</p>
+        <p><strong>Approach:</strong> Train a custom model (gradient-boosted trees or lightweight neural network) on Vertex AI Custom Training using historical demand data from BigQuery, with features from Vertex AI Feature Store (time-of-day, weather, events, historical demand by zone). Deploy to a Vertex AI Online Endpoint with GPU-backed instances for peak throughput and configure autoscaling with min replicas set to handle baseline traffic and max replicas for peak. Use a Cloud Scheduler + Cloud Function to trigger hourly retraining via a Vertex AI Pipeline: ingest the latest hour&rsquo;s data, retrain, evaluate against the current model, and deploy only if MAE improves. Enable Model Monitoring for prediction drift (surge predictions shifting unexpectedly) and feature skew (weather API format changes). During off-peak hours (2&ndash;6 AM), autoscaling reduces to minimum replicas. For cost optimization, use n1-standard machines with autoscaling rather than over-provisioned GPU instances, and batch non-urgent predictions (like next-day demand forecasts) using batch prediction jobs.</p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Over-provisioning endpoints for peak traffic</strong> &mdash; Running maximum replicas 24/7 wastes significant compute budget. Configure autoscaling with appropriate min/max replicas and scale-down delays. Use batch prediction for offline workloads instead of keeping endpoints running.</li>
+        <li><strong>Deploying without model monitoring</strong> &mdash; Models degrade silently in production as data distributions shift. Without monitoring for feature skew and prediction drift, you won&rsquo;t know your model is underperforming until users complain or business metrics drop&mdash;which could be weeks later.</li>
+        <li><strong>Using custom training when AutoML suffices</strong> &mdash; Building and maintaining custom model code for a standard task (tabular classification, image labeling) adds weeks of engineering effort and ongoing maintenance burden. Always benchmark AutoML first; you can switch to custom training later if needed.</li>
+      </ul>
     </div>
 
     <!-- NAVIGATION -->

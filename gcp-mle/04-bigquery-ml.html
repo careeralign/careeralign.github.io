@@ -410,6 +410,7 @@ code {
     <a href="#hptuning" class="section">8 &middot; Hyperparameter Tuning</a>
     <a href="#comparison" class="section">9 &middot; BQML vs AutoML vs Custom</a>
     <a href="#exam-focus" class="section">10 &middot; Exam Focus</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -1294,6 +1295,54 @@ gcloud ai endpoints deploy-model ENDPOINT_ID \
           Choose precision for "minimize false positives," recall for "minimize false negatives"
         </li>
       </ul>
+
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout tip">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>BigQuery ML lets you create, evaluate, and serve machine learning models using standard SQL directly inside BigQuery&mdash;no data export, no Python, no separate infrastructure. You write <code>CREATE MODEL</code> with a model type (linear regression, logistic regression, k-means, ARIMA_PLUS, boosted trees, DNN, or even imported TensorFlow models), point it at a training query, and BigQuery handles distributed training on its serverless compute. Predictions use <code>ML.PREDICT</code>, evaluation uses <code>ML.EVALUATE</code>, and you can explain predictions with <code>ML.EXPLAIN_PREDICT</code>. The key insight is that BQML is ideal when your data already lives in BigQuery, the team is SQL-fluent, and the model complexity fits supported types. For more complex architectures, you export the BQML model to Vertex AI or switch to custom training entirely.</p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead>
+          <tr><th>Question</th><th>What They're Really Asking</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>When would you use BigQuery ML instead of Vertex AI custom training?</td><td>Can you identify the sweet spot for SQL-based ML vs. full framework control?</td></tr>
+          <tr><td>Walk me through creating and deploying a forecasting model on GCP.</td><td>Do you know ARIMA_PLUS syntax, evaluation metrics, and the path from BQML to a serving endpoint?</td></tr>
+          <tr><td>How does feature engineering work in BigQuery ML?</td><td>Do you understand TRANSFORM clause, automatic preprocessing, and manual SQL-based feature construction?</td></tr>
+          <tr><td>What are the limitations of BigQuery ML?</td><td>Can you articulate where BQML stops being sufficient&mdash;custom loss functions, novel architectures, GPU training, real-time serving?</td></tr>
+          <tr><td>How would you compare BQML, AutoML, and Vertex AI custom training for a tabular classification problem?</td><td>Do you understand the trade-off triangle: speed-to-deploy vs. accuracy ceiling vs. engineering effort?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+      <p><strong>BQML vs Custom Training:</strong> I choose BQML when the data is already in BigQuery (avoiding export costs and latency), the model type is supported (linear/logistic regression, boosted trees, ARIMA_PLUS, k-means, matrix factorization), and the team consists of analysts or data engineers who are SQL-proficient but not ML engineers. BQML delivers a trained, evaluated model in minutes with zero infrastructure. I switch to Vertex AI custom training when I need a transformer architecture, custom loss functions, distributed GPU training, or real-time sub-10ms inference that BQML batch predictions cannot satisfy.</p>
+
+      <p><strong>ARIMA_PLUS Forecasting:</strong> I create a time-series model with <code>CREATE MODEL ... OPTIONS(model_type='ARIMA_PLUS', time_series_timestamp_col='date', time_series_data_col='revenue')</code>. ARIMA_PLUS automatically handles seasonality detection, holiday effects, and trend decomposition. I evaluate with <code>ML.EVALUATE</code> checking AIC, variance, and seasonal periods. For predictions, <code>ML.FORECAST</code> returns point estimates with confidence intervals. If the forecast needs to serve a dashboard, I materialize predictions into a BigQuery table and connect Looker. If it needs a REST endpoint, I export the model to Vertex AI and deploy to an endpoint.</p>
+
+      <p><strong>Feature Engineering in BQML:</strong> BQML provides the <code>TRANSFORM</code> clause that embeds preprocessing into the model artifact itself, so the same transformations apply at prediction time automatically. Supported transforms include <code>ML.BUCKETIZE</code>, <code>ML.QUANTILE_BUCKETIZE</code>, <code>ML.FEATURE_CROSS</code>, <code>ML.POLYNOMIAL_EXPAND</code>, and standard SQL functions. For features BQML cannot express, I pre-compute them in a SQL view or scheduled query and feed that into <code>CREATE MODEL</code>. The TRANSFORM clause is critical because it prevents training-serving skew&mdash;the model carries its preprocessing logic.</p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout info">
+        <div class="callout-label">Design Prompt</div>
+        <p><strong>Scenario:</strong> An online marketplace wants to predict customer churn (binary classification) using transaction history stored in BigQuery (500M rows, 40 features). They also need weekly revenue forecasts per product category. The analytics team knows SQL but not Python. Design the ML architecture.</p>
+        <p><strong>Approach:</strong> For churn prediction, use BQML with <code>model_type='BOOSTED_TREE_CLASSIFIER'</code> since the data is already in BigQuery, the team is SQL-fluent, and boosted trees handle tabular classification well. Use the <code>TRANSFORM</code> clause for feature scaling and bucketing. Evaluate with <code>ML.EVALUATE</code> (precision, recall, AUC) and explain top features with <code>ML.GLOBAL_EXPLAIN</code>. For revenue forecasting, use <code>model_type='ARIMA_PLUS'</code> partitioned by product_category. Schedule weekly retraining with BigQuery Scheduled Queries. Materialize churn scores into a <code>churn_predictions</code> table that the CRM reads via API, and forecast results into a <code>revenue_forecast</code> table connected to a Looker dashboard. If churn model accuracy plateaus below target, export to Vertex AI and try AutoML Tabular for a higher accuracy ceiling with minimal extra effort.</p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Using BQML for everything</strong> &mdash; BQML is powerful for supported model types on tabular data, but recommending it for image classification, NLP, or real-time serving shows you do not understand its boundaries. Always state what BQML cannot do.</li>
+        <li><strong>Forgetting the TRANSFORM clause</strong> &mdash; Manually preprocessing features in the training query but not replicating that logic at prediction time causes training-serving skew. The TRANSFORM clause solves this&mdash;mention it explicitly.</li>
+        <li><strong>Ignoring the export-to-Vertex path</strong> &mdash; Many candidates treat BQML and Vertex AI as completely separate. Knowing that you can export a BQML model to Vertex AI Model Registry for online serving or further tuning demonstrates full-stack understanding of the GCP ML ecosystem.</li>
+      </ul>
+    </section>
 
       <!-- NAVIGATION -->
       <div class="next-section">

@@ -415,6 +415,7 @@ code {
     <a href="#deployment-gates" class="sub">Deployment Gates</a>
     <a href="#pipelines-preview" class="section">9 &middot; Pipelines Overview</a>
     <a href="#exam-focus" class="section">10 &middot; Exam Focus</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -1295,6 +1296,132 @@ schedule = pipeline_job.<span class="code-fn">create_schedule</span>(
           Level 2 maturity adds CI/CD <strong>for the pipeline code itself</strong>, not just for the model.
         </li>
       </ul>
+
+    <!-- ═══════════════════════════════════════════
+         INTERVIEW READY
+         ═══════════════════════════════════════════ -->
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>
+          MLOps is the discipline of deploying, monitoring, and continuously improving ML models in production. It extends
+          DevOps principles to machine learning by treating the <strong>pipeline as the deployable unit</strong>, not just
+          the model. Google defines three maturity levels: Level 0 is manual (notebook-to-deployment), Level 1 adds
+          automated training pipelines with triggers for data drift or schedule, and Level 2 adds CI/CD for the pipeline
+          code itself — testing data schemas, model performance, and infrastructure as code. On GCP, Vertex AI provides
+          integrated tooling: Experiments for tracking hyperparameters and metrics across runs, Model Registry for
+          versioning with champion/challenger aliases, Metadata Store for full lineage from data to deployed endpoint,
+          and Pipelines for orchestrating reproducible ML workflows. The key exam insight is that MLOps maturity is about
+          <strong>automation breadth</strong> — Level 0 automates nothing, Level 1 automates training, Level 2 automates
+          everything including testing and deployment of the pipeline itself.
+        </p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>What are the three MLOps maturity levels and how do they differ?</td><td>Can you articulate the progression from manual processes to fully automated ML pipelines with CI/CD?</td></tr>
+          <tr><td>How does MLOps differ from traditional DevOps?</td><td>Do you understand that ML systems have data dependencies, model decay, and experiment tracking needs that standard DevOps doesn't address?</td></tr>
+          <tr><td>Walk me through how you would set up continuous training for a production model.</td><td>Can you design trigger-based retraining with validation gates, data checks, and automated deployment?</td></tr>
+          <tr><td>What role does experiment tracking play in MLOps, and how does Vertex AI Experiments work?</td><td>Do you know how to log metrics, compare runs, and use experiment results to make promotion decisions?</td></tr>
+          <tr><td>How do you implement CI/CD for ML pipelines on GCP?</td><td>Can you describe testing strategies (data validation, model performance tests, infrastructure tests) and deployment gates for ML systems?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <p>
+        <strong>1. MLOps maturity levels</strong> —
+        Level 0 (Manual) means data scientists train models in notebooks and hand them off to engineers for deployment.
+        There is no automation, no monitoring, and retraining requires manual intervention. Level 1 (Pipeline Automation)
+        introduces automated training pipelines triggered by schedules, data drift detection, or performance degradation.
+        The pipeline handles data validation, feature engineering, training, evaluation, and deployment as a single
+        orchestrated workflow. Feature stores ensure training-serving consistency. Level 2 (CI/CD Automation) adds
+        automated testing and deployment of the pipeline code itself — unit tests for data processing components,
+        integration tests for the full pipeline, model validation gates that compare against champion models, and
+        infrastructure-as-code for reproducible environments. The key distinction: Level 1 automates model training,
+        Level 2 automates pipeline development.
+      </p>
+
+      <p>
+        <strong>2. MLOps vs traditional DevOps</strong> —
+        Traditional DevOps manages code deployments where the same input always produces the same output. ML systems
+        add three unique challenges: data dependencies (model behavior changes when data distribution shifts, even without
+        code changes), model decay (performance degrades over time as real-world patterns evolve), and experiment management
+        (teams run hundreds of training experiments with different hyperparameters, features, and architectures). MLOps
+        addresses these by adding data validation pipelines, continuous monitoring for prediction drift, feature stores
+        for consistent feature computation, experiment tracking for reproducibility, and model registries for versioning.
+        The testing surface is also larger — you test not just code correctness but data quality, model performance,
+        fairness metrics, and serving latency.
+      </p>
+
+      <p>
+        <strong>3. Setting up continuous training</strong> —
+        Start by defining triggers: a scheduled trigger (e.g., weekly retraining), a data-drift trigger (statistical
+        tests detect distribution shifts in incoming features), and a performance trigger (monitoring shows accuracy
+        dropping below a threshold). When triggered, the pipeline executes: pull fresh data, validate schemas and
+        distributions against a reference baseline, compute features via the Feature Store, train the model, evaluate
+        against hold-out data and the current champion model. If the new model passes all validation gates — accuracy
+        above threshold, fairness metrics within bounds, latency under SLA — it is registered in Model Registry with a
+        "challenger" alias. A canary deployment routes 5-10% of traffic to the challenger. If metrics hold, the alias
+        is promoted to "champion" and traffic shifts fully.
+      </p>
+
+      <p>
+        <strong>4. Experiment tracking with Vertex AI</strong> —
+        Vertex AI Experiments provides a managed experiment tracking service integrated with the Vertex training
+        infrastructure. You create an experiment, then log runs with parameters (learning rate, batch size, architecture),
+        metrics (accuracy, loss, F1), and artifacts (model checkpoints, evaluation plots). The SDK lets you log metrics
+        with <code>aiplatform.log_metrics()</code> and parameters with <code>aiplatform.log_params()</code>. The UI
+        provides comparison views to visualize metric trends across runs, identify the best-performing configuration,
+        and trace lineage from experiment to deployed model. This is critical for reproducibility — every production
+        model can be traced back to the exact data, code, and parameters that produced it.
+      </p>
+
+      <p>
+        <strong>5. CI/CD for ML pipelines</strong> —
+        ML CI/CD has three testing layers. First, unit tests validate individual pipeline components — data preprocessing
+        functions, feature transformations, and model inference logic. Second, integration tests run the full pipeline on
+        a small dataset to verify end-to-end correctness, including data schema validation (using tools like TensorFlow
+        Data Validation), feature distribution checks, and model output format verification. Third, model validation tests
+        compare the newly trained model against the production champion on a held-out evaluation set — the new model must
+        meet minimum performance thresholds and not regress on critical slices. Deployment gates enforce these checks:
+        Cloud Build triggers on pipeline code changes, runs tests, and only deploys the updated pipeline if all gates
+        pass. The pipeline itself then handles model deployment with canary or blue-green strategies.
+      </p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>
+          Your company operates an e-commerce recommendation engine serving 10 million users. The model retrains
+          manually every quarter, and you have noticed recommendation quality degrades significantly within weeks of
+          each retraining. Design an MLOps architecture on GCP that moves this system to Level 2 maturity.
+        </p>
+        <p>A strong answer should cover:</p>
+        <ul>
+          <li><strong>Continuous training triggers</strong> — daily feature drift monitoring using Vertex Model Monitoring, scheduled weekly retraining, and performance-triggered retraining when click-through rate drops below threshold</li>
+          <li><strong>Pipeline orchestration</strong> — Vertex AI Pipelines with KFP components for data extraction (BigQuery), feature computation (Feature Store), training (Vertex Training with GPUs), evaluation, and conditional deployment</li>
+          <li><strong>Testing and validation</strong> — TFDV for schema validation, automated A/B comparison against champion model, fairness checks across user segments, and latency regression tests on the serving endpoint</li>
+          <li><strong>Model management</strong> — Model Registry with champion/challenger aliases, canary deployment routing 5% traffic to challenger, automated promotion based on online metrics after 48-hour evaluation window</li>
+          <li><strong>CI/CD for pipeline code</strong> — Cloud Build triggers on pipeline repo changes, unit and integration tests, pipeline deployment to staging environment first, then production after manual approval gate</li>
+        </ul>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Confusing model deployment with pipeline deployment</strong> — Level 2 maturity means you have CI/CD for the pipeline code, not just for model artifacts. Many candidates describe automated model retraining (Level 1) and call it Level 2. The distinguishing factor is whether changes to the pipeline code itself go through automated testing and deployment.</li>
+        <li><strong>Ignoring data validation in CI/CD</strong> — ML systems fail silently when data quality degrades. A proper MLOps setup validates data schemas, feature distributions, and label quality before training begins. Without data validation gates, you can retrain a model on corrupted data and deploy it automatically — making the automation harmful rather than helpful.</li>
+        <li><strong>Treating experiment tracking as optional</strong> — Without experiment tracking, teams cannot reproduce results, compare approaches systematically, or audit why a particular model was deployed. Vertex AI Experiments provides lineage from training run to deployed endpoint, which is essential for debugging production issues and meeting compliance requirements.</li>
+      </ul>
+    </section>
 
       <!-- NAVIGATION -->
       <div class="next-section">

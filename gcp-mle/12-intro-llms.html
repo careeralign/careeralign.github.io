@@ -402,6 +402,7 @@ code {
     <a href="#inference-opt" class="section">9 &middot; Inference Optimization</a>
     <a href="#quantization" class="sub">Quantization &amp; Distillation</a>
     <a href="#exam-focus" class="section">10 &middot; Exam Focus</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -1017,6 +1018,61 @@ code {
         <div class="callout-label">Exam Strategy</div>
         <p>The exam always rewards the <strong>simplest effective solution</strong>. Start with prompt engineering. If that fails, try fine-tuning. If you need full control, use open models. If the task does not require generation, skip LLMs entirely and use traditional ML. Cost-effectiveness and operational simplicity are valued over technical sophistication.</p>
       </div>
+    </section>
+
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>Large Language Models are transformer-based neural networks with billions of parameters, pre-trained on massive text corpora using next-token prediction. They acquire broad language understanding during pre-training, then get specialized through fine-tuning (full, LoRA, or prompt tuning) or in-context learning via prompt engineering. On GCP, Google offers the Gemini family (multimodal, up to 1M token context) and the open-weight Gemma models. The key engineering decisions are choosing between prompt engineering (cheapest, fastest iteration), parameter-efficient fine-tuning like LoRA (good quality-cost balance), and full fine-tuning (maximum control but highest cost), while managing inference costs through quantization and distillation.</p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>What is the difference between pre-training and fine-tuning an LLM?</td><td>Do you understand that pre-training learns general language on massive data, while fine-tuning adapts a pre-trained model to a specific task with smaller, targeted data?</td></tr>
+          <tr><td>When would you use LoRA instead of full fine-tuning?</td><td>Can you reason about the trade-off between training cost, number of trainable parameters, and model quality for production use cases?</td></tr>
+          <tr><td>How do you handle an LLM that hallucinates facts?</td><td>Do you know mitigation strategies: RAG for grounding, lower temperature, structured output, fine-tuning on verified data, and guardrails?</td></tr>
+          <tr><td>Explain the transformer attention mechanism at a high level.</td><td>Can you explain self-attention (queries, keys, values) and why it enables capturing long-range dependencies better than RNNs?</td></tr>
+          <tr><td>How do you reduce LLM inference cost in production?</td><td>Do you know quantization (FP16, INT8, INT4), distillation to smaller models, KV-cache optimization, batching, and when to use smaller task-specific models instead?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <h4>1. Pre-training vs Fine-tuning</h4>
+      <p>Pre-training trains the model from scratch on terabytes of text using self-supervised next-token prediction. This is enormously expensive (millions of dollars, thousands of GPUs). The model learns grammar, facts, reasoning patterns, and world knowledge. Fine-tuning takes a pre-trained model and continues training on a smaller, task-specific dataset. It can adjust all parameters (full fine-tuning), a small set of added parameters (LoRA/adapters), or just the prompt embedding (prompt tuning). Fine-tuning is orders of magnitude cheaper and lets you specialize a general model for your domain without starting from scratch.</p>
+
+      <h4>2. LoRA vs Full Fine-tuning</h4>
+      <p>LoRA (Low-Rank Adaptation) freezes the original model weights and injects small trainable low-rank matrices into attention layers, typically training less than 1% of total parameters. Use LoRA when you have limited GPU memory, need to serve multiple task-specific adapters from a single base model, or want fast iteration. Use full fine-tuning when you have abundant compute, a large task-specific dataset, and need maximum quality. QLoRA adds 4-bit quantization of the base model, allowing fine-tuning of 70B models on a single GPU. On Vertex AI, supervised fine-tuning of Gemini uses adapter-based tuning by default.</p>
+
+      <h4>3. Handling LLM Hallucinations</h4>
+      <p>Hallucinations occur because LLMs generate plausible-sounding text based on statistical patterns, not factual verification. Mitigation strategies: (1) Retrieval-Augmented Generation (RAG) grounds responses in retrieved documents. (2) Lower temperature reduces randomness. (3) Instruct the model to cite sources and say "I don't know." (4) Fine-tune on domain-specific verified data. (5) Add post-generation fact-checking with a verification pipeline. (6) Use structured outputs (JSON schemas) to constrain generation. The exam favors RAG as the first-line solution for factual grounding.</p>
+
+      <h4>4. Transformer Attention Mechanism</h4>
+      <p>Self-attention lets every token in a sequence attend to every other token, computing relevance scores. Each token is projected into three vectors: Query (what am I looking for?), Key (what do I contain?), and Value (what information do I provide?). Attention scores are computed as softmax(QK^T / sqrt(d_k)) * V. Multi-head attention runs multiple attention computations in parallel, each head learning different relationship patterns (syntactic, semantic, positional). This mechanism is why transformers outperform RNNs: they capture long-range dependencies in O(1) sequential steps rather than O(n), though at O(n^2) memory cost per layer.</p>
+
+      <h4>5. Reducing LLM Inference Cost</h4>
+      <p>Start with model selection: use the smallest model that meets quality requirements. Apply quantization: FP32 to FP16 halves memory with minimal quality loss; INT8 and INT4 (GPTQ, AWQ) further reduce memory and speed up inference. Use KV-cache to avoid recomputing attention for previous tokens. Implement request batching to amortize GPU overhead. For high-volume, consider distillation: train a smaller student model to mimic the larger teacher. On GCP, use Vertex AI endpoints with autoscaling and GPU machine types matched to model size. If the task is narrow (classification, extraction), a fine-tuned smaller model often beats a general-purpose large model in both cost and latency.</p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>Your company has 50,000 internal technical documents and wants to build an AI assistant that answers employee questions accurately, citing specific documents. The assistant must handle 500 concurrent users, respond within 3 seconds, and never fabricate information about company policies. Design the system on GCP, choosing between fine-tuning a model on company data versus RAG, and explain your serving architecture including model selection, infrastructure, and cost controls.</p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Jumping to fine-tuning when prompt engineering suffices</strong> &mdash; Fine-tuning is expensive and slow to iterate. Always start with prompt engineering and few-shot examples; only fine-tune when you have clear evidence that prompting cannot achieve required quality.</li>
+        <li><strong>Confusing context window size with model knowledge</strong> &mdash; A larger context window lets you pass more text at inference time, but the model's parametric knowledge comes from pre-training data. RAG bridges this gap by injecting relevant external knowledge into the context at query time.</li>
+        <li><strong>Ignoring quantization trade-offs</strong> &mdash; Quantizing to INT4 dramatically reduces memory and cost, but can degrade quality on reasoning-heavy tasks. Always benchmark quantized models on your specific use case before deploying to production.</li>
+      </ul>
     </section>
 
     <!-- PREV / NEXT -->

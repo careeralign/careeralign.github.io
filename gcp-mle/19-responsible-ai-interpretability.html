@@ -408,6 +408,7 @@ tr:hover td { background: var(--bg-surface); }
     <a href="#transparency" class="section">8 &middot; Transparency Practices</a>
     <a href="#genai-explain" class="section">9 &middot; Explaining GenAI</a>
     <a href="#exam-focus" class="section">10 &middot; Exam Focus</a>
+    <a href="#interview" class="section">&#127919; Interview Ready</a>
   </aside>
 
   <!-- MAIN CONTENT -->
@@ -1033,6 +1034,87 @@ model = aiplatform.Model.<span class="code-fn">upload</span>(
         Use SHAP force plot or LIME. Need visual explanation for images? Use XRAI on Vertex AI. Need
         no-code exploration? Use What-If Tool. Need documentation? Use Model Cards.</p>
       </div>
+    </div>
+
+    <!-- INTERVIEW READY -->
+    <div class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">&#127919;</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>
+          Model interpretability is the ability to explain <strong>why</strong> an ML model made a specific prediction. This matters for debugging, regulatory compliance, stakeholder trust, and identifying bias. Techniques fall into two categories: <strong>model-agnostic</strong> methods that work with any model, and <strong>model-specific</strong> methods built into particular architectures. <strong>SHAP</strong> (SHapley Additive exPlanations) uses game-theoretic Shapley values to assign each feature an additive contribution to the prediction &mdash; it is theoretically grounded but computationally expensive. <strong>LIME</strong> (Local Interpretable Model-agnostic Explanations) fits a simple interpretable model (linear regression) around a single prediction's neighborhood &mdash; fast but less consistent across runs. On Google Cloud, <strong>Vertex Explainable AI</strong> provides built-in feature attributions using sampled Shapley, integrated gradients (for neural networks), and <strong>XRAI</strong> (for image models that highlights salient regions). The <strong>What-If Tool</strong> adds interactive counterfactual exploration. For generative AI, interpretability shifts to attention visualization, chain-of-thought prompting, and grounding with citations. The key engineering skill is choosing the right explanation method for your model type, audience, and regulatory requirements.
+        </p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table class="data-table">
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>Explain the difference between SHAP and LIME. When would you choose one over the other?</td><td>Do you understand Shapley values vs. local surrogate models, and the consistency/speed trade-offs?</td></tr>
+          <tr><td>What is the difference between global and local interpretability?</td><td>Can you explain feature importance for the model overall vs. explaining a single prediction?</td></tr>
+          <tr><td>How does Vertex Explainable AI work? What methods does it support?</td><td>Do you know sampled Shapley, integrated gradients, and XRAI, and when each applies?</td></tr>
+          <tr><td>How would you explain a deep learning model's predictions to a non-technical stakeholder?</td><td>Can you translate technical explanations into business-meaningful narratives?</td></tr>
+          <tr><td>What are the limitations of feature attribution methods?</td><td>Do you understand that attributions can be unstable, computationally expensive, and may not capture feature interactions?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <div class="callout">
+        <div class="callout-label">Q1 &mdash; SHAP vs. LIME</div>
+        <p>
+          <strong>SHAP</strong> is based on Shapley values from cooperative game theory. It computes the average marginal contribution of each feature across all possible feature coalitions. This gives it strong theoretical properties: <strong>consistency</strong> (if a feature's contribution increases, its SHAP value never decreases), <strong>additivity</strong> (SHAP values sum to the difference between the prediction and the baseline), and <strong>symmetry</strong>. However, exact SHAP is exponential in feature count, so practical implementations use approximations (Kernel SHAP, Tree SHAP). <strong>LIME</strong> perturbs the input, generates predictions for perturbed samples, then fits a weighted linear model locally. It is fast and intuitive but can be <strong>unstable</strong> &mdash; different runs may produce different explanations depending on the perturbation sampling. Choose SHAP when you need mathematically consistent, auditable explanations (regulatory contexts). Choose LIME when you need quick, approximate explanations for debugging during development.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q2 &mdash; Global vs. Local Interpretability</div>
+        <p>
+          <strong>Global interpretability</strong> explains the model's overall behavior: which features are most important across all predictions, what patterns the model has learned, and how features interact in aggregate. Methods include SHAP summary plots, permutation importance, and partial dependence plots. <strong>Local interpretability</strong> explains a single prediction: why this specific customer was denied a loan, why this specific image was classified as malignant. Methods include SHAP force plots, LIME explanations, and counterfactual examples ("if income were $10K higher, the prediction would flip"). Both are necessary: global interpretability validates that the model has learned reasonable patterns, while local interpretability supports individual decision explanations required by regulations like the EU AI Act's right to explanation.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q3 &mdash; Vertex Explainable AI</div>
+        <p>
+          Vertex Explainable AI provides feature attributions automatically when you deploy a model to a Vertex AI endpoint. Three methods are supported: (1) <strong>Sampled Shapley</strong> &mdash; approximates Shapley values by sampling feature permutations. Works with any model (tabular, text, image). (2) <strong>Integrated Gradients</strong> &mdash; computes attributions by integrating gradients along the path from a baseline input to the actual input. Specific to differentiable models (neural networks). More efficient than Shapley for large feature spaces. (3) <strong>XRAI</strong> &mdash; designed for images. It segments the image into regions and ranks them by attribution, producing human-interpretable saliency maps that highlight which parts of the image drove the prediction. You configure the explanation method in the model's metadata when deploying, and attributions are returned alongside predictions in the API response.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q4 &mdash; Explaining DL to Non-Technical Stakeholders</div>
+        <p>
+          The key is translating feature attributions into domain language. Instead of saying "feature X has a SHAP value of 0.34," say "the model's decision was primarily driven by the patient's elevated blood pressure and age &mdash; these two factors accounted for 70% of the risk score." For images, show the XRAI saliency map: "the model focused on this region of the X-ray, which corresponds to where radiologists typically look for this condition." Use <strong>counterfactual explanations</strong> for actionable insights: "if the customer's credit utilization were below 30%, the model would have approved the loan." Always pair explanations with confidence levels and known limitations. The What-If Tool is excellent for live demos with stakeholders because it allows interactive "what-if" exploration without requiring technical expertise.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q5 &mdash; Limitations of Feature Attributions</div>
+        <p>
+          (1) <strong>Instability</strong> &mdash; LIME explanations can vary across runs due to random perturbation sampling. Even SHAP approximations have variance. (2) <strong>Feature interactions</strong> &mdash; additive attribution methods struggle to capture synergistic effects (two features that are only important together). SHAP interaction values exist but are expensive. (3) <strong>Baseline dependence</strong> &mdash; integrated gradients and SHAP require a baseline input; different baselines produce different attributions. (4) <strong>Computational cost</strong> &mdash; exact Shapley values are exponential; approximations trade accuracy for speed. (5) <strong>Correlation confusion</strong> &mdash; when features are highly correlated, attributions may be split arbitrarily between them. (6) <strong>Not causal</strong> &mdash; attributions show statistical associations, not causal relationships. A feature with high attribution is not necessarily a lever you can pull to change outcomes.
+        </p>
+      </div>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>
+          <strong>Scenario:</strong> A healthcare company deploys a deep learning model for cancer screening on medical images. Regulators require that every positive prediction comes with an explanation. Radiologists need to understand what the model sees. Design the interpretability system.<br><br>
+          <strong>A strong answer covers:</strong> (1) Explanation method &mdash; XRAI for image region attribution, generating saliency maps that highlight suspicious areas. Deploy with Vertex Explainable AI configured for XRAI. (2) Visualization &mdash; overlay saliency maps on the original image with a heat map, highlighting the top-3 contributing regions. (3) Confidence calibration &mdash; pair explanations with calibrated probability scores so radiologists understand the model's certainty. (4) Counterfactuals &mdash; show similar images that were classified differently to give context ("this similar image was classified as benign because region X was absent"). (5) Radiologist workflow &mdash; explanations appear alongside the image in the diagnostic tool, not in a separate system. (6) Audit logging &mdash; store every prediction with its explanation for regulatory review. (7) Validation &mdash; have radiologists evaluate whether model-highlighted regions align with clinically relevant features. (8) Failure modes &mdash; document known cases where explanations are misleading (e.g., the model attends to image artifacts rather than tissue).
+        </p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Confusing interpretability with accuracy</strong> &mdash; A model can have high accuracy but be uninterpretable (deep neural networks), or be highly interpretable but less accurate (linear models). Interpretability is an additional requirement, not a substitute for performance. Choose the right balance based on the use case's risk level and regulatory requirements.</li>
+        <li><strong>Using LIME for regulatory explanations</strong> &mdash; LIME's instability (different explanations for the same input across runs) makes it unsuitable for auditable, legally binding explanations. SHAP-based methods are preferred for compliance contexts because of their consistency guarantees and additive faithfulness property.</li>
+        <li><strong>Treating feature attributions as causal</strong> &mdash; Attribution methods reveal correlational patterns, not causal mechanisms. Saying "the model denied the loan because of zip code" is technically a statement about statistical association, not causation. This distinction matters for both regulatory reporting and actionable recommendations to end users.</li>
+      </ul>
     </div>
 
     <!-- NAVIGATION -->

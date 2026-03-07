@@ -110,6 +110,7 @@
     <a href="#results" class="section">10. Results</a>
     <a href="#production" class="section">11. Production</a>
     <a href="#exam-tips" class="section">12. Exam Tips</a>
+    <a href="#portfolio" class="section">🛠️ Build Your Portfolio</a>
   </aside>
 
   <!-- ──── MAIN ──── -->
@@ -1294,6 +1295,53 @@ prototype = tf.reduce_mean(new_defect_embeddings, axis=<span class="code-num">0<
           about computer vision pipelines on GCP.
         </p>
       </div>
+    </div>
+
+    <!-- ════════════════ BUILD YOUR PORTFOLIO ════════════════ -->
+    <div class="section" id="portfolio">
+      <div class="section-header">
+        <div class="section-num">🛠️</div>
+        <h2>Build Your Portfolio</h2>
+      </div>
+
+      <h3>Fork &amp; Extend</h3>
+      <p>Turn this notebook into a portfolio project in 5 steps:</p>
+      <ol>
+        <li><strong>Fork the notebook</strong> — Clone the repo and open in Google Colab or locally.</li>
+        <li><strong>Swap in real data</strong> — Replace the synthetic dataset with the <strong>MVTec Anomaly Detection (MVTec AD)</strong> dataset, which contains 5,354 high-resolution images across 15 object and texture categories with pixel-level defect annotations. Download it at <a href="https://www.mvtec.com/company/research/datasets/mvtec-ad" target="_blank" rel="noopener">mvtec.com/company/research/datasets/mvtec-ad</a>.</li>
+        <li><strong>Add defect localization</strong> — Go beyond classification by implementing Grad-CAM or segmentation-based localization that draws bounding boxes or heatmaps around the exact defect region. This shows inspectors <em>where</em> the defect is, not just <em>that</em> it exists.</li>
+        <li><strong>Deploy it</strong> — Wrap it in a Gradio app with an image upload zone, a pass/fail verdict with confidence score, a Grad-CAM heatmap overlay highlighting the defect region, and a defect-type classification label.</li>
+        <li><strong>Write a README</strong> — Include architecture diagram, setup instructions, sample outputs, and metrics.</li>
+      </ol>
+
+      <h3>What Hiring Managers Look For</h3>
+      <div class="callout">
+        <div class="callout-label">Pro Tip</div>
+        <p>
+          Computer vision portfolios stand out when they demonstrate awareness of <strong>production deployment constraints</strong>.
+          Include inference latency benchmarks (ms per image) and model size comparisons (MobileNetV2 vs. EfficientNet vs. ResNet50) showing the accuracy-latency trade-off.
+          Show per-class precision and recall broken down by defect type, and explain why high recall matters more than high precision in safety-critical manufacturing (a missed crack is far more costly than a false alarm).
+          Bonus points for demonstrating TFLite or ONNX model conversion for edge deployment.
+        </p>
+      </div>
+
+      <h3>Public Datasets to Use</h3>
+      <ul>
+        <li><strong>MVTec Anomaly Detection (MVTec AD)</strong> — 5,354 images across 15 categories (carpet, grid, leather, metal nut, etc.) with pixel-precise defect masks. Available at mvtec.com. The industry-standard benchmark for unsupervised anomaly detection and defect segmentation.</li>
+        <li><strong>NEU Surface Defect Database</strong> — 1,800 grayscale images of hot-rolled steel strips with six defect types (crazing, inclusion, patches, pitting, rolled-in scale, scratches). Available from Northeastern University. Excellent for multi-class defect classification on real metal surfaces.</li>
+        <li><strong>Severstal Steel Defect Detection</strong> — 12,568 steel sheet images with pixel-level defect segmentation masks across four defect classes. Available on Kaggle. Great for segmentation-based defect detection with real industrial imagery and class imbalance.</li>
+      </ul>
+
+      <h3>Deployment Options</h3>
+      <table>
+        <thead><tr><th>Platform</th><th>Best For</th><th>Effort</th></tr></thead>
+        <tbody>
+          <tr><td>Streamlit</td><td>Inspection dashboard with image upload, defect heatmap overlay, and historical defect rate charts</td><td>Low</td></tr>
+          <tr><td>Gradio</td><td>Drag-and-drop defect classifier with real-time Grad-CAM visualization and confidence scores</td><td>Low</td></tr>
+          <tr><td>FastAPI</td><td>Image scoring API accepting base64-encoded images and returning defect class, confidence, and bounding boxes</td><td>Medium</td></tr>
+          <tr><td>Docker + Cloud Run</td><td>Production inspection microservice with GPU inference, batch processing, and integration with MES systems</td><td>High</td></tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- ═══════════════ PREV / NEXT NAV ═══════════════ -->

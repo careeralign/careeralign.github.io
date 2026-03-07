@@ -128,6 +128,7 @@
     <a href="#results" class="section">10. Results</a>
     <a href="#production" class="section">11. Production Concerns</a>
     <a href="#notebook" class="section">12. Hands-On Notebook</a>
+    <a href="#portfolio" class="section">🛠️ Build Your Portfolio</a>
   </aside>
 
   <!-- Main Content -->
@@ -1440,6 +1441,52 @@ top_features = sorted(
         Pub/Sub) are shown as annotated comments so you can run the ML portions locally
         while understanding how each step maps to the cloud architecture.
       </p>
+    </div>
+
+    <!-- ════════════════ BUILD YOUR PORTFOLIO ════════════════ -->
+    <div class="section" id="portfolio">
+      <div class="section-header">
+        <div class="section-num">🛠️</div>
+        <h2>Build Your Portfolio</h2>
+      </div>
+
+      <h3>Fork &amp; Extend</h3>
+      <p>Turn this notebook into a portfolio project in 5 steps:</p>
+      <ol>
+        <li><strong>Fork the notebook</strong> — Clone the repo and open in Google Colab or locally.</li>
+        <li><strong>Swap in real data</strong> — Replace the synthetic dataset with the <strong>IEEE-CIS Fraud Detection</strong> dataset from Kaggle (590K transactions with 400+ engineered features). Download it at <a href="https://www.kaggle.com/c/ieee-fraud-detection" target="_blank" rel="noopener">kaggle.com/c/ieee-fraud-detection</a>.</li>
+        <li><strong>Add graph-based features</strong> — Build a transaction graph linking cards, devices, and email domains. Compute PageRank and community detection scores to capture fraud rings that single-transaction models miss.</li>
+        <li><strong>Deploy it</strong> — Wrap it in a FastAPI app with a transaction payload endpoint that returns a fraud probability score, risk tier (low/medium/high), and top contributing features. Add a Streamlit dashboard for analysts to review flagged transactions.</li>
+        <li><strong>Write a README</strong> — Include architecture diagram, setup instructions, sample outputs, and metrics.</li>
+      </ol>
+
+      <h3>What Hiring Managers Look For</h3>
+      <div class="callout">
+        <div class="callout-label">Pro Tip</div>
+        <p>
+          Fraud detection portfolios stand out when they demonstrate awareness of <strong>class imbalance handling</strong> (SMOTE, class weights, focal loss) and use <strong>precision-recall curves instead of ROC-AUC</strong> as the primary evaluation metric.
+          Show that you understand the business trade-off: a model with 95% precision blocks $X in fraud but also creates $Y in customer friction from false declines.
+          Include latency benchmarks proving your model can score transactions within the 100ms SLA that payment processors require.
+        </p>
+      </div>
+
+      <h3>Public Datasets to Use</h3>
+      <ul>
+        <li><strong>IEEE-CIS Fraud Detection</strong> — 590K e-commerce transactions with 400+ features including device fingerprints, card hashes, and time-delta patterns. Available on Kaggle. The gold standard for tabular fraud detection projects.</li>
+        <li><strong>Credit Card Fraud (ULB)</strong> — 284K European credit card transactions with 28 PCA-transformed features and only 492 fraud cases (0.17% positive rate). Available on Kaggle. Perfect for demonstrating extreme class imbalance techniques.</li>
+        <li><strong>PaySim Mobile Money</strong> — 6.3M synthetic mobile money transactions modeled after real transaction logs from an African mobile financial service. Available on Kaggle. Great for demonstrating streaming fraud detection on high-volume data.</li>
+      </ul>
+
+      <h3>Deployment Options</h3>
+      <table>
+        <thead><tr><th>Platform</th><th>Best For</th><th>Effort</th></tr></thead>
+        <tbody>
+          <tr><td>Streamlit</td><td>Analyst dashboard for reviewing flagged transactions with SHAP explanations</td><td>Low</td></tr>
+          <tr><td>Gradio</td><td>Quick demo where users paste transaction JSON and see fraud score with feature importance</td><td>Low</td></tr>
+          <tr><td>FastAPI</td><td>Low-latency scoring API returning fraud probability within 50ms for payment gateway integration</td><td>Medium</td></tr>
+          <tr><td>Docker + Cloud Run</td><td>Production fraud scoring microservice with auto-scaling for transaction volume spikes</td><td>High</td></tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- ── Prev / Next ────────────────────────────────────────── -->

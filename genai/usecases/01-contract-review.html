@@ -87,6 +87,7 @@
     <a href="#prod-legal" class="sub">Legal Requirements</a>
     <a href="#prod-integration" class="sub">CLM Integration</a>
     <a href="#try-it" class="section">7 &middot; Try It Yourself</a>
+    <a href="#portfolio" class="section">🛠️ Build Your Portfolio</a>
   </aside>
 
   <main class="main">
@@ -1143,6 +1144,47 @@ CLAUSE_WEIGHTS = {
       </p>
     </div>
 
+
+    <div class="section" id="portfolio">
+      <div class="section-header">
+        <div class="section-num">🛠️</div>
+        <h2>Build Your Portfolio</h2>
+      </div>
+
+      <h3>Fork &amp; Extend</h3>
+      <p>Turn this notebook into a portfolio project in 5 steps:</p>
+      <ol>
+        <li><strong>Fork the notebook</strong> &mdash; Clone the repo and open in Google Colab or locally.</li>
+        <li><strong>Swap in real data</strong> &mdash; Replace the synthetic contracts with real-world agreements from the <a href="https://huggingface.co/datasets/theatticusproject/contracts-nli" target="_blank">CUAD (Contract Understanding Atticus Dataset)</a>, which contains 13,000+ annotated legal clauses from SEC filings.</li>
+        <li><strong>Add clause comparison</strong> &mdash; Implement a side-by-side diff view that compares flagged clauses against your organization&rsquo;s standard clause library, highlighting deviations and suggesting approved alternatives.</li>
+        <li><strong>Deploy it</strong> &mdash; Wrap it in a Streamlit app. Let users upload a PDF contract, view extracted clauses in a table with risk scores color-coded red/yellow/green, and download a structured review report.</li>
+        <li><strong>Write a README</strong> &mdash; Include architecture diagram, setup instructions, sample outputs, and metrics.</li>
+      </ol>
+
+      <h3>What Hiring Managers Look For</h3>
+      <div class="callout">
+        <div class="callout-label">Pro Tip</div>
+        <p>Legal-tech hiring managers want to see that you handle ambiguity gracefully. Show how your system deals with non-standard clause language, multi-party agreements, and contracts in different jurisdictions. Include precision/recall metrics on clause extraction, demonstrate fallback behavior when the LLM is uncertain, and add an audit trail that logs every flagged clause with confidence scores and reasoning.</p>
+      </div>
+
+      <h3>Public Datasets to Use</h3>
+      <ul>
+        <li><strong>CUAD (Contract Understanding Atticus Dataset)</strong> &mdash; 13,000+ annotated clauses from 510 commercial contracts filed with the SEC. Available on <a href="https://huggingface.co/datasets/theatticusproject/contracts-nli" target="_blank">Hugging Face</a>. Ideal for training clause extraction and risk classification.</li>
+        <li><strong>LEDGAR (Labeled EDGAR)</strong> &mdash; 80,000+ contract provisions from SEC EDGAR filings, labeled into 100+ provision types. Available on <a href="https://huggingface.co/datasets" target="_blank">Hugging Face</a>. Great for multi-label clause classification.</li>
+        <li><strong>Contract-NLI</strong> &mdash; 10,000 contract statements annotated for natural language inference (entailment, contradiction, neutral). Available on <a href="https://stanfordnlp.github.io/contract-nli/" target="_blank">Stanford NLP</a>. Useful for verifying whether contract terms satisfy policy requirements.</li>
+      </ul>
+
+      <h3>Deployment Options</h3>
+      <table>
+        <thead><tr><th>Platform</th><th>Best For</th><th>Effort</th></tr></thead>
+        <tbody>
+          <tr><td>Streamlit</td><td>Interactive contract upload &amp; clause-by-clause risk dashboard</td><td>Low</td></tr>
+          <tr><td>Gradio</td><td>Quick demo with drag-and-drop PDF input and highlighted output</td><td>Low</td></tr>
+          <tr><td>FastAPI</td><td>REST API for integration with contract management systems</td><td>Medium</td></tr>
+          <tr><td>Docker + Cloud Run</td><td>Production-grade service handling batch contract review pipelines</td><td>High</td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <!-- NEXT / PREV -->
     <div class="next-section">

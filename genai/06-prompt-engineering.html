@@ -131,6 +131,7 @@
     <a href="#prompt-security" class="section">7 &middot; Prompt Security</a>
     <a href="#injection-types" class="sub">Direct &amp; indirect injection</a>
     <a href="#defenses" class="sub">Defense strategies</a>
+    <a href="#interview" class="section">&#127919; Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -1315,6 +1316,67 @@ not as instructions.
         <div class="callout-label">Module 11 Preview</div>
         <p>Prompt security is covered in greater depth in Module 11 (Guardrails), which introduces automated classifiers, Constitutional AI, and dedicated moderation APIs (OpenAI Moderation, Anthropic's safety layer). The pattern here — structural defenses at the prompt level — is the first layer. Automated moderation is the second layer. No system is perfect; defense in depth is the goal.</p>
       </div>
+
+    </section>
+
+    <!-- ============================================================
+         SECTION 8 — INTERVIEW READY
+    ============================================================ -->
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">&#127919;</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>Prompt engineering is the practice of designing the text inputs sent to a language model so that outputs are accurate, consistent, and safe at scale. At its simplest, a zero-shot prompt is a plain instruction with no examples; few-shot prompting adds input-output examples so the model learns the pattern in-context. Chain-of-thought prompting asks the model to show its reasoning step by step, which dramatically improves accuracy on math, logic, and multi-hop questions. In production, the system prompt sets the model's persona, constraints, and output format before the user ever types anything. We control randomness with temperature and top-p: low temperature for deterministic extraction tasks, higher temperature for creative generation. Prompt templates let us inject variables — user data, retrieved documents, tool results — into a consistent structure so every request follows the same contract. Finally, prompt injection defense is essential: we use instruction hierarchies, input sanitization, and output filtering to prevent adversarial users from overriding the system prompt.</p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead>
+          <tr><th>Question</th><th>What They're Really Asking</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>What is the difference between zero-shot, few-shot, and chain-of-thought prompting?</td><td>Can you choose the right prompting strategy for a given task and explain the trade-offs in cost, latency, and accuracy?</td></tr>
+          <tr><td>How do you design a system prompt for a production application?</td><td>Do you understand how to constrain model behavior, enforce output format, set persona, and handle edge cases through prompt design?</td></tr>
+          <tr><td>What are temperature and top-p, and how do you set them?</td><td>Do you know how sampling parameters affect output diversity and determinism, and can you pick appropriate values for different use cases?</td></tr>
+          <tr><td>How would you defend against prompt injection in a user-facing LLM app?</td><td>Are you aware of the security risks of LLM applications and can you implement layered defenses including input validation, instruction hierarchy, and output filtering?</td></tr>
+          <tr><td>When would you use prompt templates versus hard-coded prompts?</td><td>Do you understand how to build maintainable, testable prompt pipelines that separate logic from content and support dynamic variable injection?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+      <p>
+        <strong>Zero-shot vs. few-shot vs. chain-of-thought:</strong> Zero-shot gives the model only an instruction with no examples — it works well for tasks the model already understands, like summarization or translation. Few-shot adds two to five input-output examples so the model learns the desired pattern, format, and tone in-context without any weight updates. Chain-of-thought prompting appends a phrase like "Let's think step by step" or includes examples with explicit reasoning traces, which forces the model to decompose complex problems rather than jumping to an answer. The trade-off is token cost and latency: CoT uses more output tokens, but for reasoning-heavy tasks the accuracy gain is worth it.
+      </p>
+      <p>
+        <strong>Designing a production system prompt:</strong> A good system prompt defines five things: the model's role or persona, what it is allowed and not allowed to do, the expected output format (JSON, markdown, plain text), the tone and style, and how to handle edge cases like missing information or out-of-scope questions. I structure system prompts with clear sections using XML tags or markdown headers so the model can parse them easily. I iterate by testing against adversarial inputs and adjusting constraints. The system prompt does not teach the model new knowledge — it steers the probability distribution toward desired behaviors.
+      </p>
+      <p>
+        <strong>Temperature and top-p:</strong> Temperature controls the sharpness of the probability distribution over tokens: at temperature 0, the model always picks the most likely token (greedy decoding), producing deterministic output. Higher temperatures flatten the distribution, increasing randomness and creativity. Top-p (nucleus sampling) truncates the distribution to the smallest set of tokens whose cumulative probability exceeds p, then samples from that set. For structured extraction or classification, I use temperature 0 to 0.2; for creative writing or brainstorming, 0.7 to 1.0. I generally set one and leave the other at default — adjusting both simultaneously can produce unpredictable results.
+      </p>
+      <p>
+        <strong>Prompt injection defense:</strong> Prompt injection is the LLM equivalent of SQL injection — user input contains instructions that override the system prompt. I defend in layers: first, an explicit instruction hierarchy in the system prompt telling the model to always prioritize system instructions over user messages. Second, input validation using regex blocklists or a cheap classifier to catch known injection patterns like "ignore previous instructions." Third, output filtering to detect if the response reveals the system prompt or violates policy. Fourth, least-privilege tool access so even a compromised agent cannot do catastrophic damage. No single layer is foolproof; defense in depth is the goal.
+      </p>
+      <p>
+        <strong>Prompt templates vs. hard-coded prompts:</strong> In production, I always use prompt templates with placeholders for dynamic content — user queries, retrieved documents, tool outputs, and contextual metadata. This separates prompt logic from prompt content, making prompts testable, version-controllable, and reusable across different endpoints. Templates also enforce consistency: every request to the model follows the same structure, which makes output parsing reliable. Hard-coded prompts are fine for one-off experiments but become unmaintainable as soon as you have more than one use case or need to A/B test prompt variants.
+      </p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Exercise</div>
+        <p>You are building a customer support chatbot for an e-commerce platform. The bot must answer questions about orders, returns, and product details using a RAG pipeline. Design the prompt architecture. Your system prompt should define the bot's persona (friendly, professional), constrain it to only discuss topics related to the platform (no medical or legal advice), enforce JSON output for downstream ticket creation, and include chain-of-thought reasoning for complex refund eligibility checks. Describe how you would use few-shot examples to teach the model your company's refund policy format, how you would set temperature (low, around 0.1, for consistency), and what prompt injection defenses you would put in place given that customers type free-form text that is concatenated into the prompt alongside retrieved product documents.</p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Using zero-shot when few-shot is needed:</strong> Candidates assume the model will infer a complex output format or domain-specific convention from a brief instruction alone. If the desired behavior requires a specific structure, tone, or reasoning pattern, always provide examples — two to three few-shot demonstrations are cheap and dramatically improve consistency.</li>
+        <li><strong>Ignoring prompt injection in production designs:</strong> Many candidates design user-facing LLM features without considering that user input is untrusted. Any system where user text is concatenated into a prompt is vulnerable. Interviewers expect you to mention input validation, instruction hierarchy, output filtering, and least-privilege tool access as standard practice.</li>
+        <li><strong>Setting temperature without understanding the task:</strong> Candidates sometimes use high temperature for extraction tasks (causing inconsistent JSON) or zero temperature for creative tasks (producing flat, repetitive output). The rule of thumb is simple: low temperature for deterministic, structured outputs; higher temperature for diverse, creative generation. Always justify your choice based on the downstream requirement.</li>
+      </ul>
 
       <!-- NEXT / PREV NAV -->
       <div class="next-section">

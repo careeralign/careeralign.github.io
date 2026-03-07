@@ -118,6 +118,7 @@
     <a href="#annotation" class="sub">Annotation Guidelines</a>
     <a href="#agreement" class="sub">Inter-Annotator Agreement</a>
     <a href="#red-team" class="sub">Red-Teaming</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -1246,6 +1247,82 @@ print(testset_df.head())
         <div class="callout-label">Practical Tip</div>
         <p>Do not wait until you have a perfect eval infrastructure to start collecting human judgments. Even a simple spreadsheet where team members tag 10 production responses per week as "good," "acceptable," or "needs improvement" with one-sentence explanations accumulates into a valuable dataset over time. When you are ready to build a proper annotation system, that backlog of judgments provides calibration data and reveals the most important quality dimensions for your specific application.</p>
       </div>
+    </section>
+
+    <!-- SECTION 7: INTERVIEW READY -->
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>LLM evaluation is fundamentally harder than traditional ML evaluation because there is no single correct answer for open-ended generation tasks. A production-grade eval strategy layers three approaches: cheap automated metrics (BLEU, ROUGE, BERTScore) for every CI run, LLM-as-judge for nuanced quality assessment at scale, and periodic human evaluation to calibrate everything else. For RAG systems specifically, RAGAS decomposes evaluation into four independent metrics — faithfulness, answer relevance, context precision, and context recall — so you can pinpoint exactly which pipeline stage is failing. The teams that ship reliable LLM products are the ones that treat evaluation as continuous infrastructure, not a one-time checklist.</p>
+      </div>
+
+      <h3>Top Interview Questions</h3>
+      <table>
+        <thead>
+          <tr><th>Question</th><th>What They're Really Asking</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>How do you evaluate an LLM application in production?</td>
+            <td>Do you understand the layered eval stack and can you design a practical strategy that balances cost, speed, and accuracy?</td>
+          </tr>
+          <tr>
+            <td>What is the difference between BLEU, ROUGE, and BERTScore?</td>
+            <td>Can you explain reference-based metrics, their trade-offs, and when each is appropriate versus misleading?</td>
+          </tr>
+          <tr>
+            <td>How does LLM-as-judge work and what are its failure modes?</td>
+            <td>Do you know how to use a strong model to evaluate a weaker one, and can you identify and mitigate position bias, verbosity bias, and self-enhancement bias?</td>
+          </tr>
+          <tr>
+            <td>How would you detect and measure hallucinations in a RAG system?</td>
+            <td>Can you connect faithfulness metrics, claim decomposition, and entailment checking into a practical hallucination detection pipeline?</td>
+          </tr>
+          <tr>
+            <td>When would you use A/B testing versus offline evaluation for an LLM feature?</td>
+            <td>Do you understand the difference between offline eval (controlled, fast, cheaper) and online A/B testing (real user behavior, statistical significance), and when each is warranted?</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+      <p>
+        <strong>How do you evaluate an LLM application in production?</strong><br>
+        I build a three-tier eval stack. The first tier runs on every CI push: automated metrics like ROUGE for summarization tasks and exact-match or F1 for extractive QA, plus behavioral assertions that check format, length, and safety constraints. The second tier uses LLM-as-judge with a detailed rubric to score a sampled subset of production responses on dimensions like accuracy, completeness, and tone — this costs roughly $0.01-0.10 per evaluation and catches quality issues that surface-level metrics miss. The third tier is periodic human evaluation on a stratified sample, which calibrates the automated tiers and catches systematic blind spots. I also track user-facing signals like thumbs-up/down rates, session completion, and escalation rates as lagging indicators that validate the eval pipeline itself.
+      </p>
+      <p>
+        <strong>What is the difference between BLEU, ROUGE, and BERTScore?</strong><br>
+        BLEU measures precision of n-gram overlaps between the generated text and a reference — it asks "what fraction of the generated n-grams appear in the reference?" and was originally designed for machine translation. ROUGE measures recall of n-gram overlaps — it asks "what fraction of the reference n-grams appear in the generated text?" and is the standard metric for summarization. Both are surface-level string metrics that penalize valid paraphrases. BERTScore addresses this by computing cosine similarity between contextual embeddings of tokens in the generated and reference texts, capturing semantic similarity rather than exact word overlap. In practice, BERTScore correlates better with human judgment for open-ended generation, but all three require a reference answer, which limits their applicability to tasks where ground truth can be established.
+      </p>
+      <p>
+        <strong>How does LLM-as-judge work and what are its failure modes?</strong><br>
+        You prompt a strong model (GPT-4o, Claude) with a detailed rubric and ask it to score another model's output, producing both a numeric rating and a reasoning trace. The main failure modes are position bias (preferring whichever answer appears first in a pairwise comparison, mitigated by position swapping and averaging), verbosity bias (inflating scores for longer responses regardless of quality, mitigated by explicit rubric instructions penalizing padding), and self-enhancement bias (a model rating its own style of output higher, mitigated by using a different model family as judge than the one being evaluated). I always log the full reasoning trace, not just scores, because the reasoning reveals systematic evaluation patterns that need correction.
+      </p>
+      <p>
+        <strong>How would you detect and measure hallucinations in a RAG system?</strong><br>
+        I use the RAGAS faithfulness metric as the core hallucination detector. It works in two steps: first, an LLM decomposes the generated answer into atomic factual claims; then, for each claim, a second LLM call checks whether that claim is entailed by the retrieved context chunks. The faithfulness score is the fraction of claims that are supported — a score below 1.0 means some claims have no basis in the retrieved documents. I complement this with an NLI-based factual consistency checker for faster, cheaper continuous monitoring, and I flag responses where the retriever returned low-confidence results as high-risk for hallucination. For critical applications, I add a verification step where the system explicitly cites which context chunk supports each claim, making hallucinations visible to end users.
+      </p>
+      <p>
+        <strong>When would you use A/B testing versus offline evaluation for an LLM feature?</strong><br>
+        Offline evaluation is my default for iterative development — it is fast, deterministic, and cheap. I run my eval suite on every prompt change, model swap, or retrieval adjustment to get immediate signal before anything reaches users. A/B testing is reserved for changes where I need to measure real user behavior that offline metrics cannot capture: engagement patterns, task completion rates, user satisfaction, and downstream business metrics. I require statistical significance (typically several hundred samples per variant per query category) before declaring a winner. The two approaches are complementary: offline eval gates what gets deployed to the A/B test, and A/B test results calibrate which offline metrics actually predict user satisfaction.
+      </p>
+
+      <div class="callout warn">
+        <div class="callout-label">System Design Scenario</div>
+        <p>You are building a medical question-answering system backed by a curated knowledge base. Design the evaluation pipeline. A strong answer layers RAGAS metrics (faithfulness is critical — hallucinated medical information is dangerous), a specialized LLM-as-judge with a medical accuracy rubric reviewed by clinicians, domain-expert human evaluation on a weekly stratified sample, automated safety checks that flag responses containing dosage information or diagnostic language for mandatory human review, and an A/B testing framework that measures not just answer quality but whether users follow up with their doctor or take action based on the response. The key insight is that evaluation criteria must reflect the domain's risk profile — a "pretty good" eval pipeline is not acceptable when wrong answers can harm patients.</p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Relying solely on BLEU/ROUGE for open-ended generation.</strong> These surface-level n-gram metrics penalize valid paraphrases and correlate poorly with human judgment for creative or explanatory tasks. They are useful for translation and summarization benchmarks but misleading as the sole quality signal for conversational or reasoning-heavy applications.</li>
+        <li><strong>Using the same model as both generator and judge.</strong> Self-enhancement bias means GPT-4 will systematically rate GPT-4-style outputs higher than equivalently correct outputs in a different style. Always use a different model family for judging, or at minimum, validate your judge's ratings against human annotations to quantify the bias.</li>
+        <li><strong>Evaluating only on development examples and skipping held-out test sets.</strong> This is the LLM equivalent of training on test data. Your development examples are the queries you optimized for — they will always look good. A held-out set that you never inspect during development provides the only unbiased estimate of real-world performance, and regression tests on this set prevent you from silently breaking edge cases while improving common cases.</li>
+      </ul>
     </section>
 
     <!-- NAVIGATION -->

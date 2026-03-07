@@ -402,6 +402,7 @@ code {
     <a href="#responsible" class="section">8 &middot; Responsible GenAI</a>
     <a href="#hallucinations" class="sub">Hallucinations &amp; Bias</a>
     <a href="#exam-focus" class="section">9 &middot; Exam Focus</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -954,6 +955,137 @@ code {
           <p>Enterprise search with grounding. RAG pipelines that connect Gemini to your data for accurate, cited answers.</p>
         </div>
       </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         INTERVIEW READY
+         ═══════════════════════════════════════════ -->
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>
+          Generative AI refers to models that create new content — text, images, code, audio, video — rather than simply
+          classifying or predicting from existing data. These models are built on <strong>foundation models</strong>:
+          massive neural networks pretrained on internet-scale datasets that learn general-purpose representations and
+          can be adapted to specific tasks through prompting or fine-tuning. The breakthrough architecture is the
+          <strong>Transformer</strong>, which uses self-attention to process sequences in parallel and capture long-range
+          dependencies. Google's GenAI lineup includes Gemini (multimodal, state-of-the-art), PaLM 2 (strong reasoning
+          and multilingual), and open models like Gemma for on-premises deployment. On GCP, Vertex AI provides the
+          unified platform for accessing these models — Vertex AI Studio for no-code prototyping, the Vertex AI API for
+          programmatic access, Model Garden for browsing and deploying first-party and open models, and Vertex AI Search
+          for enterprise RAG. The key distinction for the exam: generative AI <strong>creates</strong> new content,
+          discriminative AI <strong>classifies</strong> existing content — and the choice between them depends on whether
+          the task requires generation or prediction.
+        </p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>What is a foundation model and how does it differ from traditional ML models?</td><td>Do you understand pretraining at scale, transfer learning, and the paradigm shift from task-specific to general-purpose models?</td></tr>
+          <tr><td>Explain the difference between generative and discriminative AI with examples.</td><td>Can you clearly distinguish between models that generate new content and models that classify or predict from existing inputs?</td></tr>
+          <tr><td>What are Google's main GenAI models and when would you choose each one?</td><td>Do you know the Gemini, PaLM 2, Codey, Imagen, and Gemma lineup, and can you match models to use cases?</td></tr>
+          <tr><td>How does Vertex AI support generative AI workloads?</td><td>Can you describe the full Vertex AI GenAI stack — Studio, API, Model Garden, Search — and when each tool applies?</td></tr>
+          <tr><td>What are the key considerations for responsible GenAI deployment?</td><td>Do you understand safety filters, grounding, bias mitigation, and Google's AI Principles as they apply to production GenAI systems?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <p>
+        <strong>1. Foundation models vs traditional ML</strong> —
+        Traditional ML models are trained from scratch on task-specific datasets — a spam classifier trained only on
+        labeled emails, a demand forecaster trained only on sales data. Foundation models are pretrained on massive,
+        diverse datasets (billions of web pages, books, code repositories) to learn general language understanding,
+        reasoning, and world knowledge. They can then be adapted to specific tasks through prompting (zero-shot or
+        few-shot examples in the input), fine-tuning (additional training on task-specific data), or distillation
+        (training a smaller model to mimic the foundation model). The paradigm shift: instead of collecting thousands
+        of labeled examples for each new task, you leverage the foundation model's pretrained knowledge and guide it
+        with instructions or a handful of examples.
+      </p>
+
+      <p>
+        <strong>2. Generative vs discriminative AI</strong> —
+        Discriminative models learn the boundary between classes — given an input, they predict a label or numeric value.
+        Examples: sentiment classification (positive/negative), fraud detection (fraud/legitimate), demand forecasting
+        (predicted sales). Generative models learn the underlying data distribution and can produce new samples from it.
+        Examples: text generation (writing emails, code, summaries), image generation (creating product photos from
+        descriptions), and conversational AI (multi-turn dialogue). The key technical difference: discriminative models
+        learn P(y|x) — the probability of a label given input. Generative models learn P(x) — the probability
+        distribution of the data itself — and can sample new instances. In practice, modern generative models like
+        Gemini handle both — they can generate text and classify inputs through prompted instructions.
+      </p>
+
+      <p>
+        <strong>3. Google's GenAI model lineup</strong> —
+        Gemini is Google's flagship multimodal model family — it natively processes text, images, video, and audio in a
+        single model. Gemini Ultra handles the most complex reasoning tasks, Gemini Pro is the balanced choice for
+        production workloads, and Gemini Nano runs on-device for mobile applications. PaLM 2 is the previous generation,
+        still strong for multilingual and reasoning tasks but being superseded by Gemini. Codey (built on PaLM 2) is
+        specialized for code generation, completion, and chat. Imagen generates and edits images from text descriptions.
+        Gemma is Google's open-weights model family — suitable for on-premises deployment, custom fine-tuning without
+        API dependencies, and use cases requiring full data control. The selection framework: use Gemini for most tasks,
+        Codey for code-heavy workflows, Imagen for image generation, and Gemma when you need open weights or air-gapped
+        deployment.
+      </p>
+
+      <p>
+        <strong>4. Vertex AI GenAI stack</strong> —
+        Vertex AI Studio provides a no-code web interface for prompt prototyping — you can test different models,
+        adjust temperature and top-k/top-p parameters, and compare outputs without writing code. The Vertex AI API
+        (Python SDK and REST) provides programmatic access for production integration — streaming responses, async
+        batch processing, and embedding generation. Model Garden is a curated catalog of first-party (Gemini, PaLM),
+        third-party (Anthropic Claude, Meta Llama), and open-source models that can be deployed to Vertex AI endpoints
+        with one click. Vertex AI Search provides enterprise RAG — connecting Gemini to your organization's data
+        (documents, databases, websites) for grounded, cited answers. Together these components cover the full GenAI
+        lifecycle from experimentation to production deployment.
+      </p>
+
+      <p>
+        <strong>5. Responsible GenAI deployment</strong> —
+        Google's approach to responsible AI centers on safety filters, grounding, and human oversight. Safety filters
+        screen inputs and outputs for harmful content across categories (hate speech, violence, sexual content,
+        dangerous activities) with configurable thresholds. Grounding connects model outputs to verifiable sources —
+        either your own data (via RAG/Vertex AI Search) or Google Search — reducing hallucination by providing factual
+        evidence. Bias mitigation involves evaluating model outputs across demographic groups, using inclusive training
+        data, and monitoring production outputs for fairness. Google's AI Principles require that AI applications be
+        socially beneficial, avoid creating or reinforcing unfair bias, be tested for safety, be accountable to people,
+        incorporate privacy design principles, and uphold high standards of scientific excellence. For the exam,
+        remember that responsible AI is not optional — it is a core requirement for production GenAI systems on GCP.
+      </p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>
+          Your organization wants to build an internal AI assistant that can answer employee questions about company
+          policies, HR processes, and technical documentation. The system must handle 1,000 daily queries, provide
+          cited answers from internal documents, and enforce role-based access so employees only see information
+          they are authorized to access. Design the architecture using Google Cloud's GenAI services.
+        </p>
+        <p>A strong answer should cover:</p>
+        <ul>
+          <li><strong>Model selection</strong> — Gemini Pro via Vertex AI API for generation, with temperature set low (0.1-0.3) for factual consistency; text-embedding models for document indexing and semantic search</li>
+          <li><strong>Knowledge grounding</strong> — Vertex AI Search connected to Cloud Storage and Google Drive sources, with automatic document crawling, chunking, and indexing; or a custom RAG pipeline with AlloyDB/pgvector for vector storage</li>
+          <li><strong>Access control</strong> — document-level ACLs synced from the source systems, metadata filtering in search results to enforce role-based access, and VPC Service Controls to keep data within the organization's perimeter</li>
+          <li><strong>Safety and compliance</strong> — safety filters configured for enterprise use, PII detection and redaction in both queries and responses, audit logging of all queries and generated answers for compliance review</li>
+          <li><strong>Evaluation and monitoring</strong> — automated answer quality scoring (faithfulness to sources, relevance to query), user feedback collection, and weekly reports on answer accuracy and source coverage gaps</li>
+        </ul>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Confusing generative AI with all AI</strong> — Generative AI is a subset of AI focused on content creation. Many production ML tasks (classification, regression, ranking, anomaly detection) are better served by discriminative models that are cheaper, faster, and more interpretable. Using a generative model for simple classification is over-engineering.</li>
+        <li><strong>Treating foundation models as databases of facts</strong> — Foundation models learn statistical patterns from training data, not verified facts. They hallucinate confidently when asked about topics outside their training distribution. Production systems must ground model outputs in verified data sources using RAG or Vertex AI Search, never relying on the model's parametric knowledge alone for factual claims.</li>
+        <li><strong>Ignoring the cost and latency implications of model size</strong> — Larger models (Gemini Ultra) provide better reasoning but cost more and respond slower. For high-throughput production workloads where tasks are straightforward (summarization, extraction, classification), Gemini Pro or even Gemini Flash may provide sufficient quality at a fraction of the cost and latency. Always benchmark smaller models first before defaulting to the largest available.</li>
+      </ul>
     </section>
 
     <!-- PREV / NEXT -->

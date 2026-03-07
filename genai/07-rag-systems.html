@@ -93,6 +93,7 @@
     <a href="#synthesis" class="section">6 · LLM Synthesis</a>
     <a href="#synth-plain" class="sub">Plain Language</a>
     <a href="#synth-deep" class="sub">Deep Dive</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <main class="main">
@@ -780,6 +781,150 @@ result = rag_chain.<span class="code-fn">invoke</span>({<span class="code-string
         <p>For RAG synthesis, use temperature 0.0–0.2. Higher temperatures encourage creative generation, which works against the goal of grounding answers in retrieved context. A low temperature makes the model stick closely to the provided evidence, reducing hallucination and improving factual accuracy.</p>
       </div>
     </div>
+
+    <!-- INTERVIEW READY -->
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>
+          RAG — Retrieval-Augmented Generation — is the most widely deployed pattern in production GenAI. Instead of
+          relying on what the LLM memorized during training, we retrieve relevant documents from an external knowledge
+          base and inject them into the prompt as context. The pipeline has two phases: an offline indexing phase where
+          documents are chunked, embedded into vectors, and stored in a vector database, and a real-time query phase
+          where the user's question is embedded, similar chunks are retrieved via similarity search, and the LLM
+          generates an answer grounded in the retrieved evidence. RAG solves three critical problems — knowledge cutoff
+          (the model can access information newer than its training data), hallucination (the model has real source text
+          to reference), and domain specificity (you inject proprietary knowledge without retraining). Compared to
+          fine-tuning, RAG is cheaper, faster to update, and easier to audit because you can trace every answer back
+          to specific source documents.
+        </p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>Walk me through a RAG pipeline end to end — from document ingestion to answer generation.</td><td>Do you understand every component (loader, chunker, embedder, vector store, retriever, LLM) and how they connect?</td></tr>
+          <tr><td>How do you choose a chunking strategy and chunk size for a RAG system?</td><td>Can you reason about the trade-offs between context completeness and retrieval precision?</td></tr>
+          <tr><td>What is a vector embedding, and how does similarity search work in a vector database?</td><td>Do you understand the math behind cosine similarity and approximate nearest neighbor search?</td></tr>
+          <tr><td>When would you choose RAG over fine-tuning, and when might you combine both?</td><td>Can you articulate the cost, latency, and accuracy trade-offs for different knowledge injection strategies?</td></tr>
+          <tr><td>How do you evaluate whether a RAG system is retrieving the right documents and generating accurate answers?</td><td>Do you know about retrieval metrics (recall@k, MRR) and generation quality metrics (faithfulness, relevance)?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <p>
+        <strong>1. End-to-end RAG pipeline</strong> —
+        The indexing phase starts with document loading (PDFs, HTML, databases), then text chunking to split long
+        documents into passages of 256–1024 tokens with overlap, then embedding each chunk using a model like
+        <code>text-embedding-3-small</code> to produce dense vectors, and finally storing those vectors with their
+        metadata in a vector database like Pinecone, Weaviate, or ChromaDB. At query time, the user's question is
+        embedded with the same model, a similarity search (cosine or dot product) retrieves the top-k most relevant
+        chunks, and those chunks are formatted into a prompt that instructs the LLM to answer based only on the
+        provided context. The LLM generates a grounded response, ideally with citations pointing back to source chunks.
+      </p>
+<pre><code><span class="code-comment"># Minimal RAG pipeline with LangChain</span>
+<span class="code-keyword">from</span> langchain.document_loaders <span class="code-keyword">import</span> PyPDFLoader
+<span class="code-keyword">from</span> langchain.text_splitter <span class="code-keyword">import</span> RecursiveCharacterTextSplitter
+<span class="code-keyword">from</span> langchain.embeddings <span class="code-keyword">import</span> OpenAIEmbeddings
+<span class="code-keyword">from</span> langchain.vectorstores <span class="code-keyword">import</span> Chroma
+<span class="code-keyword">from</span> langchain.chat_models <span class="code-keyword">import</span> ChatOpenAI
+<span class="code-keyword">from</span> langchain.chains <span class="code-keyword">import</span> RetrievalQA
+
+<span class="code-comment"># Index phase</span>
+docs = PyPDFLoader(<span class="code-string">"handbook.pdf"</span>).load()
+chunks = RecursiveCharacterTextSplitter(
+    chunk_size=<span class="code-num">512</span>, chunk_overlap=<span class="code-num">64</span>
+).split_documents(docs)
+vectorstore = Chroma.from_documents(chunks, OpenAIEmbeddings())
+
+<span class="code-comment"># Query phase</span>
+qa = RetrievalQA.from_chain_type(
+    llm=ChatOpenAI(model=<span class="code-string">"gpt-4"</span>, temperature=<span class="code-num">0</span>),
+    retriever=vectorstore.as_retriever(search_kwargs={<span class="code-string">"k"</span>: <span class="code-num">4</span>})
+)
+answer = qa.run(<span class="code-string">"What is the company's PTO policy?"</span>)</code></pre>
+
+      <p>
+        <strong>2. Choosing a chunking strategy</strong> —
+        The right chunking strategy depends on document structure and query patterns. Fixed-size chunking (e.g., 512
+        tokens with 64-token overlap) is the simplest and works well for uniform text. Recursive character splitting
+        respects natural boundaries — it tries to split on paragraphs first, then sentences, then words. Semantic
+        chunking groups sentences by embedding similarity, keeping topically coherent passages together. For structured
+        documents like legal contracts or technical manuals, document-aware chunking that respects headers and sections
+        preserves context boundaries. Smaller chunks (256 tokens) improve retrieval precision but may lack context;
+        larger chunks (1024 tokens) preserve more context but increase noise. The overlap (typically 10–15% of chunk
+        size) ensures that information at chunk boundaries is not lost.
+      </p>
+
+      <p>
+        <strong>3. Vector embeddings and similarity search</strong> —
+        An embedding model maps text to a dense vector in high-dimensional space (e.g., 1536 dimensions for OpenAI's
+        <code>text-embedding-3-small</code>). Semantically similar texts produce vectors that are close together,
+        measured by cosine similarity (the cosine of the angle between two vectors, ranging from -1 to 1). A vector
+        database indexes these vectors using approximate nearest neighbor (ANN) algorithms like HNSW (Hierarchical
+        Navigable Small World graphs) or IVF (Inverted File Index) to enable sub-millisecond search over millions
+        of vectors. At query time, the user's question is embedded into the same vector space, and the database
+        returns the k vectors with the highest cosine similarity — these correspond to the most semantically relevant
+        document chunks.
+      </p>
+
+      <p>
+        <strong>4. RAG vs fine-tuning</strong> —
+        RAG is best when you need access to frequently updated information, when you want traceable citations, or when
+        your knowledge base is large and diverse. Fine-tuning is better for teaching the model a specific style, tone,
+        or reasoning pattern that cannot be captured by simply providing context. In practice, you often combine both:
+        fine-tune a model to follow your output format and citation conventions, then use RAG to inject the actual
+        knowledge at query time. RAG is also far cheaper — updating knowledge means re-indexing documents, not
+        retraining a model. Fine-tuning a large model costs hundreds to thousands of dollars per run, while RAG
+        indexing costs pennies per document.
+      </p>
+
+      <p>
+        <strong>5. Evaluating RAG systems</strong> —
+        Evaluation has two dimensions: retrieval quality and generation quality. For retrieval, measure Recall@k (what
+        fraction of relevant documents appear in the top-k results), MRR (Mean Reciprocal Rank — how high the first
+        relevant result ranks), and precision (what fraction of retrieved documents are actually relevant). For
+        generation, measure faithfulness (does the answer contradict the retrieved context?), relevance (does the
+        answer address the question?), and completeness (does the answer cover all relevant information from the
+        context?). Frameworks like RAGAS automate these metrics using LLM-as-judge evaluation. The most common failure
+        mode is retrieving irrelevant chunks that cause the LLM to generate plausible but incorrect answers — this is
+        why retrieval quality is the single most important factor in RAG performance.
+      </p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>
+          You are building a RAG-powered internal knowledge assistant for a company with 50,000 documents across
+          Confluence, Google Drive, and SharePoint. Documents range from 1-page memos to 200-page technical manuals.
+          The system must serve 500 concurrent users with sub-3-second response times and support daily document updates.
+          Design the complete RAG architecture.
+        </p>
+        <p>A strong answer should cover:</p>
+        <ul>
+          <li><strong>Document ingestion pipeline</strong> — connectors for each source (Confluence API, Google Drive API, SharePoint Graph API), a unified document format, and incremental sync that only re-indexes changed documents using content hashes or last-modified timestamps</li>
+          <li><strong>Chunking strategy</strong> — document-aware chunking that respects headers and sections for long manuals, with metadata preservation (source URL, title, author, date) attached to each chunk for filtering and citation</li>
+          <li><strong>Embedding and vector storage</strong> — a managed vector database (Pinecone or Weaviate) with namespace separation per document source, hybrid search combining dense vectors with sparse BM25 for keyword matching, and metadata filtering to scope searches by department or document type</li>
+          <li><strong>Retrieval and reranking</strong> — initial retrieval of top-20 candidates via ANN search, followed by a cross-encoder reranker (e.g., Cohere Rerank) to select the top-4 most relevant chunks, plus a relevance threshold to avoid injecting low-quality context</li>
+          <li><strong>Scaling and latency</strong> — caching frequent queries and their retrieved contexts, async embedding generation for ingestion, read replicas for the vector database, and a queue-based architecture for document processing to handle update spikes</li>
+        </ul>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Using chunks that are too large or too small</strong> — Chunks over 1024 tokens dilute relevance and waste context window space. Chunks under 128 tokens lose context and produce fragmented retrieval. Test multiple sizes with your actual queries and measure retrieval recall to find the sweet spot for your data.</li>
+        <li><strong>Ignoring chunk overlap</strong> — Without overlap, critical information that spans a chunk boundary gets split across two chunks, and neither chunk alone contains the complete answer. Always use 10–15% overlap, and for critical applications, consider sentence-level deduplication in the retrieved results.</li>
+        <li><strong>Skipping reranking and using raw vector similarity scores as confidence</strong> — ANN similarity scores are not calibrated probabilities. Two chunks with scores 0.82 and 0.79 may differ dramatically in actual relevance. A cross-encoder reranker examines query-chunk pairs jointly and produces much more reliable relevance judgments, often improving answer quality by 15–25% with minimal latency overhead.</li>
+      </ul>
+    </section>
 
     <!-- NEXT / PREV -->
     <div class="next-section">

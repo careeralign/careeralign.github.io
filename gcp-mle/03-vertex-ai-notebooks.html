@@ -401,6 +401,7 @@ code {
     <a href="#prod-vs-explore" class="sub">Production vs Exploration</a>
     <a href="#exam-focus" class="section">9 &middot; Exam Focus</a>
     <a href="#scenario-guide" class="sub">Scenario Selection Guide</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -1219,6 +1220,56 @@ pm.<span class="code-fn">execute_notebook</span>(
           Use dedicated service accounts (not default) for production notebooks
         </li>
       </ul>
+
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout tip">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>GCP offers three notebook environments, each optimized for a different workflow. <strong>Colab Enterprise</strong> is the lightweight, browser-based option with built-in sharing, Gemini code assistance, and serverless runtimes&mdash;ideal for collaborative exploration. <strong>Vertex AI Workbench Instances</strong> are full JupyterLab VMs where you control the machine type, attach GPUs, and install arbitrary packages&mdash;ideal for heavy training and custom environments. The now-deprecated <strong>Managed Notebooks</strong> sit between the two. The key interview insight is that notebook choice depends on three axes: <em>collaboration needs</em> (Colab Enterprise wins), <em>compute requirements</em> (Workbench Instances win with GPU/TPU attach), and <em>security posture</em> (Workbench supports VPC-SC, CMEK, and customer-managed service accounts). In production, notebooks are for prototyping&mdash;you graduate to Vertex AI Pipelines for reproducible, scheduled ML workflows.</p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead>
+          <tr><th>Question</th><th>What They're Really Asking</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>When would you use Colab Enterprise versus Vertex AI Workbench?</td><td>Can you match notebook type to team size, compute needs, and security requirements?</td></tr>
+          <tr><td>How do you manage GPU costs for notebook-based ML development?</td><td>Do you understand idle shutdown, preemptible GPUs, and right-sizing strategies?</td></tr>
+          <tr><td>How would you transition from notebook prototyping to a production ML pipeline?</td><td>Do you know the limitations of notebooks and the path to Vertex AI Pipelines or custom training jobs?</td></tr>
+          <tr><td>What security controls are available for notebooks on GCP?</td><td>Can you discuss VPC-SC, CMEK, IAM, service accounts, and data access boundaries?</td></tr>
+          <tr><td>How do you handle version control for Jupyter notebooks?</td><td>Do you understand Git integration challenges with .ipynb files and strategies like nbstripout or paired scripts?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+      <p><strong>Colab Enterprise vs Workbench:</strong> I recommend Colab Enterprise when the team needs real-time collaboration, quick spin-up with no infrastructure management, and Gemini-assisted coding. It is serverless&mdash;runtimes start in seconds and scale down automatically. I switch to Workbench Instances when the workload requires A100 GPUs, persistent local SSD for large datasets, a specific CUDA version, or custom Docker images. Workbench also supports idle shutdown policies and scheduled execution, making it suitable for recurring experiments.</p>
+
+      <p><strong>GPU Cost Management:</strong> I configure auto-shutdown after 60 minutes of idle time, use preemptible (Spot) VMs for fault-tolerant training experiments, right-size by starting with the smallest GPU (T4) and scaling up only when profiling shows GPU memory or compute bottlenecks. For teams, I enforce org-level quotas to prevent runaway GPU allocation and use labels to track per-project notebook costs in Cloud Billing.</p>
+
+      <p><strong>Notebook to Production:</strong> Notebooks are excellent for exploration but poor for production because they encourage implicit state, non-linear execution, and manual steps. Once a model approach is validated, I refactor the notebook into Python modules, write unit tests for preprocessing functions, package the code into a custom training container, and orchestrate execution via Vertex AI Pipelines. The pipeline handles data ingestion, training, evaluation, and conditional deployment&mdash;all versioned and schedulable.</p>
+
+      <p><strong>Security Posture:</strong> For regulated environments, I use Workbench Instances inside a VPC Service Controls perimeter to prevent data exfiltration. I enable CMEK for disk encryption, assign a custom service account with least-privilege BigQuery and GCS permissions, disable public IP on the instance, and use IAP tunneling for access. Colab Enterprise inherits project-level IAM but has fewer granular network controls, so it is better suited for non-sensitive exploratory work.</p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout info">
+        <div class="callout-label">Design Prompt</div>
+        <p><strong>Scenario:</strong> A data science team of 12 needs a shared notebook environment on GCP. They work with sensitive healthcare data (HIPAA), need GPUs for fine-tuning language models, and want reproducible experiments. Design the setup.</p>
+        <p><strong>Approach:</strong> Use Vertex AI Workbench Instances inside a VPC-SC perimeter with no public IPs. Access via IAP tunneling. Enable CMEK with Cloud KMS for disk and notebook encryption. Each data scientist gets a dedicated instance with a T4 or L4 GPU, configured with idle auto-shutdown at 45 minutes. Use a custom service account per instance with BigQuery read-only and GCS bucket-specific permissions. For collaboration, store notebooks in a private GitHub or Cloud Source Repository with nbstripout pre-commit hooks. Use Vertex AI Experiments for tracking metrics across runs. Once models are validated, the ML engineer refactors into Vertex AI Pipelines triggered by Cloud Scheduler for weekly retraining.</p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Treating notebooks as production artifacts</strong> &mdash; Interviewers watch for candidates who plan to run scheduled notebooks in production instead of migrating to proper pipelines. Always articulate the notebook-to-pipeline graduation path.</li>
+        <li><strong>Ignoring idle costs</strong> &mdash; A Workbench Instance with an A100 GPU left running overnight costs more than the training itself. Failing to mention auto-shutdown and cost controls signals lack of operational awareness.</li>
+        <li><strong>Choosing the wrong notebook type for the constraint</strong> &mdash; Recommending Colab Enterprise for HIPAA workloads or Workbench for quick ad-hoc collaboration shows you are not matching the tool to the requirement.</li>
+      </ul>
+    </section>
 
       <!-- NAVIGATION -->
       <div class="next-section">

@@ -397,6 +397,7 @@ code {
     <a href="#vertex" class="section">8 &middot; Vertex AI Training</a>
     <a href="#vertex-jobs" class="sub">Custom Jobs &amp; HPT</a>
     <a href="#exam" class="section">9 &middot; Exam Focus</a>
+    <a href="#interview" class="section">&#127919; Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -1050,6 +1051,90 @@ job.<span class="code-fn">run</span>()
         <div class="callout-label">High-Frequency Exam Topics</div>
         <p>Questions about tf.data optimization order, choosing the right distribution strategy based on hardware description, and deciding between pre-built vs custom containers appear frequently. Know the specific use case for each and be prepared to identify the correct answer from scenario descriptions.</p>
       </div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 10: INTERVIEW READY
+    ════════════════════════════════════════════ -->
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">&#127919;</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>
+          TensorFlow on GCP is the end-to-end stack for building, training, and deploying deep learning models at scale. It starts with <strong>tf.data</strong> for building efficient input pipelines &mdash; using <code>prefetch</code>, <code>interleave</code>, and <code>cache</code> to keep GPUs/TPUs fed without I/O bottlenecks. Models are built with <strong>Keras</strong> using three API tiers: Sequential for simple stacks, Functional for complex architectures (multi-input, skip connections), and Model Subclassing for full custom control. Training scales via <strong>distribution strategies</strong>: MirroredStrategy for multi-GPU on one machine, MultiWorkerMirroredStrategy across machines, and TPUStrategy for TPU pods. <strong>Callbacks</strong> (EarlyStopping, ModelCheckpoint, TensorBoard) automate training management. For production, <strong>Vertex AI Training</strong> provides managed infrastructure with pre-built containers for standard frameworks and custom containers for specialized needs, plus Vizier-based hyperparameter tuning. The key insight is that TensorFlow is not just a modeling library &mdash; it is a production system where every component (data pipeline, model, training loop, distribution, serving) is designed to work together seamlessly from prototype to production scale.
+        </p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>How do you optimize a tf.data input pipeline to avoid GPU starvation?</td><td>Do you know the prefetch/interleave/cache pattern and why pipeline ordering matters?</td></tr>
+          <tr><td>When would you choose MirroredStrategy vs MultiWorkerMirroredStrategy vs TPUStrategy?</td><td>Can you match distribution strategies to hardware configurations and explain the tradeoffs?</td></tr>
+          <tr><td>What are the three Keras API levels and when do you use each?</td><td>Do you understand the flexibility-simplicity tradeoff and when subclassing is truly needed?</td></tr>
+          <tr><td>How does Vertex AI Training handle distributed training and hyperparameter tuning?</td><td>Can you describe custom jobs, worker pools, and Vizier integration in practical terms?</td></tr>
+          <tr><td>When should you use a pre-built container vs a custom container on Vertex AI?</td><td>Do you know the boundary between standard and custom deployment needs?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <div class="callout">
+        <div class="callout-label">Q1 &mdash; tf.data Optimization</div>
+        <p>
+          The goal is to overlap data loading, preprocessing, and training so the GPU never waits for data. The canonical pattern: (1) <code>tf.data.TFRecordDataset</code> with <code>interleave(num_parallel_calls=AUTOTUNE)</code> to read from multiple files in parallel. (2) <code>.map(parse_fn, num_parallel_calls=AUTOTUNE)</code> to decode and preprocess. (3) <code>.cache()</code> after parsing if the dataset fits in memory &mdash; this avoids re-reading from disk on subsequent epochs. (4) <code>.shuffle(buffer_size)</code> after cache to randomize order. (5) <code>.batch(batch_size)</code> to group examples. (6) <code>.prefetch(AUTOTUNE)</code> at the very end to overlap the next batch's preparation with current batch's training. The ordering matters: cache before shuffle (to avoid re-reading), shuffle before batch (for proper randomization), prefetch always last. TFRecord is the preferred format because it stores serialized protocol buffers that are optimized for sequential reads.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q2 &mdash; Distribution Strategies</div>
+        <p>
+          <strong>MirroredStrategy</strong>: single machine with multiple GPUs. Each GPU holds a complete model replica. Gradients are synchronized via NCCL all-reduce after each step. This is the most common strategy and the simplest to implement &mdash; just wrap your training code in <code>with strategy.scope():</code>. <strong>MultiWorkerMirroredStrategy</strong>: extends to multiple machines, each with one or more GPUs. Requires <code>TF_CONFIG</code> environment variable to coordinate workers. Use when your model fits on a single GPU but your dataset or training time demands more parallelism. <strong>TPUStrategy</strong>: for Cloud TPU pods. Requires <code>TPUClusterResolver</code>, prefers bfloat16 precision, and needs batch sizes that are multiples of 8 (number of TPU cores). Best for large-batch, matrix-heavy training on TensorFlow/JAX models. In all cases, batch size should scale linearly with the number of replicas, and learning rate may need linear scaling with warmup.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q3 &mdash; Keras API Levels</div>
+        <p>
+          <strong>Sequential</strong>: a linear stack of layers, one input and one output. Use for simple architectures like a basic classifier (Dense &rarr; Dense &rarr; Dense). Cannot handle skip connections, multiple inputs, or shared layers. <strong>Functional API</strong>: defines models as a DAG of layers. Supports multiple inputs/outputs, skip connections (ResNet), shared layers, and complex branching. This is the most commonly used API in production because it covers most architectures while remaining declarative and inspectable. <strong>Model Subclassing</strong>: inherit from <code>tf.keras.Model</code> and implement <code>call()</code> for full Python control over the forward pass. Use only when you need dynamic computation graphs (e.g., variable-length recursion, conditional logic) that cannot be expressed declaratively. The tradeoff: subclassed models are harder to serialize, inspect, and debug.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q4 &mdash; Vertex AI Training</div>
+        <p>
+          Vertex AI Training provides <strong>managed infrastructure</strong> for training jobs. You define a <code>CustomJob</code> with one or more worker pools (specifying machine type, GPU/TPU count, and container image). For distributed training, Vertex AI sets up the <code>TF_CONFIG</code> automatically and manages inter-node communication. <strong>Hyperparameter tuning</strong> uses Vizier (Bayesian optimization): you define a <code>metric_spec</code> (metric to optimize and goal), <code>parameter_spec</code> (hyperparameter ranges and types), and max trial count. The training code reports metrics via <code>cloudml-hypertune</code>. Vertex AI runs parallel trials, uses early stopping on unpromising ones, and returns the best configuration. The key advantage over manual tuning is that Vizier intelligently explores the search space rather than grid or random search.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q5 &mdash; Pre-built vs Custom Containers</div>
+        <p>
+          <strong>Pre-built containers</strong> are Google-maintained Docker images for standard frameworks (TensorFlow, PyTorch, XGBoost, scikit-learn). Use them when: your dependencies are pip-installable, you use a supported framework version, and you do not need custom system packages. They are faster to set up and are patched by Google for security. <strong>Custom containers</strong> are Docker images you build and push to Artifact Registry. Use them when: you need proprietary libraries, specific CUDA/cuDNN versions, custom system-level dependencies (apt packages), multi-framework code, or non-standard serving logic. You write a Dockerfile, build the image, push it, and reference it in your Vertex AI job spec. The exam frequently tests this decision boundary &mdash; if the scenario mentions "standard TensorFlow with pip packages," choose pre-built; if it mentions "custom C++ inference library," choose custom.
+        </p>
+      </div>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>
+          <strong>Scenario:</strong> Your team needs to train an image classification model on 10 million labeled images (2 TB total) stored in GCS. Training must complete within 8 hours and the model needs to achieve at least 92% accuracy. Design the training infrastructure on GCP.<br><br>
+          <strong>A strong answer covers:</strong> (1) Data pipeline &mdash; convert images to TFRecord shards (e.g., 1000 files x 2 GB each) for efficient parallel reading. Use tf.data with <code>interleave</code> across shards, <code>map</code> for decoding/augmentation with AUTOTUNE, <code>cache</code> if feasible, and <code>prefetch</code>. (2) Model architecture &mdash; start with a pre-trained EfficientNet or ResNet backbone (transfer learning), fine-tune with a custom classification head. Use Keras Functional API. (3) Distribution strategy &mdash; MirroredStrategy with 4x A100 GPUs on a single n1-highmem machine. Scale batch size to 4x base batch with linear learning rate scaling and 5-epoch warmup. (4) Training management &mdash; EarlyStopping on validation loss (patience=5), ModelCheckpoint saving best weights, TensorBoard for monitoring. (5) Hyperparameter tuning &mdash; Vertex AI HPT with Vizier: tune learning rate (log-uniform 1e-5 to 1e-2), dropout (0.1-0.5), and augmentation strength. 20 trials with 4 parallel. (6) Cost optimization &mdash; use preemptible VMs for HPT trials (3x cheaper, acceptable if some fail), reserved GPU for final training run.
+        </p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Putting prefetch before batch or cache after shuffle</strong> &mdash; tf.data pipeline ordering is critical. The correct order is: read &rarr; parse/map &rarr; cache &rarr; shuffle &rarr; batch &rarr; prefetch. Caching after shuffle wastes the cache (different order each epoch). Prefetching before batching means you prefetch individual examples instead of full batches, losing the overlap benefit.</li>
+        <li><strong>Not scaling batch size and learning rate with distribution strategy</strong> &mdash; When using MirroredStrategy with 4 GPUs, the effective batch size is 4x the per-replica batch. If you do not increase the learning rate proportionally (with warmup), training will converge to a worse optimum because each gradient step averages over more examples without a correspondingly larger update. The standard recipe is: linear LR scaling with a warmup period of 5-10% of total steps.</li>
+        <li><strong>Using Model Subclassing when the Functional API would suffice</strong> &mdash; Subclassed models lose the benefits of Keras's graph tracing: no automatic shape inference, no <code>model.summary()</code>, harder serialization, and no easy export to SavedModel format. Unless your forward pass requires dynamic Python control flow, the Functional API is strictly preferable. Interviewers view unnecessary subclassing as a sign of inexperience with the Keras ecosystem.</li>
+      </ul>
 
       <!-- NAVIGATION -->
       <div class="next-section">

@@ -110,6 +110,7 @@
     <a href="#results" class="section">7. Results</a>
     <a href="#production" class="section">8. Production Considerations</a>
     <a href="#skills" class="section">9. Key Skills</a>
+    <a href="#portfolio" class="section">🛠️ Build Your Portfolio</a>
   </aside>
 
   <!-- Main Content -->
@@ -1189,6 +1190,53 @@ monitoring_job = aiplatform.ModelDeploymentMonitoringJob.<span class="code-fn">c
           </p>
         </div>
       </div>
+    </div>
+
+    <!-- ════════════════ BUILD YOUR PORTFOLIO ════════════════ -->
+    <div class="section" id="portfolio">
+      <div class="section-header">
+        <div class="section-num">🛠️</div>
+        <h2>Build Your Portfolio</h2>
+      </div>
+
+      <h3>Fork &amp; Extend</h3>
+      <p>Turn this notebook into a portfolio project in 5 steps:</p>
+      <ol>
+        <li><strong>Fork the notebook</strong> — Clone the repo and open in Google Colab or locally.</li>
+        <li><strong>Swap in real data</strong> — Replace the synthetic dataset with the <strong>Walmart Store Sales</strong> dataset from Kaggle (45 stores, 3 years of weekly sales with holidays and markdowns). Download it at <a href="https://www.kaggle.com/c/walmart-recruiting-store-sales-forecasting" target="_blank" rel="noopener">kaggle.com/c/walmart-recruiting-store-sales-forecasting</a>.</li>
+        <li><strong>Add external regressors</strong> — Incorporate weather data (Open-Meteo API) and Google Trends search volume for product categories. Show how external signals improve MAPE by 10-20% over a univariate baseline.</li>
+        <li><strong>Deploy it</strong> — Wrap it in a Streamlit app with a date-range picker, store selector, and interactive Plotly charts that overlay actuals vs. forecasts with confidence intervals.</li>
+        <li><strong>Write a README</strong> — Include architecture diagram, setup instructions, sample outputs, and metrics.</li>
+      </ol>
+
+      <h3>What Hiring Managers Look For</h3>
+      <div class="callout">
+        <div class="callout-label">Pro Tip</div>
+        <p>
+          Hiring managers want to see that you understand the <strong>business cost of forecast error</strong>, not just MAPE.
+          Show how over-forecasts lead to excess inventory carrying costs and under-forecasts cause stockouts and lost revenue.
+          Include a dollar-impact analysis that translates your model's error distribution into estimated financial outcomes.
+          Demonstrating backtesting across multiple time horizons (7-day, 14-day, 30-day) proves you understand temporal validation.
+        </p>
+      </div>
+
+      <h3>Public Datasets to Use</h3>
+      <ul>
+        <li><strong>Walmart Store Sales Forecasting</strong> — 421K rows of weekly department-level sales across 45 stores with holiday flags and markdown events. Available on Kaggle. Great for multi-store, multi-department forecasting with promotional effects.</li>
+        <li><strong>Corporaci&oacute;n Favorita Grocery Sales</strong> — 125M rows of daily store-item sales from an Ecuadorian grocery chain. Available on Kaggle. Excellent for large-scale hierarchical forecasting with oil price and earthquake event features.</li>
+        <li><strong>UCI Online Retail II</strong> — 1M+ transaction records from a UK online retailer (2009-2011). Available at the UCI ML Repository. Good for SKU-level demand forecasting with customer segmentation.</li>
+      </ul>
+
+      <h3>Deployment Options</h3>
+      <table>
+        <thead><tr><th>Platform</th><th>Best For</th><th>Effort</th></tr></thead>
+        <tbody>
+          <tr><td>Streamlit</td><td>Interactive forecast dashboard with date pickers and store filters</td><td>Low</td></tr>
+          <tr><td>Gradio</td><td>Quick demo with CSV upload for custom sales data forecasting</td><td>Low</td></tr>
+          <tr><td>FastAPI</td><td>REST endpoint returning JSON forecasts for integration with inventory systems</td><td>Medium</td></tr>
+          <tr><td>Docker + Cloud Run</td><td>Production-grade forecasting microservice with scheduled batch predictions</td><td>High</td></tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- ─── Prev / Next Navigation ──────────────────────── -->

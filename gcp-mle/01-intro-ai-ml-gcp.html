@@ -415,6 +415,7 @@ code {
     <a href="#services-data" class="sub">Data &amp; Compute</a>
     <a href="#examtips" class="section">8 &middot; Exam Tips</a>
     <a href="#examtips-scenarios" class="sub">Scenario-Based Tips</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -1134,6 +1135,54 @@ gcloud ai custom-jobs create \
         <div class="callout-label">General Exam Strategy</div>
         <p><strong>Always consider the simplest, cheapest, least-maintenance solution first.</strong> The exam rewards Google's recommendation hierarchy: pre-trained API &rarr; AutoML &rarr; BigQuery ML &rarr; Custom Training. Only escalate when the simpler option genuinely cannot meet requirements. Also: always prefer managed/serverless services over self-managed infrastructure.</p>
       </div>
+
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout tip">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>Google Cloud provides a layered AI/ML stack that lets teams choose the right level of abstraction for their problem. At the top, pre-trained APIs like Vision and Natural Language let you add intelligence with zero ML expertise. In the middle, AutoML and BigQuery ML let analysts build custom models without writing training loops. At the bottom, Vertex AI Custom Training gives full control over frameworks, hyperparameters, and distributed training. The exam&mdash;and real-world architecture&mdash;rewards picking the <strong>simplest tier that meets requirements</strong>, then escalating only when necessary. Vertex AI ties it all together as the unified platform for data prep, training, evaluation, deployment, and monitoring.</p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead>
+          <tr><th>Question</th><th>What They're Really Asking</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>When would you use AutoML versus custom training on GCP?</td><td>Can you match business constraints (timeline, team skill, data size) to the right abstraction level?</td></tr>
+          <tr><td>What is Vertex AI and why does it matter?</td><td>Do you understand the unified ML platform concept and how it replaces fragmented services?</td></tr>
+          <tr><td>How does Google recommend choosing between pre-trained APIs, AutoML, and custom models?</td><td>Do you know the decision hierarchy and can you justify trade-offs?</td></tr>
+          <tr><td>Explain the difference between AI, ML, deep learning, and generative AI.</td><td>Can you articulate the nested relationship and give concrete GCP examples at each level?</td></tr>
+          <tr><td>How would you build an ML pipeline on GCP from data ingestion to serving?</td><td>Do you understand the end-to-end workflow: data &rarr; feature engineering &rarr; training &rarr; evaluation &rarr; deployment &rarr; monitoring?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+      <p><strong>AutoML vs Custom Training:</strong> I start with AutoML when the team lacks deep ML expertise, the timeline is tight, or the problem maps cleanly to a supported task type like image classification or tabular regression. AutoML handles architecture search and hyperparameter tuning automatically. I switch to custom training when I need a novel architecture, have very specific performance targets, or need to integrate custom loss functions and preprocessing that AutoML cannot express. The key decision factor is whether the marginal accuracy gain from custom work justifies the engineering and maintenance cost.</p>
+
+      <p><strong>Vertex AI&rsquo;s Role:</strong> Vertex AI is Google&rsquo;s unified ML platform that replaced the earlier fragmented services (AI Platform Training, AI Platform Prediction, AutoML standalone products). It provides a single SDK and console for managed datasets, training pipelines, model registry, endpoints, feature store, experiment tracking, and model monitoring. This matters because it eliminates glue code between stages and gives a consistent IAM and networking model across the entire ML lifecycle.</p>
+
+      <p><strong>End-to-End Pipeline:</strong> I would ingest raw data into Cloud Storage or BigQuery, use Dataflow or Dataproc for large-scale preprocessing, register engineered features in Vertex AI Feature Store for reuse, launch a training job (AutoML or custom container) on Vertex AI Training, evaluate the model against baseline metrics, deploy to a Vertex AI Endpoint with traffic splitting for canary rollout, and enable Vertex AI Model Monitoring to detect skew and drift in production. Vertex AI Pipelines (built on Kubeflow or TFX) orchestrates the entire workflow as a reproducible DAG.</p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout info">
+        <div class="callout-label">Design Prompt</div>
+        <p><strong>Scenario:</strong> A retail company wants to classify product images into 200 categories, detect defective items, and generate product descriptions&mdash;all on GCP. They have 50k labeled images and a small ML team. Design the architecture.</p>
+        <p><strong>Approach:</strong> Use AutoML Vision for the 200-category classification (sufficient labeled data, standard task). For defect detection, start with AutoML Vision Edge if real-time on-device inference is needed, otherwise AutoML Vision with a Vertex AI Endpoint. For product descriptions, use Gemini via Vertex AI Studio with few-shot prompting, grounded on the product catalog stored in BigQuery. The three models deploy to separate Vertex AI Endpoints behind an API Gateway. Model Monitoring watches for data drift on the image classifiers. The entire pipeline is orchestrated with Vertex AI Pipelines for retraining on a weekly schedule.</p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Jumping to custom training by default</strong> &mdash; Interviewers want to see you consider the simplest viable option first. Always explain why a pre-trained API or AutoML won&rsquo;t work before proposing custom code.</li>
+        <li><strong>Confusing Vertex AI with individual services</strong> &mdash; Vertex AI is the platform; AutoML, Custom Training, Pipelines, and Feature Store are components within it. Mixing up the terminology signals shallow understanding.</li>
+        <li><strong>Ignoring the operational side</strong> &mdash; Training a model is only half the story. Forgetting to mention monitoring, retraining triggers, A/B deployment, and IAM/VPC controls makes your answer incomplete for production-readiness questions.</li>
+      </ul>
+    </section>
 
       <!-- NAVIGATION -->
       <div class="next-section">

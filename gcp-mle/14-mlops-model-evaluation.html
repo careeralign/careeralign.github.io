@@ -407,6 +407,7 @@ code {
     <a href="#bias-fairness" class="section">8 &middot; Bias &amp; Fairness</a>
     <a href="#ab-testing" class="section">9 &middot; A/B Testing</a>
     <a href="#exam-focus" class="section">10 &middot; Exam Focus</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -1068,6 +1069,55 @@ endpoint.<span class="code-fn">deploy</span>(
         <li><div class="check-box done"></div>Significant new training data is available</li>
         <li><div class="check-box done"></div>Business requirements or target distribution changes</li>
         <li><div class="check-box done"></div>Scheduled periodic retraining (weekly/monthly depending on domain)</li>
+      </ul>
+    </section>
+
+    <!-- INTERVIEW READY -->
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout tip">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>Model evaluation is the gatekeeper between experimentation and production. For classification, you must choose between precision-focused metrics (when false positives are costly, like spam filtering) and recall-focused metrics (when false negatives are dangerous, like fraud or medical diagnosis). For regression, RMSE penalizes large errors while MAE is robust to outliers. For generative AI, traditional metrics like BLEU and ROUGE measure surface overlap but miss quality&mdash;LLM-as-judge evaluation with pointwise scoring or pairwise comparison is the modern standard. On Vertex AI, continuous evaluation runs automated assessments against production traffic, A/B testing validates model changes with statistical rigor, and fairness analysis ensures models don&rsquo;t discriminate across protected groups. The key principle: never deploy a model without a clear evaluation strategy that ties ML metrics to business outcomes.</p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead>
+          <tr><th>Question</th><th>What They're Really Asking</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>How do you choose the right evaluation metric for a model?</td><td>Can you map business requirements (cost of false positives vs false negatives, data balance) to the appropriate metric?</td></tr>
+          <tr><td>When would you use PR-AUC instead of ROC-AUC?</td><td>Do you understand that ROC-AUC is misleading on imbalanced datasets and PR-AUC focuses on the positive class?</td></tr>
+          <tr><td>How do you evaluate a generative AI model&rsquo;s output quality?</td><td>Can you explain the shift from BLEU/ROUGE to LLM-as-judge, including pointwise vs pairwise approaches?</td></tr>
+          <tr><td>How do you set up A/B testing for ML models?</td><td>Do you understand traffic splitting, statistical significance, sample size calculation, and the peeking problem?</td></tr>
+          <tr><td>How do you ensure fairness in your ML models?</td><td>Can you describe fairness metrics, slice-based evaluation, and how to detect and mitigate bias across protected attributes?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+      <p><strong>Choosing the Right Metric:</strong> I start by understanding the business cost structure. If a false positive is expensive (flagging a legitimate transaction as fraud causes customer friction), I optimize for precision. If a false negative is dangerous (missing a cancer diagnosis), I optimize for recall. For balanced datasets, accuracy and ROC-AUC work well. For imbalanced datasets (99% negative), I use F1-score and PR-AUC because accuracy is misleading&mdash;a model predicting all negatives gets 99% accuracy but is useless. For regression, I use RMSE when large errors matter disproportionately and MAE when I want robustness to outliers.</p>
+
+      <p><strong>GenAI Evaluation:</strong> BLEU and ROUGE measure n-gram overlap with reference text, which is useful for translation and summarization but misses semantic quality. For production GenAI, I use LLM-as-judge: a strong model (like Gemini Pro) scores outputs on dimensions like helpfulness, accuracy, and safety. Pointwise evaluation assigns absolute scores to individual responses; pairwise evaluation compares two model outputs to determine which is better. On Vertex AI, the Gen AI Evaluation Service automates this with configurable rubrics and supports both built-in and custom evaluation metrics.</p>
+
+      <p><strong>A/B Testing Models:</strong> I calculate the minimum sample size based on the expected effect size and desired statistical power (typically 80%) before starting. Traffic is split randomly at the user level (not request level) to avoid contamination. I run the test for at least one full business cycle to capture temporal patterns. I never peek at results early because repeated significance testing inflates the false positive rate. When comparing multiple variants, I apply Bonferroni correction. The primary metric is a business KPI, not an ML metric&mdash;click-through rate or revenue per user, not just model accuracy.</p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout info">
+        <div class="callout-label">Design Prompt</div>
+        <p><strong>Scenario:</strong> An e-commerce platform wants to replace its current product recommendation model with a new one. How would you design the evaluation and rollout strategy?</p>
+        <p><strong>Approach:</strong> First, evaluate offline using held-out test data with metrics matching business goals: precision@k for relevance, recall@k for coverage, and NDCG for ranking quality. Compare against the current model on the same test set. If offline metrics improve, move to online A/B testing: deploy the new model to a Vertex AI Endpoint with 10% traffic split. Measure business KPIs (click-through rate, add-to-cart rate, revenue per session) over 2&ndash;4 weeks. Use Vertex AI Model Monitoring to watch for feature drift. Run fairness analysis to ensure recommendations don&rsquo;t show demographic bias. If statistically significant improvement is confirmed (p &lt; 0.05), gradually ramp traffic to 50%, then 100%. Keep the old model endpoint warm for 48 hours as a rollback safety net.</p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Using accuracy on imbalanced datasets</strong> &mdash; A fraud detection model that predicts &ldquo;not fraud&rdquo; for every transaction achieves 99.9% accuracy but catches zero fraud. Always use F1, PR-AUC, or domain-specific metrics when classes are imbalanced.</li>
+        <li><strong>Stopping A/B tests early based on promising results</strong> &mdash; The peeking problem inflates false positive rates. Pre-commit to a sample size and test duration. If you must check early, use sequential testing methods that control for multiple looks.</li>
+        <li><strong>Evaluating GenAI with only automated metrics</strong> &mdash; BLEU and ROUGE have low correlation with human judgment for open-ended generation. Use LLM-as-judge for scalable quality assessment and periodic human evaluation to calibrate the automated system.</li>
       </ul>
     </section>
 

@@ -60,6 +60,7 @@
     <a href="#data" class="section">4 · Data Services</a><a href="#data-plain" class="sub">Plain Language</a><a href="#data-deep" class="sub">Deep Dive</a>
     <a href="#security" class="section">5 · Security &amp; IAM</a><a href="#sec-plain" class="sub">Plain Language</a><a href="#sec-deep" class="sub">Deep Dive</a>
     <a href="#cost" class="section">6 · Cost Management</a><a href="#cost-plain" class="sub">Plain Language</a><a href="#cost-deep" class="sub">Deep Dive</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <main class="main">
@@ -331,6 +332,46 @@ cloudwatch.<span class="code-fn">put_metric_alarm</span>(
         <div class="callout-label">Day-One Budget Alerts</div>
         <p>Set up AWS Budget alerts before deploying any GenAI workload. A misconfigured agent loop can generate thousands of API calls in minutes. Set alerts at 50%, 80%, and 100% of your expected monthly budget, and add a hard stop (Lambda + EventBridge) that disables resources if spending exceeds 150%.</p>
       </div>
+    </div>
+
+    <div class="section" id="interview">
+      <div class="section-header"><div class="section-num">🎯</div><h2>Interview Ready</h2></div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout tip">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>AWS provides the full stack for deploying GenAI applications in production. Amazon Bedrock is the managed service for accessing foundation models like Claude, Llama, and Titan through a single API — you get enterprise governance (IAM, VPC, CloudTrail) without managing any ML infrastructure. For custom models, SageMaker handles training, fine-tuning, and hosting on GPU instances with auto-scaling. For cost-effective architectures, Lambda plus API Gateway plus Bedrock gives you a fully serverless GenAI backend that costs zero when idle. The data layer uses S3 for document storage, OpenSearch Serverless for vector embeddings in RAG pipelines, and DynamoDB for conversation history. Security follows least-privilege IAM policies scoped to specific model IDs, VPC endpoints to keep traffic private, and KMS encryption throughout. The biggest operational concern is cost — GPU instances and per-token charges add up fast, so you need budget alerts, auto-scaling policies, and model selection strategies (use Haiku before Sonnet) from day one.</p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table class="comp-table">
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>When would you use Bedrock vs. SageMaker for GenAI?</td><td>Do you understand that Bedrock is for managed model access with zero infrastructure, while SageMaker is for custom training, fine-tuning, and self-hosted inference with full control?</td></tr>
+          <tr><td>How would you build a serverless GenAI application on AWS?</td><td>Can you architect a Lambda + API Gateway + Bedrock pipeline, handle streaming responses, and explain the cost and latency tradeoffs compared to always-on instances?</td></tr>
+          <tr><td>How do you secure LLM access on AWS?</td><td>Can you design IAM policies scoped to specific model ARNs, set up VPC endpoints for private connectivity, and implement CloudTrail audit logging for compliance?</td></tr>
+          <tr><td>How would you implement RAG on AWS?</td><td>Do you know the managed path (Bedrock Knowledge Bases with OpenSearch Serverless) vs. the custom path (Aurora pgvector, custom chunking, SageMaker embeddings) and when to use each?</td></tr>
+          <tr><td>How do you control GenAI costs on AWS?</td><td>Can you identify the main cost drivers (per-token inference, GPU instance hours, vector DB minimums) and propose specific strategies like model tiering, prompt caching, provisioned throughput, and auto-scaling to zero?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+      <p><strong>Bedrock vs. SageMaker:</strong> I use Bedrock when I need access to frontier models like Claude or Llama without managing infrastructure — it provides a pay-per-token API with built-in governance through IAM, VPC endpoints, and CloudTrail. I switch to SageMaker when I need to fine-tune a model on proprietary data, host an open-weight model with custom inference logic, or need features like inference components for multi-model hosting on shared GPU instances. In practice, many production systems use both: Bedrock for the primary LLM calls and SageMaker for custom embedding models or specialized fine-tuned models.</p>
+      <p><strong>Serverless GenAI Architecture:</strong> For moderate-traffic applications, I architect with Lambda handling request processing and prompt construction, API Gateway providing the HTTP endpoint with API key authentication and rate limiting, and Bedrock for model inference. DynamoDB stores conversation history with TTL for automatic cleanup. The key advantage is zero cost during idle periods. For streaming responses, I use Lambda Function URLs with response streaming instead of the traditional API Gateway request-response pattern. The main constraint is Lambda's 15-minute timeout, but Bedrock calls typically complete in 2-15 seconds.</p>
+      <p><strong>Cost Control Strategy:</strong> I implement cost controls at multiple levels. First, model tiering — route simple queries to Haiku or Titan and only escalate to Sonnet for complex tasks, saving 80-90% on those requests. Second, prompt caching with ElastiCache Redis to avoid recomputing identical prompts. Third, SageMaker auto-scaling with scale-to-zero for development endpoints. Fourth, AWS Budget alerts at 50%, 80%, and 100% thresholds with an automated kill switch via Lambda and EventBridge at 150%. For high-volume production, I evaluate Bedrock Provisioned Throughput which saves 30-50% over on-demand pricing above roughly $10,000 per month.</p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout tip">
+        <div class="callout-label">Design Prompt</div>
+        <p>Design a production RAG-powered customer support system on AWS that handles 50,000 queries per day, ingests 10,000 knowledge base documents from S3, and must respond within 3 seconds. The system needs multi-tenant isolation (each customer sees only their own documents), audit logging for compliance, and a total monthly budget of $5,000. Describe your architecture choices for model selection (Bedrock vs. SageMaker), vector storage, document processing pipeline, caching strategy, security boundaries between tenants, and how you would monitor quality and costs in production.</p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Leaving SageMaker endpoints running after experimentation:</strong> GPU instances like g5.2xlarge cost ~$1.50/hr ($1,100/month). Always delete endpoints when not in use, set up lifecycle policies for non-production environments, and use auto-scaling with scale-to-zero for development workloads.</li>
+        <li><strong>Using blanket IAM permissions for Bedrock:</strong> Granting <code>bedrock:InvokeModel</code> on <code>*</code> allows access to all models, including expensive ones like Claude Opus. Always scope IAM policies to specific model ARNs and use condition keys to restrict access by team or environment.</li>
+        <li><strong>Skipping cost monitoring until the first bill arrives:</strong> GenAI workloads can generate surprising costs from misconfigured agent loops, unexpected traffic spikes, or developers experimenting with large models. Set up AWS Budget alerts and CloudWatch alarms for Bedrock spend on day one, before deploying any workload.</li>
+      </ul>
     </div>
 
     <div class="next-section">

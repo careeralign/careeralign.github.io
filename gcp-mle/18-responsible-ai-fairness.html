@@ -405,6 +405,7 @@ tr:hover td { background: var(--bg-surface); }
     <a href="#cards" class="section">8 &middot; Data &amp; Model Cards</a>
     <a href="#regulatory" class="section">9 &middot; Regulatory Landscape</a>
     <a href="#exam-focus" class="section">10 &middot; Exam Focus</a>
+    <a href="#interview" class="section">&#127919; Interview Ready</a>
   </aside>
 
   <div class="main">
@@ -958,6 +959,87 @@ evaluation = model.evaluate(
         <div class="callout-label">High-Frequency Exam Topics</div>
         <p>Google AI Principles, historical vs representation bias, demographic parity vs equalized odds, pre/in/post-processing mitigation, What-If Tool capabilities, Model Cards contents, and the 80% rule for disparate impact &mdash; these appear repeatedly.</p>
       </div>
+    </div>
+
+    <!-- INTERVIEW READY -->
+    <div class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">&#127919;</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>
+          Responsible AI fairness on Google Cloud means systematically identifying and mitigating <strong>bias</strong> across the ML lifecycle. Bias can enter at data collection (<strong>historical bias</strong>, <strong>representation bias</strong>), during training (<strong>aggregation bias</strong>), and at deployment (<strong>evaluation bias</strong>). Fairness is measured using quantitative metrics: <strong>demographic parity</strong> checks whether positive prediction rates are equal across groups, while <strong>equalized odds</strong> checks whether true positive and false positive rates are equal. Google Cloud provides the <strong>What-If Tool</strong> for interactive fairness exploration, <strong>Vertex AI Model Evaluation</strong> for sliced metrics across subgroups, and <strong>Model Cards</strong> for documenting model limitations and intended use. Mitigation strategies operate at three stages: <strong>pre-processing</strong> (resampling, reweighting training data), <strong>in-processing</strong> (adding fairness constraints to the loss function), and <strong>post-processing</strong> (adjusting decision thresholds per group). The regulatory landscape &mdash; including the EU AI Act and the NIST AI RMF &mdash; increasingly requires organizations to demonstrate fairness auditing, making this a critical engineering and compliance skill.
+        </p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table class="data-table">
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>What is the difference between demographic parity and equalized odds?</td><td>Can you articulate the mathematical definitions and explain when each metric is appropriate?</td></tr>
+          <tr><td>How would you detect bias in an ML model before deploying it?</td><td>Do you have a systematic approach: sliced evaluation, fairness metrics, What-If Tool, subgroup analysis?</td></tr>
+          <tr><td>Describe the three stages of bias mitigation (pre-, in-, post-processing).</td><td>Do you understand the full toolkit and the trade-offs between intervention points?</td></tr>
+          <tr><td>What are Google's AI Principles, and how do they influence ML system design?</td><td>Can you connect high-level principles to concrete engineering decisions and review processes?</td></tr>
+          <tr><td>A model has equal overall accuracy but very different false positive rates across demographic groups. What do you do?</td><td>Can you identify equalized odds violation and propose calibration or threshold adjustment?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <div class="callout">
+        <div class="callout-label">Q1 &mdash; Demographic Parity vs. Equalized Odds</div>
+        <p>
+          <strong>Demographic parity</strong> requires that the probability of a positive prediction is the same across all groups: P(&Ycirc;=1|A=a) = P(&Ycirc;=1|A=b). It ignores the true label entirely &mdash; it only looks at prediction rates. <strong>Equalized odds</strong> requires that both the true positive rate and false positive rate are equal across groups, conditioned on the actual label: P(&Ycirc;=1|Y=y, A=a) = P(&Ycirc;=1|Y=y, A=b) for y &isin; {0,1}. Demographic parity is appropriate when you want equal selection rates (e.g., hiring). Equalized odds is appropriate when you want equal error rates (e.g., medical diagnosis, where you need both groups to have the same chance of correct detection and false alarms). These metrics can conflict &mdash; satisfying one may violate the other.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q2 &mdash; Detecting Bias Before Deployment</div>
+        <p>
+          A systematic approach: (1) <strong>Data audit</strong> &mdash; check class balance and representation across demographic groups in training data. (2) <strong>Sliced evaluation</strong> &mdash; compute accuracy, precision, recall, and F1 for each subgroup, not just overall. Vertex AI Model Evaluation supports this natively. (3) <strong>Fairness metrics</strong> &mdash; compute demographic parity difference, equalized odds difference, and disparate impact ratio (the 80% rule: if the selection rate for any group is below 80% of the highest group, flag it). (4) <strong>What-If Tool</strong> &mdash; interactively explore counterfactuals, adjust thresholds per group, and visualize fairness-accuracy trade-offs. (5) <strong>Intersectional analysis</strong> &mdash; check combinations of sensitive attributes (e.g., race + gender), not just individual dimensions.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q3 &mdash; Three Stages of Mitigation</div>
+        <p>
+          <strong>Pre-processing</strong> modifies the training data: resampling underrepresented groups, reweighting examples, or removing features that serve as proxies for sensitive attributes. <strong>In-processing</strong> modifies the learning algorithm: adding fairness constraints or regularization terms to the loss function so the model directly optimizes for both accuracy and fairness. <strong>Post-processing</strong> modifies the model's outputs: adjusting decision thresholds per group to equalize error rates, or calibrating probability outputs. Pre-processing is simplest but may lose information. In-processing is most principled but requires algorithm changes. Post-processing is easiest to apply to existing models but treats symptoms rather than root causes.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q4 &mdash; Google AI Principles in Practice</div>
+        <p>
+          Google's seven AI Principles state that AI should be socially beneficial, avoid unfair bias, be safe, be accountable, incorporate privacy, uphold scientific excellence, and be available for uses that accord with these principles. In engineering terms, this translates to: (1) conducting fairness and bias reviews before model launch, (2) building Model Cards that document intended use, limitations, and evaluation across demographic groups, (3) implementing safety filters and content classifiers, (4) maintaining audit logs for model decisions, (5) applying differential privacy and data minimization, and (6) publishing evaluation methodology. These are not aspirational &mdash; Google Cloud products embed them: Vertex AI Model Evaluation provides fairness slices, safety settings are built into Gemini, and Model Cards are a first-class resource.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q5 &mdash; Unequal False Positive Rates</div>
+        <p>
+          This is an <strong>equalized odds violation</strong>. Equal overall accuracy can mask disparate error distributions. The fix depends on context: (1) <strong>Threshold adjustment</strong> &mdash; use different classification thresholds per group to equalize false positive rates (post-processing). The What-If Tool lets you explore this interactively. (2) <strong>Data investigation</strong> &mdash; the high-FPR group may have noisier features or less training data; improving data quality or collecting more representative samples can help. (3) <strong>Cost-sensitive training</strong> &mdash; assign different misclassification costs per group during training (in-processing). (4) <strong>Report transparently</strong> &mdash; document per-group metrics in the Model Card and set monitoring alerts for fairness drift in production.
+        </p>
+      </div>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>
+          <strong>Scenario:</strong> Your team is building a loan approval model for a bank. Regulators require you to demonstrate that the model does not discriminate based on race, gender, or age. Design the fairness evaluation and mitigation framework.<br><br>
+          <strong>A strong answer covers:</strong> (1) Protected attributes &mdash; identify race, gender, age, and proxy features (zip code, name) that must be audited. (2) Metrics &mdash; compute disparate impact ratio (80% rule), equalized odds, and calibration per group. (3) Sliced evaluation &mdash; use Vertex AI to compute approval rates, FPR, and FNR per demographic group and intersectional combinations. (4) What-If Tool &mdash; explore counterfactuals ("if this applicant's gender changed, would the decision change?"). (5) Mitigation &mdash; pre-processing (reweight underrepresented groups), in-processing (fairness-constrained objective), post-processing (group-specific thresholds). (6) Model Card &mdash; document intended use, per-group performance, limitations, and fairness metrics. (7) Monitoring &mdash; continuous fairness metric tracking in production with alerts when disparate impact exceeds thresholds. (8) Regulatory documentation &mdash; maintain audit trail for EU AI Act / ECOA compliance.
+        </p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Relying on overall accuracy as proof of fairness</strong> &mdash; A model with 95% overall accuracy can have 99% accuracy for one group and 80% for another. Always compute sliced metrics per demographic subgroup. Overall metrics hide disparities.</li>
+        <li><strong>Removing sensitive attributes and assuming fairness</strong> &mdash; Simply dropping race or gender columns does not eliminate bias. Other features (zip code, school name, purchasing patterns) can serve as proxies. Fairness requires measuring outcomes across groups regardless of whether sensitive attributes are used as features.</li>
+        <li><strong>Treating fairness as a one-time check</strong> &mdash; Fairness can degrade over time due to data drift, population changes, or feedback loops. Production models need continuous fairness monitoring with automated alerts, not just a pre-launch review.</li>
+      </ul>
     </div>
 
     <!-- NAVIGATION -->

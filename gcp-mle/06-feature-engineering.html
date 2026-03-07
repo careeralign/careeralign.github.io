@@ -400,6 +400,7 @@ code {
     <a href="#selection-methods" class="sub">Methods</a>
     <a href="#selection-importance" class="sub">Feature Importance</a>
     <a href="#exam" class="section">8 &middot; Exam Focus</a>
+    <a href="#interview" class="section">&#127919; Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -985,6 +986,89 @@ print(mi_series.sort_values(ascending=<span class="code-keyword">False</span>))<
         <div class="callout-label">Common Exam Traps</div>
         <p>1) tf.Transform analyzers (mean, vocab) run once on full data, not per-example. 2) Feature Store online serving = low-latency, offline = batch training. 3) Feature crosses multiply cardinality &mdash; use hashing to control dimensionality. 4) BQML handles string encoding automatically &mdash; you do NOT need to pre-encode. 5) Cyclical encoding (sin/cos) is needed for time features, not just extracting hour as an integer.</p>
       </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 9: INTERVIEW READY
+    ════════════════════════════════════════════ -->
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">&#127919;</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>
+          Feature engineering is the process of transforming raw data into <strong>informative signals</strong> that improve model performance. On GCP, feature engineering spans three layers: <strong>SQL-level transforms</strong> in BigQuery (bucketizing, hashing, feature crosses via BQML's TRANSFORM clause), <strong>tf.Transform</strong> for TensorFlow models (which runs full-pass analyzers on Dataflow and embeds the transform graph into the SavedModel), and <strong>Vertex AI Feature Store</strong> for managing shared, versioned features across teams with both online (low-latency serving) and offline (batch training) access. The critical principle is <strong>training-serving consistency</strong> &mdash; every transformation applied during training must be identically applied at prediction time. tf.Transform and BQML TRANSFORM both solve this by baking preprocessing into the model artifact. Feature crosses let linear models capture non-linear interactions, while hashing controls dimensionality for high-cardinality categoricals. Feature selection (correlation analysis, L1 regularization, feature importance) prunes irrelevant inputs to reduce overfitting and training cost. Mastering this pipeline &mdash; from raw columns to production-ready features &mdash; is the difference between a model that works in a notebook and one that works in production.
+        </p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>What is training-serving skew and how do you prevent it in feature engineering?</td><td>Do you understand why preprocessing must be embedded in the model graph, not duplicated in serving code?</td></tr>
+          <tr><td>When would you use Vertex AI Feature Store vs inline feature computation?</td><td>Can you articulate the tradeoffs between shared/reusable features and model-specific transformations?</td></tr>
+          <tr><td>Explain feature crosses and when they help a model.</td><td>Do you understand how combining categorical features creates interaction signals that linear models cannot learn alone?</td></tr>
+          <tr><td>How does tf.Transform differ from doing preprocessing in pandas?</td><td>Can you explain the analyze-and-transform pattern, Dataflow execution, and graph embedding?</td></tr>
+          <tr><td>How do you handle high-cardinality categorical features?</td><td>Do you know the tradeoffs between one-hot encoding, hashing, and learned embeddings?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <div class="callout">
+        <div class="callout-label">Q1 &mdash; Training-Serving Skew</div>
+        <p>
+          Training-serving skew occurs when the preprocessing logic applied to training data differs &mdash; even slightly &mdash; from what is applied at prediction time. For example, if you normalize features using training-set statistics in a Python script but use different statistics or a different code path in your serving API, predictions will be subtly wrong. The fix is to <strong>embed preprocessing into the model artifact</strong>. In TensorFlow, tf.Transform computes full-dataset statistics (means, vocabularies) on Dataflow and generates a transform graph that becomes part of the SavedModel. In BQML, the TRANSFORM clause bakes SQL transforms into the model. Both ensure a single code path for training and prediction, eliminating skew by design.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q2 &mdash; Feature Store vs Inline</div>
+        <p>
+          <strong>Vertex AI Feature Store</strong> is the right choice when: multiple teams consume the same features (e.g., user demographics used by both recommendation and fraud models), you need low-latency online serving for real-time predictions, or you require point-in-time correctness to avoid data leakage in training. <strong>Inline computation</strong> is appropriate when features are model-specific (e.g., a custom text embedding), simple to derive (e.g., age from birthdate), or when the overhead of Feature Store management is not justified. The Feature Store also provides versioning, monitoring for feature drift, and a central registry that improves governance and discoverability across the organization.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q3 &mdash; Feature Crosses</div>
+        <p>
+          A feature cross is the Cartesian product of two or more categorical features, creating a new combined feature. For example, crossing <code>city</code> and <code>device_type</code> creates features like <code>city_NYC_x_device_mobile</code>. This matters because <strong>linear models cannot learn interactions</strong> &mdash; they treat each feature independently. A feature cross explicitly encodes the interaction so a linear model can assign different weights to "New York + mobile" vs "New York + desktop." In BQML, use <code>ML.FEATURE_CROSS(STRUCT(city, device_type))</code>. The cardinality of the cross is the product of the input cardinalities, so for high-cardinality inputs, combine with <code>ML.HASH_BUCKETS</code> to cap dimensionality. Tree-based models (XGBoost, Random Forest) learn interactions naturally via splits, so crosses are less necessary for them.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q4 &mdash; tf.Transform vs Pandas</div>
+        <p>
+          Pandas preprocessing runs on a single machine, computes statistics in memory, and produces a separate script that must be replicated in serving. tf.Transform uses the <strong>analyze-and-transform pattern</strong>: analyzers (like <code>tft.compute_and_apply_vocabulary</code> or <code>tft.scale_to_z_score</code>) run a full pass over the dataset using <strong>Dataflow</strong> for scalability, computing global statistics. These statistics are then frozen into a TensorFlow graph that is attached to the SavedModel. At serving time, the same graph applies the identical transformations &mdash; no separate code, no statistics file to manage, no possibility of skew. The tradeoff is complexity: tf.Transform requires TensorFlow ops (no arbitrary Python), has a learning curve, and is only relevant for TF models.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Q5 &mdash; High-Cardinality Categoricals</div>
+        <p>
+          One-hot encoding fails for high-cardinality features (e.g., 100K product IDs) because it creates an enormous sparse vector. Three better strategies: (1) <strong>Hashing</strong> &mdash; <code>ML.HASH_BUCKETS</code> in BQML maps values to a fixed number of buckets (e.g., 1000), accepting some collisions in exchange for controlled dimensionality. (2) <strong>Learned embeddings</strong> &mdash; in TensorFlow/Keras, an <code>Embedding</code> layer maps each category to a dense vector learned during training; this captures semantic similarity. (3) <strong>Frequency-based encoding</strong> &mdash; replace categories with their occurrence count or target mean. Hashing is simplest and works well for linear models. Embeddings are most powerful but require neural network training. The choice depends on model type, feature cardinality, and whether you need interpretability.
+        </p>
+      </div>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout">
+        <div class="callout-label">Design Challenge</div>
+        <p>
+          <strong>Scenario:</strong> Your company runs 12 ML models across 3 teams (recommendations, fraud, search). Many models share user-level features (demographics, purchase history, session stats). Feature computation is duplicated, causing inconsistencies and wasted compute. Design a feature management architecture.<br><br>
+          <strong>A strong answer covers:</strong> (1) Central Feature Store &mdash; deploy Vertex AI Feature Store with entity types for users, products, and sessions. Define shared feature views that all teams consume. (2) Ingestion pipelines &mdash; Dataflow jobs compute features from raw events, write to both online (Bigtable-backed, low-latency) and offline (BigQuery, batch) stores. (3) Point-in-time correctness &mdash; use timestamp-based joins for training to prevent leakage; Feature Store handles this natively. (4) Team-specific features &mdash; each team adds model-specific features on top of shared ones, either inline or as additional Feature Store feature views. (5) Monitoring &mdash; track feature drift using Vertex AI Model Monitoring; alert when distributions shift beyond thresholds. (6) Governance &mdash; feature registry with descriptions, owners, freshness SLAs, and lineage tracking.
+        </p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Fitting preprocessing on the full dataset including test data</strong> &mdash; Computing normalization statistics (mean, std) on the entire dataset before splitting leaks test-set information into training. Always fit transformations on the training split only. tf.Transform analyzers should run on the training partition. This is the most common source of inflated evaluation metrics that collapse in production.</li>
+        <li><strong>Using feature crosses with tree-based models</strong> &mdash; Decision trees and gradient-boosted models (XGBoost, LightGBM) learn feature interactions naturally through splits. Adding explicit feature crosses to these models adds dimensionality without improving performance. Feature crosses are primarily valuable for linear and logistic regression models that cannot learn interactions on their own.</li>
+        <li><strong>Ignoring cyclical encoding for time features</strong> &mdash; Extracting <code>hour_of_day</code> as an integer (0-23) implies that hour 23 and hour 0 are maximally distant, when they are actually adjacent. The correct approach is cyclical encoding: <code>sin(2&pi; * hour/24)</code> and <code>cos(2&pi; * hour/24)</code>, which preserves the circular relationship. The same applies to day-of-week and month-of-year features.</li>
+      </ul>
     </section>
 
     <!-- PREV / NEXT -->

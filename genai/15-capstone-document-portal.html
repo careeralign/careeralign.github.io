@@ -88,6 +88,7 @@
     <a href="#s6" class="section">6 · Frontend &amp; Deployment</a>
     <a href="#s6-plain" class="sub">Plain Language</a>
     <a href="#s6-deep" class="sub">Deep Dive</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <main class="main">
@@ -1043,6 +1044,50 @@ aws ecs create-service \
           <tr><td>Monitoring</td><td>Console logs</td><td>CloudWatch + X-Ray</td></tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- INTERVIEW READY -->
+    <div class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout tip">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>I built a production-grade Document Q&A Portal that lets users upload PDFs, Word docs, and text files, then ask natural-language questions and get accurate, cited answers. The system uses a document ingestion pipeline that parses, chunks, and embeds documents into a vector store. At query time a RAG pipeline retrieves the most relevant chunks, injects them into a prompt, and streams an LLM-generated answer through a FastAPI backend to a chat-based frontend. I also added monitoring, evaluation metrics, and a deployment pipeline so the whole application runs reliably in production.</p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>Walk me through how a user's document goes from upload to being searchable.</td><td>Do you understand the full ingestion pipeline: parsing, chunking, embedding, and indexing?</td></tr>
+          <tr><td>How did you choose your chunking strategy and chunk size?</td><td>Can you reason about trade-offs between recall, precision, and latency in retrieval?</td></tr>
+          <tr><td>What happens when the retriever returns irrelevant chunks?</td><td>Do you have fallback strategies and understand failure modes in RAG systems?</td></tr>
+          <tr><td>How would you scale this system to millions of documents?</td><td>Do you understand production concerns: sharding, async ingestion, caching, and infrastructure?</td></tr>
+          <tr><td>How do you evaluate the quality of the answers?</td><td>Can you measure faithfulness, relevance, and groundedness beyond simple accuracy?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+      <p><strong>Ingestion Pipeline:</strong> When a document is uploaded, the backend parses it into raw text using format-specific extractors (PyPDF, python-docx, etc.), then splits it into overlapping chunks of roughly 512 tokens. Each chunk is embedded using a sentence-transformer model and stored alongside its metadata in a vector database like ChromaDB or Pinecone. This pipeline is idempotent so re-uploading the same document does not create duplicates.</p>
+      <p><strong>RAG Retrieval:</strong> At query time the user question is embedded with the same model, a cosine-similarity search retrieves the top-k chunks, and a reranker optionally re-scores them. The selected chunks are injected into a system prompt that instructs the LLM to answer only from the provided context and cite paragraph numbers. This design keeps the LLM grounded and reduces hallucination.</p>
+      <p><strong>Production Readiness:</strong> The FastAPI backend exposes async endpoints with streaming responses so the user sees tokens as they are generated. I containerised the stack with Docker Compose, added structured logging and health-check endpoints, and set up basic CloudWatch metrics for latency, error rate, and token usage. For scale I would swap the local vector store for a managed service and add an async task queue for ingestion.</p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout tip">
+        <div class="callout-label">Design Prompt</div>
+        <p>Your company wants to build an internal knowledge base that indexes 50,000 policy documents and serves 500 concurrent users. Describe the end-to-end architecture. Consider how you would handle document versioning, access control per department, near-real-time ingestion of new documents, and how you would monitor retrieval quality over time. Sketch the key components: an ingestion worker, a vector database with namespace isolation, a retrieval API with caching, an LLM gateway with rate limiting, and a feedback loop that captures user thumbs-up/down to continuously improve chunk quality.</p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Ignoring chunk overlap:</strong> Using non-overlapping chunks causes answers to miss information that spans chunk boundaries, leading to incomplete or incorrect responses.</li>
+        <li><strong>Skipping evaluation:</strong> Deploying a RAG system without measuring faithfulness and relevance means you cannot tell whether the system is hallucinating or returning stale information.</li>
+        <li><strong>Treating the vector store as a black box:</strong> Not inspecting retrieved chunks during debugging makes it nearly impossible to diagnose whether poor answers stem from bad retrieval, bad prompting, or bad source data.</li>
+      </ul>
     </div>
 
     <!-- NEXT/PREV NAV -->

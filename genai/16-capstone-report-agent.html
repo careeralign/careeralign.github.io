@@ -88,6 +88,7 @@
     <a href="#s6" class="section">6 · Evaluation &amp; Deployment</a>
     <a href="#s6-plain" class="sub">Plain Language</a>
     <a href="#s6-deep" class="sub">Deep Dive</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <main class="main">
@@ -913,6 +914,50 @@ report_app = FastAPI(title=<span class="code-string">"Report Agent API"</span>)
         <div class="callout-label">Capstone Success</div>
         <p>A strong capstone submission demonstrates mastery of the full stack: LLM API calls (planning, synthesis, writing, review), tool use (web search, RAG, data APIs), LangGraph orchestration (state machine, conditional edges, interrupts), guardrails (budget, content, citations), evaluation (multi-dimensional scoring), and deployment (FastAPI, Docker, WebSockets). Focus on making each component work reliably rather than adding extra features.</p>
       </div>
+    </div>
+
+    <!-- INTERVIEW READY -->
+    <div class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout tip">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>I built an autonomous multi-agent system that takes a research topic, breaks it into sub-questions, dispatches specialised agents to gather data from web search, APIs, and RAG sources, then synthesises everything into a structured, cited report. The orchestration layer uses LangGraph to model the workflow as a state machine with conditional routing, retry logic, and human-in-the-loop approval gates. A dedicated review agent scores the draft on completeness, accuracy, and coherence before the final report is delivered, and guardrails enforce budget limits, content policies, and citation requirements throughout the pipeline.</p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead><tr><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>How do you coordinate multiple agents without them duplicating work?</td><td>Do you understand shared state, task decomposition, and deduplication in multi-agent systems?</td></tr>
+          <tr><td>What happens when one agent fails or returns low-quality data?</td><td>Can you design fault-tolerant orchestration with retries, fallbacks, and quality gates?</td></tr>
+          <tr><td>How did you decide which parts require human approval?</td><td>Do you understand the trade-off between full autonomy and human-in-the-loop control for safety and quality?</td></tr>
+          <tr><td>How do you ensure the final report is factually grounded?</td><td>Can you implement citation tracking, hallucination checks, and a review agent that validates claims?</td></tr>
+          <tr><td>How would you adapt this system for a different domain, like financial analysis?</td><td>Is your architecture modular enough to swap tools, prompts, and evaluation criteria without rewriting the orchestration?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+      <p><strong>Multi-Agent Orchestration:</strong> The system uses LangGraph to define a directed graph where each node is a specialised agent: a Planner decomposes the topic into sub-queries, a Researcher gathers evidence using web search and RAG tools, a Writer synthesises findings into report sections, and a Reviewer scores the draft. Edges are conditional so the Reviewer can loop the draft back to the Writer if quality thresholds are not met. Shared state carries accumulated evidence and section drafts so agents never duplicate work.</p>
+      <p><strong>Tool Integration:</strong> Each agent has access to a curated tool set. The Researcher calls a web search API, a document retrieval endpoint, and optionally structured data APIs. Tool calls are wrapped in a retry-with-backoff pattern and results are cached so repeated queries for the same sub-topic are instant. A token budget guardrail tracks cumulative LLM spend and halts execution if the pipeline exceeds the configured limit.</p>
+      <p><strong>Quality and Safety:</strong> The Reviewer agent uses a multi-dimensional rubric that scores completeness, factual grounding, coherence, and citation density. If any dimension falls below its threshold, the draft is routed back for revision with specific feedback. Human-in-the-loop interrupts are placed before final publication so a human can approve, edit, or reject the report. Content guardrails filter toxic or off-topic material at every generation step.</p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout tip">
+        <div class="callout-label">Design Prompt</div>
+        <p>A consulting firm wants a system that automatically generates 20-page industry analysis reports overnight. The system must pull data from five different APIs, apply company-specific style guidelines, and produce reports in both PDF and slide-deck format. Describe how you would architect the agent graph, manage long-running execution across hours, handle partial failures (e.g., one API is down), enforce style consistency across sections written by different agents, and implement a human review dashboard where analysts can approve, annotate, or request revisions on individual sections before final assembly.</p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>No exit condition on agent loops:</strong> Allowing the Reviewer-Writer loop to run indefinitely burns tokens and can cause infinite cycles. Always set a maximum iteration count and a graceful fallback.</li>
+        <li><strong>Conflating orchestration with prompting:</strong> Trying to manage multi-step workflows purely through prompt chaining instead of an explicit state machine makes the system fragile and nearly impossible to debug or extend.</li>
+        <li><strong>Skipping citation validation:</strong> Generating a report without verifying that every claim traces back to a retrieved source produces authoritative-looking text that may be entirely hallucinated.</li>
+      </ul>
     </div>
 
     <!-- PREV NAV -->

@@ -60,6 +60,7 @@
     <a href="#rag-workflow" class="section">4 · RAG Workflows</a><a href="#rag-plain" class="sub">Plain Language</a><a href="#rag-deep" class="sub">Deep Dive</a>
     <a href="#triggers" class="section">5 · Triggers &amp; Integrations</a><a href="#trig-plain" class="sub">Plain Language</a><a href="#trig-deep" class="sub">Deep Dive</a>
     <a href="#deploy" class="section">6 · Production Deployment</a><a href="#dep-plain" class="sub">Plain Language</a><a href="#dep-deep" class="sub">Deep Dive</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <main class="main">
@@ -341,6 +342,55 @@ n8n start</code></pre>
         <div class="callout-label">Security: API Keys</div>
         <p>Never store API keys (OpenAI, Anthropic) in workflow JSON files. Use n8n's credential system, which encrypts keys at rest using the <code>N8N_ENCRYPTION_KEY</code>. If you export workflows for version control, credentials are excluded by default. Set the encryption key once and never change it — changing it invalidates all stored credentials.</p>
       </div>
+    </div>
+
+    <div class="section" id="interview">
+      <div class="section-header"><div class="section-num">🎯</div><h2>Interview Ready</h2></div>
+
+      <div class="callout info">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>n8n is an open-source, self-hostable workflow automation platform with native AI nodes that lets you build LLM-powered agents, RAG pipelines, and multi-step automations through a visual drag-and-drop interface. It bridges the gap between business users who need AI workflows fast and engineering teams who need data to stay on-prem — offering 400+ integrations, webhook triggers, and a code node for when the visual builder is not enough.</p>
+      </div>
+
+      <h3>Top 5 Interview Questions</h3>
+      <table class="comp-table">
+        <thead><tr><th>#</th><th>Question</th><th>What They're Really Asking</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>What is n8n and how does it differ from Zapier or Make?</td><td>Do you understand the self-hosted, open-source, and code-node advantages?</td></tr>
+          <tr><td>2</td><td>How would you build an AI agent in n8n?</td><td>Can you describe the Agent node, tool connections, memory, and trigger setup?</td></tr>
+          <tr><td>3</td><td>When should you use n8n versus writing custom Python code?</td><td>Do you know the trade-offs between no-code prototyping and production code?</td></tr>
+          <tr><td>4</td><td>How do webhook triggers work in n8n AI workflows?</td><td>Can you explain the request-response lifecycle and async queue mode?</td></tr>
+          <tr><td>5</td><td>How would you deploy n8n for production use?</td><td>Do you understand PostgreSQL storage, Redis queues, encryption, and scaling workers?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <p><strong>Q1 — What is n8n and how does it differ from Zapier or Make?</strong></p>
+      <p>n8n is an open-source workflow automation platform that connects 400+ services through a visual node-based editor. Unlike Zapier and Make, n8n is fully self-hostable, meaning sensitive data — API keys, customer PII, LLM interactions — never leaves your infrastructure. It also provides a Code node for writing arbitrary JavaScript or Python inline when the visual interface is not flexible enough, and it has native AI/LLM nodes (chat models, embeddings, vector stores, agents) that Zapier and Make lack. This combination of no-code simplicity with code-when-needed power makes it uniquely suited for building AI automations in compliance-sensitive environments.</p>
+
+      <p><strong>Q2 — How would you build an AI agent in n8n?</strong></p>
+      <p>You place the AI Agent node at the center and connect five types of inputs. First, a Chat Model node (OpenAI, Anthropic, or Ollama) as the reasoning engine. Second, tool nodes — any n8n node can be a tool, such as a PostgreSQL node for database queries, an HTTP Request node for API calls, a Vector Store Retriever for RAG, or a Slack node for escalation. Each tool gets a name and description so the agent knows when to use it. Third, a Memory node (Buffer or Summary) for multi-turn conversation history. Fourth, an optional Output Parser for structured JSON responses. Finally, a trigger — typically a Webhook or Chat Trigger node. The agent then runs a ReAct loop: it reasons about which tool to call, executes it, observes the result, and repeats until it has enough information to respond.</p>
+
+      <p><strong>Q3 — When should you use n8n versus writing custom Python code?</strong></p>
+      <p>Use n8n for orchestration and integration — connecting AI logic to business systems like Slack, Gmail, Google Sheets, CRMs, and databases. It excels at rapid prototyping where requirements change frequently, because a product manager can modify the workflow without an engineering sprint. Use custom Python code for core AI logic that requires fine-grained control: custom reranking algorithms, advanced prompt chaining, evaluation pipelines, or latency-critical inference. The best approach is often hybrid — n8n handles the workflow plumbing (triggers, routing, notifications, error handling) and calls a custom FastAPI endpoint via the HTTP Request or Code node for the complex AI-specific logic.</p>
+
+      <p><strong>Q4 — How do webhook triggers work in n8n AI workflows?</strong></p>
+      <p>A Webhook node creates an HTTP endpoint (e.g., POST /chat) that starts the workflow when it receives a request. In "Response Node" mode, the workflow holds the HTTP connection open until a Respond to Webhook node sends back the result — this is how you build synchronous chat APIs. The data from the request body is accessible to all downstream nodes via expressions like <code>{{ $json.body.message }}</code>. In production, you enable queue mode with Redis so each webhook execution runs asynchronously on a worker process, preventing long-running LLM calls from blocking other incoming requests and avoiding webhook timeouts.</p>
+
+      <p><strong>Q5 — How would you deploy n8n for production use?</strong></p>
+      <p>Production n8n uses Docker Compose (or ECS/Kubernetes) with three services: the n8n main instance, PostgreSQL for persistent workflow and execution storage (replacing the default SQLite), and Redis for queue-based execution. You configure queue mode so workflows run on separate worker containers that scale horizontally. API keys are stored through n8n's credential system, encrypted at rest with the N8N_ENCRYPTION_KEY. A reverse proxy (Nginx, Traefik, or Caddy) handles HTTPS termination. You set execution data pruning to 30 days to prevent database bloat, configure webhook authentication to prevent unauthorized triggers, and set up an error workflow that sends alerts to Slack or PagerDuty when any workflow fails.</p>
+
+      <div class="callout warn">
+        <div class="callout-label">System Design Scenario</div>
+        <p><strong>Prompt:</strong> "Design an automated customer support system using n8n that handles incoming emails, searches a knowledge base, drafts responses, and escalates to humans when confidence is low."</p>
+        <p><strong>Approach:</strong> Two workflows. <em>Ingestion workflow:</em> Google Drive Trigger watches a folder for new support docs → Document Loader extracts text → Text Splitter chunks at 1000 chars → OpenAI Embeddings generates vectors → Pinecone Vector Store stores them → Slack notifies the team. <em>Support workflow:</em> Gmail Trigger fires on new emails → Code node extracts subject and body → AI Agent node with Claude as the LLM, a Vector Store Retriever tool for knowledge base search, and a PostgreSQL tool for customer lookup → Output Parser extracts the answer and a confidence score → IF node branches on confidence: high confidence sends an auto-reply via Gmail, low confidence posts to a Slack channel with the draft answer and retrieved context for human review → both paths log to Google Sheets for analytics. Deploy with queue mode so email processing does not block, and set up an error workflow for failures.</p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <p><strong>1. Using n8n for everything instead of recognizing its limits.</strong> n8n is excellent for orchestration and integration, but it is not the right tool for latency-critical inference pipelines, custom model training, or complex data transformations. The visual interface becomes unwieldy for workflows beyond 30-40 nodes. Know when to offload logic to a dedicated Python service and call it from n8n via HTTP Request.</p>
+      <p><strong>2. Storing API keys in workflow JSON instead of using the credential system.</strong> Workflow JSON files are often exported, shared, or version-controlled. If you paste API keys directly into node parameters, they end up in plaintext in Git repositories. Always use n8n's built-in credential system, which encrypts keys at rest and excludes them from workflow exports.</p>
+      <p><strong>3. Running production n8n without queue mode.</strong> Without queue mode, all workflows execute in the main n8n process. A single long-running LLM call (30+ seconds) blocks every other webhook and scheduled workflow. Queue mode with Redis workers is essential for production — it isolates execution, enables horizontal scaling, and prevents cascading timeouts.</p>
     </div>
 
     <div class="next-section">

@@ -406,6 +406,7 @@ tr:hover td { background: var(--bg-surface); }
     <a href="#cicd" class="section">9 &middot; CI/CD for Pipelines</a>
     <a href="#mlflow" class="section">10 &middot; MLflow on GCP</a>
     <a href="#exam-focus" class="section">11 &middot; Exam Focus</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <!-- MAIN CONTENT -->
@@ -1151,6 +1152,55 @@ mlflow.set_experiment(<span class="code-string">"fraud-detection-v2"</span>)
         <p>Questions about pipeline failures often have "check ML Metadata / artifact lineage" as the
         correct answer, not "re-run the entire pipeline" or "check the model code."</p>
       </div>
+    </div>
+
+    <!-- INTERVIEW READY -->
+    <div class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout tip">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>Production ML is not about training a single model&mdash;it is about orchestrating an end-to-end pipeline that ingests data, validates it, transforms features, trains models, evaluates against baselines, and deploys to serving infrastructure. On GCP, three orchestration layers serve different needs: TFX provides opinionated ML-specific components (ExampleGen, Transform, Trainer, Evaluator, Pusher) with built-in best practices. Kubeflow Pipelines (KFP) offers framework-agnostic pipeline authoring with a Python SDK that compiles to containers on Kubernetes. Vertex AI Pipelines is the managed service that runs KFP or TFX pipelines serverlessly with integrated ML Metadata for artifact tracking and lineage. Cloud Composer (managed Airflow) handles broader data engineering orchestration when ML is one step in a larger ETL workflow. The key architectural principle is that every artifact&mdash;data, features, models, metrics&mdash;is versioned, tracked, and reproducible through ML Metadata.</p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead>
+          <tr><th>Question</th><th>What They're Really Asking</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Why use ML pipelines instead of notebooks in production?</td><td>Do you understand reproducibility, automation, auditability, and the risks of manual, ad-hoc ML workflows?</td></tr>
+          <tr><td>When would you choose Vertex AI Pipelines vs Cloud Composer?</td><td>Can you distinguish ML-specific orchestration (pipelines with artifact tracking) from general workflow orchestration (Airflow DAGs)?</td></tr>
+          <tr><td>What is ML Metadata and why does it matter?</td><td>Do you understand artifact lineage, experiment tracking, and how metadata enables debugging, reproducibility, and governance?</td></tr>
+          <tr><td>How do you implement CI/CD for ML pipelines?</td><td>Can you describe the three levels: CI for pipeline code, CD for pipeline deployment, and CT (continuous training) for automated retraining?</td></tr>
+          <tr><td>What are the key TFX components and how do they work together?</td><td>Can you trace data flow through ExampleGen, StatisticsGen, SchemaGen, Transform, Trainer, Evaluator, and Pusher?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+      <p><strong>Pipelines vs Notebooks:</strong> Notebooks are great for exploration but fail in production for several reasons: they don&rsquo;t enforce execution order (cells can be run out of sequence), they mix code with state, they&rsquo;re hard to version control, and they don&rsquo;t support automated scheduling or monitoring. ML pipelines encode the workflow as a directed acyclic graph (DAG) where each step is a containerized component with explicit inputs and outputs. This gives you reproducibility (same code + same data = same result), automation (schedule or trigger-based execution), and auditability (ML Metadata tracks every artifact&rsquo;s lineage).</p>
+
+      <p><strong>Vertex AI Pipelines vs Cloud Composer:</strong> Vertex AI Pipelines is purpose-built for ML workflows&mdash;it natively understands ML artifacts (datasets, models, metrics), integrates with the Vertex AI Model Registry, and supports pipeline caching to skip unchanged steps. Use it when the workflow is ML-centric. Cloud Composer (managed Airflow) is better when ML training is one task in a larger data engineering pipeline that includes ETL, data warehouse updates, report generation, and cross-system orchestration. In practice, many teams use Cloud Composer to trigger Vertex AI Pipeline runs as part of a broader workflow.</p>
+
+      <p><strong>CI/CD for ML:</strong> I implement three layers. CI validates pipeline code: unit tests for individual components, integration tests with small data samples, and schema validation. CD automates pipeline deployment: merging to main triggers pipeline compilation and registration in Vertex AI. CT (continuous training) is ML-specific: data drift detection or scheduled triggers automatically re-execute the pipeline, evaluate the new model against the current production model, and promote it only if it passes quality gates. The entire flow is tracked in ML Metadata so any model in production can be traced back to its exact training data, code version, and hyperparameters.</p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout info">
+        <div class="callout-label">Design Prompt</div>
+        <p><strong>Scenario:</strong> A logistics company wants to build an automated ML pipeline that retrains a delivery time prediction model weekly, validates data quality, and only deploys the new model if it outperforms the current one. Design the architecture on GCP.</p>
+        <p><strong>Approach:</strong> Use Vertex AI Pipelines with KFP SDK to define the DAG. Step 1: ExampleGen ingests the latest week&rsquo;s delivery data from BigQuery. Step 2: StatisticsGen + SchemaGen validate data quality against the expected schema; the pipeline halts on anomalies. Step 3: Transform applies feature engineering (distance calculations, time-of-day encoding, historical delivery patterns) stored in Vertex AI Feature Store for training-serving consistency. Step 4: Trainer runs a custom XGBoost container on Vertex AI Training with hyperparameter tuning. Step 5: Evaluator compares the new model&rsquo;s MAE against the current production model using a blessed threshold&mdash;only if it improves by at least 2% does it proceed. Step 6: Pusher deploys to the Vertex AI Endpoint with 10% canary traffic. Cloud Composer triggers the pipeline every Sunday at 2 AM and sends Slack alerts on failures. ML Metadata tracks every run for audit.</p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Skipping data validation in the pipeline</strong> &mdash; Without schema validation (SchemaGen) and statistics checks (StatisticsGen), your pipeline will silently train on corrupted or drifted data. Data validation is the most important step because garbage in equals garbage out.</li>
+        <li><strong>Not using pipeline caching</strong> &mdash; Re-running data ingestion and transformation when only the training hyperparameters changed wastes hours of compute. Vertex AI Pipelines supports step-level caching&mdash;unchanged steps are skipped automatically.</li>
+        <li><strong>Confusing orchestration tools</strong> &mdash; Using Cloud Composer for ML-specific workflows loses ML Metadata integration and artifact tracking. Using Vertex AI Pipelines for complex cross-system ETL forces ML tools into a general orchestration role. Match the tool to the workflow type.</li>
+      </ul>
     </div>
 
     <!-- NAVIGATION -->

@@ -110,6 +110,7 @@
     <a href="#production-integration" class="sub">Integrations</a>
     <a href="#production-feedback" class="sub">Feedback Loop</a>
     <a href="#skills" class="section">8 &middot; Skills &amp; Tools</a>
+    <a href="#portfolio" class="section">🛠️ Build Your Portfolio</a>
   </aside>
 
   <!-- MAIN -->
@@ -955,6 +956,47 @@ app = FastAPI()
           <div class="skill-desc">Build a complete Retrieval-Augmented Generation pipeline: embed documents, store in a vector DB, retrieve relevant context, and generate grounded responses that reference actual past resolutions.</div>
         </div>
       </div>
+    </section>
+
+    <section class="section" id="portfolio">
+      <div class="section-header">
+        <div class="section-num">🛠️</div>
+        <h2>Build Your Portfolio</h2>
+      </div>
+
+      <h3>Fork &amp; Extend</h3>
+      <p>Turn this notebook into a portfolio project in 5 steps:</p>
+      <ol>
+        <li><strong>Fork the notebook</strong> &mdash; Clone the repo and open in Google Colab or locally.</li>
+        <li><strong>Swap in real data</strong> &mdash; Replace the synthetic tickets with the <a href="https://huggingface.co/datasets/bitext/Bitext-customer-support-llm-chatbot-training-dataset" target="_blank">Bitext Customer Support Dataset</a> on Hugging Face, which contains 27,000+ tagged customer service interactions across 27 intent categories.</li>
+        <li><strong>Add sentiment-aware routing</strong> &mdash; Layer in sentiment analysis so angry or frustrated tickets get automatically escalated to senior agents, and combine urgency scoring with topic classification for smarter SLA assignment.</li>
+        <li><strong>Deploy it</strong> &mdash; Wrap it in a Gradio app. Build an interface where users paste a support ticket, see the predicted category, priority level, sentiment score, and suggested response template in real time.</li>
+        <li><strong>Write a README</strong> &mdash; Include architecture diagram, setup instructions, sample outputs, and metrics.</li>
+      </ol>
+
+      <h3>What Hiring Managers Look For</h3>
+      <div class="callout">
+        <div class="callout-label">Pro Tip</div>
+        <p>Support-ops hiring managers care about real-world reliability. Show how your triage system handles edge cases like tickets with multiple issues, sarcasm, non-English text mixed in, or empty messages. Include a confusion matrix across all categories, demonstrate how the system learns from misrouted tickets via a feedback loop, and show latency benchmarks proving it can handle high-volume ticket streams without bottlenecks.</p>
+      </div>
+
+      <h3>Public Datasets to Use</h3>
+      <ul>
+        <li><strong>Bitext Customer Support Dataset</strong> &mdash; 27,000+ customer service utterances across 27 intents (order status, refund, technical issue, etc.). Available on <a href="https://huggingface.co/datasets/bitext/Bitext-customer-support-llm-chatbot-training-dataset" target="_blank">Hugging Face</a>. Perfect for multi-class intent classification.</li>
+        <li><strong>Twitter Customer Support</strong> &mdash; 3 million tweets and responses between customers and support agents from major brands. Available on <a href="https://www.kaggle.com/datasets/thoughtvector/customer-support-on-twitter" target="_blank">Kaggle</a>. Great for training on noisy, real-world language.</li>
+        <li><strong>Amazon Product Reviews</strong> &mdash; Millions of product reviews with star ratings. Available on <a href="https://huggingface.co/datasets/amazon_reviews_multi" target="_blank">Hugging Face</a>. Useful for sentiment-based priority scoring.</li>
+      </ul>
+
+      <h3>Deployment Options</h3>
+      <table>
+        <thead><tr><th>Platform</th><th>Best For</th><th>Effort</th></tr></thead>
+        <tbody>
+          <tr><td>Streamlit</td><td>Dashboard showing ticket queue, category distribution, and SLA timers</td><td>Low</td></tr>
+          <tr><td>Gradio</td><td>Live demo with ticket input and instant classification output</td><td>Low</td></tr>
+          <tr><td>FastAPI</td><td>Webhook endpoint for Zendesk/Freshdesk/Intercom integration</td><td>Medium</td></tr>
+          <tr><td>Docker + Cloud Run</td><td>Scalable microservice processing thousands of tickets per minute</td><td>High</td></tr>
+        </tbody>
+      </table>
     </section>
 
     <!-- PREV / NEXT -->

@@ -115,6 +115,7 @@
     <a href="#docker-ecs" class="section">6 · Docker &amp; ECS Deployment</a>
     <a href="#docker-plain" class="sub">Plain Language</a>
     <a href="#docker-deep" class="sub">Deep Dive</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -1015,6 +1016,85 @@ uvicorn app.main:app --host <span class="code-num">0.0.0.0</span> --port <span c
         <div class="callout-label">EFS Pre-warming</div>
         <p>Before your first deployment, pre-download model weights to EFS using a one-time EC2 instance or ECS task: <code>huggingface-cli download meta-llama/Meta-Llama-3-8B-Instruct --local-dir /mnt/efs/models/llama3-8b</code>. This ensures subsequent container starts load from cache instead of downloading 14+ GB over the network.</p>
       </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- SECTION: INTERVIEW READY                     -->
+    <!-- ============================================ -->
+    <div class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+
+      <div class="callout tip">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>LLM hosting is the practice of running large language models on your own infrastructure instead of relying on third-party APIs. You choose an inference engine like vLLM or TGI, select appropriate GPU hardware, apply quantization (such as GPTQ, AWQ, or GGUF) to fit larger models into less memory, and expose the model through a REST API. The key trade-off is control versus operational burden: self-hosting gives you lower latency, full data privacy, and predictable costs at scale, but you take on GPU management, scaling, and monitoring. The decision hinges on token volume, data sensitivity, and latency requirements — once API spend exceeds roughly $5K per month or you need sub-100ms time-to-first-token, self-hosting typically wins.</p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+
+      <table>
+        <thead>
+          <tr><th>Question</th><th>What They're Really Asking</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>When would you self-host an LLM instead of using a commercial API?</td>
+            <td>Can you reason about cost, compliance, latency, and operational trade-offs rather than defaulting to one approach?</td>
+          </tr>
+          <tr>
+            <td>What is vLLM's PagedAttention and why does it matter?</td>
+            <td>Do you understand the GPU memory bottleneck in LLM serving and how modern engines solve it?</td>
+          </tr>
+          <tr>
+            <td>How does GGUF quantization differ from GPTQ and AWQ?</td>
+            <td>Can you explain quantization trade-offs and pick the right format for a given deployment target (CPU vs GPU)?</td>
+          </tr>
+          <tr>
+            <td>How would you choose a GPU for serving a 70B parameter model?</td>
+            <td>Do you know how to estimate VRAM requirements, understand tensor parallelism, and balance cost against throughput?</td>
+          </tr>
+          <tr>
+            <td>What strategies would you use to optimize latency and throughput for a self-hosted LLM?</td>
+            <td>Can you discuss continuous batching, KV-cache tuning, speculative decoding, and autoscaling as a coherent system?</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+
+      <p><strong>When would you self-host an LLM instead of using a commercial API?</strong><br>
+      Self-hosting makes sense when at least two of these conditions are met: API costs exceed $5K per month, data governance rules prohibit sending data to third parties, latency requirements demand sub-100ms time-to-first-token, or you need to serve a custom fine-tuned model. At high token volumes, a single A100 GPU running vLLM can serve hundreds of thousands of tokens per minute at a fixed hourly cost, whereas API pricing scales linearly with usage. However, self-hosting demands operational maturity — monitoring, autoscaling, failover, and model update pipelines — so teams should start with APIs and migrate when the economics or compliance case is clear.</p>
+
+      <p><strong>What is vLLM's PagedAttention and why does it matter?</strong><br>
+      PagedAttention manages the KV cache in non-contiguous memory pages, similar to how an operating system manages virtual memory. Traditional serving allocates a contiguous block for each request sized to the maximum sequence length, wasting enormous amounts of GPU memory on short sequences. PagedAttention allocates pages on demand and reclaims them immediately when a request finishes, enabling 2-4x more concurrent requests on the same hardware. This directly translates to higher throughput and lower cost per token in production.</p>
+
+      <p><strong>How does GGUF quantization differ from GPTQ and AWQ?</strong><br>
+      GGUF is the format used by llama.cpp and Ollama, optimized for CPU and Apple Silicon inference with support for mixed-precision schemes like Q4_K_M that quantize different layers at different bit widths. GPTQ and AWQ are GPU-focused formats that use calibration data to minimize quantization error — GPTQ applies one-shot weight quantization while AWQ protects salient weight channels that disproportionately affect accuracy. For GPU-based production serving with vLLM or TGI, GPTQ or AWQ is preferred. For local development on laptops or CPU-based edge deployment, GGUF is the standard choice.</p>
+
+      <p><strong>How would you choose a GPU for serving a 70B parameter model?</strong><br>
+      A 70B model at FP16 requires roughly 140GB of VRAM just for weights. A single A100-80GB is insufficient, so you either use tensor parallelism across two A100-80GB GPUs or quantize to 4-bit (roughly 35GB) to fit on one card. For production throughput, two A100s with tensor parallelism gives better performance because the KV cache also needs significant memory. When budgeting, compare the cost of an A100 instance ($2-3/hour) against H100 ($5-8/hour, but 2-3x faster inference) — the H100 often wins on cost-per-token despite the higher hourly rate due to its superior throughput.</p>
+
+      <p><strong>What strategies would you use to optimize latency and throughput for a self-hosted LLM?</strong><br>
+      Start with continuous batching to keep GPUs saturated — vLLM does this by default, dynamically inserting new requests into running batches. Tune <code>gpu-memory-utilization</code> to 0.90-0.95 to maximize KV-cache space. Enable chunked prefill to reduce time-to-first-token for long prompts. Consider speculative decoding with a smaller draft model to speed up generation from a larger target model. For scaling, deploy behind a load balancer with autoscaling based on GPU utilization and request queue depth, and use model replicas rather than larger GPU counts when throughput rather than single-request latency is the bottleneck.</p>
+
+      <h3>System Design Scenario</h3>
+
+      <div class="callout warn">
+        <div class="callout-label">Design Challenge</div>
+        <p>Your company processes 50,000 customer support tickets per day and wants to deploy a Llama 3 70B model to draft responses. Each ticket averages 800 input tokens and 400 output tokens. Data must stay within your AWS VPC due to PII concerns. Design the hosting architecture: choose your inference engine, GPU instance type, number of replicas, quantization strategy, and autoscaling policy. Estimate the monthly cost and compare it against using the Claude API at $3 per million input tokens and $15 per million output tokens. Explain your latency target and how you would monitor quality drift over time.</p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+
+      <ul>
+        <li><strong>Ignoring operational costs in the self-host vs API comparison.</strong> Teams often compare only compute costs against API pricing, forgetting the engineering hours spent on infrastructure setup, monitoring dashboards, on-call rotations, model updates, and incident response. A fair comparison includes at least 0.5-1 FTE of ongoing operational overhead for a self-hosted deployment.</li>
+        <li><strong>Over-provisioning GPU memory by skipping quantization.</strong> Running a 70B model at full FP16 across four GPUs when a 4-bit AWQ quantized version achieves nearly identical quality on a single GPU wastes three-quarters of your hardware budget. Always benchmark quantized variants against your specific evaluation set before defaulting to full precision.</li>
+        <li><strong>Treating GPU selection as a pure VRAM calculation.</strong> VRAM determines whether a model fits, but memory bandwidth and compute throughput determine how fast it runs. An H100 has 3.35 TB/s memory bandwidth versus the A100's 2 TB/s, which translates directly to faster token generation because LLM inference is memory-bandwidth-bound during the decode phase. Choosing the cheapest GPU that fits the model often leads to unacceptable latency.</li>
+      </ul>
     </div>
 
     <!-- NEXT / PREV -->

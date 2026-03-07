@@ -95,6 +95,7 @@
     <a href="#components" class="section">10. Key Components</a>
     <a href="#results" class="section">11. Results</a>
     <a href="#production" class="section">12. Production Considerations</a>
+    <a href="#portfolio" class="section">🛠️ Build Your Portfolio</a>
   </aside>
 
   <!-- ── MAIN ── -->
@@ -1443,6 +1444,52 @@ job = aiplatform.PipelineJob(
     }
 )
 job.submit()</code></pre>
+    </div>
+
+    <!-- ════════════════ BUILD YOUR PORTFOLIO ════════════════ -->
+    <div class="section" id="portfolio">
+      <div class="section-header">
+        <div class="section-num">🛠️</div>
+        <h2>Build Your Portfolio</h2>
+      </div>
+
+      <h3>Fork &amp; Extend</h3>
+      <p>Turn this notebook into a portfolio project in 5 steps:</p>
+      <ol>
+        <li><strong>Fork the notebook</strong> — Clone the repo and open in Google Colab or locally.</li>
+        <li><strong>Swap in real data</strong> — Replace the synthetic dataset with the <strong>Telco Customer Churn</strong> dataset from Kaggle (7,043 customers with demographics, services, tenure, and churn labels). Download it at <a href="https://www.kaggle.com/blastchar/telco-customer-churn" target="_blank" rel="noopener">kaggle.com/blastchar/telco-customer-churn</a>.</li>
+        <li><strong>Add survival analysis</strong> — Go beyond binary churn classification by implementing a Cox Proportional Hazards model or Kaplan-Meier curves. Predict <em>when</em> a customer will churn, not just <em>whether</em> they will, and estimate Customer Lifetime Value (CLV) for each risk segment.</li>
+        <li><strong>Deploy it</strong> — Wrap it in a Streamlit app with a customer lookup panel, churn risk gauge, SHAP waterfall plot explaining the top risk drivers, and a recommended intervention (discount offer, CSM outreach, feature onboarding).</li>
+        <li><strong>Write a README</strong> — Include architecture diagram, setup instructions, sample outputs, and metrics.</li>
+      </ol>
+
+      <h3>What Hiring Managers Look For</h3>
+      <div class="callout">
+        <div class="callout-label">Pro Tip</div>
+        <p>
+          Churn prediction projects impress when they go beyond model accuracy and show the <strong>business impact of interventions</strong>.
+          Calculate the cost of a false negative (lost customer LTV) vs. the cost of a false positive (wasted retention offer), and set your classification threshold to maximize expected profit rather than F1.
+          Include a segment-level analysis showing which customer cohorts are most at risk and which retention strategies work best for each, demonstrating that you can turn model output into actionable business strategy.
+        </p>
+      </div>
+
+      <h3>Public Datasets to Use</h3>
+      <ul>
+        <li><strong>Telco Customer Churn (IBM)</strong> — 7,043 customers with 21 features including contract type, payment method, monthly charges, and tenure. Available on Kaggle. The classic churn dataset, ideal for demonstrating feature engineering and model interpretability.</li>
+        <li><strong>E-Commerce Shipping Churn</strong> — 10,999 records with delivery performance, discount usage, and customer complaints. Available on Kaggle. Good for showing how operational metrics predict churn in e-commerce contexts.</li>
+        <li><strong>KKBox Churn Prediction</strong> — Millions of subscription records from Asia's leading music streaming service with transaction logs, user activity, and membership details. Available on Kaggle. Excellent for large-scale churn modeling with temporal features.</li>
+      </ul>
+
+      <h3>Deployment Options</h3>
+      <table>
+        <thead><tr><th>Platform</th><th>Best For</th><th>Effort</th></tr></thead>
+        <tbody>
+          <tr><td>Streamlit</td><td>Customer risk dashboard with churn probability gauges and SHAP explanations per account</td><td>Low</td></tr>
+          <tr><td>Gradio</td><td>Quick demo where CSMs input customer attributes and see churn risk with recommended actions</td><td>Low</td></tr>
+          <tr><td>FastAPI</td><td>Batch scoring API that CRM systems call nightly to update churn risk scores for all accounts</td><td>Medium</td></tr>
+          <tr><td>Docker + Cloud Run</td><td>Production churn scoring service with scheduled retraining and drift monitoring alerts</td><td>High</td></tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- ── PREV / NEXT ── -->

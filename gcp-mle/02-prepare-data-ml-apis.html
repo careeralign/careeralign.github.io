@@ -414,6 +414,7 @@ code {
     <a href="#auth-methods" class="sub">Auth Methods</a>
     <a href="#examtips" class="section">8 &middot; Exam Tips</a>
     <a href="#examtips-scenarios" class="sub">Scenario-Based Tips</a>
+    <a href="#interview" class="section">🎯 Interview Ready</a>
   </aside>
 
   <!-- MAIN -->
@@ -1318,6 +1319,54 @@ gcloud services enable videointelligence.googleapis.com</code></pre>
         (1) <strong>Data tool selection</strong>: Default to Dataflow unless there is a reason for Dataproc (existing Spark) or Dataprep (non-technical, ad-hoc).<br>
         (2) <strong>API selection</strong>: Match the data type (image, text, audio, video) to the corresponding API. If the pre-trained API's general model is insufficient, escalate to AutoML for a custom model.</p>
       </div>
+
+    <section class="section" id="interview">
+      <div class="section-header">
+        <div class="section-num">🎯</div>
+        <h2>Interview Ready</h2>
+      </div>
+
+      <h3>How to Explain This in 2 Minutes</h3>
+      <div class="callout tip">
+        <div class="callout-label">Elevator Pitch</div>
+        <p>Google Cloud&rsquo;s pre-trained ML APIs&mdash;Vision, Natural Language, Translation, Speech-to-Text, and Video Intelligence&mdash;let you add production-grade AI to applications with a single REST call, no training data or ML expertise required. For data preparation at scale, GCP offers three complementary tools: <strong>Dataflow</strong> (serverless Apache Beam for streaming and batch ETL), <strong>Dataprep</strong> (visual, no-code wrangling by Trifacta), and <strong>Dataproc</strong> (managed Spark/Hadoop for lift-and-shift workloads). The interview-ready insight is knowing <em>when</em> to use each: Dataflow for green-field pipelines needing autoscaling, Dataprep for quick exploratory cleaning, Dataproc when you have existing Spark code, and pre-trained APIs when the task is a solved problem (OCR, sentiment, translation) with no domain-specific labels.</p>
+      </div>
+
+      <h3>Likely Interview Questions</h3>
+      <table>
+        <thead>
+          <tr><th>Question</th><th>What They're Really Asking</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>When would you use pre-trained APIs versus training your own model?</td><td>Can you identify when a generic model is sufficient vs. when domain-specific data justifies custom training?</td></tr>
+          <tr><td>Compare Dataflow, Dataprep, and Dataproc for data preparation.</td><td>Do you understand the trade-offs between serverless beam, visual wrangling, and managed Spark?</td></tr>
+          <tr><td>How would you handle data cleaning for an ML pipeline at scale on GCP?</td><td>Can you design a pipeline that handles missing values, normalization, and feature encoding in a distributed way?</td></tr>
+          <tr><td>What is the Vision API capable of, and what are its limitations?</td><td>Do you know the boundary between API capabilities (label detection, OCR, face detection) and custom Vision needs?</td></tr>
+          <tr><td>How do you authenticate and manage quotas for GCP ML APIs in production?</td><td>Do you understand service accounts, API keys, OAuth scopes, and rate-limit handling for production workloads?</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Model Answers</h3>
+      <p><strong>Pre-trained vs Custom:</strong> I default to pre-trained APIs when the task matches a general category&mdash;sentiment analysis on product reviews, OCR on scanned documents, or translating support tickets. The APIs are continuously improved by Google, require zero training data, and scale instantly. I switch to custom training (AutoML Vision, AutoML Natural Language, or Vertex AI custom) when accuracy on domain-specific classes is critical&mdash;for example, classifying medical images where generic labels are insufficient, or detecting industry-specific entities in legal text that the NL API doesn&rsquo;t recognize.</p>
+
+      <p><strong>Dataflow vs Dataproc vs Dataprep:</strong> Dataflow is my first choice for new pipelines because it&rsquo;s fully serverless, autoscales to zero, handles both batch and streaming with the same Apache Beam code, and integrates natively with BigQuery and Pub/Sub. Dataproc is the right choice when the team has existing PySpark or Hadoop jobs they want to run on GCP with minimal refactoring&mdash;it provisions a cluster in 90 seconds and supports preemptible VMs. Dataprep is ideal for data analysts doing exploratory data quality checks before building a formal pipeline.</p>
+
+      <p><strong>Production API Architecture:</strong> In production, I use service accounts (not API keys) with least-privilege IAM roles, enable the specific APIs in the project, and configure exponential backoff for 429 (quota exceeded) responses. I set up Cloud Monitoring alerts on API usage metrics, use VPC Service Controls to prevent data exfiltration, and batch requests where possible (e.g., Vision API batch annotation) to stay within rate limits and reduce cost.</p>
+
+      <h3>System Design Scenario</h3>
+      <div class="callout info">
+        <div class="callout-label">Design Prompt</div>
+        <p><strong>Scenario:</strong> A global e-commerce company receives customer reviews in 15 languages. They want to extract sentiment, detect offensive content, translate all reviews to English, and store structured results for analytics. Design the data pipeline on GCP.</p>
+        <p><strong>Approach:</strong> Reviews land in Pub/Sub from the application backend. A Dataflow streaming pipeline consumes messages, calls the Translation API to normalize text to English, then calls the Natural Language API for sentiment and content classification in parallel. Results are written to BigQuery with columns for original_language, translated_text, sentiment_score, and content_categories. A separate Dataflow branch calls the Vision API on any attached review images for label detection and SafeSearch. Cloud DLP scans for PII before storage. Monitoring dashboards in Looker visualize sentiment trends by product and region. The pipeline autoscales with Dataflow and requires no cluster management.</p>
+      </div>
+
+      <h3>Common Mistakes</h3>
+      <ul>
+        <li><strong>Using Dataproc for everything</strong> &mdash; Many candidates default to Spark because it&rsquo;s familiar, but Dataflow is preferred on GCP for new pipelines because it&rsquo;s serverless and handles streaming natively. Only recommend Dataproc when there&rsquo;s existing Hadoop/Spark code to migrate.</li>
+        <li><strong>Forgetting API limitations</strong> &mdash; Pre-trained APIs have file size limits, rate quotas, and language support boundaries. Failing to mention these constraints in a design answer signals you haven&rsquo;t used them in production.</li>
+        <li><strong>Skipping data quality in the pipeline</strong> &mdash; Jumping straight from raw data to model training without addressing missing values, duplicates, encoding issues, and label quality is a red flag. Always describe the data validation and cleaning steps explicitly.</li>
+      </ul>
+    </section>
 
       <!-- NAVIGATION -->
       <div class="next-section">

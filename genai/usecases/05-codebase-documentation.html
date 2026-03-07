@@ -111,6 +111,7 @@
     <a href="#multi-language" class="sub">Multi-Language</a>
     <a href="#ci-cd" class="sub">CI/CD Integration</a>
     <a href="#hallucination" class="sub">Hallucination Mitigation</a>
+    <a href="#portfolio" class="section">🛠️ Build Your Portfolio</a>
   </aside>
 
   <!-- MAIN -->
@@ -1119,6 +1120,47 @@ jobs:
         easy reversion. (6) Monitor LLM API costs per run. (7) Respect existing high-quality docs &mdash; never
         overwrite good documentation.</p>
       </div>
+
+      <section class="section" id="portfolio">
+        <div class="section-header">
+          <div class="section-num">🛠️</div>
+          <h2>Build Your Portfolio</h2>
+        </div>
+
+        <h3>Fork &amp; Extend</h3>
+        <p>Turn this notebook into a portfolio project in 5 steps:</p>
+        <ol>
+          <li><strong>Fork the notebook</strong> &mdash; Clone the repo and open in Google Colab or locally.</li>
+          <li><strong>Swap in real data</strong> &mdash; Replace the synthetic code samples with a real open-source project from GitHub. Try documenting a popular but under-documented library like <a href="https://github.com/fastapi/fastapi" target="_blank">FastAPI</a>, <a href="https://github.com/pydantic/pydantic" target="_blank">Pydantic</a>, or any repo with sparse docstrings.</li>
+          <li><strong>Add documentation quality scoring</strong> &mdash; Build a quality assessment layer that grades existing docstrings on completeness (params, returns, examples, exceptions) and only regenerates documentation that falls below a configurable threshold, preserving high-quality existing docs.</li>
+          <li><strong>Deploy it</strong> &mdash; Wrap it in a Streamlit app. Build an interface where users paste a GitHub repo URL, see a file tree with doc-coverage heatmap, click any function to view generated vs. existing docstrings side-by-side, and export the result as a PR-ready diff.</li>
+          <li><strong>Write a README</strong> &mdash; Include architecture diagram, setup instructions, sample outputs, and metrics.</li>
+        </ol>
+
+        <h3>What Hiring Managers Look For</h3>
+        <div class="callout">
+          <div class="callout-label">Pro Tip</div>
+          <p>DevTools hiring managers want proof that your documentation generator produces accurate, useful output at scale. Show that generated docstrings are validated against function signatures (parameter names, types, return types) programmatically, include BLEU or BERTScore metrics against human-written reference docs, and demonstrate your hallucination mitigation strategy. Bonus points for showing CI/CD integration that runs documentation checks on every pull request and flags documentation drift when code changes.</p>
+        </div>
+
+        <h3>Public Datasets to Use</h3>
+        <ul>
+          <li><strong>CodeSearchNet</strong> &mdash; 6 million functions from open-source code across 6 languages (Python, Java, Go, PHP, JavaScript, Ruby) with associated docstrings. Available on <a href="https://huggingface.co/datasets/code_search_net" target="_blank">Hugging Face</a>. Ideal for training and evaluating docstring generation quality.</li>
+          <li><strong>The Stack v2</strong> &mdash; 67 TB of permissively-licensed source code from GitHub across 600+ languages. Available on <a href="https://huggingface.co/datasets/bigcode/the-stack-v2" target="_blank">Hugging Face</a>. Use a filtered subset for multi-language documentation generation testing.</li>
+          <li><strong>DocPrompting</strong> &mdash; 60,000+ code-documentation pairs specifically curated for documentation generation research. Available on <a href="https://github.com/shuyanzhou/docprompting" target="_blank">GitHub</a>. Purpose-built for benchmarking doc generation models.</li>
+        </ul>
+
+        <h3>Deployment Options</h3>
+        <table>
+          <thead><tr><th>Platform</th><th>Best For</th><th>Effort</th></tr></thead>
+          <tbody>
+            <tr><td>Streamlit</td><td>Repo browser with doc-coverage heatmap and side-by-side diff viewer</td><td>Low</td></tr>
+            <tr><td>Gradio</td><td>Paste-a-function demo with instant docstring generation preview</td><td>Low</td></tr>
+            <tr><td>FastAPI</td><td>GitHub webhook endpoint that auto-generates docs on push events</td><td>Medium</td></tr>
+            <tr><td>Docker + Cloud Run</td><td>CI/CD pipeline service running doc generation on every PR as a GitHub Action</td><td>High</td></tr>
+          </tbody>
+        </table>
+      </section>
 
       <!-- PREV / NEXT -->
       <div class="next-section">
