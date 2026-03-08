@@ -4,223 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="../styles.css">
+<script>if(localStorage.getItem('ca-theme')==='light')document.documentElement.setAttribute('data-theme','light');</script>
 <title>GCP Generative AI Leader — CareerAlign</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg-base:      #0b0d14;
-  --bg-surface:   #10131e;
-  --bg-elevated:  #171c2e;
-  --bg-overlay:   #1e2438;
-  --border-subtle:#1a1f34;
-  --border-default:#232840;
-  --border-strong: #2e3554;
-  --text-primary: #e6e8f4;
-  --text-secondary:#8e94b5;
-  --text-muted:   #545a78;
-  --accent-indigo:#6366f1;
-  --accent-cyan:  #22d3ee;
-  --accent-violet:#a855f7;
-  --glow-indigo:  rgba(99,102,241,0.25);
-
   --section-1:    #22c55e;
   --section-2:    #06b6d4;
   --section-3:    #3b82f6;
   --section-4:    #f97316;
-
-  --font-display: 'Space Grotesk', sans-serif;
-  --font-body:    'Nunito', sans-serif;
-  --font-mono:    'JetBrains Mono', monospace;
-  --radius:       12px;
-  --radius-sm:    8px;
-  --radius-lg:    18px;
 }
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-
-body {
-  background: var(--bg-base);
-  color: var(--text-primary);
-  font-family: var(--font-body);
-  font-size: 16px;
-  line-height: 1.7;
-  min-height: 100vh;
-}
-a { color: inherit; text-decoration: none; }
-img, svg { display: block; }
-
-/* NAV */
-.nav {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(11,13,20,0.92);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--border-subtle);
-  padding: 0 32px;
-  display: flex; align-items: center;
-  height: 58px; gap: 24px;
-}
-.nav-logo {
-  font-family: var(--font-display); font-weight: 700; font-size: 17px;
-  color: var(--text-primary); display: flex; align-items: center; gap: 9px; white-space: nowrap;
-}
-.nav-logo span { color: var(--accent-indigo); }
-.nav-links { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; overflow: hidden; }
-.nav-links a {
-  font-size: 13.5px; font-weight: 500; color: var(--text-secondary);
-  padding: 4px 8px; border-radius: 6px; transition: all .2s; white-space: nowrap;
-}
-.nav-links a:hover { color: var(--text-primary); background: var(--bg-elevated); }
-.nav-right {
-  display: flex; align-items: center; gap: 12px; margin-left: auto;
-}
-.progress-badge {
-  background: var(--bg-elevated); border: 1px solid var(--border-default);
-  border-radius: 20px; padding: 5px 14px;
-  font-size: 12.5px; font-family: var(--font-mono);
-  color: var(--accent-cyan); white-space: nowrap;
-}
-.btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 600; border-radius: 8px; padding: 9px 20px; font-size: 13.5px; transition: all .2s; cursor: pointer; border: none; }
-.btn-primary { background: var(--accent-indigo); color: #fff; }
-.btn-primary:hover { background: #818cf8; }
-
-/* HERO */
-.hero {
-  padding: 80px 60px 60px;
-  max-width: 1300px; margin: 0 auto;
-  border-bottom: none;
-}
-.hero-eyebrow {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3);
-  border-radius: 20px; padding: 5px 14px;
-  font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
-  color: #a5b4fc; margin-bottom: 24px;
-}
-.hero h1 {
-  font-family: var(--font-display);
-  font-size: clamp(36px, 5vw, 64px);
-  font-weight: 700; letter-spacing: -.02em;
-  background: linear-gradient(135deg, #e6e8f4 30%, #818cf8);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text; line-height: 1.15; margin-bottom: 20px;
-}
-.hero-sub {
-  font-size: 18px; color: var(--text-secondary);
-  max-width: 680px; line-height: 1.75; margin-bottom: 40px;
-}
-.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-
-/* STATS */
-.stats-strip {
-  display: flex; gap: 36px; margin-top: 40px;
-  padding-top: 28px; border-top: 1px solid var(--border-subtle);
-}
-.stat-item { text-align: center; }
-.stat-val { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--text-primary); }
-.stat-label { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
-
-/* SECTIONS */
-.section {
-  max-width: 1300px; margin: 0 auto;
-  padding: 60px 60px 0;
-}
-.section-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 28px; padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-subtle);
-}
-.section-title {
-  font-family: var(--font-display); font-size: 24px; font-weight: 700;
-  color: var(--text-primary);
-}
-.section-title span { color: var(--accent-indigo); }
-.section-sub { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
-
-/* PROGRESS BAR */
-.progress-bar-wrap {
-  background: var(--bg-elevated); border: 1px solid var(--border-default);
-  border-radius: var(--radius); padding: 20px 28px; margin-bottom: 36px;
-  display: flex; align-items: center; gap: 20px;
-}
-.progress-label { font-family: var(--font-display); font-size: 14px; font-weight: 600; white-space: nowrap; color: var(--text-secondary); }
-.progress-track { flex: 1; height: 8px; background: var(--bg-base); border-radius: 4px; overflow: hidden; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent-indigo), var(--accent-cyan)); border-radius: 4px; transition: width .5s ease; }
-.progress-pct { font-family: var(--font-mono); font-size: 14px; color: var(--accent-cyan); white-space: nowrap; }
-.btn-reset { font-size: 12px; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; font-family: var(--font-body); }
-.btn-reset:hover { color: var(--text-secondary); background: var(--bg-overlay); }
-
-/* PHASE HEADING */
-.phase-heading {
-  font-family: var(--font-display); font-size: 12px; font-weight: 700;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  padding: 10px 18px; border-radius: var(--radius-sm);
-  margin-bottom: 20px; margin-top: 32px;
-}
-
-/* CARD GRID */
-.card-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 18px; margin-bottom: 10px;
-}
-.module-card {
-  background: var(--bg-surface); border: 1px solid var(--border-default);
-  border-radius: var(--radius); padding: 22px 24px;
-  display: flex; flex-direction: column; gap: 10px;
-  transition: border-color .25s, transform .2s; cursor: pointer;
-}
-.module-card:hover { border-color: var(--card-color, #6366f1); transform: translateY(-2px); }
-.module-card.completed { border-color: var(--card-color, #6366f1); background: rgba(99,102,241,0.04); }
-.card-num {
-  font-family: var(--font-display); font-size: 10.5px; text-transform: uppercase;
-  letter-spacing: .06em; font-weight: 500; color: var(--card-color, #6366f1);
-}
-.card-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--text-primary); line-height: 1.3; }
-.card-desc { font-size: 13.5px; color: var(--text-secondary); line-height: 1.55; flex: 1; }
-.card-footer {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-top: 6px; padding-top: 12px; border-top: 1px solid var(--border-subtle);
-}
-.card-time { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
-.card-topics { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
-.topic-pill { font-size: 11px; padding: 2px 8px; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 12px; color: var(--text-muted); }
-.card-check {
-  width: 20px; height: 20px; border-radius: 50%;
-  border: 2px solid var(--border-strong); background: transparent;
-  cursor: pointer; appearance: none; -webkit-appearance: none;
-  transition: all .2s; flex-shrink: 0;
-}
-.card-check:checked {
-  background: var(--card-color, #6366f1); border-color: var(--card-color, #6366f1);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6l3 3 5-5' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: center;
-}
-.colab-btn { display: inline-flex; align-items: center; opacity: 0.7; transition: opacity 0.2s; flex-shrink: 0; }
-.colab-btn:hover { opacity: 1; }
-
-/* GLOSSARY */
-.glossary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
-.glossary-item { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-sm); padding: 16px 20px; }
-.gloss-term { font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--accent-cyan); margin-bottom: 6px; }
-.gloss-def { font-size: 13.5px; color: var(--text-secondary); line-height: 1.6; }
-
-/* DIVIDER */
-.divider { border: none; border-top: 1px solid var(--border-subtle); margin: 60px auto 0; max-width: 1300px; }
-
-/* FOOTER */
-footer {
-  border-top: 1px solid var(--border-subtle);
-  padding: 36px 60px; text-align: center;
-  font-size: 13.5px; color: var(--text-muted);
-}
-footer a { color: var(--accent-indigo); }
-footer a:hover { text-decoration: underline; }
-
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-base); }
-::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
 </style>
 </head>
 <body>
@@ -237,6 +32,7 @@ footer a:hover { text-decoration: underline; }
     <div class="progress-badge" id="nav-progress">0 / 4 complete</div>
     <button class="btn btn-primary" onclick="document.getElementById('courses').scrollIntoView({behavior:'smooth'})">Start Learning &rarr;</button>
   </div>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">ð</button>
 </nav>
 
 <!-- HERO -->
@@ -456,5 +252,6 @@ document.querySelectorAll('.module-card').forEach(card => {
 
 refresh();
 </script>
+<script src="../theme.js"></script>
 </body>
 </html>

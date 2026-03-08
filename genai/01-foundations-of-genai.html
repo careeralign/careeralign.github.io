@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="../styles.css">
+<script>if(localStorage.getItem('ca-theme')==='light')document.documentElement.setAttribute('data-theme','light');</script>
 <title>Foundations of Modern GenAI — CareerAlign GenAI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,6 +35,7 @@
     <a href="16-capstone-report-agent.html">16 &middot; Cap II</a>
   </div>
   <a href="index.html" class="nav-home">&larr; GenAI Hub</a>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">ð</button>
 </nav>
 
 <!-- HERO -->
@@ -295,7 +297,6 @@
     output = weights @ V                           <span class="code-comment"># (seq_len, d_v)</span>
     <span class="code-keyword">return</span> output, weights
 
-
 <span class="code-comment"># --- Example ---</span>
 np.random.<span class="code-fn">seed</span>(<span class="code-num">42</span>)
 seq_len, d_model, d_k = <span class="code-num">6</span>, <span class="code-num">512</span>, <span class="code-num">64</span>
@@ -317,7 +318,6 @@ context, attn_weights = <span class="code-fn">scaled_dot_product_attention</span
 <span class="code-fn">print</span>(<span class="code-string">f"Context shape: {context.shape}"</span>)   <span class="code-comment"># (6, 64)</span>
 <span class="code-fn">print</span>(<span class="code-string">f"Attention weights (row 3): {attn_weights[3].round(3)}"</span>)
 <span class="code-comment"># Token 3 can only attend to tokens 0,1,2,3 — future is zeroed</span>
-
 
 <span class="code-comment"># --- Multi-head attention sketch ---</span>
 <span class="code-keyword">def</span> <span class="code-fn">multi_head_attention</span>(x, W_Q_list, W_K_list, W_V_list, W_O):
@@ -569,11 +569,9 @@ client = <span class="code-fn">OpenAI</span>()  <span class="code-comment"># rea
     vec = np.<span class="code-fn">array</span>(response.data[<span class="code-num">0</span>].embedding)
     <span class="code-keyword">return</span> vec / np.linalg.<span class="code-fn">norm</span>(vec)  <span class="code-comment"># L2-normalize for cosine ≡ dot</span>
 
-
 <span class="code-keyword">def</span> <span class="code-fn">cosine_similarity</span>(a: np.ndarray, b: np.ndarray) -&gt; <span class="code-fn">float</span>:
     <span class="code="code-string">"""Cosine similarity between two unit-normalised vectors."""</span>
     <span class="code-keyword">return</span> <span class="code-fn">float</span>(np.<span class="code-fn">dot</span>(a, b))  <span class="code-comment"># == cos(θ) when both are unit vectors</span>
-
 
 <span class="code-comment"># --- Compare semantic similarity of sentence pairs ---</span>
 pairs = [
@@ -592,7 +590,6 @@ pairs = [
     sim   = <span class="code-fn">cosine_similarity</span>(emb_a, emb_b)
     <span class="code-fn">print</span>(<span class="code-string">f"{a[:38]:40s}  {b[:38]:40s}  {sim:.4f}"</span>)
 
-
 <span class="code-comment"># --- Demonstrate vector arithmetic (king - man + woman ≈ queen) ---</span>
 words = [<span class="code-string">"king"</span>, <span class="code-string">"man"</span>, <span class="code-string">"woman"</span>, <span class="code-string">"queen"</span>, <span class="code-string">"prince"</span>, <span class="code-string">"princess"</span>]
 embeddings = {w: <span class="code-fn">get_embedding</span>(w) <span class="code-keyword">for</span> w <span class="code-keyword">in</span> words}
@@ -605,7 +602,6 @@ analogy = analogy / np.linalg.<span class="code-fn">norm</span>(analogy)
 <span class="code-keyword">for</span> word, vec <span class="code-keyword">in</span> embeddings.<span class="code-fn">items</span>():
     <span class="code-fn">print</span>(<span class="code-string">f"  {word:10s}: {cosine_similarity(analogy, vec):.4f}"</span>)
 <span class="code-comment"># "queen" should score highest (excluding king/man/woman themselves)</span>
-
 
 <span class="code-comment"># --- Batch embeddings (more efficient for large corpora) ---</span>
 documents = [
@@ -751,13 +747,11 @@ sim_matrix = unit_embs @ unit_embs.T
     exp = np.<span class="code-fn">exp</span>(scaled - scaled.<span class="code-fn">max</span>())  <span class="code-comment"># numerical stability</span>
     <span class="code-keyword">return</span> exp / exp.<span class="code-fn">sum</span>()
 
-
 <span class="code-keyword">def</span> <span class="code-fn">top_k_filter</span>(logits: np.ndarray, k: <span class="code-fn">int</span>) -&gt; np.ndarray:
     <span class="code-string">"""Zero out all logits except the top-k."""</span>
     threshold = np.<span class="code-fn">sort</span>(logits)[-k]
     filtered = np.<span class="code-fn">where</span>(logits &gt;= threshold, logits, -np.<span class="code-fn">inf</span>)
     <span class="code-keyword">return</span> filtered
-
 
 <span class="code-keyword">def</span> <span class="code-fn">top_p_filter</span>(logits: np.ndarray, p: <span class="code-fn">float</span>) -&gt; np.ndarray:
     <span class="code-string">"""Keep the smallest set of tokens whose cumulative prob ≥ p."""</span>
@@ -770,7 +764,6 @@ sim_matrix = unit_embs @ unit_embs.T
     filtered = np.<span class="code-fn">full_like</span>(logits, -np.<span class="code-fn">inf</span>, dtype=<span class="code-fn">float</span>)
     filtered[keep] = logits[keep]
     <span class="code-keyword">return</span> filtered
-
 
 <span class="code-keyword">def</span> <span class="code-fn">sample_token</span>(logits: np.ndarray, temperature: <span class="code-fn">float</span> = <span class="code-num">1.0</span>,
                   top_k: <span class="code-fn">int</span> = <span class="code-num">0</span>, top_p: <span class="code-fn">float</span> = <span class="code-num">1.0</span>) -&gt; <span class="code-fn">int</span>:
@@ -787,7 +780,6 @@ sim_matrix = unit_embs @ unit_embs.T
         logits = <span class="code-fn">top_p_filter</span>(logits, top_p)
     probs = <span class="code-fn">softmax</span>(logits, temperature)
     <span class="code-keyword">return</span> <span class="code-fn">int</span>(np.random.<span class="code-fn">choice</span>(<span class="code-fn">len</span>(probs), p=probs))
-
 
 <span class="code-comment"># --- Effect of temperature on distribution ---</span>
 np.random.<span class="code-fn">seed</span>(<span class="code-num">0</span>)
@@ -940,5 +932,6 @@ size_large = <span class="code-fn">kv_cache_bytes</span>(<span class="code-num">
   </main>
 </div>
 
+<script src="../theme.js"></script>
 </body>
 </html>

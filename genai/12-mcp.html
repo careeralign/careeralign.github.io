@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="../styles.css">
+<script>if(localStorage.getItem('ca-theme')==='light')document.documentElement.setAttribute('data-theme','light');</script>
 <title>MCP — CareerAlign GenAI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,6 +46,7 @@
     <a href="16-capstone-report-agent.html">16 &middot; Cap II</a>
   </div>
   <a href="index.html" class="nav-home">&larr; GenAI Hub</a>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">ð</button>
 </nav>
 
 <!-- HERO -->
@@ -575,7 +577,6 @@ mcp = <span class="code-fn">FastMCP</span>(
     ]
     <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>(results, indent=<span class="code-num">2</span>)
 
-
 <span class="code-comment"># ---- TOOL 2: Save a research note to SQLite ----</span>
 <span class="code-keyword">@mcp</span>.<span class="code-fn">tool</span>()
 <span class="code-keyword">async def</span> <span class="code-fn">save_note</span>(
@@ -605,7 +606,6 @@ mcp = <span class="code-fn">FastMCP</span>(
         <span class="code-keyword">await</span> ctx.<span class="code-fn">info</span>(<span class="code-string">f"Saved note #{note_id}: {title}"</span>)
 
     <span class="code-keyword">return</span> <span class="code-string">f"Note saved successfully with ID {note_id}"</span>
-
 
 <span class="code-comment"># ---- TOOL 3: Search saved notes ----</span>
 <span class="code-keyword">@mcp</span>.<span class="code-fn">tool</span>()
@@ -637,7 +637,6 @@ mcp = <span class="code-fn">FastMCP</span>(
     ]
     <span class="code="code-keyword">return</span> json.<span class="code-fn">dumps</span>(results, indent=<span class="code-num">2</span>)
 
-
 <span class="code-comment"># ---- RESOURCE: Read a note by ID ----</span>
 <span class="code-keyword">@mcp</span>.<span class="code-fn">resource</span>(<span class="code-string">"note://{note_id}"</span>)
 <span class="code-keyword">async def</span> <span class="code-fn">read_note</span>(note_id: int) -> str:
@@ -655,7 +654,6 @@ mcp = <span class="code-fn">FastMCP</span>(
         <span class="code-keyword">raise</span> <span class="code-fn">ValueError</span>(<span class="code-string">f"Note {note_id} not found"</span>)
 
     <span class="code-keyword">return</span> <span class="code-string">f"# {row[0]}\n\n{row[1]}\n\nTags: {', '.join(json.loads(row[2]))}\nSaved: {row[3]}"</span>
-
 
 <span class="code-comment"># ---- PROMPT: Research synthesis template ----</span>
 <span class="code-keyword">@mcp</span>.<span class="code-fn">prompt</span>()
@@ -691,7 +689,6 @@ Depth target: {depth_instructions.get(depth, depth_instructions['detailed'])}
 Always cite specific sources when making factual claims. Distinguish between
 well-established findings and emerging or disputed evidence.
 Today's date: {datetime.now().strftime('%Y-%m-%d')}"""</span>
-
 
 <span class="code-comment"># ---- Entry point ----</span>
 <span class="code-keyword">if</span> __name__ == <span class="code-string">"__main__"</span>:
@@ -1252,7 +1249,6 @@ mcp = <span class="code-fn">FastMCP</span>(<span class="code-string">"secure-ser
         <span class="code-keyword">return</span> wrapper
     <span class="code-keyword">return</span> decorator
 
-
 <span class="code-keyword">@mcp</span>.<span class="code-fn">tool</span>()
 <span class="code-keyword">@require_permission</span>(<span class="code-string">"database:write"</span>)
 <span class="code-keyword">async def</span> <span class="code-fn">insert_record</span>(table: str, data: dict, ctx: Context = <span class="code-keyword">None</span>) -> str:
@@ -1372,5 +1368,6 @@ mcp = <span class="code-fn">FastMCP</span>(<span class="code-string">"secure-ser
   </main>
 </div>
 
+<script src="../theme.js"></script>
 </body>
 </html>
