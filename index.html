@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="styles.css">
+<script>if(localStorage.getItem('ca-theme')==='light')document.documentElement.setAttribute('data-theme','light');</script>
 <title>CareerAlign — Move from Chaos to Clarity</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -306,6 +307,48 @@ a { color: inherit; text-decoration: none; }
   .stats { flex-direction: column; gap: 16px; }
   .nav-links { gap: 16px; }
 }
+
+/* Light theme overrides for landing page */
+[data-theme="light"] {
+  --bg-base:       #f5f6fa;
+  --bg-surface:    #ffffff;
+  --bg-elevated:   #eef0f6;
+  --bg-overlay:    #e4e7ef;
+  --border-subtle:  #dfe2ec;
+  --border-default: #cdd1de;
+  --border-strong:  #b4b9cc;
+  --text-primary:   #1a1c2e;
+  --text-secondary: #4a5068;
+  --text-muted:     #7e849e;
+  --accent-indigo:  #4f46e5;
+  --accent-cyan:    #0891b2;
+  --glow-indigo:    rgba(79,70,229,0.18);
+}
+[data-theme="light"] .nav {
+  background: rgba(245,246,250,0.94);
+}
+[data-theme="light"] .hero::before {
+  background: radial-gradient(ellipse at center, rgba(79,70,229,0.08) 0%, transparent 70%);
+}
+
+/* Theme toggle */
+.theme-toggle {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  transition: all .2s;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+.theme-toggle:hover {
+  border-color: var(--accent-indigo);
+  background: var(--bg-overlay);
+}
 </style>
 </head>
 <body>
@@ -317,6 +360,7 @@ a { color: inherit; text-decoration: none; }
     <a href="#paths">Learning Paths</a>
     <a href="#use-cases">Use Cases</a>
   </div>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button>
 </nav>
 
 <!-- ── HERO ─────────────────────────────────────────────── -->
@@ -452,5 +496,28 @@ a { color: inherit; text-decoration: none; }
   CareerAlign.com &middot; Move from Chaos to Clarity
 </footer>
 
+<script>
+(function() {
+  var toggle = document.getElementById('theme-toggle');
+  var html = document.documentElement;
+  var saved = localStorage.getItem('ca-theme');
+  if (saved === 'light') {
+    html.setAttribute('data-theme', 'light');
+    toggle.textContent = '☀️';
+  }
+  toggle.addEventListener('click', function() {
+    var isLight = html.getAttribute('data-theme') === 'light';
+    if (isLight) {
+      html.removeAttribute('data-theme');
+      localStorage.setItem('ca-theme', 'dark');
+      toggle.textContent = '🌙';
+    } else {
+      html.setAttribute('data-theme', 'light');
+      localStorage.setItem('ca-theme', 'light');
+      toggle.textContent = '☀️';
+    }
+  });
+})();
+</script>
 </body>
 </html>
