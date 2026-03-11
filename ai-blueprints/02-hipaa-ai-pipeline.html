@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<script>if(localStorage.getItem('ca-theme')==='light')document.documentElement.setAttribute('data-theme','light');</script>
+<title>HIPAA-Compliant AI Pipeline — CareerAlign AI Blueprints</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #22c55e;
+  --page-color-04: rgba(34,197,94,0.04);
+  --page-color-07: rgba(34,197,94,0.07);
+  --page-color-12: rgba(34,197,94,0.12);
+  --page-color-15: rgba(34,197,94,0.15);
+  --page-color-25: rgba(34,197,94,0.25);
+  --page-color-30: rgba(34,197,94,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#128736; <span style="color:#22c55e;">AI</span> Blueprints</div>
+  <div class="nav-links">
+    <a href="01-ai-gateway.html">01</a>
+    <a href="02-hipaa-ai-pipeline.html" class="active">02</a>
+    <a href="03-fraud-detection.html">03</a>
+    <a href="04-digital-twin.html">04</a>
+    <a href="05-mlops-platform.html">05</a>
+    <a href="06-rules-to-ml.html">06</a>
+    <a href="07-model-governance.html">07</a>
+    <a href="08-multi-cloud.html">08</a>
+    <a href="09-build-buy-finetune.html">09</a>
+    <a href="10-enterprise-rag.html">10</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; Blueprint Hub</a>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">&#127769;</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">&#127973; Blueprint 02 &middot; Healthcare</div>
+  <h1>HIPAA-Compliant <em>AI Pipeline</em></h1>
+  <p class="hero-desc">
+    Process Protected Health Information safely through AI models with de-identification, BAA-compliant LLM access,
+    private endpoints, and end-to-end audit trails &mdash; keeping patients safe and regulators satisfied.
+  </p>
+  <div class="hero-checklist">
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> PHI De-identification</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> BAA Compliance</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Private Endpoints</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Audit Trail</span>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#plain-language" class="section">In Plain Language</a>
+    <a href="#diagram" class="section">Architecture Diagram</a>
+    <a href="#components" class="section">Component Breakdown</a>
+    <a href="#tradeoffs" class="section">Decision Points &amp; Trade-offs</a>
+    <a href="#cloud" class="section">Cloud Mapping</a>
+    <a href="#antipatterns" class="section">Anti-Patterns</a>
+    <a href="#checklist" class="section">Architect's Checklist</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- 1. IN PLAIN LANGUAGE -->
+    <div class="section" id="plain-language">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>In Plain Language</h2>
+      </div>
+      <p>
+        Hospitals and health insurers sit on mountains of data &mdash; clinical notes, lab results, imaging reports,
+        prescription histories &mdash; that AI could transform into better patient outcomes. Imagine an AI that reads
+        thousands of discharge summaries to flag patients at risk of readmission, or one that extracts structured data
+        from handwritten doctor's notes. The potential is enormous. But healthcare data is governed by HIPAA (the Health
+        Insurance Portability and Accountability Act), which means you cannot just send patient records to an LLM API
+        and hope for the best.
+      </p>
+      <p>
+        A HIPAA-compliant AI pipeline ensures that Protected Health Information (PHI) &mdash; names, dates of birth,
+        medical record numbers, Social Security numbers &mdash; is stripped out before data ever leaves your secure
+        environment. The AI model works with de-identified text: it sees "Patient X, age 67, admitted for chest pain"
+        instead of "John Smith, DOB 03/15/1959, MRN 12345." After the model produces its output, a separate
+        re-identification service maps the results back to real patients, but only for authorized users within the
+        secure environment. The key insight is that the AI model never needs to see real patient identifiers to do
+        useful clinical work.
+      </p>
+      <p>
+        This isn't just about avoiding fines &mdash; though HIPAA penalties can reach $2 million or more per violation
+        category, per year. It's about maintaining patient trust. People share their most intimate health details with
+        their doctors. If that data leaks because someone piped it through a public API without safeguards, the damage
+        to trust is irreparable. Every healthcare AI project needs this architecture as its foundation, not as an
+        afterthought bolted on later.
+      </p>
+      <p>
+        If you architect this wrong, you're one data breach away from front-page news, regulatory action, and class-action
+        lawsuits. The good news is that all major cloud providers now offer BAA-compliant AI services, private network
+        endpoints, and healthcare-specific APIs. The architecture isn't theoretical &mdash; it's well-proven. You just
+        need to wire the pieces together correctly and never take shortcuts with patient data.
+      </p>
+    </div>
+
+    <!-- 2. ARCHITECTURE DIAGRAM -->
+    <div class="section" id="diagram">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Architecture Diagram</h2>
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 900 420" class="learning-path-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow2" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#22c55e"/>
+            </marker>
+          </defs>
+
+          <!-- VPC boundary -->
+          <rect x="10" y="10" width="880" height="340" rx="14" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="8,4"/>
+          <text x="30" y="35" fill="#22c55e" font-family="JetBrains Mono" font-size="11" font-weight="500">Secure VPC / Private Network</text>
+
+          <!-- EHR System -->
+          <rect x="30" y="120" width="130" height="80" rx="10" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="95" y="152" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">EHR System</text>
+          <text x="95" y="172" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Clinical notes, labs</text>
+
+          <!-- Arrow -->
+          <line x1="160" y1="160" x2="215" y2="160" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow2)"/>
+
+          <!-- De-identification Engine -->
+          <rect x="225" y="100" width="160" height="120" rx="10" fill="#10131e" stroke="#f59e0b" stroke-width="2"/>
+          <text x="305" y="130" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk" font-size="13" font-weight="600">De-identification</text>
+          <text x="305" y="148" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk" font-size="13" font-weight="600">Engine</text>
+          <text x="305" y="170" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Strip PHI: names, DOB,</text>
+          <text x="305" y="185" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">MRN, SSN, addresses</text>
+          <text x="305" y="208" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">mapping table stored securely</text>
+
+          <!-- Arrow -->
+          <line x1="385" y1="160" x2="445" y2="160" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow2)"/>
+          <text x="415" y="148" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">de-identified</text>
+
+          <!-- BAA LLM -->
+          <rect x="455" y="110" width="160" height="100" rx="10" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="535" y="140" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk" font-size="13" font-weight="600">BAA-Compliant</text>
+          <text x="535" y="158" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk" font-size="13" font-weight="600">LLM</text>
+          <text x="535" y="178" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Private endpoint</text>
+          <text x="535" y="195" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">No PHI in prompts</text>
+
+          <!-- Arrow -->
+          <line x1="615" y1="160" x2="670" y2="160" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow2)"/>
+
+          <!-- Re-identification -->
+          <rect x="680" y="110" width="140" height="100" rx="10" fill="#10131e" stroke="#f59e0b" stroke-width="2"/>
+          <text x="750" y="140" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk" font-size="12" font-weight="600">Re-identification</text>
+          <text x="750" y="158" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk" font-size="12" font-weight="600">Service</text>
+          <text x="750" y="180" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Map results back</text>
+          <text x="750" y="195" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Authorized users only</text>
+
+          <!-- Arrow down to dashboard -->
+          <line x1="750" y1="210" x2="750" y2="260" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow2)"/>
+
+          <!-- Clinical Dashboard -->
+          <rect x="670" y="265" width="160" height="60" rx="10" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="750" y="292" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Clinical Dashboard</text>
+          <text x="750" y="310" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Authorized clinicians</text>
+
+          <!-- Audit Log bar -->
+          <rect x="30" y="365" width="850" height="40" rx="8" fill="#10131e" stroke="#232840" stroke-width="1.5"/>
+          <text x="455" y="385" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk" font-size="12" font-weight="600">Audit Trail</text>
+          <text x="455" y="398" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Every access logged &middot; Immutable &middot; HIPAA-compliant retention &middot; Breach detection alerts</text>
+
+          <!-- DLP icon -->
+          <rect x="225" y="260" width="160" height="50" rx="8" fill="#10131e" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="305" y="282" text-anchor="middle" fill="#ef4444" font-family="Space Grotesk" font-size="11" font-weight="600">DLP Scanner</text>
+          <text x="305" y="300" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Verify no PHI leaks through</text>
+
+          <!-- Arrow from DLP to engine -->
+          <line x1="305" y1="260" x2="305" y2="220" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,3"/>
+        </svg>
+        <p class="diagram-caption">Architecture diagram &mdash; HIPAA-Compliant AI Pipeline: PHI de-identification, BAA-compliant processing, and secure re-identification</p>
+      </div>
+    </div>
+
+    <!-- 3. COMPONENT BREAKDOWN -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Component Breakdown</h2>
+      </div>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128275;</div>
+            <h4>PHI De-identification Engine</h4>
+          </div>
+          <p>Detects and removes 18 HIPAA identifier types from clinical text. Uses NER models tuned for medical data. Stores a reversible mapping table in an encrypted, access-controlled datastore for authorized re-identification.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128220;</div>
+            <h4>BAA-Compliant LLM</h4>
+          </div>
+          <p>An LLM service where the provider has signed a Business Associate Agreement, legally committing to HIPAA-compliant data handling. Accessed via private endpoints &mdash; no data traverses the public internet.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128274;</div>
+            <h4>Secure VPC / Private Endpoints</h4>
+          </div>
+          <p>All data stays within a private network. VPC Service Controls (GCP), PrivateLink (AWS), or Private Endpoints (Azure) ensure LLM API calls never leave the cloud provider's backbone network.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128209;</div>
+            <h4>Audit Trail &amp; Access Logging</h4>
+          </div>
+          <p>Every data access, model call, and re-identification event is logged immutably. Logs include who, what, when, and why. Required for HIPAA breach investigations and annual compliance audits.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128260;</div>
+            <h4>Re-identification Service</h4>
+          </div>
+          <p>Maps de-identified AI outputs back to real patient records. Access is strictly controlled &mdash; only authorized roles (treating clinicians, authorized researchers) can trigger re-identification.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128683;</div>
+            <h4>Data Loss Prevention (DLP)</h4>
+          </div>
+          <p>Secondary scanning layer that verifies no PHI slips through de-identification. Catches edge cases like PHI embedded in free-text fields, image metadata, or structured data that wasn't flagged.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. DECISION POINTS & TRADE-OFFS -->
+    <div class="section" id="tradeoffs">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Decision Points &amp; Trade-offs</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Advantage</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Strong patient privacy protection</td><td>De-identified text may reduce model accuracy</td></tr>
+          <tr><td>BAA-compliant providers available on all major clouds</td><td>Limited model selection compared to unrestricted APIs</td></tr>
+          <tr><td>On-prem processing option for highest sensitivity data</td><td>On-prem lacks cloud scalability and managed services</td></tr>
+          <tr><td>Full audit trail for compliance and investigations</td><td>Audit log storage costs grow significantly at scale</td></tr>
+          <tr><td>Automated de-identification is fast and consistent</td><td>NER-based de-identification is not 100% perfect &mdash; needs QA</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Expert Mode vs. Safe Harbor</div>
+        <p>HIPAA defines two de-identification methods: <strong>Safe Harbor</strong> (remove all 18 identifier types) and <strong>Expert Determination</strong> (statistical proof of low re-identification risk). Safe Harbor is simpler but removes more context. Expert Determination preserves more clinical value but requires a qualified statistician.</p>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Minimum Necessary Rule</div>
+        <p>HIPAA's minimum necessary standard means you should only send the data the AI model actually needs &mdash; not the entire patient record. Architect pipelines that extract relevant sections before passing to the LLM.</p>
+      </div>
+    </div>
+
+    <!-- 5. CLOUD MAPPING -->
+    <div class="section" id="cloud">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Cloud Mapping</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Component</th><th>GCP</th><th>AWS</th><th>Azure</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>De-identification</strong></td><td>Healthcare NLP API / DLP</td><td>Amazon Comprehend Medical</td><td>Azure Health Data Services</td></tr>
+          <tr><td><strong>BAA LLM</strong></td><td>Vertex AI (BAA available)</td><td>Amazon Bedrock (BAA)</td><td>Azure OpenAI (BAA)</td></tr>
+          <tr><td><strong>Private Network</strong></td><td>VPC Service Controls</td><td>VPC + PrivateLink</td><td>Private Endpoints + VNet</td></tr>
+          <tr><td><strong>Audit Logging</strong></td><td>Cloud Audit Logs</td><td>CloudTrail</td><td>Azure Activity Log</td></tr>
+          <tr><td><strong>Key Management</strong></td><td>Cloud KMS (CMEK)</td><td>KMS (CMK)</td><td>Azure Key Vault</td></tr>
+          <tr><td><strong>Healthcare Storage</strong></td><td>Cloud Healthcare API</td><td>HealthLake</td><td>Azure Health Data Services</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 6. ANTI-PATTERNS -->
+    <div class="section" id="antipatterns">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Anti-Patterns</h2>
+      </div>
+      <ol>
+        <li><strong>Sending raw PHI to a public LLM API endpoint.</strong> This is the most common and most dangerous mistake. Even if the provider promises not to store data, you've already violated HIPAA by transmitting PHI without a BAA and without de-identification.</li>
+        <li><strong>Using a model provider without a signed BAA.</strong> A BAA is a legal contract that makes the provider a "business associate" under HIPAA, legally accountable for protecting PHI. Without it, you bear 100% of the liability.</li>
+        <li><strong>De-identifying data but logging the original PHI in application logs.</strong> Your de-identification pipeline is useless if the raw text is sitting in a CloudWatch log group with broad access. Audit your entire data flow, including logs and error messages.</li>
+        <li><strong>Assuming tokenization alone satisfies HIPAA de-identification rules.</strong> Replacing names with tokens is a start, but HIPAA requires removing all 18 identifier types including dates, geographic data, and biometric identifiers. Simple tokenization misses most of these.</li>
+        <li><strong>No re-identification controls &mdash; anyone with access can reverse the mapping.</strong> If the de-identification mapping table is accessible to all developers, you've effectively not de-identified anything. Lock it down with strict role-based access and audit logging.</li>
+      </ol>
+    </div>
+
+    <!-- 7. ARCHITECT'S CHECKLIST -->
+    <div class="section" id="checklist">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Architect's Checklist</h2>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Business Associate Agreement signed with every vendor that touches PHI</li>
+        <li><span class="check-box"></span>PHI de-identification tested against all 18 HIPAA identifier types with validation dataset</li>
+        <li><span class="check-box"></span>VPC / private endpoints configured &mdash; no PHI traverses the public internet</li>
+        <li><span class="check-box"></span>Encryption at rest (AES-256) and in transit (TLS 1.2+) for all data stores and API calls</li>
+        <li><span class="check-box"></span>Role-based access controls with minimum necessary principle enforced</li>
+        <li><span class="check-box"></span>Immutable audit logging for every data access, model call, and re-identification event</li>
+        <li><span class="check-box"></span>DLP scanning layer validates de-identification output before LLM ingestion</li>
+        <li><span class="check-box"></span>Breach notification plan documented and tested (72-hour HHS notification requirement)</li>
+        <li><span class="check-box"></span>Annual HIPAA risk assessment scheduled and documented</li>
+        <li><span class="check-box"></span>Staff training on PHI handling completed and recorded for all team members</li>
+        <li><span class="check-box"></span>Data retention and disposal policy defined per HIPAA requirements</li>
+        <li><span class="check-box"></span>Re-identification mapping table encrypted with separate key management and restricted access</li>
+      </ul>
+    </div>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Blueprint</div>
+        <a href="01-ai-gateway.html" class="next-btn">&larr; 01 &middot; AI Gateway &amp; LLM Router</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Blueprint</div>
+        <a href="03-fraud-detection.html" class="next-btn">03 &middot; Fraud Detection &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <div>&copy; 2026 CareerAlign.com</div>
+  <div style="margin-top:6px;font-size:12px;color:var(--text-muted);">Educational content provided as-is. Not affiliated with or endorsed by any cloud provider, vendor, or certification body mentioned herein. Use at your own discretion.</div>
+  <div style="margin-top:8px;font-size:12px;"><a href="../about.html">About</a> &middot; <a href="../terms.html">Terms</a> &middot; <a href="../privacy.html">Privacy</a></div>
+</footer>
+
+<script src="../theme.js"></script>
+</body>
+</html>

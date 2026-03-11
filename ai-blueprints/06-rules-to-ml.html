@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<script>if(localStorage.getItem('ca-theme')==='light')document.documentElement.setAttribute('data-theme','light');</script>
+<title>Rules Engine to ML Migration — CareerAlign AI Blueprints</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #a855f7;
+  --page-color-04: rgba(168,85,247,0.04);
+  --page-color-07: rgba(168,85,247,0.07);
+  --page-color-12: rgba(168,85,247,0.12);
+  --page-color-15: rgba(168,85,247,0.15);
+  --page-color-25: rgba(168,85,247,0.25);
+  --page-color-30: rgba(168,85,247,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#127959;&#65039; <span style="color:#a855f7;">AI</span> Blueprints</div>
+  <div class="nav-links">
+    <a href="01-ai-gateway.html">01</a>
+    <a href="02-hipaa-ai-pipeline.html">02</a>
+    <a href="03-fraud-detection.html">03</a>
+    <a href="04-digital-twin.html">04</a>
+    <a href="05-mlops-platform.html">05</a>
+    <a href="06-rules-to-ml.html" class="active">06</a>
+    <a href="07-model-governance.html">07</a>
+    <a href="08-multi-cloud.html">08</a>
+    <a href="09-build-buy-finetune.html">09</a>
+    <a href="10-enterprise-rag.html">10</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; Blueprint Hub</a>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">&#127769;</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">&#127959;&#65039; Blueprint 06 &middot; Modernization</div>
+  <h1>Rules Engine to <em>ML Migration</em></h1>
+  <p class="hero-desc">
+    Migrate from brittle, hard-coded rules engines to machine learning models using a parallel-run architecture that builds organizational trust, enables gradual traffic shifting, and ensures instant rollback.
+  </p>
+  <div class="hero-checklist">
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Shadow Mode</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Comparison Engine</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Gradual Traffic Shift</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Decision Audit Trail</span>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#plain-language" class="section">In Plain Language</a>
+    <a href="#diagram" class="section">Architecture Diagram</a>
+    <a href="#components" class="section">Component Breakdown</a>
+    <a href="#tradeoffs" class="section">Decision Points &amp; Trade-offs</a>
+    <a href="#cloud" class="section">Cloud Mapping</a>
+    <a href="#antipatterns" class="section">Anti-Patterns</a>
+    <a href="#checklist" class="section">Architect's Checklist</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- 1. IN PLAIN LANGUAGE -->
+    <div class="section" id="plain-language">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>In Plain Language</h2>
+      </div>
+      <p>
+        Your company has a rules engine that has been running for years &mdash; maybe it decides who gets a loan, which insurance claims to auto-approve, or how to route customer service tickets. It works. Mostly. But the rules were written by people who have since left, there are 2,000+ rules that conflict with each other, and every new business scenario requires weeks of rule authoring by specialists. Someone in leadership has heard that machine learning could do this better. They are right &mdash; an ML model could learn these patterns from historical data and generalize to new scenarios automatically. But you cannot just rip out the rules engine overnight. It is mission-critical, and the business trusts it.
+      </p>
+      <p>
+        The migration architecture solves this by running both systems in parallel. The rules engine continues to make real decisions &mdash; the ones that actually affect customers and revenue &mdash; while the ML model runs in "shadow mode," silently making predictions on the same inputs. A comparison engine tracks how often the two systems agree and, more importantly, investigates every case where they disagree. Over time, as the ML model proves itself across thousands or millions of decisions, you gradually shift live traffic: first 1%, then 5%, then 20%, and eventually the ML model handles everything.
+      </p>
+      <p>
+        This is not a technology project &mdash; it is a trust-building project. The people who wrote and maintained those rules have deep domain knowledge. The regulators who approved the rules-based process need to understand what is changing. The business stakeholders who rely on predictable outcomes need to see evidence, not promises. The architecture must make the comparison transparent, the fallback instant, and the rollback painless. Every decision from both systems goes into an audit trail so that anyone &mdash; a domain expert, a regulator, an executive &mdash; can inspect exactly what happened and why.
+      </p>
+      <p>
+        If you force the switch without this parallel-run period, you will face internal resistance from the rules team who feel sidelined, regulatory scrutiny because you cannot explain how the new system makes decisions, and zero organizational buy-in because nobody trusts a black box that replaced a system they understood. The parallel-run approach converts skeptics into advocates because the data speaks for itself. When the ML model agrees with the rules engine 98% of the time and outperforms it on the 2% of edge cases, even the strongest skeptic comes around. That is the power of this architecture: it turns a risky migration into a provable improvement.
+      </p>
+    </div>
+
+    <!-- 2. ARCHITECTURE DIAGRAM -->
+    <div class="section" id="diagram">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Architecture Diagram</h2>
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 900 480" class="learning-path-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow6" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#a855f7"/>
+            </marker>
+            <marker id="arrow6c" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+            </marker>
+          </defs>
+
+          <!-- Incoming Request -->
+          <rect x="20" y="140" width="130" height="70" rx="10" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="85" y="170" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">Incoming</text>
+          <text x="85" y="190" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="12">Request</text>
+
+          <!-- Arrow to Router -->
+          <line x1="150" y1="175" x2="220" y2="175" stroke="#a855f7" stroke-width="2" marker-end="url(#arrow6)"/>
+
+          <!-- Router -->
+          <rect x="225" y="120" width="140" height="110" rx="10" fill="#10131e" stroke="#a855f7" stroke-width="2.5"/>
+          <text x="295" y="155" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">Router</text>
+          <text x="295" y="175" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="11">shadow / live</text>
+          <text x="295" y="195" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">traffic split</text>
+          <text x="295" y="215" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="10">&#9881; toggle switch</text>
+
+          <!-- Arrow Router to Rules Engine (top path) -->
+          <line x1="365" y1="155" x2="450" y2="80" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow6c)"/>
+          <text x="395" y="105" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="10">live</text>
+
+          <!-- Rules Engine -->
+          <rect x="455" y="40" width="160" height="80" rx="10" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="535" y="70" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">Rules Engine</text>
+          <text x="535" y="90" text-anchor="middle" fill="#22c55e" font-family="JetBrains Mono" font-size="11">(existing)</text>
+          <text x="535" y="108" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">production decisions</text>
+
+          <!-- Arrow Rules Engine to Decision -->
+          <line x1="615" y1="80" x2="710" y2="80" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow6c)"/>
+
+          <!-- Decision Output -->
+          <rect x="715" y="45" width="140" height="70" rx="10" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="785" y="75" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">Decision</text>
+          <text x="785" y="95" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">returned to caller</text>
+
+          <!-- Arrow Router to ML Model (bottom path) -->
+          <line x1="365" y1="195" x2="450" y2="260" stroke="#a855f7" stroke-width="2" marker-end="url(#arrow6)" stroke-dasharray="6,4"/>
+          <text x="395" y="245" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="10">shadow</text>
+
+          <!-- ML Model -->
+          <rect x="455" y="225" width="160" height="80" rx="10" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="535" y="255" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">ML Model</text>
+          <text x="535" y="275" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="11">(shadow mode)</text>
+          <text x="535" y="293" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">parallel predictions</text>
+
+          <!-- Arrow ML to Comparison Engine -->
+          <line x1="615" y1="265" x2="710" y2="265" stroke="#a855f7" stroke-width="2" marker-end="url(#arrow6)"/>
+
+          <!-- Arrow Rules to Comparison Engine -->
+          <line x1="535" y1="120" x2="535" y2="170" stroke="#8e94b5" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <line x1="535" y1="170" x2="715" y2="230" stroke="#8e94b5" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow6c)"/>
+
+          <!-- Comparison Engine -->
+          <rect x="715" y="225" width="155" height="80" rx="10" fill="#10131e" stroke="#f59e0b" stroke-width="2"/>
+          <text x="792" y="255" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Comparison</text>
+          <text x="792" y="273" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Engine</text>
+          <text x="792" y="293" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono" font-size="10">agreement rate</text>
+
+          <!-- Arrow Comparison to Dashboard -->
+          <line x1="792" y1="305" x2="792" y2="355" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrow6)"/>
+
+          <!-- Dashboard -->
+          <rect x="700" y="360" width="170" height="70" rx="10" fill="#10131e" stroke="#f59e0b" stroke-width="2"/>
+          <text x="785" y="390" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Dashboard</text>
+          <text x="785" y="410" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="11">agree / disagree metrics</text>
+
+          <!-- Audit Log bar along bottom -->
+          <rect x="20" y="445" width="850" height="30" rx="6" fill="#10131e" stroke="#64748b" stroke-width="1.5"/>
+          <text x="445" y="465" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="12">&#128274; Audit Log &mdash; every decision from both systems recorded with timestamp, input, output, and source</text>
+
+          <!-- Arrows down to audit log -->
+          <line x1="535" y1="120" x2="535" y2="445" stroke="#64748b" stroke-width="1" stroke-dasharray="3,4" opacity="0.4"/>
+          <line x1="785" y1="115" x2="785" y2="445" stroke="#64748b" stroke-width="1" stroke-dasharray="3,4" opacity="0.4"/>
+
+          <!-- Toggle annotation -->
+          <rect x="30" y="280" width="170" height="55" rx="8" fill="#10131e" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <text x="115" y="300" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="11">&#9881; Toggle Switch</text>
+          <text x="115" y="318" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">shadow &#8594; canary &#8594; live</text>
+          <line x1="200" y1="305" x2="225" y2="210" stroke="#a855f7" stroke-width="1" stroke-dasharray="3,3"/>
+        </svg>
+        <p class="diagram-caption">Architecture diagram &mdash; Rules Engine to ML Migration: parallel-run with shadow mode, comparison engine, and gradual traffic shifting</p>
+      </div>
+    </div>
+
+    <!-- 3. COMPONENT BREAKDOWN -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Component Breakdown</h2>
+      </div>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128065;</div>
+            <h4>Shadow Mode Runner</h4>
+          </div>
+          <p>Runs the ML model on every incoming request in parallel with the rules engine, but does not use the ML output for real decisions. Shadow mode captures predictions for comparison without any customer impact.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9878;</div>
+            <h4>Comparison Engine</h4>
+          </div>
+          <p>Tracks the agreement rate between the rules engine and ML model. Logs every disagreement with full context &mdash; input features, both outputs, and the magnitude of the difference &mdash; for human review.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128260;</div>
+            <h4>Gradual Traffic Shifting</h4>
+          </div>
+          <p>Canary-style deployment that shifts live traffic from the rules engine to the ML model in controlled increments: 1%, 5%, 10%, 25%, 50%, 100%. Each stage has pass/fail criteria before advancing.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128230;</div>
+            <h4>Rules Engine Wrapper</h4>
+          </div>
+          <p>An API wrapper around the existing rules engine that normalizes its input/output format. This makes it interchangeable with the ML model endpoint without modifying the legacy system.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#129302;</div>
+            <h4>ML Model Serving</h4>
+          </div>
+          <p>Hosts the trained ML model behind a low-latency endpoint with the same API contract as the rules engine wrapper. Must match or beat the rules engine's response time to avoid degrading user experience.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128209;</div>
+            <h4>Decision Audit Trail</h4>
+          </div>
+          <p>Immutable log of every decision made by both systems. Records the input, the decision, which system made it, timestamps, and the comparison result. Essential for regulatory compliance and debugging.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. DECISION POINTS & TRADE-OFFS -->
+    <div class="section" id="tradeoffs">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Decision Points &amp; Trade-offs</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Advantage</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Parallel running validates ML before any risk</td><td>Running two systems doubles compute cost during migration</td></tr>
+          <tr><td>Gradual traffic shift builds organizational trust</td><td>Migration timeline extends from weeks to months</td></tr>
+          <tr><td>ML models generalize to new scenarios automatically</td><td>ML decisions are harder to explain than explicit rules</td></tr>
+          <tr><td>Eliminates dependency on scarce rules-authoring specialists</td><td>Requires ML engineering talent that may also be scarce</td></tr>
+          <tr><td>Data-driven decisions improve with more data</td><td>Institutional knowledge embedded in rules can be lost if not documented</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Key Insight</div>
+        <p>The biggest risk is not technical &mdash; it is organizational. The rules team has deep domain knowledge that the ML team needs. Make them partners in the migration, not casualties of it. Their expertise in reviewing disagreements is what makes the comparison engine valuable.</p>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">When to stop</div>
+        <p>Not every rules engine should be migrated to ML. If the rules are simple, stable, and well-understood, the operational overhead of an ML system may not be justified. Migrate when the rules are too complex to maintain, when the domain is changing faster than rules can be written, or when ML can capture patterns that rules cannot express.</p>
+      </div>
+    </div>
+
+    <!-- 5. CLOUD MAPPING -->
+    <div class="section" id="cloud">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Cloud Mapping</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Component</th><th>GCP</th><th>AWS</th><th>Azure</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Traffic Routing</strong></td><td>Cloud Load Balancing + feature flags</td><td>ALB + LaunchDarkly</td><td>Azure Front Door + feature flags</td></tr>
+          <tr><td><strong>ML Serving</strong></td><td>Vertex AI Endpoints</td><td>SageMaker Endpoints</td><td>Azure ML Endpoints</td></tr>
+          <tr><td><strong>Comparison Engine</strong></td><td>Dataflow + BigQuery</td><td>Kinesis + Redshift</td><td>Stream Analytics + Synapse</td></tr>
+          <tr><td><strong>Dashboard</strong></td><td>Looker</td><td>QuickSight</td><td>Power BI</td></tr>
+          <tr><td><strong>Audit Trail</strong></td><td>Cloud Logging + BigQuery</td><td>CloudTrail + Athena</td><td>Azure Monitor + Log Analytics</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 6. ANTI-PATTERNS -->
+    <div class="section" id="antipatterns">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Anti-Patterns</h2>
+      </div>
+      <ol>
+        <li><strong>Big-bang migration</strong> &mdash; Switching from rules to ML overnight with no parallel run. One bad prediction and you lose all stakeholder trust with no safety net to fall back on.</li>
+        <li><strong>Comparing only accuracy, ignoring deliberate edge cases</strong> &mdash; Some rules exist specifically to handle rare but important scenarios. A 98% agreement rate means nothing if the 2% disagreements are the high-stakes decisions.</li>
+        <li><strong>No fallback mechanism</strong> &mdash; If the ML model starts producing bad predictions, there is no quick rollback to the rules engine. The toggle switch must work instantly, not require a deployment.</li>
+        <li><strong>Training on rule outputs only</strong> &mdash; If you train the ML model exclusively on what the rules engine decided, you are teaching it to replicate the rules engine's biases and errors. Use ground-truth outcomes wherever possible.</li>
+        <li><strong>Excluding the business rules team</strong> &mdash; The people who wrote and maintained the rules know why specific rules exist, including the edge cases and business context that are not documented anywhere. Sidelining them guarantees blind spots.</li>
+      </ol>
+    </div>
+
+    <!-- 7. ARCHITECT'S CHECKLIST -->
+    <div class="section" id="checklist">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Architect's Checklist</h2>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Shadow mode deployed &mdash; ML model running on all live traffic without affecting decisions</li>
+        <li><span class="check-box"></span>Agreement rate tracked &mdash; dashboard shows real-time agreement/disagreement between systems</li>
+        <li><span class="check-box"></span>Disagreement cases reviewed by domain experts &mdash; every mismatch investigated and categorized</li>
+        <li><span class="check-box"></span>Gradual traffic shift plan documented with stage gates and pass/fail criteria</li>
+        <li><span class="check-box"></span>Instant rollback tested &mdash; verified that traffic can be shifted back to rules engine in under 60 seconds</li>
+        <li><span class="check-box"></span>Regulatory review completed &mdash; compliance team has approved the migration approach</li>
+        <li><span class="check-box"></span>Training data includes ground truth, not just rule outputs &mdash; avoids learning the rules engine's biases</li>
+        <li><span class="check-box"></span>Performance baseline established &mdash; latency, throughput, and accuracy benchmarks for both systems</li>
+        <li><span class="check-box"></span>Edge case catalog documented &mdash; known special cases from the rules engine explicitly tested against the ML model</li>
+        <li><span class="check-box"></span>Stakeholder sign-off at each phase &mdash; business, compliance, and engineering approve before advancing</li>
+        <li><span class="check-box"></span>Sunset plan for rules engine &mdash; timeline and criteria for when the rules engine will be fully decommissioned</li>
+      </ul>
+    </div>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Blueprint</div>
+        <a href="05-mlops-platform.html" class="next-btn">&larr; 05 &middot; MLOps Platform</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Blueprint</div>
+        <a href="07-model-governance.html" class="next-btn">07 &middot; Model Governance &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <div>&copy; 2026 CareerAlign.com</div>
+  <div style="margin-top:6px;font-size:12px;color:var(--text-muted);">Educational content provided as-is. Not affiliated with or endorsed by any cloud provider, vendor, or certification body mentioned herein. Use at your own discretion.</div>
+  <div style="margin-top:8px;font-size:12px;"><a href="../about.html">About</a> &middot; <a href="../terms.html">Terms</a> &middot; <a href="../privacy.html">Privacy</a></div>
+</footer>
+
+<script src="../theme.js"></script>
+</body>
+</html>

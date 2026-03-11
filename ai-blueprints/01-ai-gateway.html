@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<script>if(localStorage.getItem('ca-theme')==='light')document.documentElement.setAttribute('data-theme','light');</script>
+<title>AI Gateway &amp; LLM Router — CareerAlign AI Blueprints</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #06b6d4;
+  --page-color-04: rgba(6,182,212,0.04);
+  --page-color-07: rgba(6,182,212,0.07);
+  --page-color-12: rgba(6,182,212,0.12);
+  --page-color-15: rgba(6,182,212,0.15);
+  --page-color-25: rgba(6,182,212,0.25);
+  --page-color-30: rgba(6,182,212,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#128736; <span style="color:#06b6d4;">AI</span> Blueprints</div>
+  <div class="nav-links">
+    <a href="01-ai-gateway.html" class="active">01</a>
+    <a href="02-hipaa-ai-pipeline.html">02</a>
+    <a href="03-fraud-detection.html">03</a>
+    <a href="04-digital-twin.html">04</a>
+    <a href="05-mlops-platform.html">05</a>
+    <a href="06-rules-to-ml.html">06</a>
+    <a href="07-model-governance.html">07</a>
+    <a href="08-multi-cloud.html">08</a>
+    <a href="09-build-buy-finetune.html">09</a>
+    <a href="10-enterprise-rag.html">10</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; Blueprint Hub</a>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">&#127769;</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">&#128736; Blueprint 01 &middot; Platform</div>
+  <h1>AI Gateway &amp; <em>LLM Router</em></h1>
+  <p class="hero-desc">
+    Centralize all LLM traffic through a single gateway with authentication, rate limiting, intelligent routing,
+    guardrails, cost attribution, and observability &mdash; the front door for every AI request in your enterprise.
+  </p>
+  <div class="hero-checklist">
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Intelligent Routing</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Cost Attribution</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Guardrails</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Observability</span>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#plain-language" class="section">In Plain Language</a>
+    <a href="#diagram" class="section">Architecture Diagram</a>
+    <a href="#components" class="section">Component Breakdown</a>
+    <a href="#tradeoffs" class="section">Decision Points &amp; Trade-offs</a>
+    <a href="#cloud" class="section">Cloud Mapping</a>
+    <a href="#antipatterns" class="section">Anti-Patterns</a>
+    <a href="#checklist" class="section">Architect's Checklist</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- 1. IN PLAIN LANGUAGE -->
+    <div class="section" id="plain-language">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>In Plain Language</h2>
+      </div>
+      <p>
+        Every team in your company wants to use AI. Marketing wants to generate copy, engineering wants code assistants,
+        support wants chatbots, and the legal team wants contract summarization. Without a gateway, each team calls LLM
+        APIs directly &mdash; different API keys, no cost tracking, no security controls, no consistency. You end up with
+        a dozen teams burning through tokens with no visibility into what's being sent, what it costs, or whether
+        anyone is accidentally leaking sensitive data in their prompts.
+      </p>
+      <p>
+        An AI Gateway is like a front door for your organization's AI usage. Every AI request &mdash; whether it comes from
+        a web app, an internal tool, or a batch pipeline &mdash; goes through this single entry point. The gateway handles
+        authentication (who is making the request?), rate limiting (how much can they use?), routing (which model should
+        handle this?), and logging (what happened?). Think of it as an API gateway, like you'd use for microservices, but
+        purpose-built for LLM traffic with AI-specific features like prompt guardrails and token-level cost tracking.
+      </p>
+      <p>
+        The LLM Router is the intelligent brain inside the gateway. Not every request needs the most expensive model.
+        A simple text classification task can go to a small, fast, cheap model. A complex reasoning task gets routed to a
+        frontier model. The router makes this decision automatically based on rules you define &mdash; considering cost,
+        latency, capability requirements, and even provider availability. If one provider goes down, the router fails
+        over to another without any application code changing.
+      </p>
+      <p>
+        If you get this wrong, you'll have shadow AI sprawling across the organization with no visibility. Teams will
+        overspend on the most expensive models for trivial tasks. Sensitive data will leak into prompts with no one
+        watching. And when a provider has an outage, every AI-powered feature in the company goes down simultaneously.
+        The AI Gateway is the foundation that makes every other AI initiative manageable, observable, and secure.
+      </p>
+    </div>
+
+    <!-- 2. ARCHITECTURE DIAGRAM -->
+    <div class="section" id="diagram">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Architecture Diagram</h2>
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 900 420" class="learning-path-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow1" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#06b6d4"/>
+            </marker>
+          </defs>
+
+          <!-- App 1 -->
+          <rect x="20" y="40" width="130" height="60" rx="10" fill="#10131e" stroke="#06b6d4" stroke-width="2"/>
+          <text x="85" y="68" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Marketing App</text>
+          <text x="85" y="86" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Copy generation</text>
+
+          <!-- App 2 -->
+          <rect x="20" y="130" width="130" height="60" rx="10" fill="#10131e" stroke="#06b6d4" stroke-width="2"/>
+          <text x="85" y="158" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Engineering</text>
+          <text x="85" y="176" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Code assistant</text>
+
+          <!-- App 3 -->
+          <rect x="20" y="220" width="130" height="60" rx="10" fill="#10131e" stroke="#06b6d4" stroke-width="2"/>
+          <text x="85" y="248" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Support Bot</text>
+          <text x="85" y="266" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Customer chat</text>
+
+          <!-- Arrows to Gateway -->
+          <line x1="150" y1="70" x2="240" y2="150" stroke="#06b6d4" stroke-width="2" marker-end="url(#arrow1)"/>
+          <line x1="150" y1="160" x2="240" y2="160" stroke="#06b6d4" stroke-width="2" marker-end="url(#arrow1)"/>
+          <line x1="150" y1="250" x2="240" y2="170" stroke="#06b6d4" stroke-width="2" marker-end="url(#arrow1)"/>
+
+          <!-- AI Gateway -->
+          <rect x="250" y="60" width="200" height="220" rx="12" fill="#10131e" stroke="#06b6d4" stroke-width="2.5"/>
+          <text x="350" y="90" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk" font-size="16" font-weight="700">AI Gateway</text>
+          <rect x="270" y="105" width="160" height="30" rx="6" fill="#0e1525" stroke="#232840" stroke-width="1"/>
+          <text x="350" y="125" text-anchor="middle" fill="#e6e8f4" font-family="JetBrains Mono" font-size="11">Auth &amp; API Keys</text>
+          <rect x="270" y="145" width="160" height="30" rx="6" fill="#0e1525" stroke="#232840" stroke-width="1"/>
+          <text x="350" y="165" text-anchor="middle" fill="#e6e8f4" font-family="JetBrains Mono" font-size="11">Rate Limiting</text>
+          <rect x="270" y="185" width="160" height="30" rx="6" fill="#0e1525" stroke="#232840" stroke-width="1"/>
+          <text x="350" y="205" text-anchor="middle" fill="#e6e8f4" font-family="JetBrains Mono" font-size="11">I/O Guardrails</text>
+          <rect x="270" y="225" width="160" height="30" rx="6" fill="#0e1525" stroke="#232840" stroke-width="1"/>
+          <text x="350" y="245" text-anchor="middle" fill="#e6e8f4" font-family="JetBrains Mono" font-size="11">Logging &amp; Metrics</text>
+
+          <!-- Arrow to Router -->
+          <line x1="450" y1="170" x2="530" y2="170" stroke="#06b6d4" stroke-width="2" marker-end="url(#arrow1)"/>
+          <text x="490" y="160" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="10">route</text>
+
+          <!-- Model Router (diamond) -->
+          <polygon points="590,110 650,170 590,230 530,170" fill="#10131e" stroke="#f59e0b" stroke-width="2"/>
+          <text x="590" y="165" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk" font-size="12" font-weight="600">Model</text>
+          <text x="590" y="180" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk" font-size="12" font-weight="600">Router</text>
+
+          <!-- LLM Provider 1 -->
+          <rect x="710" y="40" width="150" height="55" rx="10" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="785" y="65" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">GPT-4o</text>
+          <text x="785" y="82" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">OpenAI</text>
+
+          <!-- LLM Provider 2 -->
+          <rect x="710" y="130" width="150" height="55" rx="10" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="785" y="155" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Claude</text>
+          <text x="785" y="172" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Anthropic</text>
+
+          <!-- LLM Provider 3 -->
+          <rect x="710" y="220" width="150" height="55" rx="10" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="785" y="245" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Gemini</text>
+          <text x="785" y="262" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Google</text>
+
+          <!-- Arrows from Router to LLMs -->
+          <line x1="650" y1="145" x2="710" y2="68" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrow1)"/>
+          <line x1="650" y1="170" x2="710" y2="158" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrow1)"/>
+          <line x1="650" y1="195" x2="710" y2="248" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrow1)"/>
+
+          <!-- Return arrow -->
+          <path d="M 710 295 L 350 295 L 350 285" fill="none" stroke="#06b6d4" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrow1)"/>
+          <text x="530" y="315" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="10">response (with cost &amp; latency metadata)</text>
+
+          <!-- Cost / Observability bar -->
+          <rect x="250" y="350" width="610" height="45" rx="8" fill="#10131e" stroke="#232840" stroke-width="1.5"/>
+          <text x="555" y="370" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk" font-size="12" font-weight="600">Observability Layer</text>
+          <text x="555" y="386" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Cost Attribution &middot; Token Logging &middot; Latency Tracking &middot; Alert Rules</text>
+        </svg>
+        <p class="diagram-caption">Architecture diagram &mdash; AI Gateway &amp; LLM Router: centralized control plane for all LLM traffic</p>
+      </div>
+    </div>
+
+    <!-- 3. COMPONENT BREAKDOWN -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Component Breakdown</h2>
+      </div>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128273;</div>
+            <h4>Authentication &amp; API Keys</h4>
+          </div>
+          <p>Each team or application gets its own API key scoped to specific models, rate limits, and cost budgets. Centralized key management prevents shadow AI and enables per-team audit trails.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9889;</div>
+            <h4>Rate Limiting &amp; Quotas</h4>
+          </div>
+          <p>Per-team and per-application rate limits prevent runaway costs and ensure fair resource sharing. Quotas can be set on tokens-per-day, requests-per-minute, or monthly spend caps.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128268;</div>
+            <h4>Intelligent Routing</h4>
+          </div>
+          <p>Route requests to the optimal model based on task complexity, cost requirements, latency SLAs, and provider availability. Simple tasks go to cheap models; complex tasks to frontier models.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128737;</div>
+            <h4>Input / Output Guardrails</h4>
+          </div>
+          <p>Scan incoming prompts for PII, injection attacks, and policy violations. Scan outputs for hallucinations, toxic content, and data leakage before returning to the caller.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128176;</div>
+            <h4>Cost Attribution &amp; Billing</h4>
+          </div>
+          <p>Track token usage and cost per team, application, and model. Generate chargeback reports so business units see exactly what their AI usage costs. Trigger alerts on budget thresholds.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128200;</div>
+            <h4>Observability &amp; Logging</h4>
+          </div>
+          <p>Log every request and response (with PII redacted) including latency, token counts, model used, and routing decisions. Feed into dashboards for real-time visibility and troubleshooting.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. DECISION POINTS & TRADE-OFFS -->
+    <div class="section" id="tradeoffs">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Decision Points &amp; Trade-offs</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Advantage</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Centralized control over all LLM usage</td><td>Single point of failure if not architected for HA</td></tr>
+          <tr><td>Consistent security and guardrail policies</td><td>Adds routing latency overhead (typically 10-50ms)</td></tr>
+          <tr><td>Model flexibility &mdash; swap providers without code changes</td><td>Added operational complexity to manage the gateway</td></tr>
+          <tr><td>Full cost visibility and chargeback capability</td><td>Requires dedicated platform team to maintain</td></tr>
+          <tr><td>Automatic failover across providers</td><td>Prompt format differences across models need abstraction</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Key Decision</div>
+        <p>Build vs. buy? Open-source options (LiteLLM, Portkey, MLflow Gateway) can get you started quickly. Managed solutions (Apigee, Kong) offer enterprise support. Most organizations start with open-source and migrate to managed as traffic grows.</p>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Latency Budget</div>
+        <p>The gateway adds overhead to every request. Target under 20ms of added latency. Use async processing for guardrails where possible and cache routing decisions for repeated request patterns.</p>
+      </div>
+    </div>
+
+    <!-- 5. CLOUD MAPPING -->
+    <div class="section" id="cloud">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Cloud Mapping</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Component</th><th>GCP</th><th>AWS</th><th>Azure</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>API Gateway</strong></td><td>Apigee / Cloud Endpoints</td><td>API Gateway / Kong</td><td>Azure API Management</td></tr>
+          <tr><td><strong>LLM Access</strong></td><td>Vertex AI Model Garden</td><td>Amazon Bedrock</td><td>Azure OpenAI Service</td></tr>
+          <tr><td><strong>Auth</strong></td><td>IAM + API Keys</td><td>IAM + Cognito</td><td>Entra ID</td></tr>
+          <tr><td><strong>Logging</strong></td><td>Cloud Logging + BigQuery</td><td>CloudWatch + S3</td><td>Azure Monitor + Log Analytics</td></tr>
+          <tr><td><strong>Cost Tracking</strong></td><td>Billing Export + Looker</td><td>Cost Explorer + QuickSight</td><td>Cost Management + Power BI</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 6. ANTI-PATTERNS -->
+    <div class="section" id="antipatterns">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Anti-Patterns</h2>
+      </div>
+      <ol>
+        <li><strong>Letting teams call LLM APIs directly with their own keys (shadow AI).</strong> Without a gateway, you have zero visibility into what data is being sent to which models. Compliance, security, and cost control all go out the window.</li>
+        <li><strong>Routing all requests to the most expensive model "to be safe."</strong> A simple text classification does not need GPT-4o or Claude Opus. You'll spend 10-50x more than necessary. Use model routing based on task complexity.</li>
+        <li><strong>No fallback chain &mdash; single provider outage equals total outage.</strong> If your only LLM provider goes down, every AI feature in the company stops. Configure at least two providers per capability tier.</li>
+        <li><strong>Logging prompts in plaintext without PII redaction.</strong> Prompts often contain customer data, internal documents, or code. If you log them without redaction, your logging system becomes a data breach waiting to happen.</li>
+        <li><strong>Rate limits too aggressive &mdash; blocking legitimate peak usage.</strong> If your rate limits are based on average usage, you'll block users during legitimate spikes (product launch, quarter-end reports). Use burst-capable limits with token bucket algorithms.</li>
+      </ol>
+    </div>
+
+    <!-- 7. ARCHITECT'S CHECKLIST -->
+    <div class="section" id="checklist">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Architect's Checklist</h2>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Centralized authentication with per-team API keys and scoped permissions</li>
+        <li><span class="check-box"></span>Per-team rate limits and monthly cost quotas configured and tested</li>
+        <li><span class="check-box"></span>Model fallback chain defined (e.g., Claude &rarr; GPT-4o &rarr; Gemini) with automatic failover</li>
+        <li><span class="check-box"></span>Input guardrails deployed: PII detection, prompt injection scanning, content policy</li>
+        <li><span class="check-box"></span>Output guardrails deployed: toxicity filtering, data leakage detection, format validation</li>
+        <li><span class="check-box"></span>Token-level logging with request tracing (correlate gateway logs to downstream LLM calls)</li>
+        <li><span class="check-box"></span>Cost attribution dashboard showing spend by team, application, and model</li>
+        <li><span class="check-box"></span>PII redaction in all log storage &mdash; verified with automated tests</li>
+        <li><span class="check-box"></span>Latency SLAs defined: gateway overhead under 20ms at p99</li>
+        <li><span class="check-box"></span>Kill switches per team and per model &mdash; ability to disable access immediately</li>
+        <li><span class="check-box"></span>Disaster recovery plan: multi-region gateway deployment or fast failover</li>
+        <li><span class="check-box"></span>Prompt caching strategy for repeated/similar requests to reduce cost and latency</li>
+      </ul>
+    </div>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div></div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Blueprint</div>
+        <a href="02-hipaa-ai-pipeline.html" class="next-btn">02 &middot; HIPAA-Compliant AI Pipeline &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <div>&copy; 2026 CareerAlign.com</div>
+  <div style="margin-top:6px;font-size:12px;color:var(--text-muted);">Educational content provided as-is. Not affiliated with or endorsed by any cloud provider, vendor, or certification body mentioned herein. Use at your own discretion.</div>
+  <div style="margin-top:8px;font-size:12px;"><a href="../about.html">About</a> &middot; <a href="../terms.html">Terms</a> &middot; <a href="../privacy.html">Privacy</a></div>
+</footer>
+
+<script src="../theme.js"></script>
+</body>
+</html>

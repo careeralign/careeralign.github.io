@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<script>if(localStorage.getItem('ca-theme')==='light')document.documentElement.setAttribute('data-theme','light');</script>
+<title>Real-Time Fraud Detection with Explainable AI — CareerAlign AI Blueprints</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #22c55e;
+  --page-color-04: rgba(34,197,94,0.04);
+  --page-color-07: rgba(34,197,94,0.07);
+  --page-color-12: rgba(34,197,94,0.12);
+  --page-color-15: rgba(34,197,94,0.15);
+  --page-color-25: rgba(34,197,94,0.25);
+  --page-color-30: rgba(34,197,94,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#128736; <span style="color:#22c55e;">AI</span> Blueprints</div>
+  <div class="nav-links">
+    <a href="01-ai-gateway.html">01</a>
+    <a href="02-hipaa-ai-pipeline.html">02</a>
+    <a href="03-fraud-detection.html" class="active">03</a>
+    <a href="04-digital-twin.html">04</a>
+    <a href="05-mlops-platform.html">05</a>
+    <a href="06-rules-to-ml.html">06</a>
+    <a href="07-model-governance.html">07</a>
+    <a href="08-multi-cloud.html">08</a>
+    <a href="09-build-buy-finetune.html">09</a>
+    <a href="10-enterprise-rag.html">10</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; Blueprint Hub</a>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">&#127769;</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">&#127974; Blueprint 03 &middot; Financial Services</div>
+  <h1>Real-Time Fraud Detection with <em>Explainable AI</em></h1>
+  <p class="hero-desc">
+    Score transactions in under 100ms using ML models, explain every decision with SHAP values,
+    and feed outcomes back into a continuous learning loop &mdash; the trifecta of speed, accuracy, and transparency.
+  </p>
+  <div class="hero-checklist">
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Sub-100ms Scoring</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> SHAP Explainability</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Feedback Loop</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Case Management</span>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#plain-language" class="section">In Plain Language</a>
+    <a href="#diagram" class="section">Architecture Diagram</a>
+    <a href="#components" class="section">Component Breakdown</a>
+    <a href="#tradeoffs" class="section">Decision Points &amp; Trade-offs</a>
+    <a href="#cloud" class="section">Cloud Mapping</a>
+    <a href="#antipatterns" class="section">Anti-Patterns</a>
+    <a href="#checklist" class="section">Architect's Checklist</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- 1. IN PLAIN LANGUAGE -->
+    <div class="section" id="plain-language">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>In Plain Language</h2>
+      </div>
+      <p>
+        Every time someone swipes a credit card, a wire transfer processes, or an insurance claim is filed, a fraud
+        detection system has milliseconds to make a decision: legitimate or fraudulent? Get it wrong in one direction
+        and you lose money to fraud &mdash; the global cost of payment fraud alone exceeds $30 billion annually. Get it
+        wrong in the other direction and you block a legitimate customer trying to buy groceries or pay their rent,
+        destroying trust and driving them to a competitor. The stakes are high in both directions.
+      </p>
+      <p>
+        Traditional rule-based systems work by encoding known patterns: "if transaction amount exceeds $10,000 and
+        country differs from home country, flag it." These catch known fraud patterns reliably, but fraudsters adapt
+        quickly. They test the rules, find the edges, and engineer transactions that slip through. Machine learning
+        models flip this around &mdash; instead of hand-coding rules, you train a model on millions of historical
+        transactions (both legitimate and fraudulent) and let it learn the subtle patterns that humans miss.
+        The problem? ML models are often black boxes. They flag a transaction, but they can't tell you why.
+      </p>
+      <p>
+        Regulators and customers both demand explanations. If you block someone's transaction, you need to explain the
+        reason &mdash; not just say "the model said so." This is where explainability comes in. Techniques like SHAP
+        (SHapley Additive exPlanations) can break down a fraud score into specific contributing factors: "This
+        transaction scored high because the amount was 5x the customer's average, it occurred at 3 AM in a new country,
+        and the merchant category was inconsistent with spending history." Now a human analyst can review the case
+        intelligently, and a regulator can audit the system.
+      </p>
+      <p>
+        The architecture challenge is combining all three: speed (sub-100ms decisions so customers don't wait), accuracy
+        (catching real fraud while keeping false positives low enough that you're not blocking 5% of legitimate
+        transactions), and explainability (being able to justify every single decision). This blueprint shows you how to
+        wire together real-time feature engineering, ML scoring, decision engines, and explainability modules into a
+        system that handles millions of transactions per day.
+      </p>
+    </div>
+
+    <!-- 2. ARCHITECTURE DIAGRAM -->
+    <div class="section" id="diagram">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Architecture Diagram</h2>
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 920 400" class="learning-path-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow3" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#22c55e"/>
+            </marker>
+            <marker id="arrow3b" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+            </marker>
+          </defs>
+
+          <!-- Transaction Stream -->
+          <rect x="20" y="120" width="120" height="70" rx="10" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="80" y="150" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Transaction</text>
+          <text x="80" y="168" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Stream</text>
+
+          <!-- Arrow -->
+          <line x1="140" y1="155" x2="195" y2="155" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow3)"/>
+
+          <!-- Feature Store -->
+          <rect x="205" y="100" width="140" height="110" rx="10" fill="#10131e" stroke="#06b6d4" stroke-width="2"/>
+          <text x="275" y="130" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk" font-size="13" font-weight="600">Feature Store</text>
+          <text x="275" y="150" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Real-time features:</text>
+          <text x="275" y="165" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">velocity, avg amount,</text>
+          <text x="275" y="180" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">geo distance, time</text>
+          <text x="275" y="198" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">sub-10ms lookups</text>
+
+          <!-- Arrow -->
+          <line x1="345" y1="155" x2="400" y2="155" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow3)"/>
+          <text x="372" y="143" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">features</text>
+
+          <!-- ML Model -->
+          <rect x="410" y="110" width="130" height="90" rx="10" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="475" y="140" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk" font-size="13" font-weight="600">ML Scoring</text>
+          <text x="475" y="158" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk" font-size="13" font-weight="600">Engine</text>
+          <text x="475" y="178" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">XGBoost / Neural Net</text>
+          <text x="475" y="192" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">&lt;50ms inference</text>
+
+          <!-- Arrow -->
+          <line x1="540" y1="155" x2="595" y2="155" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow3)"/>
+          <text x="567" y="143" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">score</text>
+
+          <!-- Decision Engine -->
+          <rect x="605" y="100" width="130" height="110" rx="10" fill="#10131e" stroke="#f59e0b" stroke-width="2"/>
+          <text x="670" y="128" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk" font-size="13" font-weight="600">Decision</text>
+          <text x="670" y="146" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk" font-size="13" font-weight="600">Engine</text>
+          <text x="670" y="168" text-anchor="middle" fill="#22c55e" font-family="JetBrains Mono" font-size="10">APPROVE</text>
+          <text x="670" y="183" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono" font-size="10">REVIEW</text>
+          <text x="670" y="198" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono" font-size="10">BLOCK</text>
+
+          <!-- Arrow to Explainability -->
+          <line x1="670" y1="210" x2="670" y2="260" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrow3b)"/>
+
+          <!-- Explainability Module -->
+          <rect x="590" y="265" width="160" height="70" rx="10" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="670" y="293" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk" font-size="13" font-weight="600">Explainability</text>
+          <text x="670" y="311" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">SHAP / LIME values</text>
+          <text x="670" y="326" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Per-feature contribution</text>
+
+          <!-- Arrow to Case Management -->
+          <line x1="750" y1="300" x2="800" y2="300" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow3)"/>
+
+          <!-- Case Management -->
+          <rect x="810" y="120" width="95" height="70" rx="10" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="857" y="148" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="11" font-weight="600">Case</text>
+          <text x="857" y="165" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="11" font-weight="600">Management</text>
+
+          <!-- Case Mgmt also receives from explainability -->
+          <rect x="810" y="265" width="95" height="70" rx="10" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="857" y="293" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="11" font-weight="600">Analyst</text>
+          <text x="857" y="310" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="11" font-weight="600">Queue</text>
+
+          <!-- Arrow from Decision to Case Management -->
+          <line x1="735" y1="155" x2="810" y2="155" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow3)"/>
+
+          <!-- Feedback loop -->
+          <path d="M 857 190 L 857 230 L 857 250 L 857 265" fill="none" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arrow3b)"/>
+
+          <!-- Feedback loop back to Feature Store -->
+          <path d="M 810 340 L 275 340 L 275 210" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrow3b)"/>
+          <text x="540" y="360" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono" font-size="10">Feedback loop: analyst decisions &rarr; model retraining</text>
+        </svg>
+        <p class="diagram-caption">Architecture diagram &mdash; Real-Time Fraud Detection: streaming features, ML scoring, decision engine, explainability, and feedback loop</p>
+      </div>
+    </div>
+
+    <!-- 3. COMPONENT BREAKDOWN -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Component Breakdown</h2>
+      </div>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9889;</div>
+            <h4>Real-Time Feature Engineering</h4>
+          </div>
+          <p>Computes features on-the-fly from streaming transactions: velocity (transactions per hour), average spend deviation, geographic distance from last transaction, time since last activity, merchant category patterns. Sub-10ms lookup from a feature store.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#129504;</div>
+            <h4>ML Scoring Engine</h4>
+          </div>
+          <p>Runs inference on feature vectors in under 50ms. Typically gradient-boosted trees (XGBoost, LightGBM) for tabular data, or neural networks for sequence-based patterns. Outputs a fraud probability score between 0 and 1.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9878;</div>
+            <h4>Decision Engine</h4>
+          </div>
+          <p>Applies business rules to the ML score: approve (score &lt; 0.3), review (0.3-0.7), block (score &gt; 0.7). Thresholds vary by transaction type, amount, and customer segment. Rules and ML work together.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128269;</div>
+            <h4>Explainability Module</h4>
+          </div>
+          <p>Generates SHAP (or LIME) values for every scored transaction, showing which features contributed most to the fraud score. Critical for regulatory compliance (SR 11-7, GDPR Article 22) and analyst efficiency.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128203;</div>
+            <h4>Case Management Queue</h4>
+          </div>
+          <p>Routes "review" decisions to human analysts with full context: transaction details, fraud score, SHAP explanations, and customer history. Analysts confirm or override, creating labeled training data.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128260;</div>
+            <h4>Feedback Loop &amp; Retraining</h4>
+          </div>
+          <p>Analyst decisions and confirmed fraud outcomes feed back into the training pipeline. Models are retrained on a schedule (weekly or triggered by drift detection) to adapt to new fraud patterns.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. DECISION POINTS & TRADE-OFFS -->
+    <div class="section" id="tradeoffs">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Decision Points &amp; Trade-offs</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Advantage</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Real-time scoring catches fraud as it happens</td><td>Real-time inference has a strict latency budget</td></tr>
+          <tr><td>ML models detect novel, previously unseen fraud patterns</td><td>Requires explainability layer for regulatory compliance</td></tr>
+          <tr><td>SHAP values provide per-feature decision explanations</td><td>SHAP computation adds latency (often done async)</td></tr>
+          <tr><td>Feedback loop continuously improves model accuracy</td><td>Feedback loop introduces label delay (fraud confirmed weeks later)</td></tr>
+          <tr><td>Segment-specific thresholds reduce false positives</td><td>More thresholds = more operational complexity to manage</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Sync vs. Async Explainability</div>
+        <p>Computing SHAP values for every transaction in real-time can add 50-200ms. For the approve/block decision, you only need the score. Compute SHAP asynchronously and attach it to the case record. Analysts get explanations when they open a case, not at scoring time.</p>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">The False Positive Problem</div>
+        <p>A 1% false positive rate sounds low until you process 10 million transactions per day &mdash; that's 100,000 legitimate customers blocked daily. Optimize for precision as aggressively as you optimize for recall.</p>
+      </div>
+    </div>
+
+    <!-- 5. CLOUD MAPPING -->
+    <div class="section" id="cloud">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Cloud Mapping</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Component</th><th>GCP</th><th>AWS</th><th>Azure</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Streaming</strong></td><td>Pub/Sub + Dataflow</td><td>Kinesis + Lambda</td><td>Event Hubs + Stream Analytics</td></tr>
+          <tr><td><strong>Feature Store</strong></td><td>Vertex AI Feature Store</td><td>SageMaker Feature Store</td><td>Azure ML Feature Store</td></tr>
+          <tr><td><strong>Model Serving</strong></td><td>Vertex AI Endpoints</td><td>SageMaker Real-time</td><td>Azure ML Online Endpoints</td></tr>
+          <tr><td><strong>Explainability</strong></td><td>Vertex Explainable AI</td><td>SageMaker Clarify</td><td>Azure ML Responsible AI</td></tr>
+          <tr><td><strong>Case Management</strong></td><td>Custom + Firestore</td><td>Custom + DynamoDB</td><td>Custom + Cosmos DB</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 6. ANTI-PATTERNS -->
+    <div class="section" id="antipatterns">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Anti-Patterns</h2>
+      </div>
+      <ol>
+        <li><strong>Batch-only scoring for real-time transaction decisions.</strong> If your model scores transactions in a nightly batch, you're approving fraudulent transactions all day and only catching them after the money is gone. Real-time transactions require real-time scoring.</li>
+        <li><strong>Black-box models in regulated environments with no explainability.</strong> Financial regulators (OCC, FCA, GDPR) require that you can explain why a customer's transaction was declined. "The model said so" is not an acceptable explanation during an audit.</li>
+        <li><strong>No feedback loop &mdash; the model never learns from false positives or negatives.</strong> Fraud patterns evolve monthly. If your model was trained on last year's data and never updated, fraudsters will learn exactly how to evade it. Continuous retraining is not optional.</li>
+        <li><strong>Feature store lag &mdash; using stale features for real-time decisions.</strong> If your "real-time" features are actually 15 minutes old, a fraudster can make 20 transactions before the velocity feature catches up. Measure and guarantee feature freshness.</li>
+        <li><strong>Single threshold for all transaction types.</strong> A $50 coffee purchase and a $50,000 wire transfer have completely different risk profiles. Using the same fraud threshold for both will either block too many coffees or miss too many wire frauds.</li>
+      </ol>
+    </div>
+
+    <!-- 7. ARCHITECT'S CHECKLIST -->
+    <div class="section" id="checklist">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Architect's Checklist</h2>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>End-to-end latency verified under 100ms at p95 (feature lookup + inference + decision)</li>
+        <li><span class="check-box"></span>Explainability module tested &mdash; SHAP values generated for every flagged transaction</li>
+        <li><span class="check-box"></span>Feedback loop operational: analyst decisions flow back to training pipeline automatically</li>
+        <li><span class="check-box"></span>Feature freshness monitored &mdash; alerts if real-time features lag beyond acceptable threshold</li>
+        <li><span class="check-box"></span>Model drift detection deployed &mdash; alerts on score distribution shifts and accuracy degradation</li>
+        <li><span class="check-box"></span>Per-segment threshold tuning for transaction type, amount range, and customer risk tier</li>
+        <li><span class="check-box"></span>Regulatory documentation: model cards, validation reports, and explainability audit trail</li>
+        <li><span class="check-box"></span>A/B testing framework for comparing champion vs. challenger models in production</li>
+        <li><span class="check-box"></span>Fallback to rules-based scoring if ML model fails or exceeds latency budget</li>
+        <li><span class="check-box"></span>PII handling verified &mdash; no raw customer data in feature store or model logs</li>
+        <li><span class="check-box"></span>Complete audit trail for every decision: score, features used, threshold applied, outcome</li>
+      </ul>
+    </div>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Blueprint</div>
+        <a href="02-hipaa-ai-pipeline.html" class="next-btn">&larr; 02 &middot; HIPAA-Compliant AI Pipeline</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Blueprint</div>
+        <a href="04-digital-twin.html" class="next-btn">04 &middot; Digital Twin &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <div>&copy; 2026 CareerAlign.com</div>
+  <div style="margin-top:6px;font-size:12px;color:var(--text-muted);">Educational content provided as-is. Not affiliated with or endorsed by any cloud provider, vendor, or certification body mentioned herein. Use at your own discretion.</div>
+  <div style="margin-top:8px;font-size:12px;"><a href="../about.html">About</a> &middot; <a href="../terms.html">Terms</a> &middot; <a href="../privacy.html">Privacy</a></div>
+</footer>
+
+<script src="../theme.js"></script>
+</body>
+</html>

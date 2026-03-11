@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<script>if(localStorage.getItem('ca-theme')==='light')document.documentElement.setAttribute('data-theme','light');</script>
+<title>Model Risk Management &amp; Governance — CareerAlign AI Blueprints</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #a855f7;
+  --page-color-04: rgba(168,85,247,0.04);
+  --page-color-07: rgba(168,85,247,0.07);
+  --page-color-12: rgba(168,85,247,0.12);
+  --page-color-15: rgba(168,85,247,0.15);
+  --page-color-25: rgba(168,85,247,0.25);
+  --page-color-30: rgba(168,85,247,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#127959;&#65039; <span style="color:#a855f7;">AI</span> Blueprints</div>
+  <div class="nav-links">
+    <a href="01-ai-gateway.html">01</a>
+    <a href="02-hipaa-ai-pipeline.html">02</a>
+    <a href="03-fraud-detection.html">03</a>
+    <a href="04-digital-twin.html">04</a>
+    <a href="05-mlops-platform.html">05</a>
+    <a href="06-rules-to-ml.html">06</a>
+    <a href="07-model-governance.html" class="active">07</a>
+    <a href="08-multi-cloud.html">08</a>
+    <a href="09-build-buy-finetune.html">09</a>
+    <a href="10-enterprise-rag.html">10</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; Blueprint Hub</a>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">&#127769;</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">&#127959;&#65039; Blueprint 07 &middot; Governance</div>
+  <h1>Model Risk Management &amp; <em>Governance</em></h1>
+  <p class="hero-desc">
+    A comprehensive governance architecture for managing model risk across the entire ML lifecycle &mdash; from data lineage and model registry through approval workflows, continuous monitoring, and incident response.
+  </p>
+  <div class="hero-checklist">
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Model Registry</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Data Lineage</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Approval Workflows</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Drift Monitoring</span>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#plain-language" class="section">In Plain Language</a>
+    <a href="#diagram" class="section">Architecture Diagram</a>
+    <a href="#components" class="section">Component Breakdown</a>
+    <a href="#tradeoffs" class="section">Decision Points &amp; Trade-offs</a>
+    <a href="#cloud" class="section">Cloud Mapping</a>
+    <a href="#antipatterns" class="section">Anti-Patterns</a>
+    <a href="#checklist" class="section">Architect's Checklist</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- 1. IN PLAIN LANGUAGE -->
+    <div class="section" id="plain-language">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>In Plain Language</h2>
+      </div>
+      <p>
+        Your company now has 50 ML models in production. Some approve loans. Some detect fraud. Some recommend products. Some set prices. Who trained them? On what data? When were they last updated? What happens if one goes wrong? If you cannot answer these questions quickly and confidently, you have a governance problem. And in regulated industries &mdash; banking, insurance, healthcare &mdash; that governance problem is also a compliance problem. Frameworks like SR 11-7 (Fed/OCC), Solvency II, and increasingly the EU AI Act require that organizations understand and control the models making decisions that affect people.
+      </p>
+      <p>
+        But governance is not just for regulated companies. Even if no regulator is watching, a pricing model that silently drifts can cost millions in revenue before anyone notices. A recommendation engine that develops subtle biases can erode customer trust over months. A fraud detection model trained on last year's patterns will miss this year's fraud techniques. Without governance, you only discover these problems after the damage is done &mdash; through customer complaints, revenue drops, or worse, a front-page news story.
+      </p>
+      <p>
+        The governance architecture provides five essential capabilities: a model registry that answers "what models exist and who owns them," lineage tracking that answers "what data trained this model," approval workflows that answer "who approved this for production," continuous monitoring that answers "is this model still performing," and incident response that answers "what do we do when something goes wrong." Think of it as compliance infrastructure &mdash; the plumbing that makes responsible AI possible at scale.
+      </p>
+      <p>
+        The critical insight is timing: if you build governance into your ML platform from the start, it is a lightweight, low-friction process that engineers barely notice. If you bolt it on after a regulatory finding or an incident, it becomes a painful, expensive retrofit that slows down every team. The architecture in this blueprint is designed to be built once and used across all models, creating a consistent governance layer that scales with your organization rather than creating per-model overhead.
+      </p>
+    </div>
+
+    <!-- 2. ARCHITECTURE DIAGRAM -->
+    <div class="section" id="diagram">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Architecture Diagram</h2>
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 900 500" class="learning-path-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow7" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#a855f7"/>
+            </marker>
+            <marker id="arrow7g" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#22c55e"/>
+            </marker>
+          </defs>
+
+          <!-- Governance Layer background -->
+          <rect x="10" y="10" width="880" height="480" rx="12" fill="none" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="8,4" opacity="0.3"/>
+          <text x="455" y="35" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk" font-size="13" font-weight="600" opacity="0.6">GOVERNANCE LAYER</text>
+
+          <!-- Data Sources -->
+          <rect x="30" y="70" width="120" height="70" rx="10" fill="#10131e" stroke="#22d3ee" stroke-width="2"/>
+          <text x="90" y="100" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Data Sources</text>
+          <text x="90" y="118" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">databases, APIs, files</text>
+
+          <!-- Arrow to Lineage -->
+          <line x1="150" y1="105" x2="210" y2="105" stroke="#a855f7" stroke-width="2" marker-end="url(#arrow7)"/>
+
+          <!-- Data Lineage Tracker -->
+          <rect x="215" y="65" width="140" height="80" rx="10" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="285" y="95" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Data Lineage</text>
+          <text x="285" y="113" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="10">provenance tracking</text>
+          <text x="285" y="130" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">source &#8594; transform &#8594; feature</text>
+
+          <!-- Arrow to Training -->
+          <line x1="355" y1="105" x2="420" y2="105" stroke="#a855f7" stroke-width="2" marker-end="url(#arrow7)"/>
+
+          <!-- Model Training -->
+          <rect x="425" y="65" width="140" height="80" rx="10" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="495" y="95" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Model Training</text>
+          <text x="495" y="113" text-anchor="middle" fill="#22c55e" font-family="JetBrains Mono" font-size="10">experiments, runs</text>
+          <text x="495" y="130" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">hyperparams, metrics</text>
+
+          <!-- Arrow to Registry -->
+          <line x1="565" y1="105" x2="630" y2="105" stroke="#a855f7" stroke-width="2" marker-end="url(#arrow7)"/>
+
+          <!-- Model Registry -->
+          <rect x="635" y="50" width="230" height="100" rx="10" fill="#10131e" stroke="#a855f7" stroke-width="2.5"/>
+          <text x="750" y="78" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">Model Registry</text>
+          <text x="750" y="98" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="10">owner | data | metrics | version</text>
+          <text x="750" y="116" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">model cards &amp; documentation</text>
+          <text x="750" y="134" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">approval status &amp; risk tier</text>
+
+          <!-- Arrow Registry to Approval -->
+          <line x1="750" y1="150" x2="750" y2="195" stroke="#a855f7" stroke-width="2" marker-end="url(#arrow7)"/>
+
+          <!-- Approval Workflow -->
+          <rect x="620" y="200" width="260" height="85" rx="10" fill="#10131e" stroke="#f59e0b" stroke-width="2"/>
+          <text x="750" y="228" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">Approval Workflow</text>
+          <text x="750" y="248" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono" font-size="10">model validator &#8594; risk committee</text>
+          <text x="750" y="268" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">multi-level sign-off before production</text>
+
+          <!-- Arrow Approval to Production -->
+          <line x1="750" y1="285" x2="750" y2="325" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow7g)"/>
+          <text x="770" y="310" fill="#22c55e" font-family="JetBrains Mono" font-size="10">approved</text>
+
+          <!-- Production Deployment -->
+          <rect x="640" y="330" width="220" height="65" rx="10" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="750" y="358" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">Production</text>
+          <text x="750" y="378" text-anchor="middle" fill="#22c55e" font-family="JetBrains Mono" font-size="10">deployed &amp; serving</text>
+
+          <!-- Arrow Production to Monitoring -->
+          <line x1="640" y1="362" x2="530" y2="362" stroke="#a855f7" stroke-width="2" marker-end="url(#arrow7)"/>
+
+          <!-- Monitoring -->
+          <rect x="300" y="320" width="225" height="90" rx="10" fill="#10131e" stroke="#ef4444" stroke-width="2"/>
+          <text x="412" y="348" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="14" font-weight="600">Monitoring</text>
+          <text x="412" y="368" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono" font-size="10">drift | fairness | performance</text>
+          <text x="412" y="388" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">continuous evaluation &amp; alerting</text>
+          <text x="412" y="403" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">SLA tracking</text>
+
+          <!-- Arrow Monitoring to Incident Response -->
+          <line x1="300" y1="365" x2="210" y2="365" stroke="#ef4444" stroke-width="2" marker-end="url(#arrow7)"/>
+
+          <!-- Incident Response -->
+          <rect x="30" y="325" width="175" height="80" rx="10" fill="#10131e" stroke="#ef4444" stroke-width="2"/>
+          <text x="117" y="353" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Incident Response</text>
+          <text x="117" y="373" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono" font-size="10">alert &#8594; investigate &#8594; rollback</text>
+          <text x="117" y="390" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">playbooks &amp; escalation</text>
+
+          <!-- Feedback loop from Incident back up to Training -->
+          <path d="M 30 365 L 15 365 L 15 105 L 30 105" fill="none" stroke="#8e94b5" stroke-width="1.5" stroke-dasharray="5,4"/>
+          <text x="8" y="235" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9" transform="rotate(-90,8,235)">retrain loop</text>
+
+          <!-- Feedback from Monitoring to Registry -->
+          <path d="M 412 320 L 412 200 L 635 200" fill="none" stroke="#8e94b5" stroke-width="1.5" stroke-dasharray="5,4"/>
+          <text x="520" y="193" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">status update</text>
+        </svg>
+        <p class="diagram-caption">Architecture diagram &mdash; Model Risk Management &amp; Governance: end-to-end governance layer spanning data lineage through incident response</p>
+      </div>
+    </div>
+
+    <!-- 3. COMPONENT BREAKDOWN -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Component Breakdown</h2>
+      </div>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128218;</div>
+            <h4>Model Registry &amp; Metadata Catalog</h4>
+          </div>
+          <p>Central inventory of every production model with metadata: owner, training data reference, performance metrics, version history, risk tier, and approval status. The single source of truth for "what models do we have."</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128279;</div>
+            <h4>Data Lineage &amp; Provenance</h4>
+          </div>
+          <p>Tracks data from its original source through every transformation to the final training dataset. Answers "what data trained this model" and "if this data source is wrong, which models are affected."</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9989;</div>
+            <h4>Approval Workflow</h4>
+          </div>
+          <p>Multi-level gate: model developer submits, model validator reviews methodology and performance, risk committee approves for production. Higher-risk models (e.g., credit decisions) require additional scrutiny.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128200;</div>
+            <h4>Continuous Monitoring</h4>
+          </div>
+          <p>Tracks model performance, data drift, concept drift, and fairness metrics in real time. Alerts when metrics breach thresholds. Distinguishes between slow degradation and sudden failures.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128196;</div>
+            <h4>Model Documentation (Model Cards)</h4>
+          </div>
+          <p>Standardized documentation for each model: intended use, training data description, performance across subgroups, known limitations, and ethical considerations. Required before production deployment.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128680;</div>
+            <h4>Incident Response &amp; Rollback</h4>
+          </div>
+          <p>Predefined playbooks for model failures: who gets alerted, how to investigate, when to roll back, and how to communicate to stakeholders. Includes automated rollback to the previous model version.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. DECISION POINTS & TRADE-OFFS -->
+    <div class="section" id="tradeoffs">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Decision Points &amp; Trade-offs</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Advantage</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Comprehensive audit trail satisfies regulatory requirements</td><td>Governance rigor can slow deployment velocity</td></tr>
+          <tr><td>Full data lineage enables root-cause analysis</td><td>End-to-end lineage tracking has significant engineering overhead</td></tr>
+          <tr><td>Approval workflows prevent untested models from reaching production</td><td>Manual approval gates can become bottlenecks</td></tr>
+          <tr><td>Continuous monitoring catches drift before customer impact</td><td>Too many alerts create fatigue and get ignored</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Right-size your governance</div>
+        <p>Not every model needs the same level of governance. Use a tiering system: Tier 1 (high risk: credit, healthcare) gets full approval workflow and quarterly review. Tier 3 (low risk: internal recommendations) gets automated checks and annual review. One-size-fits-all governance either over-burdens low-risk models or under-governs high-risk ones.</p>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Regulatory context</div>
+        <p>SR 11-7 (US banking), the EU AI Act, and similar frameworks do not prescribe specific tools &mdash; they require demonstrable processes. Your architecture must produce evidence: "here is when this model was approved, by whom, based on what metrics, and here is its current performance." The tools are secondary to the audit trail.</p>
+      </div>
+    </div>
+
+    <!-- 5. CLOUD MAPPING -->
+    <div class="section" id="cloud">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Cloud Mapping</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Component</th><th>GCP</th><th>AWS</th><th>Azure</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Model Registry</strong></td><td>Vertex AI Model Registry</td><td>SageMaker Model Registry</td><td>Azure ML Model Registry</td></tr>
+          <tr><td><strong>Data Lineage</strong></td><td>Data Catalog + Dataplex</td><td>Glue Data Catalog</td><td>Microsoft Purview</td></tr>
+          <tr><td><strong>Approval Workflow</strong></td><td>Custom + Cloud Tasks</td><td>Step Functions</td><td>Logic Apps</td></tr>
+          <tr><td><strong>Monitoring</strong></td><td>Vertex AI Model Monitoring</td><td>SageMaker Model Monitor</td><td>Azure ML Data Drift</td></tr>
+          <tr><td><strong>Documentation</strong></td><td>Custom model cards</td><td>SageMaker Model Cards</td><td>Azure ML Responsible AI</td></tr>
+          <tr><td><strong>Incident Response</strong></td><td>Cloud Monitoring + PagerDuty</td><td>CloudWatch + EventBridge</td><td>Azure Monitor + Azure Alerts</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 6. ANTI-PATTERNS -->
+    <div class="section" id="antipatterns">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Anti-Patterns</h2>
+      </div>
+      <ol>
+        <li><strong>The spreadsheet registry</strong> &mdash; A model registry that lives in a shared spreadsheet is never up to date. Models get deployed without being registered, metadata goes stale, and nobody trusts the inventory. The registry must be automated and integrated into the deployment pipeline.</li>
+        <li><strong>Approval workflow as bureaucracy</strong> &mdash; If the approval process takes weeks and requires six signatures, teams will route around it. They will deploy models as "experiments" or "proof of concepts" that quietly become production systems. The workflow must be proportional to risk.</li>
+        <li><strong>Monitoring only infrastructure metrics</strong> &mdash; Tracking latency, CPU, and error rates is necessary but not sufficient. A model can be responding quickly and reliably while producing increasingly wrong predictions. Monitor model quality metrics: accuracy, precision, recall, and fairness.</li>
+        <li><strong>No data lineage</strong> &mdash; When a regulator asks "what data trained this model," you should be able to answer in minutes, not weeks. If you cannot trace from a model's predictions back to its training data sources, you cannot debug, audit, or explain anything.</li>
+        <li><strong>Governance as a one-time audit</strong> &mdash; Reviewing models once a year is not governance &mdash; it is a checkbox exercise. Models drift, data changes, and business requirements evolve. Governance must be continuous, with automated monitoring triggering reviews when conditions change.</li>
+      </ol>
+    </div>
+
+    <!-- 7. ARCHITECT'S CHECKLIST -->
+    <div class="section" id="checklist">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Architect's Checklist</h2>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Every production model registered in the model registry with current metadata</li>
+        <li><span class="check-box"></span>Data lineage traceable end-to-end from source data to model predictions</li>
+        <li><span class="check-box"></span>Model owner assigned and accountable for each production model</li>
+        <li><span class="check-box"></span>Approval workflow enforced &mdash; no model reaches production without required sign-offs</li>
+        <li><span class="check-box"></span>Model card / documentation required and reviewed before deployment</li>
+        <li><span class="check-box"></span>Drift monitoring active with alerts configured for each model's key metrics</li>
+        <li><span class="check-box"></span>Fairness metrics tracked for models making decisions about people (credit, hiring, pricing)</li>
+        <li><span class="check-box"></span>Incident response playbook tested &mdash; team has rehearsed model failure scenarios</li>
+        <li><span class="check-box"></span>Regular model review cadence established (quarterly for high-risk, annually for low-risk)</li>
+        <li><span class="check-box"></span>Regulatory requirements mapped to specific governance controls and evidence</li>
+        <li><span class="check-box"></span>Retirement and deprecation process defined for end-of-life models</li>
+      </ul>
+    </div>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Blueprint</div>
+        <a href="06-rules-to-ml.html" class="next-btn">&larr; 06 &middot; Rules to ML Migration</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Blueprint</div>
+        <a href="08-multi-cloud.html" class="next-btn">08 &middot; Multi-Cloud AI Strategy &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <div>&copy; 2026 CareerAlign.com</div>
+  <div style="margin-top:6px;font-size:12px;color:var(--text-muted);">Educational content provided as-is. Not affiliated with or endorsed by any cloud provider, vendor, or certification body mentioned herein. Use at your own discretion.</div>
+  <div style="margin-top:8px;font-size:12px;"><a href="../about.html">About</a> &middot; <a href="../terms.html">Terms</a> &middot; <a href="../privacy.html">Privacy</a></div>
+</footer>
+
+<script src="../theme.js"></script>
+</body>
+</html>

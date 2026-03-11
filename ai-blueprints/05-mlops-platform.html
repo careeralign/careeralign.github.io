@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<script>if(localStorage.getItem('ca-theme')==='light')document.documentElement.setAttribute('data-theme','light');</script>
+<title>MLOps Self-Service Platform — CareerAlign AI Blueprints</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #06b6d4;
+  --page-color-04: rgba(6,182,212,0.04);
+  --page-color-07: rgba(6,182,212,0.07);
+  --page-color-12: rgba(6,182,212,0.12);
+  --page-color-15: rgba(6,182,212,0.15);
+  --page-color-25: rgba(6,182,212,0.25);
+  --page-color-30: rgba(6,182,212,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#128736; <span style="color:#06b6d4;">AI</span> Blueprints</div>
+  <div class="nav-links">
+    <a href="01-ai-gateway.html">01</a>
+    <a href="02-hipaa-ai-pipeline.html">02</a>
+    <a href="03-fraud-detection.html">03</a>
+    <a href="04-digital-twin.html">04</a>
+    <a href="05-mlops-platform.html" class="active">05</a>
+    <a href="06-rules-to-ml.html">06</a>
+    <a href="07-model-governance.html">07</a>
+    <a href="08-multi-cloud.html">08</a>
+    <a href="09-build-buy-finetune.html">09</a>
+    <a href="10-enterprise-rag.html">10</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; Blueprint Hub</a>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">&#127769;</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">&#128736; Blueprint 05 &middot; Platform Engineering</div>
+  <h1>MLOps Self-Service <em>Platform</em></h1>
+  <p class="hero-desc">
+    Give every data science team a standardized, self-service path from experiment to production: version data,
+    train models, evaluate automatically, deploy with one click, monitor in production, and retrain when drift strikes.
+  </p>
+  <div class="hero-checklist">
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Experiment Tracking</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Model Registry</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> CI/CD for Models</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Drift Monitoring</span>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#plain-language" class="section">In Plain Language</a>
+    <a href="#diagram" class="section">Architecture Diagram</a>
+    <a href="#components" class="section">Component Breakdown</a>
+    <a href="#tradeoffs" class="section">Decision Points &amp; Trade-offs</a>
+    <a href="#cloud" class="section">Cloud Mapping</a>
+    <a href="#antipatterns" class="section">Anti-Patterns</a>
+    <a href="#checklist" class="section">Architect's Checklist</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- 1. IN PLAIN LANGUAGE -->
+    <div class="section" id="plain-language">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>In Plain Language</h2>
+      </div>
+      <p>
+        Your company has 10 data science teams. Each one builds models differently &mdash; different frameworks
+        (TensorFlow here, PyTorch there, scikit-learn over there), different deployment methods (one team SSHes into
+        a server, another uses Docker, a third emails a pickle file to an engineer), and different monitoring approaches
+        (ranging from "we check the dashboard sometimes" to literally nothing). Models go from "it works on my laptop"
+        to production in weeks or months, with manual handoffs, undocumented pipelines, and zero reproducibility. Sound
+        familiar? This is the status quo at most companies.
+      </p>
+      <p>
+        An MLOps platform is the AI equivalent of a CI/CD platform for software engineering. Just as Jenkins or GitHub
+        Actions gave software teams a standardized way to build, test, and deploy code, an MLOps platform gives data
+        science teams a standardized way to train, evaluate, register, deploy, and monitor models. The data scientist
+        trains a model, the platform automatically tracks the experiment (hyperparameters, metrics, data version), registers
+        the model in a versioned registry, runs automated evaluation against a test set, packages it into a container,
+        deploys it behind a serving endpoint, and starts monitoring for data drift and performance degradation.
+      </p>
+      <p>
+        The "self-service" part is critical and often where platforms fail. If data scientists need to file Jira tickets
+        and wait two weeks for the infrastructure team to provision GPU instances, configure Kubernetes deployments, and
+        set up monitoring dashboards, they will route around your platform. They'll train on their laptops, deploy to
+        a random EC2 instance, and you'll never know about it. The platform must feel like a productivity multiplier,
+        not a bureaucratic gate. That means: one-click training on managed infrastructure, automatic evaluation gates
+        that don't require manual review for standard cases, and deployment that's as simple as promoting a model version.
+      </p>
+      <p>
+        At the same time, the platform needs to enforce standards without being oppressive. Every model must have
+        experiment tracking (so someone can reproduce results six months later), versioned artifacts (so you can roll
+        back instantly), and production monitoring (so you know when a model starts making bad predictions). The
+        architecture must be opinionated enough to enforce these standards but flexible enough that a team using PyTorch
+        for NLP and a team using XGBoost for tabular data both feel at home. Get this wrong and you end up with an
+        expensive platform that nobody uses and models that are still deployed via email.
+      </p>
+    </div>
+
+    <!-- 2. ARCHITECTURE DIAGRAM -->
+    <div class="section" id="diagram">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Architecture Diagram</h2>
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 920 460" class="learning-path-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow5" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#06b6d4"/>
+            </marker>
+            <marker id="arrow5b" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+            </marker>
+          </defs>
+
+          <!-- Data Scientist -->
+          <rect x="20" y="100" width="120" height="70" rx="10" fill="#10131e" stroke="#06b6d4" stroke-width="2"/>
+          <text x="80" y="128" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="13" font-weight="600">Data Scientist</text>
+          <text x="80" y="148" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Notebook / IDE</text>
+
+          <!-- Arrow -->
+          <line x1="140" y1="135" x2="190" y2="135" stroke="#06b6d4" stroke-width="2" marker-end="url(#arrow5)"/>
+
+          <!-- Experiment Tracking -->
+          <rect x="200" y="85" width="130" height="100" rx="10" fill="#10131e" stroke="#06b6d4" stroke-width="2"/>
+          <text x="265" y="112" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk" font-size="12" font-weight="600">Experiment</text>
+          <text x="265" y="128" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk" font-size="12" font-weight="600">Tracking</text>
+          <text x="265" y="148" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Params, metrics,</text>
+          <text x="265" y="163" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">artifacts, data version</text>
+
+          <!-- Arrow -->
+          <line x1="330" y1="135" x2="380" y2="135" stroke="#06b6d4" stroke-width="2" marker-end="url(#arrow5)"/>
+
+          <!-- Model Registry -->
+          <rect x="390" y="85" width="130" height="100" rx="10" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="455" y="112" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk" font-size="12" font-weight="600">Model</text>
+          <text x="455" y="128" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk" font-size="12" font-weight="600">Registry</text>
+          <text x="455" y="148" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Versioning, lineage,</text>
+          <text x="455" y="163" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">approval workflow</text>
+
+          <!-- Arrow -->
+          <line x1="520" y1="135" x2="570" y2="135" stroke="#06b6d4" stroke-width="2" marker-end="url(#arrow5)"/>
+
+          <!-- CI/CD Pipeline -->
+          <rect x="580" y="70" width="140" height="130" rx="10" fill="#10131e" stroke="#f59e0b" stroke-width="2"/>
+          <text x="650" y="97" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk" font-size="12" font-weight="600">CI/CD Pipeline</text>
+          <rect x="595" y="108" width="110" height="22" rx="5" fill="#0e1525" stroke="#232840" stroke-width="1"/>
+          <text x="650" y="123" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">Test &amp; Validate</text>
+          <rect x="595" y="136" width="110" height="22" rx="5" fill="#0e1525" stroke="#232840" stroke-width="1"/>
+          <text x="650" y="151" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">Package (Container)</text>
+          <rect x="595" y="164" width="110" height="22" rx="5" fill="#0e1525" stroke="#232840" stroke-width="1"/>
+          <text x="650" y="179" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">Deploy (A/B, Canary)</text>
+
+          <!-- Arrow -->
+          <line x1="720" y1="135" x2="770" y2="135" stroke="#06b6d4" stroke-width="2" marker-end="url(#arrow5)"/>
+
+          <!-- Model Serving -->
+          <rect x="780" y="85" width="120" height="100" rx="10" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="840" y="112" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk" font-size="12" font-weight="600">Model</text>
+          <text x="840" y="128" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk" font-size="12" font-weight="600">Serving</text>
+          <text x="840" y="148" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">A/B testing</text>
+          <text x="840" y="163" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Canary, Shadow</text>
+
+          <!-- Arrow down to monitoring -->
+          <line x1="840" y1="185" x2="840" y2="240" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow5)"/>
+
+          <!-- Monitoring -->
+          <rect x="750" y="250" width="170" height="90" rx="10" fill="#10131e" stroke="#ef4444" stroke-width="2"/>
+          <text x="835" y="275" text-anchor="middle" fill="#ef4444" font-family="Space Grotesk" font-size="12" font-weight="600">Production Monitoring</text>
+          <text x="835" y="295" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Data drift detection</text>
+          <text x="835" y="310" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Model performance</text>
+          <text x="835" y="325" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Cost per prediction</text>
+
+          <!-- Retraining trigger arrow -->
+          <path d="M 750 310 L 265 310 L 265 185" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrow5b)"/>
+          <text x="507" y="330" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono" font-size="10">Drift detected &rarr; trigger retraining</text>
+
+          <!-- Shared Layer -->
+          <rect x="200" y="380" width="620" height="55" rx="10" fill="#10131e" stroke="#232840" stroke-width="1.5"/>
+          <text x="510" y="403" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk" font-size="12" font-weight="600">Shared Platform Layer</text>
+          <text x="510" y="422" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Feature Store &middot; Data Catalog &middot; Governance &amp; RBAC &middot; Cost Tracking per Team</text>
+        </svg>
+        <p class="diagram-caption">Architecture diagram &mdash; MLOps Self-Service Platform: experiment-to-production pipeline with shared infrastructure</p>
+      </div>
+    </div>
+
+    <!-- 3. COMPONENT BREAKDOWN -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Component Breakdown</h2>
+      </div>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128300;</div>
+            <h4>Experiment Tracking &amp; Versioning</h4>
+          </div>
+          <p>Every training run is recorded: hyperparameters, evaluation metrics, data version, code commit hash, environment details. Enables reproducibility months later and comparison across experiments. Think MLflow or Weights &amp; Biases.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128230;</div>
+            <h4>Model Registry with Approval Workflow</h4>
+          </div>
+          <p>Central catalog of all models with version history, lineage (which data and code produced each version), and promotion stages (dev &rarr; staging &rarr; production). Production promotion requires review and approval.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9881;</div>
+            <h4>Automated CI/CD for Models</h4>
+          </div>
+          <p>When a model is promoted, the pipeline automatically runs evaluation tests, packages the model into a container, runs integration tests against a staging endpoint, and deploys to production with configurable rollout strategy.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127919;</div>
+            <h4>Multi-Strategy Serving</h4>
+          </div>
+          <p>Deploy models with A/B testing (split traffic between two versions), canary rollout (1% &rarr; 10% &rarr; 50% &rarr; 100%), or shadow mode (new model runs in parallel without affecting production). Enables safe, data-driven deployment decisions.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128200;</div>
+            <h4>Production Monitoring</h4>
+          </div>
+          <p>Tracks three dimensions: data drift (input distribution changing), model performance (accuracy, precision, recall degrading), and cost (inference cost per prediction per team). Triggers alerts and automatic retraining when thresholds are breached.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128451;</div>
+            <h4>Feature Store</h4>
+          </div>
+          <p>Shared repository of curated features used across teams. Prevents duplicate feature engineering, ensures consistency between training and serving, and provides point-in-time correct feature retrieval for historical training.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. DECISION POINTS & TRADE-OFFS -->
+    <div class="section" id="tradeoffs">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Decision Points &amp; Trade-offs</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Advantage</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Standardized path from experiment to production</td><td>Platform requires dedicated team to build and maintain</td></tr>
+          <tr><td>Self-service reduces time-to-deploy from weeks to hours</td><td>Governance controls can slow down rapid experimentation</td></tr>
+          <tr><td>Build internally for full customization</td><td>Building is expensive; buying means vendor lock-in</td></tr>
+          <tr><td>Multi-framework support (PyTorch, TF, XGBoost, etc.)</td><td>Supporting every framework increases maintenance burden</td></tr>
+          <tr><td>Automated monitoring catches degradation early</td><td>Monitoring generates noise if thresholds are not well-tuned</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Build vs. Buy vs. Assemble</div>
+        <p>Most successful MLOps platforms are assembled from best-of-breed components: MLflow for experiment tracking, a cloud-native model registry, managed Kubernetes for serving, and custom glue code. Pure build-from-scratch is too expensive; pure buy locks you to one vendor's opinions.</p>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Adoption Is the Metric</div>
+        <p>The most important metric for an MLOps platform is adoption rate. Track what percentage of production models go through the platform. If teams are routing around it, something is wrong with the developer experience &mdash; fix that before adding features.</p>
+      </div>
+    </div>
+
+    <!-- 5. CLOUD MAPPING -->
+    <div class="section" id="cloud">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Cloud Mapping</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Component</th><th>GCP</th><th>AWS</th><th>Azure</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Experiment Tracking</strong></td><td>Vertex AI Experiments</td><td>SageMaker Experiments</td><td>Azure ML Experiments</td></tr>
+          <tr><td><strong>Model Registry</strong></td><td>Vertex AI Model Registry</td><td>SageMaker Model Registry</td><td>Azure ML Model Registry</td></tr>
+          <tr><td><strong>CI/CD</strong></td><td>Cloud Build + Vertex Pipelines</td><td>CodePipeline + SageMaker Pipelines</td><td>Azure DevOps + Azure ML Pipelines</td></tr>
+          <tr><td><strong>Serving</strong></td><td>Vertex AI Endpoints</td><td>SageMaker Endpoints</td><td>Azure ML Online Endpoints</td></tr>
+          <tr><td><strong>Monitoring</strong></td><td>Vertex AI Model Monitoring</td><td>SageMaker Model Monitor</td><td>Azure ML Data Drift</td></tr>
+          <tr><td><strong>Feature Store</strong></td><td>Vertex AI Feature Store</td><td>SageMaker Feature Store</td><td>Azure ML Feature Store</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 6. ANTI-PATTERNS -->
+    <div class="section" id="antipatterns">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Anti-Patterns</h2>
+      </div>
+      <ol>
+        <li><strong>Building the platform in isolation without data science team input.</strong> The most common platform failure. If the platform team spends 12 months building what they think data scientists need, they'll launch to crickets. Co-design with your users from day one. Pilot with one team, iterate, then scale.</li>
+        <li><strong>Requiring teams to use a single ML framework.</strong> Mandating "PyTorch only" or "TensorFlow only" alienates half your data scientists and prevents using the best tool for each job. The platform should be framework-agnostic at the container level: if it runs in a Docker container, the platform can serve it.</li>
+        <li><strong>No model approval workflow &mdash; anyone can deploy anything to production.</strong> Without gating, a junior data scientist can accidentally deploy an untested model to a revenue-critical system. Implement at minimum: automated evaluation against a held-out test set, and human approval for production promotion.</li>
+        <li><strong>Monitoring that only tracks infrastructure (CPU, memory) not model quality.</strong> Your model can have perfect uptime with low latency while making terrible predictions. Infrastructure monitoring is table stakes. You must also track prediction quality: accuracy, precision/recall, calibration, and data drift.</li>
+        <li><strong>Platform team becomes a bottleneck &mdash; tickets instead of self-service.</strong> If deploying a model requires filing a platform team ticket and waiting in a queue, you haven't built self-service &mdash; you've just added a new bureaucracy. Automate the common path; reserve human involvement for exceptions.</li>
+      </ol>
+    </div>
+
+    <!-- 7. ARCHITECT'S CHECKLIST -->
+    <div class="section" id="checklist">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Architect's Checklist</h2>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Self-service model training works end-to-end: data scientist can go from notebook to deployed model without filing tickets</li>
+        <li><span class="check-box"></span>Experiment tracking is mandatory &mdash; no untracked training runs in production pipeline</li>
+        <li><span class="check-box"></span>Model registry with full versioning, lineage, and reproducibility metadata</li>
+        <li><span class="check-box"></span>Automated evaluation gate: every model version tested against a held-out set before promotion</li>
+        <li><span class="check-box"></span>Production deployment requires approval for critical models (automated for low-risk)</li>
+        <li><span class="check-box"></span>A/B testing and canary deployment capability for safe rollouts</li>
+        <li><span class="check-box"></span>Drift monitoring with configurable alerts and automatic retraining triggers</li>
+        <li><span class="check-box"></span>Cost tracking per model, per team, per environment &mdash; visible to team leads</li>
+        <li><span class="check-box"></span>Rollback capability: revert to previous model version in under 5 minutes</li>
+        <li><span class="check-box"></span>Onboarding documentation and getting-started tutorial for new teams</li>
+        <li><span class="check-box"></span>Platform SLA defined: availability, deployment latency, and support response time</li>
+      </ul>
+    </div>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Blueprint</div>
+        <a href="04-digital-twin.html" class="next-btn">&larr; 04 &middot; Digital Twin</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Blueprint</div>
+        <a href="06-rules-to-ml.html" class="next-btn">06 &middot; Rules to ML &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <div>&copy; 2026 CareerAlign.com</div>
+  <div style="margin-top:6px;font-size:12px;color:var(--text-muted);">Educational content provided as-is. Not affiliated with or endorsed by any cloud provider, vendor, or certification body mentioned herein. Use at your own discretion.</div>
+  <div style="margin-top:8px;font-size:12px;"><a href="../about.html">About</a> &middot; <a href="../terms.html">Terms</a> &middot; <a href="../privacy.html">Privacy</a></div>
+</footer>
+
+<script src="../theme.js"></script>
+</body>
+</html>

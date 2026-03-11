@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<script>if(localStorage.getItem('ca-theme')==='light')document.documentElement.setAttribute('data-theme','light');</script>
+<title>Digital Twin + Predictive Maintenance — CareerAlign AI Blueprints</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #22c55e;
+  --page-color-04: rgba(34,197,94,0.04);
+  --page-color-07: rgba(34,197,94,0.07);
+  --page-color-12: rgba(34,197,94,0.12);
+  --page-color-15: rgba(34,197,94,0.15);
+  --page-color-25: rgba(34,197,94,0.25);
+  --page-color-30: rgba(34,197,94,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">&#128736; <span style="color:#22c55e;">AI</span> Blueprints</div>
+  <div class="nav-links">
+    <a href="01-ai-gateway.html">01</a>
+    <a href="02-hipaa-ai-pipeline.html">02</a>
+    <a href="03-fraud-detection.html">03</a>
+    <a href="04-digital-twin.html" class="active">04</a>
+    <a href="05-mlops-platform.html">05</a>
+    <a href="06-rules-to-ml.html">06</a>
+    <a href="07-model-governance.html">07</a>
+    <a href="08-multi-cloud.html">08</a>
+    <a href="09-build-buy-finetune.html">09</a>
+    <a href="10-enterprise-rag.html">10</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; Blueprint Hub</a>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">&#127769;</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">&#127981; Blueprint 04 &middot; Manufacturing</div>
+  <h1>Digital Twin + <em>Predictive Maintenance</em></h1>
+  <p class="hero-desc">
+    Mirror physical equipment as virtual replicas, ingest real-time sensor data, predict remaining useful life
+    with ML, and trigger maintenance before failures happen &mdash; reducing downtime by 30-50%.
+  </p>
+  <div class="hero-checklist">
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> IoT Sensors</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Digital Twin</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> RUL Prediction</span>
+    <span class="hero-pill"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h8M8 4v8"/></svg> Edge Processing</span>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#plain-language" class="section">In Plain Language</a>
+    <a href="#diagram" class="section">Architecture Diagram</a>
+    <a href="#components" class="section">Component Breakdown</a>
+    <a href="#tradeoffs" class="section">Decision Points &amp; Trade-offs</a>
+    <a href="#cloud" class="section">Cloud Mapping</a>
+    <a href="#antipatterns" class="section">Anti-Patterns</a>
+    <a href="#checklist" class="section">Architect's Checklist</a>
+  </aside>
+
+  <div class="main">
+
+    <!-- 1. IN PLAIN LANGUAGE -->
+    <div class="section" id="plain-language">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>In Plain Language</h2>
+      </div>
+      <p>
+        A factory floor has hundreds of machines &mdash; turbines, pumps, conveyor belts, robotic arms, compressors.
+        When one breaks unexpectedly, production stops. Depending on the machine and the industry, a single hour of
+        unplanned downtime can cost anywhere from $10,000 to $500,000. Across all of manufacturing, unplanned downtime
+        costs an estimated $50 billion annually. That's not a technology problem &mdash; it's a business problem that
+        technology can solve.
+      </p>
+      <p>
+        There are three approaches to maintenance. <strong>Reactive maintenance</strong> means you fix it when it breaks
+        &mdash; cheapest to set up, most expensive when it fails. <strong>Scheduled maintenance</strong> means you
+        replace parts on a calendar (every 6 months, swap the bearings) &mdash; better, but you waste money replacing
+        parts that still have years of life left, and you still get surprised by failures between scheduled intervals.
+        <strong>Predictive maintenance</strong> uses sensor data and AI to predict when a machine will actually fail,
+        so you can fix it at the last responsible moment &mdash; maximizing part life while preventing unplanned
+        downtime.
+      </p>
+      <p>
+        A digital twin is the foundation of predictive maintenance. It's a virtual replica of a physical machine that
+        mirrors its real-time state. You attach sensors to a turbine that measure temperature, vibration, pressure,
+        rotational speed, and acoustics. That data streams into the digital twin, which maintains a live model of the
+        turbine's condition. AI models analyze the digital twin's data to predict Remaining Useful Life (RUL) &mdash;
+        "this bearing has approximately 340 operating hours left before failure." When RUL drops below a threshold,
+        the system automatically generates a work order so maintenance can be scheduled during the next planned
+        shutdown.
+      </p>
+      <p>
+        The architecture challenge is handling the full data pipeline: collecting high-frequency sensor data from
+        potentially thousands of sensors on edge devices, preprocessing it at the edge to reduce bandwidth, streaming
+        the relevant data to the cloud, running AI models for prediction, and pushing alerts back to the factory floor
+        &mdash; all in near-real-time. Get this right and you reduce unplanned downtime by 30-50%, extend equipment
+        life by 20-40%, and cut maintenance costs by 10-25%. Those numbers are why every major manufacturer is
+        investing in this architecture.
+      </p>
+    </div>
+
+    <!-- 2. ARCHITECTURE DIAGRAM -->
+    <div class="section" id="diagram">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Architecture Diagram</h2>
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 920 430" class="learning-path-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow4" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#22c55e"/>
+            </marker>
+            <marker id="arrow4b" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+            </marker>
+          </defs>
+
+          <!-- Edge boundary -->
+          <rect x="10" y="50" width="230" height="300" rx="12" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="6,4"/>
+          <text x="125" y="72" text-anchor="middle" fill="#22c55e" font-family="JetBrains Mono" font-size="10" font-weight="500">Factory Edge</text>
+
+          <!-- IoT Sensors -->
+          <rect x="30" y="90" width="90" height="55" rx="8" fill="#10131e" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="75" y="113" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk" font-size="11" font-weight="600">Sensors</text>
+          <text x="75" y="130" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">Temp, Vibration</text>
+
+          <rect x="130" y="90" width="90" height="55" rx="8" fill="#10131e" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="175" y="113" text-anchor="middle" fill="#06b6d4" font-family="Space Grotesk" font-size="11" font-weight="600">Sensors</text>
+          <text x="175" y="130" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">Pressure, RPM</text>
+
+          <!-- Edge Gateway -->
+          <rect x="50" y="180" width="160" height="80" rx="10" fill="#10131e" stroke="#f59e0b" stroke-width="2"/>
+          <text x="130" y="208" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk" font-size="13" font-weight="600">Edge Gateway</text>
+          <text x="130" y="226" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Preprocessing &amp;</text>
+          <text x="130" y="242" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">anomaly filtering</text>
+
+          <!-- Arrows from sensors to edge -->
+          <line x1="75" y1="145" x2="100" y2="180" stroke="#06b6d4" stroke-width="1.5" marker-end="url(#arrow4)"/>
+          <line x1="175" y1="145" x2="160" y2="180" stroke="#06b6d4" stroke-width="1.5" marker-end="url(#arrow4)"/>
+
+          <!-- Cloud boundary -->
+          <rect x="270" y="50" width="630" height="300" rx="12" fill="none" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="6,4"/>
+          <text x="585" y="72" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="10" font-weight="500">Cloud Platform</text>
+
+          <!-- Arrow from edge to cloud -->
+          <line x1="210" y1="220" x2="290" y2="160" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow4)"/>
+          <text x="250" y="175" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">stream</text>
+
+          <!-- Streaming Ingestion -->
+          <rect x="300" y="120" width="130" height="80" rx="10" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="365" y="148" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk" font-size="12" font-weight="600">Streaming</text>
+          <text x="365" y="165" text-anchor="middle" fill="#22c55e" font-family="Space Grotesk" font-size="12" font-weight="600">Ingestion</text>
+          <text x="365" y="185" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Pub/Sub, Kinesis</text>
+
+          <!-- Arrow -->
+          <line x1="430" y1="160" x2="475" y2="160" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow4)"/>
+
+          <!-- Digital Twin Engine -->
+          <rect x="485" y="95" width="150" height="130" rx="10" fill="#10131e" stroke="#a855f7" stroke-width="2"/>
+          <text x="560" y="120" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk" font-size="13" font-weight="600">Digital Twin</text>
+          <text x="560" y="138" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk" font-size="13" font-weight="600">Engine</text>
+          <text x="560" y="158" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Virtual replica of</text>
+          <text x="560" y="172" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">physical equipment</text>
+          <text x="560" y="192" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">real-time state sync</text>
+          <text x="560" y="212" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">simulation engine</text>
+
+          <!-- Arrow -->
+          <line x1="635" y1="160" x2="680" y2="160" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow4)"/>
+
+          <!-- ML Model -->
+          <rect x="690" y="110" width="130" height="100" rx="10" fill="#10131e" stroke="#f59e0b" stroke-width="2"/>
+          <text x="755" y="140" text-anchor="middle" fill="#f59e0b" font-family="Space Grotesk" font-size="13" font-weight="600">RUL Model</text>
+          <text x="755" y="160" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Remaining Useful</text>
+          <text x="755" y="175" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">Life prediction</text>
+          <text x="755" y="198" text-anchor="middle" fill="#8e94b5" font-family="JetBrains Mono" font-size="9">LSTM / Transformer</text>
+
+          <!-- Arrow down to alert -->
+          <line x1="755" y1="210" x2="755" y2="260" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrow4b)"/>
+
+          <!-- Alert System -->
+          <rect x="680" y="265" width="140" height="60" rx="10" fill="#10131e" stroke="#ef4444" stroke-width="2"/>
+          <text x="750" y="290" text-anchor="middle" fill="#ef4444" font-family="Space Grotesk" font-size="12" font-weight="600">Alert &amp; Work Order</text>
+          <text x="750" y="310" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="10">PagerDuty + CMMS</text>
+
+          <!-- Maintenance Dashboard -->
+          <rect x="490" y="265" width="150" height="60" rx="10" fill="#10131e" stroke="#22c55e" stroke-width="2"/>
+          <text x="565" y="290" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">Maintenance</text>
+          <text x="565" y="308" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">Dashboard</text>
+
+          <!-- Arrow from alert to dashboard -->
+          <line x1="680" y1="295" x2="640" y2="295" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow4)"/>
+
+          <!-- Data Lake -->
+          <rect x="300" y="260" width="140" height="65" rx="10" fill="#10131e" stroke="#232840" stroke-width="1.5"/>
+          <text x="370" y="285" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">Historical</text>
+          <text x="370" y="303" text-anchor="middle" fill="#e6e8f4" font-family="Space Grotesk" font-size="12" font-weight="600">Data Lake</text>
+          <text x="370" y="318" text-anchor="middle" fill="#8e94b5" font-family="Nunito" font-size="9">Retraining data</text>
+
+          <!-- Feedback loop -->
+          <path d="M 565 325 L 565 390 L 370 390 L 370 325" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrow4b)"/>
+          <text x="468" y="408" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono" font-size="10">Maintenance records &rarr; model retraining</text>
+
+          <!-- Arrow from data lake to twin -->
+          <line x1="370" y1="260" x2="370" y2="200" stroke="#232840" stroke-width="1.5" stroke-dasharray="4,3"/>
+        </svg>
+        <p class="diagram-caption">Architecture diagram &mdash; Digital Twin + Predictive Maintenance: edge sensors, cloud twin, RUL prediction, and alert system</p>
+      </div>
+    </div>
+
+    <!-- 3. COMPONENT BREAKDOWN -->
+    <div class="section" id="components">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>Component Breakdown</h2>
+      </div>
+      <div class="skill-grid">
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128225;</div>
+            <h4>IoT Sensor Network &amp; Edge Gateway</h4>
+          </div>
+          <p>Temperature, vibration, pressure, RPM, and acoustic sensors attached to equipment. Edge gateways preprocess data (filtering noise, computing rolling averages, detecting anomalies) before sending to the cloud to reduce bandwidth by 90%+.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#9889;</div>
+            <h4>Streaming Ingestion Pipeline</h4>
+          </div>
+          <p>Cloud-side streaming service that ingests preprocessed sensor data in near-real-time. Handles back-pressure, data validation, schema evolution, and routing to both the digital twin engine and the historical data lake.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#127981;</div>
+            <h4>Digital Twin Simulation Engine</h4>
+          </div>
+          <p>Virtual replica of physical equipment that maintains real-time state synchronized with actual sensor readings. Runs physics-based simulations and what-if scenarios: "What happens if we increase load by 20%?"</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#129504;</div>
+            <h4>Predictive ML Model (RUL)</h4>
+          </div>
+          <p>Predicts Remaining Useful Life using time-series models (LSTM, Temporal Fusion Transformer) trained on historical sensor data correlated with actual failure events. Outputs hours/days until predicted failure with confidence intervals.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128680;</div>
+            <h4>Alert &amp; Work Order System</h4>
+          </div>
+          <p>When RUL drops below configurable thresholds, automatically creates work orders in the CMMS (Computerized Maintenance Management System), pages on-call engineers, and schedules maintenance during the next planned downtime window.</p>
+        </div>
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div class="skill-icon">&#128451;</div>
+            <h4>Historical Data Lake</h4>
+          </div>
+          <p>Stores all historical sensor data, maintenance records, failure events, and model predictions. Used for model retraining, root cause analysis, and long-term trend analysis across the entire equipment fleet.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. DECISION POINTS & TRADE-OFFS -->
+    <div class="section" id="tradeoffs">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>Decision Points &amp; Trade-offs</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Advantage</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Edge processing reduces bandwidth by 90%+</td><td>Edge devices have limited compute and storage</td></tr>
+          <tr><td>Real-time streaming enables immediate anomaly alerts</td><td>Micro-batch may be sufficient and simpler to operate</td></tr>
+          <tr><td>ML models predict failures days/weeks ahead</td><td>False alarms erode trust &mdash; maintenance teams stop responding</td></tr>
+          <tr><td>Comprehensive sensor coverage catches all failure modes</td><td>Each additional sensor adds hardware and infrastructure cost</td></tr>
+          <tr><td>Digital twin enables what-if simulations</td><td>Twin calibration requires deep domain expertise</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="callout-label">Start Small</div>
+        <p>Don't try to instrument every machine on day one. Start with your most critical (and expensive-to-fail) equipment. Prove the ROI, then expand. A single prevented failure on a critical turbine can pay for the entire pilot.</p>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-label">Edge vs. Cloud</div>
+        <p>Time-critical anomaly detection (e.g., sudden vibration spike) should run at the edge for sub-second response. RUL predictions that inform scheduling decisions can run in the cloud with minutes of latency.</p>
+      </div>
+    </div>
+
+    <!-- 5. CLOUD MAPPING -->
+    <div class="section" id="cloud">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Cloud Mapping</h2>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr><th>Component</th><th>GCP</th><th>AWS</th><th>Azure</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>IoT / Edge</strong></td><td>Cloud IoT Core + Edge TPU</td><td>IoT Core + Greengrass</td><td>IoT Hub + IoT Edge</td></tr>
+          <tr><td><strong>Streaming</strong></td><td>Pub/Sub + Dataflow</td><td>Kinesis + Lambda</td><td>Event Hubs + Stream Analytics</td></tr>
+          <tr><td><strong>Digital Twin</strong></td><td>Supply Chain Twin</td><td>IoT TwinMaker</td><td>Azure Digital Twins</td></tr>
+          <tr><td><strong>ML Model</strong></td><td>Vertex AI</td><td>SageMaker</td><td>Azure ML</td></tr>
+          <tr><td><strong>Data Lake</strong></td><td>BigQuery + GCS</td><td>S3 + Athena</td><td>ADLS + Synapse</td></tr>
+          <tr><td><strong>Alerts</strong></td><td>Cloud Monitoring + PagerDuty</td><td>SNS + EventBridge</td><td>Azure Monitor + Logic Apps</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 6. ANTI-PATTERNS -->
+    <div class="section" id="antipatterns">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Anti-Patterns</h2>
+      </div>
+      <ol>
+        <li><strong>Sending all raw sensor data to the cloud.</strong> A single vibration sensor sampling at 10kHz generates 864 million data points per day. Multiply by hundreds of sensors and you have a bandwidth and cost explosion. Preprocess at the edge: compute aggregates, detect anomalies, and only send what matters.</li>
+        <li><strong>Training on clean lab data but deploying against noisy factory data.</strong> Lab conditions have perfect sensors, controlled environments, and clean signals. Factory conditions have sensor drift, electromagnetic interference, missing readings, and temperature fluctuations. If you don't train on real factory data, your model will fail in production.</li>
+        <li><strong>No edge preprocessing &mdash; relying on cloud connectivity for time-critical alerts.</strong> Internet connections on factory floors can be unreliable. If your anomaly detection requires a cloud round-trip, a critical vibration spike might not trigger an alert until it's too late. Run safety-critical detection at the edge.</li>
+        <li><strong>Single failure mode model &mdash; real equipment fails in multiple ways.</strong> A pump can fail from bearing wear, seal degradation, cavitation, or motor burnout. A model trained only on bearing failures will miss all the others. Ensure your training data covers the full spectrum of failure modes.</li>
+        <li><strong>Ignoring maintenance history in training data.</strong> Maintenance records contain invaluable signal: when parts were replaced, what failed, what the conditions were. If you only train on sensor data without correlating it to maintenance events, you're throwing away your most important labels.</li>
+      </ol>
+    </div>
+
+    <!-- 7. ARCHITECT'S CHECKLIST -->
+    <div class="section" id="checklist">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Architect's Checklist</h2>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Sensor coverage mapped for all critical equipment with identified failure modes</li>
+        <li><span class="check-box"></span>Edge preprocessing deployed &mdash; raw data reduced by 90%+ before cloud ingestion</li>
+        <li><span class="check-box"></span>Streaming latency measured end-to-end: sensor to digital twin under target threshold</li>
+        <li><span class="check-box"></span>Digital twin calibrated against physical assets &mdash; simulation output validated with real readings</li>
+        <li><span class="check-box"></span>RUL model validated on historical failures with documented accuracy metrics</li>
+        <li><span class="check-box"></span>False alarm rate under agreed threshold &mdash; maintenance team trusts the alerts</li>
+        <li><span class="check-box"></span>Work order integration tested: alert triggers CMMS ticket and schedules maintenance</li>
+        <li><span class="check-box"></span>Edge-to-cloud failover plan: edge continues basic anomaly detection during connectivity loss</li>
+        <li><span class="check-box"></span>Data retention policy defined for sensor data, predictions, and maintenance records</li>
+        <li><span class="check-box"></span>Model retraining cadence defined and automated (triggered by drift or on schedule)</li>
+        <li><span class="check-box"></span>OT (Operational Technology) network cybersecurity: sensors and edge devices hardened</li>
+      </ul>
+    </div>
+
+    <!-- PREV / NEXT -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">Previous Blueprint</div>
+        <a href="03-fraud-detection.html" class="next-btn">&larr; 03 &middot; Fraud Detection</a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next Blueprint</div>
+        <a href="05-mlops-platform.html" class="next-btn">05 &middot; MLOps Platform &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <div>&copy; 2026 CareerAlign.com</div>
+  <div style="margin-top:6px;font-size:12px;color:var(--text-muted);">Educational content provided as-is. Not affiliated with or endorsed by any cloud provider, vendor, or certification body mentioned herein. Use at your own discretion.</div>
+  <div style="margin-top:8px;font-size:12px;"><a href="../about.html">About</a> &middot; <a href="../terms.html">Terms</a> &middot; <a href="../privacy.html">Privacy</a></div>
+</footer>
+
+<script src="../theme.js"></script>
+</body>
+</html>
