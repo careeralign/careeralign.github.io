@@ -119,7 +119,7 @@
 
 /* ── Reset & Base ──────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
 
 body {
   background: var(--bg-base);
@@ -128,6 +128,7 @@ body {
   font-size: 16px;
   line-height: 1.7;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -1291,28 +1292,77 @@ footer a:hover { text-decoration: underline; }
 
 
 /* ── Responsive ────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .nav { padding: 0 16px; gap: 16px; }
-  .hero { padding: 64px 20px 56px; }
-  .hero--landing { padding: 64px 20px 56px; }
-  .hero--landing h1,
-  .hero h1 { font-size: 2rem; }
-  .stats { gap: 24px; }
-  .section--landing { padding: 56px 20px; }
-  .section--hub { padding: 56px 20px; }
+
+/* Tablet */
+@media (max-width: 1024px) {
   .card-grid { grid-template-columns: repeat(2, 1fr); }
-  .content-grid {
-    grid-template-columns: 1fr;
-    padding: 0 20px 40px;
-  }
-  .toc { display: none; }
+  .content-grid { padding: 0 32px 60px; }
+  .section--landing { padding: 60px 28px; }
+  .section--hub { padding: 48px 28px; }
 }
 
-@media (max-width: 560px) {
-  .card-grid { grid-template-columns: 1fr; }
+/* Mobile */
+@media (max-width: 768px) {
+  .nav {
+    padding: 0 16px;
+    gap: 10px;
+    height: 52px;
+    flex-wrap: nowrap;
+  }
+  .nav-logo { font-size: 15px; }
+  .nav-links {
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    gap: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .nav-links::-webkit-scrollbar { display: none; }
+  .nav-links a { font-size: 11px; padding: 3px 6px; }
+  .nav-home { font-size: 11px; padding: 4px 10px; }
+
+  .hero { padding: 64px 20px 48px; }
+  .hero--landing { padding: 64px 20px 48px; }
+  .hero--landing h1,
+  .hero h1 { font-size: 1.75rem; }
+  .hero .tagline { font-size: 0.95rem; }
+  .hero .btn { font-size: 0.9rem; padding: 10px 20px; }
+
+  .stats { gap: 20px; margin-top: 36px; }
+  .stat-value { font-size: 1.25rem; }
+
+  .section--landing { padding: 48px 16px; }
+  .section--hub { padding: 48px 16px; }
+  .section-title { font-size: 22px; }
+  .section-subtitle { font-size: 0.9rem; }
+
+  .card-grid { grid-template-columns: 1fr; gap: 14px; }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+    padding: 0 16px 40px;
+  }
+  .toc { display: none; }
+
+  .main { padding: 24px 0; }
+
+  .section h2 { font-size: 1.3rem; }
+  .section h3 { font-size: 1.05rem; }
+  .section p, .section ul, .section ol { font-size: 0.95rem; }
+
+  pre { font-size: 0.8rem; overflow-x: auto; }
+  table { font-size: 0.8rem; }
+
+  .skill-grid { grid-template-columns: 1fr; }
+
+  .footer { font-size: 0.85rem; padding: 24px 16px; }
 }
 
 @media (max-width: 480px) {
-  .stats { flex-direction: column; gap: 16px; }
-  .nav-links { gap: 16px; }
+  .stats { flex-direction: column; gap: 12px; }
+  .hero--landing h1,
+  .hero h1 { font-size: 1.5rem; }
+  .nav-links { display: none; }
+  .section--landing { padding: 36px 14px; }
 }
