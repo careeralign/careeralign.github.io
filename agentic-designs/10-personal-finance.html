@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<script>if(localStorage.getItem('ca-theme')==='light')document.documentElement.setAttribute('data-theme','light');</script>
+<title>Personal Finance Advisor Agent — CareerAlign Agentic Designs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #a855f7;
+  --page-color-04: rgba(168,85,247,0.04);
+  --page-color-07: rgba(168,85,247,0.07);
+  --page-color-12: rgba(168,85,247,0.12);
+  --page-color-15: rgba(168,85,247,0.15);
+  --page-color-25: rgba(168,85,247,0.25);
+  --page-color-30: rgba(168,85,247,0.3);
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">&#9889; <span>CareerAlign</span> Agentic Designs</div>
+  <div class="nav-links">
+    <a href="01-cyber-threat.html">01 Cyber Threat</a>
+    <a href="02-weather.html">02 Weather</a>
+    <a href="03-supply-chain.html">03 Supply Chain</a>
+    <a href="04-teacher.html">04 Teacher</a>
+    <a href="05-research.html">05 Research</a>
+    <a href="06-data-quality.html">06 Data Quality</a>
+    <a href="07-regulatory-compliance.html">07 Compliance</a>
+    <a href="08-open-data-investigator.html">08 Open Data</a>
+    <a href="09-incident-root-cause.html">09 Root Cause</a>
+    <a href="10-personal-finance.html" class="active">10 Finance</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; Design Hub</a>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">&#x1f319;</button>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Design 10 — Intermediate
+  </div>
+  <h1>Personal Finance <em>Advisor Agent</em></h1>
+  <p class="hero-desc">
+    An autonomous agent that analyzes personal transaction data, categorizes spending, detects patterns and anomalies, compares against national benchmarks from the BLS Consumer Expenditure Survey, creates personalized budgets, projects savings trajectories, and generates actionable financial advice. The agent combines data analysis with personalized planning — understanding not just where money goes, but why, and what to do about it.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Transaction Categorization</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Spending Pattern Analysis</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Benchmark Comparison</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Budget Creation</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Savings Projection</div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/careeralign/careeralign.github.io/blob/main/agentic-designs/notebooks/10-personal-finance.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</section>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#problem" class="section">1 · The Problem</a>
+    <a href="#why-agent" class="section">2 · Why an Agent</a>
+    <a href="#architecture" class="section">3 · Architecture</a>
+    <a href="#tools" class="section">4 · Tools &amp; APIs</a>
+    <a href="#loop" class="section">5 · The Agent Loop</a>
+    <a href="#code" class="section">6 · Code Walkthrough</a>
+    <a href="#takeaways" class="section">7 · Key Takeaways</a>
+  </aside>
+
+  <main class="main">
+
+    <!-- SECTION 1: THE PROBLEM -->
+    <div class="section" id="problem">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>The Problem</h2>
+      </div>
+
+      <p><strong>People do not know where their money goes.</strong> A 2024 Bankrate survey found that 56% of Americans cannot cover a $1,000 emergency expense. Yet most people earn enough — the problem is not income, it is visibility. Transaction data is scattered across checking accounts, credit cards, Venmo, subscriptions, and cash purchases. Without aggregation and categorization, spending patterns are invisible.</p>
+
+      <p><strong>Generic budgets do not work.</strong> The "50/30/20 rule" (50% needs, 30% wants, 20% savings) is a starting point, but it ignores individual circumstances. A software engineer in San Francisco paying $3,500/month rent cannot allocate the same percentage to housing as someone in Omaha paying $900. Effective budgets must be personalized based on actual spending patterns, income, location, and goals.</p>
+
+      <p><strong>Advice must be actionable.</strong> "Spend less on dining out" is not actionable. "You spent $847 on DoorDash last month, which is 3.2x the national median for your income bracket. Reducing to 2 orders per week would save $423/month, reaching your $5,000 emergency fund in 12 months" — that is actionable.</p>
+
+      <p><strong>Data sources:</strong> We use Kaggle synthetic transaction datasets that mimic real bank transaction data (merchant names, amounts, categories, timestamps). For benchmarks, we reference the BLS Consumer Expenditure Survey, which provides average spending by income quintile across 14 categories.</p>
+    </div>
+
+    <!-- SECTION 2: WHY AN AGENT -->
+    <div class="section" id="why-agent">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Why an Agent</h2>
+      </div>
+
+      <p><strong>Why not a budgeting app?</strong> Apps like Mint and YNAB categorize transactions and show charts, but they do not reason about your spending. They cannot explain <em>why</em> your food spending spiked in December (holiday entertaining), or suggest that your gym membership plus ClassPass subscription is redundant. An LLM can reason about spending semantics.</p>
+
+      <p><strong>Why not a single LLM call?</strong> Financial analysis requires multiple steps: categorize transactions, aggregate by category and time period, compare against benchmarks, identify savings opportunities, create a budget, and project outcomes. Each step depends on the prior step's output. The full transaction history may also exceed context limits.</p>
+
+      <p><strong>Why an agent?</strong> The analysis-to-advice pipeline requires sequential reasoning with tools:</p>
+      <ul>
+        <li><strong>Categorize</strong> — Use the LLM to categorize ambiguous transactions (is "AMZN Mktp" groceries, electronics, or household supplies?) based on amount, frequency, and merchant patterns.</li>
+        <li><strong>Analyze patterns</strong> — Compute monthly averages, detect trends (is spending increasing?), find recurring charges (subscriptions), and flag anomalies (unusually large transactions).</li>
+        <li><strong>Compare to benchmarks</strong> — Pull BLS Consumer Expenditure Survey data for the user's income bracket and compare category-by-category. This contextualizes spending: "You spend 2x the median on dining out, but 0.5x on transportation."</li>
+        <li><strong>Create budget</strong> — Based on current spending, benchmarks, and the user's goals, create a personalized budget that is realistic (not slashing 50% from every category) and prioritized (cut the highest-impact categories first).</li>
+        <li><strong>Project savings</strong> — Model how the budget would affect savings over 3, 6, and 12 months, accounting for irregular expenses and seasonal variations.</li>
+        <li><strong>Generate advice</strong> — Produce specific, actionable recommendations with dollar amounts and timelines.</li>
+      </ul>
+    </div>
+
+    <!-- SECTION 3: ARCHITECTURE -->
+    <div class="section" id="architecture">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Architecture</h2>
+      </div>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <h3>Transaction Categorizer</h3>
+          <p>Classifies transactions into spending categories (Housing, Food, Transport, Entertainment, etc.) using merchant name patterns, amount ranges, and LLM reasoning for ambiguous entries. Handles edge cases like split transactions.</p>
+        </div>
+        <div class="skill-card">
+          <h3>Pattern Analyzer</h3>
+          <p>Computes monthly spending by category, detects trends (increasing/decreasing), identifies recurring charges (subscriptions, memberships), and flags anomalies (transactions 3x above category average).</p>
+        </div>
+        <div class="skill-card">
+          <h3>Benchmark Comparator</h3>
+          <p>Compares the user's spending against BLS Consumer Expenditure Survey data, segmented by income quintile. Returns a category-by-category comparison showing where the user is above or below the national median.</p>
+        </div>
+        <div class="skill-card">
+          <h3>Budget Creator</h3>
+          <p>Generates a personalized monthly budget based on income, current spending, benchmarks, and stated goals. Uses a priority-based approach: cuts come from the highest-delta categories first.</p>
+        </div>
+        <div class="skill-card">
+          <h3>Savings Projector</h3>
+          <p>Models savings trajectories under different scenarios (current spending, proposed budget, aggressive savings). Accounts for irregular expenses (annual insurance, holidays) and compound interest on savings.</p>
+        </div>
+        <div class="skill-card">
+          <h3>Advice Generator</h3>
+          <p>Produces personalized, actionable financial advice with specific dollar amounts, merchant-level recommendations, and timelines. References benchmark data to justify each suggestion.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: TOOLS & APIS -->
+    <div class="section" id="tools">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Tools &amp; APIs</h2>
+      </div>
+
+      <p>Tool definitions for the finance advisor agent. Each tool operates on transaction data loaded from a CSV file.</p>
+
+      <pre><code><span class="code-keyword">import</span> json
+<span class="code-keyword">import</span> pandas <span class="code-keyword">as</span> pd
+<span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np
+<span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+
+client = <span class="code-fn">OpenAI</span>()
+
+<span class="code-comment"># ── Tool Definitions ──</span>
+tools = [
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"categorize_transactions"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Categorize transactions into spending categories (Housing, Food, Transport, etc.). Returns categorized data with monthly totals."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"recategorize"</span>: {
+                        <span class="code-string">"type"</span>: <span class="code-string">"boolean"</span>,
+                        <span class="code-string">"description"</span>: <span class="code-string">"Force re-categorization of all transactions"</span>
+                    }
+                },
+                <span class="code-string">"required"</span>: []
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"analyze_patterns"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Analyze spending patterns: monthly trends, recurring charges (subscriptions), anomalies, and day-of-week patterns."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"category"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Specific category to analyze, or 'all'"</span>},
+                    <span class="code-string">"months"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"integer"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Number of months to analyze (default 6)"</span>}
+                },
+                <span class="code-string">"required"</span>: []
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"compare_benchmarks"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Compare spending against BLS Consumer Expenditure Survey benchmarks for the user's income bracket."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"annual_income"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"number"</span>, <span class="code-string">"description"</span>: <span class="code-string">"User's annual pre-tax income"</span>},
+                    <span class="code-string">"location"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"City/region for cost-of-living adjustment"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"annual_income"</span>]
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"create_budget"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Create a personalized monthly budget based on income, current spending, benchmarks, and savings goal."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"monthly_income"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"number"</span>},
+                    <span class="code-string">"savings_goal_pct"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"number"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Target savings as % of income (default 20)"</span>},
+                    <span class="code-string">"fixed_expenses"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"object"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Fixed expenses that cannot be reduced, e.g. {'rent': 2000, 'insurance': 300}"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"monthly_income"</span>]
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"project_savings"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Project savings over time under current vs. proposed budget. Shows 3, 6, and 12 month trajectories."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"current_savings"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"number"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Current savings balance"</span>},
+                    <span class="code-string">"monthly_savings_current"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"number"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Current monthly savings rate"</span>},
+                    <span class="code-string">"monthly_savings_proposed"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"number"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Proposed monthly savings rate"</span>},
+                    <span class="code-string">"savings_goal"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"number"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Target savings amount"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"current_savings"</span>, <span class="code-string">"monthly_savings_current"</span>, <span class="code-string">"monthly_savings_proposed"</span>]
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"generate_advice"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Generate personalized, actionable financial advice based on analysis results."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"spending_summary"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"object"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Monthly spending by category"</span>},
+                    <span class="code-string">"benchmark_comparison"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"object"</span>, <span class="code-string">"description"</span>: <span class="code-string">"How spending compares to benchmarks"</span>},
+                    <span class="code-string">"goals"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"User's financial goals"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"spending_summary"</span>]
+            }
+        }
+    }
+]</code></pre>
+    </div>
+
+    <!-- SECTION 5: THE AGENT LOOP -->
+    <div class="section" id="loop">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>The Agent Loop</h2>
+      </div>
+
+      <p>The finance advisor agent follows an <strong>analysis-to-advice pipeline</strong> — a structured sequence where each step depends on the previous step's output, but the agent can loop back if it needs more detail on a specific category.</p>
+
+      <ol>
+        <li><strong>Categorize</strong> — The agent calls <code>categorize_transactions</code> to classify all transactions into spending categories. Ambiguous transactions (e.g., Amazon, which could be groceries, electronics, or household) are resolved using the LLM's reasoning about amount and frequency.</li>
+        <li><strong>Analyze Patterns</strong> — The agent calls <code>analyze_patterns</code> to identify monthly trends, recurring subscriptions, and anomalies. This step often reveals hidden spending: subscriptions the user forgot about, gradual increases in specific categories.</li>
+        <li><strong>Compare Benchmarks</strong> — The agent calls <code>compare_benchmarks</code> with the user's income level to contextualize spending. "You spend $1,200/month on food" means nothing in isolation; "$1,200/month is 2.3x the BLS median for your income bracket" is informative.</li>
+        <li><strong>Create Budget</strong> — Based on current spending and benchmarks, the agent calls <code>create_budget</code> to generate a personalized budget. The budget respects fixed expenses (rent, insurance) and prioritizes cuts in the categories with the highest above-benchmark spending.</li>
+        <li><strong>Project Savings</strong> — The agent calls <code>project_savings</code> to model what the proposed budget would achieve: "At current spending, you save $200/month and reach your $5,000 emergency fund in 25 months. With the proposed budget, you save $650/month and reach it in 7.7 months."</li>
+        <li><strong>Generate Advice</strong> — Finally, the agent calls <code>generate_advice</code> to produce specific, actionable recommendations with dollar amounts and timelines.</li>
+      </ol>
+
+      <p><strong>Why a pipeline?</strong> Unlike the exploratory agents (Open Data Investigator) or iterative agents (Data Quality), financial advice follows a natural logical sequence: you must understand spending before you can compare it, compare before you can budget, and budget before you can project. The agent can still loop back — if benchmark comparison reveals an anomaly in a specific category, the agent may re-analyze that category in more detail.</p>
+    </div>
+
+    <!-- SECTION 6: CODE WALKTHROUGH -->
+    <div class="section" id="code">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Code Walkthrough</h2>
+      </div>
+
+      <p>Complete implementation with synthetic transaction data, BLS benchmark comparison, and the full analysis-to-advice pipeline.</p>
+
+      <pre><code><span class="code-keyword">import</span> json
+<span class="code-keyword">import</span> pandas <span class="code-keyword">as</span> pd
+<span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np
+<span class="code-keyword">from</span> datetime <span class="code-keyword">import</span> datetime, timedelta
+<span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+
+client = <span class="code-fn">OpenAI</span>()
+
+<span class="code-comment"># ── Generate Synthetic Transaction Data ──</span>
+np.random.<span class="code-fn">seed</span>(<span class="code-num">42</span>)
+n_transactions = <span class="code-num">500</span>
+
+merchants = {
+    <span class="code-string">"Housing"</span>: [(<span class="code-string">"Rent Payment"</span>, <span class="code-num">2200</span>, <span class="code-num">2200</span>), (<span class="code-string">"Electric Co"</span>, <span class="code-num">80</span>, <span class="code-num">180</span>),
+                (<span class="code-string">"Water Utility"</span>, <span class="code-num">40</span>, <span class="code-num">70</span>)],
+    <span class="code-string">"Food"</span>: [(<span class="code-string">"Whole Foods"</span>, <span class="code-num">30</span>, <span class="code-num">150</span>), (<span class="code-string">"DoorDash"</span>, <span class="code-num">15</span>, <span class="code-num">55</span>),
+             (<span class="code-string">"Starbucks"</span>, <span class="code-num">4</span>, <span class="code-num">12</span>), (<span class="code-string">"Trader Joes"</span>, <span class="code-num">25</span>, <span class="code-num">100</span>)],
+    <span class="code-string">"Transport"</span>: [(<span class="code-string">"Shell Gas"</span>, <span class="code-num">35</span>, <span class="code-num">65</span>), (<span class="code-string">"Uber"</span>, <span class="code-num">10</span>, <span class="code-num">40</span>),
+                  (<span class="code-string">"Metro Card"</span>, <span class="code-num">127</span>, <span class="code-num">127</span>)],
+    <span class="code-string">"Entertainment"</span>: [(<span class="code-string">"Netflix"</span>, <span class="code-num">15.49</span>, <span class="code-num">15.49</span>), (<span class="code-string">"Spotify"</span>, <span class="code-num">10.99</span>, <span class="code-num">10.99</span>),
+                      (<span class="code-string">"AMC Theatres"</span>, <span class="code-num">14</span>, <span class="code-num">30</span>), (<span class="code-string">"Steam Games"</span>, <span class="code-num">10</span>, <span class="code-num">60</span>)],
+    <span class="code-string">"Shopping"</span>: [(<span class="code-string">"Amazon"</span>, <span class="code-num">10</span>, <span class="code-num">200</span>), (<span class="code-string">"Target"</span>, <span class="code-num">15</span>, <span class="code-num">120</span>),
+                (<span class="code-string">"Nike.com"</span>, <span class="code-num">50</span>, <span class="code-num">180</span>)],
+    <span class="code-string">"Health"</span>: [(<span class="code-string">"CVS Pharmacy"</span>, <span class="code-num">8</span>, <span class="code-num">50</span>), (<span class="code-string">"Gym Membership"</span>, <span class="code-num">49.99</span>, <span class="code-num">49.99</span>),
+              (<span class="code-string">"ClassPass"</span>, <span class="code-num">29</span>, <span class="code-num">29</span>)],
+    <span class="code-string">"Subscriptions"</span>: [(<span class="code-string">"iCloud Storage"</span>, <span class="code-num">2.99</span>, <span class="code-num">2.99</span>), (<span class="code-string">"NYT Digital"</span>, <span class="code-num">17</span>, <span class="code-num">17</span>),
+                      (<span class="code-string">"ChatGPT Plus"</span>, <span class="code-num">20</span>, <span class="code-num">20</span>)],
+}
+
+rows = []
+base_date = datetime(<span class="code-num">2024</span>, <span class="code-num">7</span>, <span class="code-num">1</span>)
+<span class="code-keyword">for</span> _ <span class="code-keyword">in</span> <span class="code-fn">range</span>(n_transactions):
+    cat = np.random.<span class="code-fn">choice</span>(list(merchants.keys()),
+                            p=[<span class="code-num">0.08</span>, <span class="code-num">0.30</span>, <span class="code-num">0.12</span>, <span class="code-num">0.10</span>, <span class="code-num">0.18</span>, <span class="code-num">0.10</span>, <span class="code-num">0.12</span>])
+    merch, lo, hi = merchants[cat][np.random.<span class="code-fn">randint</span>(len(merchants[cat]))]
+    amount = round(np.random.<span class="code-fn">uniform</span>(lo, hi), <span class="code-num">2</span>)
+    date = base_date + timedelta(days=np.random.<span class="code-fn">randint</span>(<span class="code-num">0</span>, <span class="code-num">180</span>))
+    rows.<span class="code-fn">append</span>({<span class="code-string">"date"</span>: date.<span class="code-fn">strftime</span>(<span class="code-string">"%Y-%m-%d"</span>), <span class="code-string">"merchant"</span>: merch,
+               <span class="code-string">"amount"</span>: amount, <span class="code-string">"category"</span>: cat})
+
+df = pd.<span class="code-fn">DataFrame</span>(rows)
+df[<span class="code-string">"date"</span>] = pd.<span class="code-fn">to_datetime</span>(df[<span class="code-string">"date"</span>])
+df = df.<span class="code-fn">sort_values</span>(<span class="code-string">"date"</span>).<span class="code-fn">reset_index</span>(drop=<span class="code-keyword">True</span>)
+
+<span class="code-comment"># ── BLS Consumer Expenditure Survey Benchmarks (2023, monthly) ──</span>
+<span class="code-comment"># Source: https://www.bls.gov/cex/</span>
+BLS_BENCHMARKS = {
+    <span class="code-comment"># Income quintile: $50k-$80k (3rd quintile)</span>
+    <span class="code-string">"quintile_3"</span>: {
+        <span class="code-string">"Housing"</span>: <span class="code-num">1784</span>, <span class="code-string">"Food"</span>: <span class="code-num">695</span>, <span class="code-string">"Transport"</span>: <span class="code-num">870</span>,
+        <span class="code-string">"Entertainment"</span>: <span class="code-num">243</span>, <span class="code-string">"Shopping"</span>: <span class="code-num">156</span>,
+        <span class="code-string">"Health"</span>: <span class="code-num">415</span>, <span class="code-string">"Subscriptions"</span>: <span class="code-num">50</span>
+    },
+    <span class="code-comment"># Income quintile: $80k-$130k (4th quintile)</span>
+    <span class="code-string">"quintile_4"</span>: {
+        <span class="code-string">"Housing"</span>: <span class="code-num">2340</span>, <span class="code-string">"Food"</span>: <span class="code-num">890</span>, <span class="code-string">"Transport"</span>: <span class="code-num">1100</span>,
+        <span class="code-string">"Entertainment"</span>: <span class="code-num">340</span>, <span class="code-string">"Shopping"</span>: <span class="code-num">220</span>,
+        <span class="code-string">"Health"</span>: <span class="code-num">520</span>, <span class="code-string">"Subscriptions"</span>: <span class="code-num">65</span>
+    }
+}
+
+<span class="code-comment"># ── Tool Implementations ──</span>
+<span class="code-keyword">def</span> <span class="code-fn">categorize_transactions</span>(recategorize: bool = <span class="code-keyword">False</span>) -> str:
+    <span class="code-string">"""Return categorized transaction summary."""</span>
+    monthly = df.<span class="code-fn">groupby</span>([df[<span class="code-string">"date"</span>].dt.to_period(<span class="code-string">"M"</span>), <span class="code-string">"category"</span>])[<span class="code-string">"amount"</span>].<span class="code-fn">sum</span>()
+    monthly = monthly.<span class="code-fn">unstack</span>(fill_value=<span class="code-num">0</span>)
+    avg_monthly = monthly.<span class="code-fn">mean</span>().to_dict()
+    total_monthly = round(sum(avg_monthly.values()), <span class="code-num">2</span>)
+    <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>({
+        <span class="code-string">"total_transactions"</span>: len(df),
+        <span class="code-string">"date_range"</span>: f<span class="code-string">"{df['date'].min().date()} to {df['date'].max().date()}"</span>,
+        <span class="code-string">"avg_monthly_by_category"</span>: {k: round(v, <span class="code-num">2</span>) <span class="code-keyword">for</span> k, v <span class="code-keyword">in</span> avg_monthly.items()},
+        <span class="code-string">"avg_monthly_total"</span>: total_monthly,
+        <span class="code-string">"top_merchants"</span>: df.<span class="code-fn">groupby</span>(<span class="code-string">"merchant"</span>)[<span class="code-string">"amount"</span>].<span class="code-fn">sum</span>().<span class="code-fn">nlargest</span>(<span class="code-num">10</span>).to_dict(),
+        <span class="code-string">"category_counts"</span>: df[<span class="code-string">"category"</span>].<span class="code-fn">value_counts</span>().to_dict()
+    }, indent=<span class="code-num">2</span>)
+
+<span class="code-keyword">def</span> <span class="code-fn">analyze_patterns</span>(category: str = <span class="code-string">"all"</span>, months: int = <span class="code-num">6</span>) -> str:
+    <span class="code-string">"""Analyze spending patterns, trends, and recurring charges."""</span>
+    data = df <span class="code-keyword">if</span> category == <span class="code-string">"all"</span> <span class="code-keyword">else</span> df[df[<span class="code-string">"category"</span>] == category]
+    monthly_total = data.<span class="code-fn">groupby</span>(data[<span class="code-string">"date"</span>].dt.to_period(<span class="code-string">"M"</span>))[<span class="code-string">"amount"</span>].<span class="code-fn">sum</span>()
+
+    <span class="code-comment"># Detect trend</span>
+    <span class="code-keyword">if</span> len(monthly_total) >= <span class="code-num">3</span>:
+        x = np.<span class="code-fn">arange</span>(len(monthly_total))
+        slope = np.<span class="code-fn">polyfit</span>(x, monthly_total.values, <span class="code-num">1</span>)[<span class="code-num">0</span>]
+        trend = <span class="code-string">"increasing"</span> <span class="code-keyword">if</span> slope > <span class="code-num">20</span> <span class="code-keyword">else</span> <span class="code-string">"decreasing"</span> <span class="code-keyword">if</span> slope < -<span class="code-num">20</span> <span class="code-keyword">else</span> <span class="code-string">"stable"</span>
+    <span class="code-keyword">else</span>:
+        trend, slope = <span class="code-string">"insufficient_data"</span>, <span class="code-num">0</span>
+
+    <span class="code-comment"># Detect recurring charges (same merchant, similar amount, monthly)</span>
+    recurring = []
+    <span class="code-keyword">for</span> merchant, group <span class="code-keyword">in</span> data.<span class="code-fn">groupby</span>(<span class="code-string">"merchant"</span>):
+        <span class="code-keyword">if</span> len(group) >= <span class="code-num">3</span>:
+            amounts = group[<span class="code-string">"amount"</span>].values
+            <span class="code-keyword">if</span> np.<span class="code-fn">std</span>(amounts) < <span class="code-num">1.0</span>:  <span class="code-comment"># Same amount each time</span>
+                recurring.<span class="code-fn">append</span>({
+                    <span class="code-string">"merchant"</span>: merchant,
+                    <span class="code-string">"amount"</span>: round(float(np.<span class="code-fn">mean</span>(amounts)), <span class="code-num">2</span>),
+                    <span class="code-string">"frequency"</span>: <span class="code-string">"monthly"</span>,
+                    <span class="code-string">"annual_cost"</span>: round(float(np.<span class="code-fn">mean</span>(amounts)) * <span class="code-num">12</span>, <span class="code-num">2</span>)
+                })
+
+    <span class="code-comment"># Detect anomalies</span>
+    mean_txn = data[<span class="code-string">"amount"</span>].<span class="code-fn">mean</span>()
+    std_txn = data[<span class="code-string">"amount"</span>].<span class="code-fn">std</span>()
+    anomalies = data[data[<span class="code-string">"amount"</span>] > mean_txn + <span class="code-num">2</span> * std_txn]
+
+    <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>({
+        <span class="code-string">"category"</span>: category,
+        <span class="code-string">"monthly_spending"</span>: {str(k): round(v, <span class="code-num">2</span>) <span class="code-keyword">for</span> k, v <span class="code-keyword">in</span> monthly_total.items()},
+        <span class="code-string">"trend"</span>: trend, <span class="code-string">"trend_slope_per_month"</span>: round(slope, <span class="code-num">2</span>),
+        <span class="code-string">"recurring_charges"</span>: recurring,
+        <span class="code-string">"total_recurring_monthly"</span>: round(sum(r[<span class="code-string">"amount"</span>] <span class="code-keyword">for</span> r <span class="code-keyword">in</span> recurring), <span class="code-num">2</span>),
+        <span class="code-string">"anomalies"</span>: anomalies[[<span class="code-string">"date"</span>, <span class="code-string">"merchant"</span>, <span class="code-string">"amount"</span>]].<span class="code-fn">head</span>(<span class="code-num">5</span>).to_dict(orient=<span class="code-string">"records"</span>),
+    }, default=str)
+
+<span class="code-keyword">def</span> <span class="code-fn">compare_benchmarks</span>(annual_income: float, location: str = <span class="code-string">""</span>) -> str:
+    <span class="code-string">"""Compare user's spending to BLS benchmarks."""</span>
+    quintile = <span class="code-string">"quintile_3"</span> <span class="code-keyword">if</span> annual_income < <span class="code-num">80000</span> <span class="code-keyword">else</span> <span class="code-string">"quintile_4"</span>
+    benchmarks = BLS_BENCHMARKS[quintile]
+    monthly_avg = df.<span class="code-fn">groupby</span>(<span class="code-string">"category"</span>)[<span class="code-string">"amount"</span>].<span class="code-fn">sum</span>() / <span class="code-num">6</span>  <span class="code-comment"># 6 months of data</span>
+    comparison = {}
+    <span class="code-keyword">for</span> cat, benchmark <span class="code-keyword">in</span> benchmarks.items():
+        actual = round(monthly_avg.<span class="code-fn">get</span>(cat, <span class="code-num">0</span>), <span class="code-num">2</span>)
+        ratio = round(actual / benchmark, <span class="code-num">2</span>) <span class="code-keyword">if</span> benchmark > <span class="code-num">0</span> <span class="code-keyword">else</span> <span class="code-num">0</span>
+        comparison[cat] = {
+            <span class="code-string">"your_monthly"</span>: actual,
+            <span class="code-string">"benchmark_monthly"</span>: benchmark,
+            <span class="code-string">"ratio"</span>: ratio,
+            <span class="code-string">"assessment"</span>: <span class="code-string">"above"</span> <span class="code-keyword">if</span> ratio > <span class="code-num">1.2</span> <span class="code-keyword">else</span> <span class="code-string">"below"</span> <span class="code-keyword">if</span> ratio < <span class="code-num">0.8</span> <span class="code-keyword">else</span> <span class="code-string">"on_track"</span>,
+            <span class="code-string">"monthly_delta"</span>: round(actual - benchmark, <span class="code-num">2</span>)
+        }
+    <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>({
+        <span class="code-string">"income_quintile"</span>: quintile,
+        <span class="code-string">"annual_income"</span>: annual_income,
+        <span class="code-string">"comparison"</span>: comparison,
+        <span class="code-string">"categories_above_benchmark"</span>: [c <span class="code-keyword">for</span> c, v <span class="code-keyword">in</span> comparison.items() <span class="code-keyword">if</span> v[<span class="code-string">"assessment"</span>] == <span class="code-string">"above"</span>],
+        <span class="code-string">"potential_monthly_savings"</span>: round(sum(
+            max(v[<span class="code-string">"monthly_delta"</span>], <span class="code-num">0</span>) <span class="code-keyword">for</span> v <span class="code-keyword">in</span> comparison.values()
+        ), <span class="code-num">2</span>)
+    }, indent=<span class="code-num">2</span>)
+
+<span class="code-keyword">def</span> <span class="code-fn">create_budget</span>(monthly_income: float, savings_goal_pct: float = <span class="code-num">20</span>,
+                  fixed_expenses: dict = <span class="code-keyword">None</span>) -> str:
+    <span class="code-string">"""Create a personalized monthly budget."""</span>
+    fixed = fixed_expenses <span class="code-keyword">or</span> {}
+    savings_target = monthly_income * savings_goal_pct / <span class="code-num">100</span>
+    discretionary = monthly_income - savings_target - sum(fixed.values())
+
+    monthly_avg = df.<span class="code-fn">groupby</span>(<span class="code-string">"category"</span>)[<span class="code-string">"amount"</span>].<span class="code-fn">sum</span>() / <span class="code-num">6</span>
+    total_current = monthly_avg.<span class="code-fn">sum</span>()
+
+    <span class="code-comment"># Allocate budget proportionally but cap above-benchmark categories</span>
+    budget = {}
+    <span class="code-keyword">for</span> cat <span class="code-keyword">in</span> monthly_avg.index:
+        current = round(monthly_avg[cat], <span class="code-num">2</span>)
+        <span class="code-keyword">if</span> cat <span class="code-keyword">in</span> fixed:
+            budget[cat] = {<span class="code-string">"current"</span>: current, <span class="code-string">"proposed"</span>: fixed[cat], <span class="code-string">"type"</span>: <span class="code-string">"fixed"</span>}
+        <span class="code-keyword">else</span>:
+            <span class="code-comment"># Reduce proportionally to hit savings target</span>
+            reduction_ratio = discretionary / (total_current - sum(fixed.values())) \
+                <span class="code-keyword">if</span> total_current > sum(fixed.values()) <span class="code-keyword">else</span> <span class="code-num">1.0</span>
+            proposed = round(current * min(reduction_ratio, <span class="code-num">1.0</span>), <span class="code-num">2</span>)
+            budget[cat] = {
+                <span class="code-string">"current"</span>: current, <span class="code-string">"proposed"</span>: proposed,
+                <span class="code-string">"savings"</span>: round(current - proposed, <span class="code-num">2</span>), <span class="code-string">"type"</span>: <span class="code-string">"variable"</span>
+            }
+
+    <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>({
+        <span class="code-string">"monthly_income"</span>: monthly_income,
+        <span class="code-string">"savings_target"</span>: round(savings_target, <span class="code-num">2</span>),
+        <span class="code-string">"budget"</span>: budget,
+        <span class="code-string">"total_proposed_spending"</span>: round(sum(b[<span class="code-string">"proposed"</span>] <span class="code-keyword">for</span> b <span class="code-keyword">in</span> budget.values()), <span class="code-num">2</span>),
+        <span class="code-string">"total_current_spending"</span>: round(total_current, <span class="code-num">2</span>),
+        <span class="code-string">"monthly_savings_gain"</span>: round(total_current - sum(b[<span class="code-string">"proposed"</span>] <span class="code-keyword">for</span> b <span class="code-keyword">in</span> budget.values()), <span class="code-num">2</span>)
+    }, indent=<span class="code-num">2</span>)
+
+<span class="code-keyword">def</span> <span class="code-fn">project_savings</span>(current_savings: float, monthly_savings_current: float,
+                     monthly_savings_proposed: float, savings_goal: float = <span class="code-num">0</span>) -> str:
+    <span class="code-string">"""Project savings trajectories under current vs proposed budget."""</span>
+    apy = <span class="code-num">0.045</span>  <span class="code-comment"># 4.5% HYSA rate</span>
+    monthly_rate = apy / <span class="code-num">12</span>
+    projections = {<span class="code-string">"current"</span>: [], <span class="code-string">"proposed"</span>: []}
+
+    <span class="code-keyword">for</span> scenario, monthly_add <span class="code-keyword">in</span> [(<span class="code-string">"current"</span>, monthly_savings_current),
+                                   (<span class="code-string">"proposed"</span>, monthly_savings_proposed)]:
+        balance = current_savings
+        <span class="code-keyword">for</span> month <span class="code-keyword">in</span> <span class="code-fn">range</span>(<span class="code-num">1</span>, <span class="code-num">13</span>):
+            balance = balance * (<span class="code-num">1</span> + monthly_rate) + monthly_add
+            projections[scenario].<span class="code-fn">append</span>({
+                <span class="code-string">"month"</span>: month,
+                <span class="code-string">"balance"</span>: round(balance, <span class="code-num">2</span>)
+            })
+
+    months_to_goal_current = <span class="code-keyword">None</span>
+    months_to_goal_proposed = <span class="code-keyword">None</span>
+    <span class="code-keyword">if</span> savings_goal > <span class="code-num">0</span>:
+        <span class="code-keyword">for</span> p <span class="code-keyword">in</span> projections[<span class="code-string">"current"</span>]:
+            <span class="code-keyword">if</span> p[<span class="code-string">"balance"</span>] >= savings_goal:
+                months_to_goal_current = p[<span class="code-string">"month"</span>]
+                <span class="code-keyword">break</span>
+        <span class="code-keyword">for</span> p <span class="code-keyword">in</span> projections[<span class="code-string">"proposed"</span>]:
+            <span class="code-keyword">if</span> p[<span class="code-string">"balance"</span>] >= savings_goal:
+                months_to_goal_proposed = p[<span class="code-string">"month"</span>]
+                <span class="code-keyword">break</span>
+
+    <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>({
+        <span class="code-string">"current_savings"</span>: current_savings,
+        <span class="code-string">"apy"</span>: apy,
+        <span class="code-string">"at_3_months"</span>: {
+            <span class="code-string">"current"</span>: projections[<span class="code-string">"current"</span>][<span class="code-num">2</span>][<span class="code-string">"balance"</span>],
+            <span class="code-string">"proposed"</span>: projections[<span class="code-string">"proposed"</span>][<span class="code-num">2</span>][<span class="code-string">"balance"</span>]
+        },
+        <span class="code-string">"at_6_months"</span>: {
+            <span class="code-string">"current"</span>: projections[<span class="code-string">"current"</span>][<span class="code-num">5</span>][<span class="code-string">"balance"</span>],
+            <span class="code-string">"proposed"</span>: projections[<span class="code-string">"proposed"</span>][<span class="code-num">5</span>][<span class="code-string">"balance"</span>]
+        },
+        <span class="code-string">"at_12_months"</span>: {
+            <span class="code-string">"current"</span>: projections[<span class="code-string">"current"</span>][<span class="code-num">11</span>][<span class="code-string">"balance"</span>],
+            <span class="code-string">"proposed"</span>: projections[<span class="code-string">"proposed"</span>][<span class="code-num">11</span>][<span class="code-string">"balance"</span>]
+        },
+        <span class="code-string">"savings_goal"</span>: savings_goal,
+        <span class="code-string">"months_to_goal_current"</span>: months_to_goal_current <span class="code-keyword">or</span> <span class="code-string">">12"</span>,
+        <span class="code-string">"months_to_goal_proposed"</span>: months_to_goal_proposed <span class="code-keyword">or</span> <span class="code-string">">12"</span>,
+    }, indent=<span class="code-num">2</span>)
+
+<span class="code-keyword">def</span> <span class="code-fn">generate_advice</span>(spending_summary: dict, benchmark_comparison: dict = <span class="code-keyword">None</span>,
+                    goals: str = <span class="code-string">""</span>) -> str:
+    <span class="code-string">"""Generate personalized financial advice using the LLM."""</span>
+    prompt = f<span class="code-string">"""Based on this financial analysis, generate 5 specific, actionable
+recommendations. Each must include:
+- The specific action to take
+- The dollar amount saved per month
+- The timeline to see results
+
+Spending: {json.dumps(spending_summary)}
+Benchmarks: {json.dumps(benchmark_comparison or {})}
+Goals: {goals or 'Build emergency fund, reduce unnecessary spending'}
+
+Be specific about merchants and amounts. No generic advice."""</span>
+    resp = client.chat.completions.<span class="code-fn">create</span>(
+        model=<span class="code-string">"gpt-4o"</span>,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: prompt}],
+        response_format={<span class="code-string">"type"</span>: <span class="code-string">"json_object"</span>}
+    )
+    <span class="code-keyword">return</span> resp.choices[<span class="code-num">0</span>].message.content</code></pre>
+
+      <p>The agent loop with the financial advisor system prompt:</p>
+
+      <pre><code><span class="code-comment"># ── Agent Loop ──</span>
+TOOL_MAP = {
+    <span class="code-string">"categorize_transactions"</span>: <span class="code-keyword">lambda</span> a: <span class="code-fn">categorize_transactions</span>(a.<span class="code-fn">get</span>(<span class="code-string">"recategorize"</span>, <span class="code-keyword">False</span>)),
+    <span class="code-string">"analyze_patterns"</span>: <span class="code-keyword">lambda</span> a: <span class="code-fn">analyze_patterns</span>(a.<span class="code-fn">get</span>(<span class="code-string">"category"</span>, <span class="code-string">"all"</span>), a.<span class="code-fn">get</span>(<span class="code-string">"months"</span>, <span class="code-num">6</span>)),
+    <span class="code-string">"compare_benchmarks"</span>: <span class="code-keyword">lambda</span> a: <span class="code-fn">compare_benchmarks</span>(a[<span class="code-string">"annual_income"</span>], a.<span class="code-fn">get</span>(<span class="code-string">"location"</span>, <span class="code-string">""</span>)),
+    <span class="code-string">"create_budget"</span>: <span class="code-keyword">lambda</span> a: <span class="code-fn">create_budget</span>(a[<span class="code-string">"monthly_income"</span>], a.<span class="code-fn">get</span>(<span class="code-string">"savings_goal_pct"</span>, <span class="code-num">20</span>),
+                                             a.<span class="code-fn">get</span>(<span class="code-string">"fixed_expenses"</span>)),
+    <span class="code-string">"project_savings"</span>: <span class="code-keyword">lambda</span> a: <span class="code-fn">project_savings</span>(a[<span class="code-string">"current_savings"</span>], a[<span class="code-string">"monthly_savings_current"</span>],
+                                                a[<span class="code-string">"monthly_savings_proposed"</span>], a.<span class="code-fn">get</span>(<span class="code-string">"savings_goal"</span>, <span class="code-num">0</span>)),
+    <span class="code-string">"generate_advice"</span>: <span class="code-keyword">lambda</span> a: <span class="code-fn">generate_advice</span>(a[<span class="code-string">"spending_summary"</span>], a.<span class="code-fn">get</span>(<span class="code-string">"benchmark_comparison"</span>),
+                                                a.<span class="code-fn">get</span>(<span class="code-string">"goals"</span>, <span class="code-string">""</span>)),
+}
+
+SYSTEM_PROMPT = <span class="code-string">"""You are a Personal Finance Advisor Agent. Your job is to analyze
+spending data and provide actionable financial advice.
+
+Follow this pipeline:
+1. Categorize transactions to understand spending patterns
+2. Analyze patterns: trends, recurring charges, anomalies
+3. Compare against BLS benchmarks for the user's income bracket
+4. Create a personalized budget based on goals and current spending
+5. Project savings under current vs. proposed budget
+6. Generate specific, actionable advice with dollar amounts
+
+Key principles:
+- Be specific: name merchants and amounts, not generic categories
+- Be realistic: don't suggest cutting 50% from every category
+- Prioritize high-impact changes: focus on the biggest spending gaps
+- Always contextualize with benchmarks: 'You spend 2x the median' is more
+  persuasive than 'You spend $800 on food'
+- This is NOT financial advice in a legal sense; always recommend
+  consulting a financial advisor for major decisions."""</span>
+
+<span class="code-keyword">def</span> <span class="code-fn">run_finance_agent</span>(request: str, max_steps: int = <span class="code-num">12</span>) -> str:
+    messages = [
+        {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: SYSTEM_PROMPT},
+        {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: request}
+    ]
+    <span class="code-keyword">for</span> step <span class="code-keyword">in</span> <span class="code-fn">range</span>(max_steps):
+        resp = client.chat.completions.<span class="code-fn">create</span>(
+            model=<span class="code-string">"gpt-4o"</span>, messages=messages,
+            tools=tools, tool_choice=<span class="code-string">"auto"</span>
+        )
+        msg = resp.choices[<span class="code-num">0</span>].message
+        messages.<span class="code-fn">append</span>(msg)
+        <span class="code-keyword">if not</span> msg.tool_calls:
+            <span class="code-keyword">return</span> msg.content
+        <span class="code-keyword">for</span> tc <span class="code-keyword">in</span> msg.tool_calls:
+            fn = tc.function.name
+            args = json.<span class="code-fn">loads</span>(tc.function.arguments)
+            print(f<span class="code-string">"  [{step+1}] {fn}"</span>)
+            result = TOOL_MAP[fn](args)
+            messages.<span class="code-fn">append</span>({<span class="code-string">"role"</span>: <span class="code-string">"tool"</span>, <span class="code-string">"tool_call_id"</span>: tc.id, <span class="code-string">"content"</span>: result})
+    <span class="code-keyword">return</span> <span class="code-string">"Analysis complete."</span>
+
+<span class="code-comment"># ── Run ──</span>
+advice = <span class="code-fn">run_finance_agent</span>(
+    <span class="code-string">"I earn $85,000/year ($5,800/month after tax). I have $1,200 in savings "</span>
+    <span class="code-string">"and want to build a $5,000 emergency fund. My rent is $2,200/month "</span>
+    <span class="code-string">"and I can't reduce it. Analyze my spending, compare to benchmarks, "</span>
+    <span class="code-string">"create a realistic budget, and tell me how fast I can reach my goal."</span>
+)
+print(advice)</code></pre>
+    </div>
+
+    <!-- SECTION 7: KEY TAKEAWAYS -->
+    <div class="section" id="takeaways">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Key Takeaways</h2>
+      </div>
+
+      <div class="checklist">
+        <div class="checklist-item">Transaction categorization is the foundation: all downstream analysis depends on accurate categories, making LLM-based categorization critical for ambiguous merchants</div>
+        <div class="checklist-item">Benchmarks transform raw numbers into insights: "$800/month on food" is meaningless without "that is 2x the BLS median for your income bracket"</div>
+        <div class="checklist-item">Recurring charges (subscriptions) are the easiest wins: users often forget about $10-20/month subscriptions that add up to hundreds annually</div>
+        <div class="checklist-item">Budgets must respect fixed expenses: the agent should never suggest reducing rent or insurance, only variable spending</div>
+        <div class="checklist-item">Savings projections with compound interest (HYSA at 4.5%) make the case more compelling: "Your $650/month saves $8,100 in 12 months, not $7,800"</div>
+        <div class="checklist-item">Advice must be specific and actionable: "Cancel DoorDash and cook 3 extra meals per week to save $423/month" beats "spend less on food"</div>
+        <div class="checklist-item">Always include a disclaimer that this is not professional financial advice — the agent is a tool, not a fiduciary</div>
+        <div class="checklist-item">The BLS Consumer Expenditure Survey is free, updated annually, and segments by income quintile — ideal for personalized benchmarking</div>
+      </div>
+    </div>
+
+    <!-- NEXT / PREV -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">&larr; Previous</div>
+        <a class="next-btn prev-btn" href="09-incident-root-cause.html"><span>09 &middot; Incident Root Cause Agent</span></a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Back to Hub &rarr;</div>
+        <a class="next-btn" href="index.html">
+          <span>Design Hub</span>
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../theme.js"></script>
+</body>
+</html>

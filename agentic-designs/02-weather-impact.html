@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<script>if(localStorage.getItem('ca-theme')==='light')document.documentElement.setAttribute('data-theme','light');</script>
+<title>Severe Weather Impact Agent — CareerAlign Agentic Designs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #a855f7;
+  --page-color-04: rgba(168,85,247,0.04);
+  --page-color-07: rgba(168,85,247,0.07);
+  --page-color-12: rgba(168,85,247,0.12);
+  --page-color-15: rgba(168,85,247,0.15);
+  --page-color-25: rgba(168,85,247,0.25);
+  --page-color-30: rgba(168,85,247,0.3);
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">&#129302; <span>CareerAlign</span> Agentic Designs</div>
+  <div class="nav-links">
+    <a href="01-cyber-threat-intel.html">01 Cyber Threat</a>
+    <a href="02-weather-impact.html" class="active">02 Weather</a>
+    <a href="03-supply-chain-disruption.html">03 Supply Chain</a>
+    <a href="04-school-teacher.html">04 Teacher</a>
+    <a href="05-research-synthesis.html">05 Research</a>
+    <a href="06-data-quality.html">06 Data Quality</a>
+    <a href="07-compliance.html">07 Compliance</a>
+    <a href="08-open-data.html">08 Open Data</a>
+    <a href="09-root-cause.html">09 Root Cause</a>
+    <a href="10-finance.html">10 Finance</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; Design Hub</a>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">&#127769;</button>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Design 02 — Operations
+  </div>
+  <h1>Severe Weather <em>Impact Agent</em></h1>
+  <p class="hero-desc">
+    Businesses lose billions annually to weather disruptions they could have anticipated. This agent monitors NOAA forecasts and NWS alerts in real-time, maps severe weather events to business assets (warehouses, routes, facilities), assesses operational risk severity, and decides whether to trigger automated alerts or escalate to human decision-makers. It combines meteorological data with business context to turn raw weather feeds into actionable operational intelligence.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>NWS API Integration</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>NOAA Storm Events</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Asset Geomapping</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Risk Severity Assessment</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Conditional Alert Routing</div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/careeralign/careeralign.github.io/blob/main/agentic-designs/notebooks/02-weather-impact.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</section>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#problem" class="section">1 · The Problem</a>
+    <a href="#why-agent" class="section">2 · Why an Agent</a>
+    <a href="#architecture" class="section">3 · Architecture</a>
+    <a href="#tools" class="section">4 · Tools &amp; APIs</a>
+    <a href="#loop" class="section">5 · The Agent Loop</a>
+    <a href="#code" class="section">6 · Code Walkthrough</a>
+    <a href="#takeaways" class="section">7 · Key Takeaways</a>
+  </aside>
+
+  <main class="main">
+
+    <!-- SECTION 1: THE PROBLEM -->
+    <div class="section" id="problem">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>The Problem</h2>
+      </div>
+
+      <p>The National Weather Service issues thousands of alerts daily — tornado warnings, flood watches, winter storm advisories, excessive heat warnings. For a logistics company with 200 warehouses and 5,000 daily truck routes, each alert is potentially relevant. But most are not. The challenge is rapidly determining which alerts affect which business assets and what operational response is needed.</p>
+
+      <p>Current approaches rely on weather monitoring dashboards that display raw alerts on maps. Operations teams must manually interpret each alert, look up which facilities are in the affected zone, assess the severity of impact on current operations, and decide whether to reroute trucks, close facilities, or activate contingency plans. This takes 30-60 minutes per significant weather event — far too slow when a tornado is 45 minutes away.</p>
+
+      <p>The fundamental challenge is <strong>conditional multi-step reasoning</strong>: the impact of a weather event depends on its type, severity, timing, the specific assets in the affected area, current operational status of those assets, and the availability of alternatives. A winter storm warning at 2 AM for a warehouse that is closed overnight requires no action. The same storm at 6 AM when trucks are loading requires immediate rerouting.</p>
+    </div>
+
+    <!-- SECTION 2: WHY AN AGENT -->
+    <div class="section" id="why-agent">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Why an Agent</h2>
+      </div>
+
+      <p><strong>Why not rule-based alerts?</strong> Rule-based systems can match weather zones to facility locations. But they cannot reason about cascading effects: if a flood closes the I-95 corridor, trucks routed through that area need alternatives, and the receiving warehouses need adjusted ETAs, and customer delivery promises need updating. Each downstream decision depends on the upstream assessment.</p>
+
+      <p><strong>Why not a single LLM call?</strong> The agent needs to call the NWS API to get current alerts, then geolocate affected assets, then check each asset's operational status, then assess the severity based on timing and weather type. This is 4-8 API calls with conditional logic between them. A single LLM call cannot execute external API requests.</p>
+
+      <p><strong>The agent advantage:</strong> The weather impact agent plans its investigation based on the alert type. For a tornado warning, it immediately checks all assets in the polygon and triggers urgent alerts. For a winter storm watch (lower urgency, more lead time), it fetches detailed forecasts, assesses road conditions over the next 24 hours, and recommends preemptive rerouting. The planning and execution are adaptive to the specific situation.</p>
+    </div>
+
+    <!-- SECTION 3: ARCHITECTURE -->
+    <div class="section" id="architecture">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Architecture</h2>
+      </div>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <h3>Data Sources</h3>
+          <p>NWS API (api.weather.gov) for real-time alerts and forecasts, NOAA Storm Events database for historical severity context, and an internal asset registry with geolocation data for all facilities, routes, and personnel.</p>
+        </div>
+        <div class="skill-card">
+          <h3>Agent Core</h3>
+          <p>An OpenAI function-calling agent with a system prompt that instructs it to act as a weather operations analyst. The agent fetches alerts, maps them to assets, assesses severity, and decides on response actions based on configurable thresholds.</p>
+        </div>
+        <div class="skill-card">
+          <h3>Tool Registry</h3>
+          <p>Five tools: fetch_forecast (get NWS point forecast), get_active_alerts (query NWS alerts by state/zone), map_assets_in_zone (geolocate business assets within an alert polygon), assess_impact (score severity x exposure), and send_alert (dispatch notifications via configured channels).</p>
+        </div>
+        <div class="skill-card">
+          <h3>Output</h3>
+          <p>Risk-tiered action recommendations: RED (immediate action — close facility, halt routes), AMBER (preemptive action within 6 hours), GREEN (monitor, no action needed). Each recommendation includes affected assets, estimated impact duration, and suggested mitigations.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: TOOLS & APIS -->
+    <div class="section" id="tools">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Tools &amp; APIs</h2>
+      </div>
+
+      <p>The NWS API is free, requires no API key, and returns GeoJSON. It has a courtesy request limit — include a <code>User-Agent</code> header with contact information. All tools include error handling and timeout protection.</p>
+
+      <pre><code><span class="code-keyword">import</span> json, requests
+<span class="code-keyword">from</span> math <span class="code-keyword">import</span> radians, cos, sin, asin, sqrt
+<span class="code-keyword">from</span> datetime <span class="code-keyword">import</span> datetime
+
+HEADERS = {<span class="code-string">"User-Agent"</span>: <span class="code-string">"(WeatherImpactAgent, ops@example.com)"</span>}
+
+<span class="code-comment"># ── Tool 1: Fetch point forecast from NWS ──</span>
+<span class="code-keyword">def</span> <span class="code-fn">fetch_forecast</span>(lat: float, lon: float) -> str:
+    <span class="code-string">"""Get the 7-day forecast for a specific lat/lon from api.weather.gov."""</span>
+    <span class="code-comment"># Step 1: Get the forecast grid endpoint for this location</span>
+    point_url = f<span class="code-string">"https://api.weather.gov/points/{lat},{lon}"</span>
+    resp = requests.get(point_url, headers=HEADERS, timeout=<span class="code-num">15</span>)
+    resp.raise_for_status()
+    forecast_url = resp.json()[<span class="code-string">"properties"</span>][<span class="code-string">"forecast"</span>]
+
+    <span class="code-comment"># Step 2: Get the actual forecast</span>
+    resp = requests.get(forecast_url, headers=HEADERS, timeout=<span class="code-num">15</span>)
+    resp.raise_for_status()
+    periods = resp.json()[<span class="code-string">"properties"</span>][<span class="code-string">"periods"</span>][:<span class="code-num">4</span>]
+
+    result = []
+    <span class="code-keyword">for</span> p <span class="code-keyword">in</span> periods:
+        result.append({
+            <span class="code-string">"name"</span>: p[<span class="code-string">"name"</span>],
+            <span class="code-string">"temperature"</span>: f<span class="code-string">"{p['temperature']}{p['temperatureUnit']}"</span>,
+            <span class="code-string">"wind"</span>: f<span class="code-string">"{p['windSpeed']} {p['windDirection']}"</span>,
+            <span class="code-string">"forecast"</span>: p[<span class="code-string">"detailedForecast"</span>][:200]
+        })
+    <span class="code-keyword">return</span> json.dumps(result, indent=<span class="code-num">2</span>)
+
+<span class="code-comment"># ── Tool 2: Get active weather alerts ──</span>
+<span class="code-keyword">def</span> <span class="code-fn">get_active_alerts</span>(state: str, severity: str = <span class="code-string">"Severe"</span>) -> str:
+    <span class="code-string">"""Query NWS for active weather alerts in a state."""</span>
+    url = <span class="code-string">"https://api.weather.gov/alerts/active"</span>
+    params = {<span class="code-string">"area"</span>: state, <span class="code-string">"severity"</span>: severity}
+    resp = requests.get(url, headers=HEADERS, params=params, timeout=<span class="code-num">15</span>)
+    resp.raise_for_status()
+    features = resp.json().get(<span class="code-string">"features"</span>, [])
+
+    alerts = []
+    <span class="code-keyword">for</span> f <span class="code-keyword">in</span> features[:<span class="code-num">10</span>]:
+        props = f[<span class="code-string">"properties"</span>]
+        alerts.append({
+            <span class="code-string">"event"</span>: props[<span class="code-string">"event"</span>],
+            <span class="code-string">"severity"</span>: props[<span class="code-string">"severity"</span>],
+            <span class="code-string">"urgency"</span>: props[<span class="code-string">"urgency"</span>],
+            <span class="code-string">"headline"</span>: props[<span class="code-string">"headline"</span>],
+            <span class="code-string">"areas"</span>: props.get(<span class="code-string">"areaDesc"</span>, <span class="code-string">""</span>)[:200],
+            <span class="code-string">"onset"</span>: props.get(<span class="code-string">"onset"</span>),
+            <span class="code-string">"expires"</span>: props.get(<span class="code-string">"expires"</span>)
+        })
+    <span class="code-keyword">return</span> json.dumps(alerts, indent=<span class="code-num">2</span>)
+
+<span class="code-comment"># ── Tool 3: Map assets within an affected zone ──</span>
+<span class="code-keyword">def</span> <span class="code-fn">haversine</span>(lat1, lon1, lat2, lon2):
+    <span class="code-string">"""Calculate distance in km between two points."""</span>
+    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+    dlat, dlon = lat2 - lat1, lon2 - lon1
+    a = sin(dlat/<span class="code-num">2</span>)**<span class="code-num">2</span> + cos(lat1) * cos(lat2) * sin(dlon/<span class="code-num">2</span>)**<span class="code-num">2</span>
+    <span class="code-keyword">return</span> <span class="code-num">6371</span> * <span class="code-num">2</span> * asin(sqrt(a))
+
+<span class="code-keyword">def</span> <span class="code-fn">map_assets_in_zone</span>(center_lat: float, center_lon: float, radius_km: float) -> str:
+    <span class="code-string">"""Find business assets within a radius of a weather event center."""</span>
+    assets = [
+        {<span class="code-string">"name"</span>: <span class="code-string">"Warehouse-ATL"</span>, <span class="code-string">"lat"</span>: <span class="code-num">33.749</span>, <span class="code-string">"lon"</span>: <span class="code-num">-84.388</span>, <span class="code-string">"type"</span>: <span class="code-string">"warehouse"</span>, <span class="code-string">"value"</span>: <span class="code-string">"high"</span>},
+        {<span class="code-string">"name"</span>: <span class="code-string">"Warehouse-DAL"</span>, <span class="code-string">"lat"</span>: <span class="code-num">32.777</span>, <span class="code-string">"lon"</span>: <span class="code-num">-96.797</span>, <span class="code-string">"type"</span>: <span class="code-string">"warehouse"</span>, <span class="code-string">"value"</span>: <span class="code-string">"high"</span>},
+        {<span class="code-string">"name"</span>: <span class="code-string">"Route-I95-NE"</span>, <span class="code-string">"lat"</span>: <span class="code-num">40.714</span>, <span class="code-string">"lon"</span>: <span class="code-num">-74.006</span>, <span class="code-string">"type"</span>: <span class="code-string">"route"</span>, <span class="code-string">"value"</span>: <span class="code-string">"critical"</span>},
+        {<span class="code-string">"name"</span>: <span class="code-string">"DC-East-1"</span>, <span class="code-string">"lat"</span>: <span class="code-num">39.043</span>, <span class="code-string">"lon"</span>: <span class="code-num">-77.487</span>, <span class="code-string">"type"</span>: <span class="code-string">"datacenter"</span>, <span class="code-string">"value"</span>: <span class="code-string">"critical"</span>},
+        {<span class="code-string">"name"</span>: <span class="code-string">"Office-CHI"</span>, <span class="code-string">"lat"</span>: <span class="code-num">41.878</span>, <span class="code-string">"lon"</span>: <span class="code-num">-87.630</span>, <span class="code-string">"type"</span>: <span class="code-string">"office"</span>, <span class="code-string">"value"</span>: <span class="code-string">"medium"</span>},
+        {<span class="code-string">"name"</span>: <span class="code-string">"Route-I10-South"</span>, <span class="code-string">"lat"</span>: <span class="code-num">30.267</span>, <span class="code-string">"lon"</span>: <span class="code-num">-97.743</span>, <span class="code-string">"type"</span>: <span class="code-string">"route"</span>, <span class="code-string">"value"</span>: <span class="code-string">"high"</span>},
+    ]
+    affected = []
+    <span class="code-keyword">for</span> a <span class="code-keyword">in</span> assets:
+        dist = haversine(center_lat, center_lon, a[<span class="code-string">"lat"</span>], a[<span class="code-string">"lon"</span>])
+        <span class="code-keyword">if</span> dist <= radius_km:
+            a[<span class="code-string">"distance_km"</span>] = round(dist, <span class="code-num">1</span>)
+            affected.append(a)
+    <span class="code-keyword">return</span> json.dumps(affected, indent=<span class="code-num">2</span>)
+
+<span class="code-comment"># ── Tool 4: Assess operational impact ──</span>
+<span class="code-keyword">def</span> <span class="code-fn">assess_impact</span>(event_type: str, severity: str, assets_json: str) -> str:
+    <span class="code-string">"""Score the operational impact of a weather event on affected assets."""</span>
+    assets = json.loads(assets_json)
+    severity_scores = {<span class="code-string">"Extreme"</span>: <span class="code-num">1.0</span>, <span class="code-string">"Severe"</span>: <span class="code-num">0.8</span>, <span class="code-string">"Moderate"</span>: <span class="code-num">0.5</span>, <span class="code-string">"Minor"</span>: <span class="code-num">0.2</span>}
+    value_scores = {<span class="code-string">"critical"</span>: <span class="code-num">1.0</span>, <span class="code-string">"high"</span>: <span class="code-num">0.8</span>, <span class="code-string">"medium"</span>: <span class="code-num">0.5</span>, <span class="code-string">"low"</span>: <span class="code-num">0.2</span>}
+    sev_score = severity_scores.get(severity, <span class="code-num">0.5</span>)
+
+    results = []
+    <span class="code-keyword">for</span> asset <span class="code-keyword">in</span> assets:
+        val_score = value_scores.get(asset.get(<span class="code-string">"value"</span>), <span class="code-num">0.5</span>)
+        risk = round(sev_score * val_score, <span class="code-num">2</span>)
+        level = <span class="code-string">"RED"</span> <span class="code-keyword">if</span> risk >= <span class="code-num">0.7</span> <span class="code-keyword">else</span> <span class="code-string">"AMBER"</span> <span class="code-keyword">if</span> risk >= <span class="code-num">0.4</span> <span class="code-keyword">else</span> <span class="code-string">"GREEN"</span>
+        results.append({
+            <span class="code-string">"asset"</span>: asset[<span class="code-string">"name"</span>],
+            <span class="code-string">"risk_score"</span>: risk,
+            <span class="code-string">"level"</span>: level,
+            <span class="code-string">"action"</span>: {
+                <span class="code-string">"RED"</span>: <span class="code-string">"Immediate action: activate contingency plan"</span>,
+                <span class="code-string">"AMBER"</span>: <span class="code-string">"Preemptive action: prepare alternatives within 6 hours"</span>,
+                <span class="code-string">"GREEN"</span>: <span class="code-string">"Monitor: no immediate action required"</span>
+            }[level]
+        })
+    <span class="code-keyword">return</span> json.dumps(results, indent=<span class="code-num">2</span>)
+
+<span class="code-comment"># ── Tool 5: Send operational alert ──</span>
+<span class="code-keyword">def</span> <span class="code-fn">send_alert</span>(channel: str, message: str, priority: str) -> str:
+    <span class="code-string">"""Send an alert through the specified channel (email, slack, sms)."""</span>
+    <span class="code-comment"># In production: integrate with your notification service</span>
+    timestamp = datetime.utcnow().isoformat()
+    <span class="code-keyword">return</span> json.dumps({
+        <span class="code-string">"status"</span>: <span class="code-string">"sent"</span>,
+        <span class="code-string">"channel"</span>: channel,
+        <span class="code-string">"priority"</span>: priority,
+        <span class="code-string">"timestamp"</span>: timestamp,
+        <span class="code-string">"message_preview"</span>: message[:100]
+    })</code></pre>
+    </div>
+
+    <!-- SECTION 5: THE AGENT LOOP -->
+    <div class="section" id="loop">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>The Agent Loop</h2>
+      </div>
+
+      <p>The weather impact agent follows a <strong>plan-then-execute</strong> pattern rather than pure ReAct. The agent first assesses the urgency of the weather situation, then plans its investigation steps accordingly.</p>
+
+      <p><strong>High-urgency flow</strong> (tornado warning, flash flood warning):</p>
+      <ol>
+        <li><strong>Get alerts</strong> — Immediately fetch active severe alerts for the relevant state.</li>
+        <li><strong>Map assets</strong> — For each alert, find all assets within the affected zone using geolocation.</li>
+        <li><strong>Assess impact</strong> — Score each affected asset by risk level.</li>
+        <li><strong>Send alerts</strong> — Immediately dispatch RED-level notifications via SMS to facility managers.</li>
+      </ol>
+
+      <p><strong>Lower-urgency flow</strong> (winter storm watch, heat advisory):</p>
+      <ol>
+        <li><strong>Get alerts</strong> — Fetch active alerts for the region.</li>
+        <li><strong>Fetch forecast</strong> — Get detailed forecasts for each affected asset location to understand timing and severity.</li>
+        <li><strong>Map assets</strong> — Identify exposed assets.</li>
+        <li><strong>Assess impact</strong> — Score risk with timing context.</li>
+        <li><strong>Recommend actions</strong> — Generate preemptive recommendations (reroute trucks before storm, pre-stage generators).</li>
+      </ol>
+
+      <p>This adaptive planning is why an agent outperforms a fixed pipeline. The same system handles a tornado warning (60-second response needed) and a winter storm watch (24-hour planning window) with different strategies.</p>
+    </div>
+
+    <!-- SECTION 6: CODE WALKTHROUGH -->
+    <div class="section" id="code">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Code Walkthrough</h2>
+      </div>
+
+      <p>The complete agent with tool definitions, dispatcher, and the main agent loop.</p>
+
+      <pre><code><span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+<span class="code-keyword">import</span> json
+
+client = OpenAI()
+
+<span class="code-comment"># ── Tool Definitions ──</span>
+tools = [
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"fetch_forecast"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Get the NWS 7-day forecast for a specific latitude/longitude. Use to assess upcoming weather conditions at asset locations."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"lat"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"number"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Latitude"</span>},
+                    <span class="code-string">"lon"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"number"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Longitude"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"lat"</span>, <span class="code-string">"lon"</span>]
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"get_active_alerts"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Get active NWS weather alerts for a US state. Returns event type, severity, urgency, and affected areas."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"state"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Two-letter state code, e.g. TX, FL, NY"</span>},
+                    <span class="code-string">"severity"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"enum"</span>: [<span class="code-string">"Extreme"</span>, <span class="code-string">"Severe"</span>, <span class="code-string">"Moderate"</span>, <span class="code-string">"Minor"</span>]}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"state"</span>]
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"map_assets_in_zone"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Find all business assets within a given radius of a geographic point. Returns asset names, types, and criticality."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"center_lat"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"number"</span>},
+                    <span class="code-string">"center_lon"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"number"</span>},
+                    <span class="code-string">"radius_km"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"number"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Search radius in kilometers"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"center_lat"</span>, <span class="code-string">"center_lon"</span>, <span class="code-string">"radius_km"</span>]
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"assess_impact"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Score the operational impact of a weather event on affected assets. Returns RED/AMBER/GREEN risk levels with recommended actions."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"event_type"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>},
+                    <span class="code-string">"severity"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>},
+                    <span class="code-string">"assets_json"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"JSON array of affected assets from map_assets_in_zone"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"event_type"</span>, <span class="code-string">"severity"</span>, <span class="code-string">"assets_json"</span>]
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"send_alert"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Send an operational alert via the specified channel. Use for RED and AMBER risk levels only."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"channel"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"enum"</span>: [<span class="code-string">"email"</span>, <span class="code-string">"slack"</span>, <span class="code-string">"sms"</span>]},
+                    <span class="code-string">"message"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>},
+                    <span class="code-string">"priority"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"enum"</span>: [<span class="code-string">"critical"</span>, <span class="code-string">"high"</span>, <span class="code-string">"medium"</span>]}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"channel"</span>, <span class="code-string">"message"</span>, <span class="code-string">"priority"</span>]
+            }
+        }
+    }
+]
+
+<span class="code-comment"># ── Tool Dispatcher ──</span>
+TOOL_MAP = {
+    <span class="code-string">"fetch_forecast"</span>: fetch_forecast,
+    <span class="code-string">"get_active_alerts"</span>: get_active_alerts,
+    <span class="code-string">"map_assets_in_zone"</span>: map_assets_in_zone,
+    <span class="code-string">"assess_impact"</span>: assess_impact,
+    <span class="code-string">"send_alert"</span>: send_alert,
+}
+
+<span class="code-keyword">def</span> <span class="code-fn">dispatch_tool</span>(name: str, args: dict) -> str:
+    fn = TOOL_MAP.get(name)
+    <span class="code-keyword">if not</span> fn:
+        <span class="code-keyword">return</span> json.dumps({<span class="code-string">"error"</span>: f<span class="code-string">"Unknown tool: {name}"</span>})
+    <span class="code-keyword">try</span>:
+        <span class="code-keyword">return</span> fn(**args)
+    <span class="code-keyword">except</span> Exception <span class="code-keyword">as</span> e:
+        <span class="code-keyword">return</span> json.dumps({<span class="code-string">"error"</span>: f<span class="code-string">"{type(e).__name__}: {e}"</span>})
+
+<span class="code-comment"># ── Agent Loop ──</span>
+SYSTEM_PROMPT = <span class="code-string">"""You are a weather operations analyst for a logistics company.
+Your job is to:
+1. Check active weather alerts for states where we have assets
+2. Map affected assets using geolocation
+3. Assess operational impact severity
+4. Send alerts for RED and AMBER risks, recommend actions for all levels
+
+Our assets are in: GA (Atlanta warehouse), TX (Dallas warehouse, I-10 route),
+NY (I-95 route), VA (datacenter), IL (Chicago office).
+
+For Extreme/Severe events: prioritize speed, send SMS alerts immediately.
+For Moderate events: analyze thoroughly, send email recommendations.
+Always explain your reasoning before taking action."""</span>
+
+<span class="code-keyword">def</span> <span class="code-fn">run_weather_agent</span>(query: str, max_steps: int = <span class="code-num">12</span>) -> str:
+    messages = [
+        {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: SYSTEM_PROMPT},
+        {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: query}
+    ]
+
+    <span class="code-keyword">for</span> step <span class="code-keyword">in</span> range(max_steps):
+        resp = client.chat.completions.create(
+            model=<span class="code-string">"gpt-4o"</span>, messages=messages,
+            tools=tools, tool_choice=<span class="code-string">"auto"</span>
+        )
+        msg = resp.choices[<span class="code-num">0</span>].message
+        messages.append(msg)
+
+        <span class="code-keyword">if not</span> msg.tool_calls:
+            <span class="code-keyword">return</span> msg.content
+
+        <span class="code-keyword">for</span> tc <span class="code-keyword">in</span> msg.tool_calls:
+            args = json.loads(tc.function.arguments)
+            print(f<span class="code-string">"  [{step+1}] {tc.function.name}({json.dumps(args)[:80]})"</span>)
+            result = dispatch_tool(tc.function.name, args)
+            messages.append({
+                <span class="code-string">"role"</span>: <span class="code-string">"tool"</span>,
+                <span class="code-string">"tool_call_id"</span>: tc.id,
+                <span class="code-string">"content"</span>: result
+            })
+
+    <span class="code-keyword">return</span> <span class="code-string">"Agent reached max steps."</span>
+
+<span class="code-comment"># ── Run ──</span>
+report = run_weather_agent(
+    <span class="code-string">"Check for severe weather threats across all our operational states. "</span>
+    <span class="code-string">"Assess impact on our assets and send alerts if needed."</span>
+)
+print(report)</code></pre>
+    </div>
+
+    <!-- SECTION 7: KEY TAKEAWAYS -->
+    <div class="section" id="takeaways">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Key Takeaways</h2>
+      </div>
+
+      <div class="checklist">
+        <div class="checklist-item">The NWS API is free and requires no API key — just a descriptive User-Agent header with your contact email</div>
+        <div class="checklist-item">Use the haversine formula for quick distance calculations between assets and weather event centers — it is fast and accurate enough for regional assessments</div>
+        <div class="checklist-item">Separate urgency tiers in the system prompt so the agent adapts its strategy: immediate response for Extreme events, planned response for Moderate</div>
+        <div class="checklist-item">Cache NWS API responses for 5-10 minutes to avoid hitting rate limits during multi-state scans</div>
+        <div class="checklist-item">The send_alert tool should have a confirmation step for RED-level alerts in production — require human approval before triggering facility shutdowns</div>
+        <div class="checklist-item">Store agent investigation logs with timestamps for post-incident reviews: what did the agent check, when, and what action did it take</div>
+        <div class="checklist-item">Test with historical NOAA Storm Events data to validate the agent's risk assessments against known outcomes</div>
+        <div class="checklist-item">Consider running the agent on a cron schedule (every 15 minutes) rather than on-demand for continuous monitoring</div>
+      </div>
+    </div>
+
+    <!-- NEXT / PREV -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">&larr; Previous</div>
+        <a class="next-btn prev-btn" href="01-cyber-threat-intel.html"><span>01 &middot; Cyber Threat Intelligence</span></a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next &rarr;</div>
+        <a class="next-btn" href="03-supply-chain-disruption.html">
+          <span>03 &middot; Supply Chain Disruption</span>
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../theme.js"></script>
+</body>
+</html>

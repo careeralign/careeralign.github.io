@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<script>if(localStorage.getItem('ca-theme')==='light')document.documentElement.setAttribute('data-theme','light');</script>
+<title>Research Synthesis Agent — CareerAlign Agentic Designs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #a855f7;
+  --page-color-04: rgba(168,85,247,0.04);
+  --page-color-07: rgba(168,85,247,0.07);
+  --page-color-12: rgba(168,85,247,0.12);
+  --page-color-15: rgba(168,85,247,0.15);
+  --page-color-25: rgba(168,85,247,0.25);
+  --page-color-30: rgba(168,85,247,0.3);
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">&#129302; <span>CareerAlign</span> Agentic Designs</div>
+  <div class="nav-links">
+    <a href="01-cyber-threat-intel.html">01 Cyber Threat</a>
+    <a href="02-weather-impact.html">02 Weather</a>
+    <a href="03-supply-chain-disruption.html">03 Supply Chain</a>
+    <a href="04-school-teacher.html">04 Teacher</a>
+    <a href="05-research-synthesis.html" class="active">05 Research</a>
+    <a href="06-data-quality.html">06 Data Quality</a>
+    <a href="07-compliance.html">07 Compliance</a>
+    <a href="08-open-data.html">08 Open Data</a>
+    <a href="09-root-cause.html">09 Root Cause</a>
+    <a href="10-finance.html">10 Finance</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; Design Hub</a>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">&#127769;</button>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Design 05 — Academic
+  </div>
+  <h1>Research <em>Synthesis Agent</em></h1>
+  <p class="hero-desc">
+    Researchers spend weeks conducting literature reviews across thousands of papers. This agent searches multiple academic databases (ArXiv, Semantic Scholar, CrossRef), fetches and analyzes abstracts, extracts key findings, detects contradictions between studies, and synthesizes everything into a coherent research briefing. It uses iterative deepening search — starting broad, then narrowing based on what it finds — mimicking how expert researchers navigate the literature.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>ArXiv API Search</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Semantic Scholar API</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Contradiction Detection</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Citation Graph Traversal</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Iterative Deepening Search</div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/careeralign/careeralign.github.io/blob/main/agentic-designs/notebooks/05-research-synthesis.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</section>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#problem" class="section">1 · The Problem</a>
+    <a href="#why-agent" class="section">2 · Why an Agent</a>
+    <a href="#architecture" class="section">3 · Architecture</a>
+    <a href="#tools" class="section">4 · Tools &amp; APIs</a>
+    <a href="#loop" class="section">5 · The Agent Loop</a>
+    <a href="#code" class="section">6 · Code Walkthrough</a>
+    <a href="#takeaways" class="section">7 · Key Takeaways</a>
+  </aside>
+
+  <main class="main">
+
+    <!-- SECTION 1: THE PROBLEM -->
+    <div class="section" id="problem">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>The Problem</h2>
+      </div>
+
+      <p>A researcher starting a new project on "LLM hallucination mitigation" faces a daunting landscape: ArXiv alone publishes 50+ relevant papers per week in the AI category. Semantic Scholar indexes over 200 million papers. The researcher must search across multiple databases, read abstracts, follow citation chains, identify the most influential papers, detect where studies contradict each other, and synthesize a coherent understanding of the current state of knowledge.</p>
+
+      <p>The core challenge is <strong>information overload with judgment</strong>. It is not just about finding papers — it is about determining which papers matter, understanding how they relate to each other, and identifying gaps in the literature. A keyword search returns hundreds of results; the researcher must distinguish between foundational work, incremental improvements, contradictory findings, and dead ends.</p>
+
+      <p>Existing tools (Google Scholar, Connected Papers, Elicit) help with search and basic summarization, but they cannot perform the kind of <em>analytical synthesis</em> that a literature review requires: identifying that Paper A's results contradict Paper B's claims, that Paper C's methodology addresses Paper D's limitations, or that there is a gap in the literature around a specific sub-topic that represents a research opportunity.</p>
+    </div>
+
+    <!-- SECTION 2: WHY AN AGENT -->
+    <div class="section" id="why-agent">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Why an Agent</h2>
+      </div>
+
+      <p><strong>Why not keyword search?</strong> A single search query returns a flat list of results ranked by relevance. But literature review is inherently <em>iterative</em>: you read one paper, discover a technique called "retrieval-augmented generation," search for that term, find a foundational paper, follow its citations forward, and discover a new line of research you did not know existed. Each step refines the search strategy based on accumulated knowledge.</p>
+
+      <p><strong>Why not RAG?</strong> RAG is single-pass: retrieve documents, generate a response. Literature review requires multiple passes — search, read, search deeper, compare, identify contradictions, search for resolution. The agent maintains a growing mental model of the research landscape and uses it to guide subsequent searches. This is the "iterative deepening" pattern: each cycle goes deeper and more focused than the last.</p>
+
+      <p><strong>The agent advantage:</strong> The research synthesis agent performs what cognitive scientists call "sensemaking" — it does not just collect information, it organizes it into a coherent narrative. It identifies themes, detects contradictions, traces intellectual lineage through citation chains, and produces a briefing that gives the researcher a structured entry point into the literature. What takes a human 2-3 weeks of reading, the agent can draft in 10 minutes.</p>
+    </div>
+
+    <!-- SECTION 3: ARCHITECTURE -->
+    <div class="section" id="architecture">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Architecture</h2>
+      </div>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <h3>Data Sources</h3>
+          <p>ArXiv API for preprints (free, no API key required), Semantic Scholar API for citation graphs and paper metadata (free tier: 100 requests/5 minutes), CrossRef API for DOI resolution and bibliographic data (free, polite pool with mailto parameter).</p>
+        </div>
+        <div class="skill-card">
+          <h3>Agent Core</h3>
+          <p>An OpenAI function-calling agent prompted as a research librarian. It receives a research question and iteratively searches, reads, and analyzes until it has built a comprehensive understanding of the topic. The system prompt encodes search strategies from information science.</p>
+        </div>
+        <div class="skill-card">
+          <h3>Tool Registry</h3>
+          <p>Five tools: search_papers (query ArXiv by keyword/category), fetch_paper_details (get metadata and abstract from Semantic Scholar), extract_findings (parse key claims from an abstract), detect_contradictions (compare findings across papers), and synthesize_brief (compile a structured research briefing).</p>
+        </div>
+        <div class="skill-card">
+          <h3>Iterative Deepening</h3>
+          <p>The agent performs multiple search cycles. Cycle 1: broad keyword search. Cycle 2: search for specific techniques found in Cycle 1. Cycle 3: follow citations of the most relevant papers. Each cycle narrows focus and increases depth, converging on the most relevant subset of the literature.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: TOOLS & APIS -->
+    <div class="section" id="tools">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Tools &amp; APIs</h2>
+      </div>
+
+      <p>All three academic APIs used here are free and do not require API keys (Semantic Scholar has an optional key for higher rate limits). The ArXiv API returns Atom XML, which we parse into structured JSON. Semantic Scholar returns rich citation metadata.</p>
+
+      <pre><code><span class="code-keyword">import</span> json, requests, xml.etree.ElementTree <span class="code-keyword">as</span> ET
+<span class="code-keyword">from</span> urllib.parse <span class="code-keyword">import</span> quote
+
+<span class="code-comment"># ── Tool 1: Search ArXiv for papers ──</span>
+<span class="code-keyword">def</span> <span class="code-fn">search_papers</span>(query: str, max_results: int = <span class="code-num">10</span>, category: str = <span class="code-string">"cs.CL"</span>) -> str:
+    <span class="code-string">"""Search ArXiv for papers matching a query in a specific category.
+    Categories: cs.CL (NLP), cs.AI (AI), cs.LG (ML), cs.IR (Information Retrieval)"""</span>
+    search_query = f<span class="code-string">"all:{quote(query)}+AND+cat:{category}"</span>
+    url = (f<span class="code-string">"http://export.arxiv.org/api/query?search_query={search_query}"</span>
+           f<span class="code-string">"&start=0&max_results={max_results}&sortBy=relevance"</span>)
+
+    resp = requests.get(url, timeout=<span class="code-num">30</span>)
+    resp.raise_for_status()
+
+    <span class="code-comment"># Parse Atom XML response</span>
+    ns = {<span class="code-string">"atom"</span>: <span class="code-string">"http://www.w3.org/2005/Atom"</span>}
+    root = ET.fromstring(resp.text)
+    papers = []
+
+    <span class="code-keyword">for</span> entry <span class="code-keyword">in</span> root.findall(<span class="code-string">"atom:entry"</span>, ns):
+        title = entry.find(<span class="code-string">"atom:title"</span>, ns).text.strip().replace(<span class="code-string">"\n"</span>, <span class="code-string">" "</span>)
+        summary = entry.find(<span class="code-string">"atom:summary"</span>, ns).text.strip()[:300]
+        arxiv_id = entry.find(<span class="code-string">"atom:id"</span>, ns).text.split(<span class="code-string">"/"</span>)[-<span class="code-num">1</span>]
+        published = entry.find(<span class="code-string">"atom:published"</span>, ns).text[:<span class="code-num">10</span>]
+        authors = [a.find(<span class="code-string">"atom:name"</span>, ns).text
+                   <span class="code-keyword">for</span> a <span class="code-keyword">in</span> entry.findall(<span class="code-string">"atom:author"</span>, ns)][:<span class="code-num">3</span>]
+
+        papers.append({
+            <span class="code-string">"arxiv_id"</span>: arxiv_id,
+            <span class="code-string">"title"</span>: title,
+            <span class="code-string">"authors"</span>: authors,
+            <span class="code-string">"published"</span>: published,
+            <span class="code-string">"abstract_preview"</span>: summary
+        })
+
+    <span class="code-keyword">return</span> json.dumps(papers, indent=<span class="code-num">2</span>)
+
+<span class="code-comment"># ── Tool 2: Get detailed paper metadata from Semantic Scholar ──</span>
+<span class="code-keyword">def</span> <span class="code-fn">fetch_paper_details</span>(arxiv_id: str) -> str:
+    <span class="code-string">"""Fetch citation count, references, and full abstract from Semantic Scholar."""</span>
+    url = f<span class="code-string">"https://api.semanticscholar.org/graph/v1/paper/ArXiv:{arxiv_id}"</span>
+    params = {
+        <span class="code-string">"fields"</span>: <span class="code-string">"title,abstract,citationCount,influentialCitationCount,"</span>
+                  <span class="code-string">"references.title,references.citationCount,year"</span>
+    }
+    resp = requests.get(url, params=params, timeout=<span class="code-num">15</span>)
+    resp.raise_for_status()
+    data = resp.json()
+
+    <span class="code-comment"># Extract top references by citation count</span>
+    refs = data.get(<span class="code-string">"references"</span>, []) <span class="code-keyword">or</span> []
+    top_refs = sorted(refs, key=<span class="code-keyword">lambda</span> r: r.get(<span class="code-string">"citationCount"</span>, <span class="code-num">0</span>) <span class="code-keyword">or</span> <span class="code-num">0</span>, reverse=True)[:<span class="code-num">5</span>]
+
+    <span class="code-keyword">return</span> json.dumps({
+        <span class="code-string">"title"</span>: data.get(<span class="code-string">"title"</span>),
+        <span class="code-string">"year"</span>: data.get(<span class="code-string">"year"</span>),
+        <span class="code-string">"abstract"</span>: (data.get(<span class="code-string">"abstract"</span>) <span class="code-keyword">or</span> <span class="code-string">""</span>)[:500],
+        <span class="code-string">"citation_count"</span>: data.get(<span class="code-string">"citationCount"</span>, <span class="code-num">0</span>),
+        <span class="code-string">"influential_citations"</span>: data.get(<span class="code-string">"influentialCitationCount"</span>, <span class="code-num">0</span>),
+        <span class="code-string">"top_references"</span>: [
+            {<span class="code-string">"title"</span>: r.get(<span class="code-string">"title"</span>), <span class="code-string">"citations"</span>: r.get(<span class="code-string">"citationCount"</span>, <span class="code-num">0</span>)}
+            <span class="code-keyword">for</span> r <span class="code-keyword">in</span> top_refs
+        ]
+    }, indent=<span class="code-num">2</span>)
+
+<span class="code-comment"># ── Tool 3: Extract key findings from an abstract ──</span>
+<span class="code-keyword">def</span> <span class="code-fn">extract_findings</span>(paper_title: str, abstract: str) -> str:
+    <span class="code-string">"""Extract structured key findings from a paper abstract.
+    Uses heuristic parsing — in production, use an LLM for this step."""</span>
+    <span class="code-comment"># Simple heuristic: split by sentences, find claims</span>
+    sentences = [s.strip() <span class="code-keyword">for</span> s <span class="code-keyword">in</span> abstract.replace(<span class="code-string">"\n"</span>, <span class="code-string">" "</span>).split(<span class="code-string">"."</span>) <span class="code-keyword">if</span> len(s.strip()) > <span class="code-num">30</span>]
+
+    claim_indicators = [<span class="code-string">"we show"</span>, <span class="code-string">"we find"</span>, <span class="code-string">"we demonstrate"</span>, <span class="code-string">"results show"</span>,
+                        <span class="code-string">"we propose"</span>, <span class="code-string">"outperforms"</span>, <span class="code-string">"achieves"</span>, <span class="code-string">"improves"</span>,
+                        <span class="code-string">"we introduce"</span>, <span class="code-string">"our approach"</span>, <span class="code-string">"our method"</span>]
+
+    findings = []
+    <span class="code-keyword">for</span> sent <span class="code-keyword">in</span> sentences:
+        sent_lower = sent.lower()
+        <span class="code-keyword">for</span> indicator <span class="code-keyword">in</span> claim_indicators:
+            <span class="code-keyword">if</span> indicator <span class="code-keyword">in</span> sent_lower:
+                findings.append({
+                    <span class="code-string">"claim"</span>: sent.strip(),
+                    <span class="code-string">"type"</span>: <span class="code-string">"method"</span> <span class="code-keyword">if</span> <span class="code-string">"propose"</span> <span class="code-keyword">in</span> sent_lower <span class="code-keyword">or</span> <span class="code-string">"introduce"</span> <span class="code-keyword">in</span> sent_lower <span class="code-keyword">else</span> <span class="code-string">"result"</span>
+                })
+                <span class="code-keyword">break</span>
+
+    <span class="code-keyword">return</span> json.dumps({
+        <span class="code-string">"paper"</span>: paper_title,
+        <span class="code-string">"num_findings"</span>: len(findings),
+        <span class="code-string">"findings"</span>: findings[:<span class="code-num">5</span>]
+    }, indent=<span class="code-num">2</span>)
+
+<span class="code-comment"># ── Tool 4: Detect contradictions between findings ──</span>
+<span class="code-keyword">def</span> <span class="code-fn">detect_contradictions</span>(findings_json: str) -> str:
+    <span class="code-string">"""Compare findings from multiple papers to detect potential contradictions.
+    Input: JSON array of {paper, claim} objects."""</span>
+    findings = json.loads(findings_json)
+
+    <span class="code-comment"># Heuristic: flag pairs with opposing sentiment on same topic</span>
+    positive_markers = [<span class="code-string">"improves"</span>, <span class="code-string">"outperforms"</span>, <span class="code-string">"effective"</span>, <span class="code-string">"beneficial"</span>, <span class="code-string">"achieves"</span>]
+    negative_markers = [<span class="code-string">"fails"</span>, <span class="code-string">"does not"</span>, <span class="code-string">"limited"</span>, <span class="code-string">"insufficient"</span>, <span class="code-string">"no significant"</span>]
+
+    contradictions = []
+    <span class="code-keyword">for</span> i, f1 <span class="code-keyword">in</span> enumerate(findings):
+        <span class="code-keyword">for</span> f2 <span class="code-keyword">in</span> findings[i+<span class="code-num">1</span>:]:
+            <span class="code-comment"># Check if claims discuss similar topics but with opposing sentiment</span>
+            c1, c2 = f1[<span class="code-string">"claim"</span>].lower(), f2[<span class="code-string">"claim"</span>].lower()
+            words1, words2 = set(c1.split()), set(c2.split())
+            topic_overlap = len(words1 & words2) / max(len(words1 | words2), <span class="code-num">1</span>)
+
+            <span class="code-keyword">if</span> topic_overlap > <span class="code-num">0.15</span>:  <span class="code-comment"># Similar topic</span>
+                pos1 = <span class="code-keyword">any</span>(m <span class="code-keyword">in</span> c1 <span class="code-keyword">for</span> m <span class="code-keyword">in</span> positive_markers)
+                neg1 = <span class="code-keyword">any</span>(m <span class="code-keyword">in</span> c1 <span class="code-keyword">for</span> m <span class="code-keyword">in</span> negative_markers)
+                pos2 = <span class="code-keyword">any</span>(m <span class="code-keyword">in</span> c2 <span class="code-keyword">for</span> m <span class="code-keyword">in</span> positive_markers)
+                neg2 = <span class="code-keyword">any</span>(m <span class="code-keyword">in</span> c2 <span class="code-keyword">for</span> m <span class="code-keyword">in</span> negative_markers)
+
+                <span class="code-keyword">if</span> (pos1 <span class="code-keyword">and</span> neg2) <span class="code-keyword">or</span> (neg1 <span class="code-keyword">and</span> pos2):
+                    contradictions.append({
+                        <span class="code-string">"paper_a"</span>: f1[<span class="code-string">"paper"</span>],
+                        <span class="code-string">"claim_a"</span>: f1[<span class="code-string">"claim"</span>],
+                        <span class="code-string">"paper_b"</span>: f2[<span class="code-string">"paper"</span>],
+                        <span class="code-string">"claim_b"</span>: f2[<span class="code-string">"claim"</span>],
+                        <span class="code-string">"topic_overlap"</span>: round(topic_overlap, <span class="code-num">2</span>)
+                    })
+
+    <span class="code-keyword">return</span> json.dumps({
+        <span class="code-string">"contradictions_found"</span>: len(contradictions),
+        <span class="code-string">"contradictions"</span>: contradictions[:<span class="code-num">5</span>]
+    }, indent=<span class="code-num">2</span>)
+
+<span class="code-comment"># ── Tool 5: Synthesize a research briefing ──</span>
+<span class="code-keyword">def</span> <span class="code-fn">synthesize_brief</span>(topic: str, papers_json: str, findings_json: str,
+                       contradictions_json: str) -> str:
+    <span class="code-string">"""Compile all gathered information into a structured research briefing."""</span>
+    papers = json.loads(papers_json)
+    findings = json.loads(findings_json)
+    contradictions = json.loads(contradictions_json)
+
+    lines = [
+        f<span class="code-string">"# Research Synthesis: {topic}"</span>,
+        <span class="code-string">""</span>,
+        f<span class="code-string">"**Papers Reviewed:** {len(papers)}"</span>,
+        f<span class="code-string">"**Key Findings:** {len(findings)}"</span>,
+        f<span class="code-string">"**Contradictions Detected:** {contradictions.get('contradictions_found', 0)}"</span>,
+        <span class="code-string">""</span>,
+        <span class="code-string">"## Most Cited Papers"</span>,
+    ]
+    <span class="code-keyword">for</span> p <span class="code-keyword">in</span> sorted(papers, key=<span class="code-keyword">lambda</span> x: x.get(<span class="code-string">"citation_count"</span>, <span class="code-num">0</span>), reverse=True)[:<span class="code-num">5</span>]:
+        lines.append(f<span class="code-string">"- **{p.get('title', 'N/A')}** ({p.get('year', '?')}) — {p.get('citation_count', 0)} citations"</span>)
+
+    lines.extend([<span class="code-string">""</span>, <span class="code-string">"## Key Findings"</span>])
+    <span class="code-keyword">for</span> f <span class="code-keyword">in</span> findings[:<span class="code-num">8</span>]:
+        lines.append(f<span class="code-string">"- [{f.get('type', 'finding')}] {f.get('claim', '')[:150]}"</span>)
+
+    <span class="code-keyword">if</span> contradictions.get(<span class="code-string">"contradictions"</span>):
+        lines.extend([<span class="code-string">""</span>, <span class="code-string">"## Contradictions &amp; Debates"</span>])
+        <span class="code-keyword">for</span> c <span class="code-keyword">in</span> contradictions[<span class="code-string">"contradictions"</span>]:
+            lines.append(f<span class="code-string">"- **{c['paper_a']}** vs **{c['paper_b']}**: conflicting claims on shared topic"</span>)
+
+    lines.extend([<span class="code-string">""</span>, <span class="code-string">"## Research Gaps"</span>, <span class="code-string">"- (Agent identifies gaps based on missing coverage in reviewed papers)"</span>])
+
+    <span class="code-keyword">return</span> <span class="code-string">"\n"</span>.join(lines)</code></pre>
+    </div>
+
+    <!-- SECTION 5: THE AGENT LOOP -->
+    <div class="section" id="loop">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>The Agent Loop</h2>
+      </div>
+
+      <p>The research synthesis agent uses an <strong>iterative deepening search</strong> pattern. Unlike a flat search that returns results once, this agent performs multiple search cycles, each time going deeper based on what it learned in the previous cycle.</p>
+
+      <p><strong>Cycle 1 — Broad survey:</strong></p>
+      <ol>
+        <li>Agent calls <code>search_papers("LLM hallucination mitigation", max_results=10)</code></li>
+        <li>Reviews titles and abstract previews to identify the most relevant papers</li>
+        <li>Calls <code>fetch_paper_details</code> on the top 3-5 papers to get citation counts and references</li>
+      </ol>
+
+      <p><strong>Cycle 2 — Technique-focused search:</strong></p>
+      <ol>
+        <li>From Cycle 1, the agent discovers specific techniques (e.g., "retrieval augmentation", "self-consistency")</li>
+        <li>Agent calls <code>search_papers</code> again with more specific queries</li>
+        <li>Calls <code>extract_findings</code> on each paper to pull out key claims</li>
+      </ol>
+
+      <p><strong>Cycle 3 — Citation chain and synthesis:</strong></p>
+      <ol>
+        <li>Agent follows highly-cited references from Cycle 2 papers</li>
+        <li>Calls <code>detect_contradictions</code> across all collected findings</li>
+        <li>Calls <code>synthesize_brief</code> to compile the final research briefing</li>
+      </ol>
+
+      <p>The number of cycles is bounded by max_steps, but the agent can converge early if it determines it has sufficient coverage. This is a key advantage over fixed pipelines: the agent decides when it has "enough" information.</p>
+    </div>
+
+    <!-- SECTION 6: CODE WALKTHROUGH -->
+    <div class="section" id="code">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Code Walkthrough</h2>
+      </div>
+
+      <p>The complete agent with tool definitions and the iterative deepening system prompt.</p>
+
+      <pre><code><span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+<span class="code-keyword">import</span> json
+
+client = OpenAI()
+
+<span class="code-comment"># ── Tool Definitions ──</span>
+tools = [
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"search_papers"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Search ArXiv for papers matching a query. Use broad queries first, then narrow based on findings. Categories: cs.CL (NLP), cs.AI, cs.LG, cs.IR."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"query"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>},
+                    <span class="code-string">"max_results"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"integer"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Max papers to return (default 10)"</span>},
+                    <span class="code-string">"category"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"ArXiv category (default cs.CL)"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"query"</span>]
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"fetch_paper_details"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Get full metadata for a paper from Semantic Scholar: citation count, influential citations, abstract, and top references. Use the ArXiv ID."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"arxiv_id"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"ArXiv paper ID, e.g. 2305.14251"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"arxiv_id"</span>]
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"extract_findings"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Extract key claims and findings from a paper's abstract. Returns structured findings tagged as 'method' or 'result'."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"paper_title"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>},
+                    <span class="code-string">"abstract"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"paper_title"</span>, <span class="code-string">"abstract"</span>]
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"detect_contradictions"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Compare findings from multiple papers to identify contradicting claims. Input: JSON array of {paper, claim} objects."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"findings_json"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"JSON array of {paper, claim} objects"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"findings_json"</span>]
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"synthesize_brief"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Compile all gathered papers, findings, and contradictions into a structured research briefing. Use as the final step."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"topic"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>},
+                    <span class="code-string">"papers_json"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"JSON array of paper objects with title, year, citation_count"</span>},
+                    <span class="code-string">"findings_json"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"JSON array of finding objects"</span>},
+                    <span class="code-string">"contradictions_json"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"JSON from detect_contradictions"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"topic"</span>, <span class="code-string">"papers_json"</span>, <span class="code-string">"findings_json"</span>, <span class="code-string">"contradictions_json"</span>]
+            }
+        }
+    }
+]
+
+<span class="code-comment"># ── Dispatcher ──</span>
+TOOL_MAP = {
+    <span class="code-string">"search_papers"</span>: search_papers,
+    <span class="code-string">"fetch_paper_details"</span>: fetch_paper_details,
+    <span class="code-string">"extract_findings"</span>: extract_findings,
+    <span class="code-string">"detect_contradictions"</span>: detect_contradictions,
+    <span class="code-string">"synthesize_brief"</span>: synthesize_brief,
+}
+
+<span class="code-keyword">def</span> <span class="code-fn">dispatch_tool</span>(name: str, args: dict) -> str:
+    fn = TOOL_MAP.get(name)
+    <span class="code-keyword">if not</span> fn:
+        <span class="code-keyword">return</span> json.dumps({<span class="code-string">"error"</span>: f<span class="code-string">"Unknown tool: {name}"</span>})
+    <span class="code-keyword">try</span>:
+        <span class="code-keyword">return</span> fn(**args)
+    <span class="code-keyword">except</span> Exception <span class="code-keyword">as</span> e:
+        <span class="code-keyword">return</span> json.dumps({<span class="code-string">"error"</span>: f<span class="code-string">"{type(e).__name__}: {e}"</span>})
+
+<span class="code-comment"># ── Agent ──</span>
+SYSTEM_PROMPT = <span class="code-string">"""You are a research librarian conducting a systematic literature review.
+
+Follow the iterative deepening search strategy:
+1. CYCLE 1 (Broad): Search for papers with broad queries to survey the landscape.
+   Fetch details on the most relevant papers (by title relevance and citation count).
+2. CYCLE 2 (Focused): Based on techniques and methods found in Cycle 1, search
+   with more specific queries. Extract findings from each relevant paper.
+3. CYCLE 3 (Synthesis): Detect contradictions across all findings. Follow citation
+   chains from highly-cited papers if important references were missed.
+   Synthesize everything into a structured briefing.
+
+Prioritize papers by: influential citation count > total citations > recency.
+Always search at least 2 different query formulations to avoid retrieval bias.
+Flag any contradictions or ongoing debates in the field."""</span>
+
+<span class="code-keyword">def</span> <span class="code-fn">run_research_agent</span>(question: str, max_steps: int = <span class="code-num">15</span>) -> str:
+    messages = [
+        {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: SYSTEM_PROMPT},
+        {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: question}
+    ]
+
+    <span class="code-keyword">for</span> step <span class="code-keyword">in</span> range(max_steps):
+        resp = client.chat.completions.create(
+            model=<span class="code-string">"gpt-4o"</span>, messages=messages,
+            tools=tools, tool_choice=<span class="code-string">"auto"</span>
+        )
+        msg = resp.choices[<span class="code-num">0</span>].message
+        messages.append(msg)
+
+        <span class="code-keyword">if not</span> msg.tool_calls:
+            <span class="code-keyword">return</span> msg.content
+
+        <span class="code-keyword">for</span> tc <span class="code-keyword">in</span> msg.tool_calls:
+            args = json.loads(tc.function.arguments)
+            print(f<span class="code-string">"  [{step+1}] {tc.function.name}({json.dumps(args)[:60]}...)"</span>)
+            result = dispatch_tool(tc.function.name, args)
+            messages.append({
+                <span class="code-string">"role"</span>: <span class="code-string">"tool"</span>,
+                <span class="code-string">"tool_call_id"</span>: tc.id,
+                <span class="code-string">"content"</span>: result
+            })
+
+    <span class="code-keyword">return</span> <span class="code-string">"Agent reached max steps. Partial synthesis available."</span>
+
+<span class="code-comment"># ── Run ──</span>
+briefing = run_research_agent(
+    <span class="code-string">"Conduct a literature review on techniques for reducing hallucination "</span>
+    <span class="code-string">"in large language models. Cover retrieval-augmented generation, "</span>
+    <span class="code-string">"self-consistency, and chain-of-thought approaches. Identify any "</span>
+    <span class="code-string">"contradictions between studies."</span>
+)
+print(briefing)</code></pre>
+    </div>
+
+    <!-- SECTION 7: KEY TAKEAWAYS -->
+    <div class="section" id="takeaways">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Key Takeaways</h2>
+      </div>
+
+      <div class="checklist">
+        <div class="checklist-item">The ArXiv API is free and requires no API key — it returns Atom XML that must be parsed. Rate limit: 1 request per 3 seconds</div>
+        <div class="checklist-item">Semantic Scholar's free tier allows 100 requests per 5 minutes. Request an API key for higher limits (1 request/second)</div>
+        <div class="checklist-item">Use multiple query formulations to avoid retrieval bias. "LLM hallucination" and "language model factuality" return different but overlapping result sets</div>
+        <div class="checklist-item">Influential citation count (from Semantic Scholar) is more meaningful than total citations — it counts only papers that substantively build on the work</div>
+        <div class="checklist-item">The heuristic contradiction detector shown here is a starting point. In production, use an LLM to compare specific claims for semantic contradiction</div>
+        <div class="checklist-item">Iterative deepening search prevents the agent from going too deep on the first query. Breadth first, then depth — mimics expert search behavior</div>
+        <div class="checklist-item">Always include publication dates in the briefing — a 2024 paper superseding a 2022 finding changes the research landscape</div>
+        <div class="checklist-item">The agent's synthesis is a starting point for human researchers, not a replacement. Always verify key claims against the original papers</div>
+      </div>
+    </div>
+
+    <!-- NEXT / PREV -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">&larr; Previous</div>
+        <a class="next-btn prev-btn" href="04-school-teacher.html"><span>04 &middot; School Teacher Assistant</span></a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next &rarr;</div>
+        <a class="next-btn" href="06-data-quality.html">
+          <span>06 &middot; Data Quality Agent</span>
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../theme.js"></script>
+</body>
+</html>

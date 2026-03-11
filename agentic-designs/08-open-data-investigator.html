@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styles.css">
+<script>if(localStorage.getItem('ca-theme')==='light')document.documentElement.setAttribute('data-theme','light');</script>
+<title>Open Data Investigator Agent — CareerAlign Agentic Designs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-color: #a855f7;
+  --page-color-04: rgba(168,85,247,0.04);
+  --page-color-07: rgba(168,85,247,0.07);
+  --page-color-12: rgba(168,85,247,0.12);
+  --page-color-15: rgba(168,85,247,0.15);
+  --page-color-25: rgba(168,85,247,0.25);
+  --page-color-30: rgba(168,85,247,0.3);
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">&#9889; <span>CareerAlign</span> Agentic Designs</div>
+  <div class="nav-links">
+    <a href="01-cyber-threat.html">01 Cyber Threat</a>
+    <a href="02-weather.html">02 Weather</a>
+    <a href="03-supply-chain.html">03 Supply Chain</a>
+    <a href="04-teacher.html">04 Teacher</a>
+    <a href="05-research.html">05 Research</a>
+    <a href="06-data-quality.html">06 Data Quality</a>
+    <a href="07-regulatory-compliance.html">07 Compliance</a>
+    <a href="08-open-data-investigator.html" class="active">08 Open Data</a>
+    <a href="09-incident-root-cause.html">09 Root Cause</a>
+    <a href="10-personal-finance.html">10 Finance</a>
+  </div>
+  <a href="index.html" class="nav-home">&larr; Design Hub</a>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">&#x1f319;</button>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Design 08 — Intermediate
+  </div>
+  <h1>Open Data <em>Investigator Agent</em></h1>
+  <p class="hero-desc">
+    An autonomous agent that searches government data catalogs (data.gov, Census Bureau, BLS), downloads datasets, runs statistical analysis, detects anomalies, and generates narratives with visualizations. The exploratory workflow branches based on findings — discovering an anomaly in one dataset triggers investigation of related datasets, making this a non-linear, discovery-driven process that static notebooks cannot replicate.
+  </p>
+  <div class="hero-checklist">
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Catalog Search</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Dataset Download</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Statistical Analysis</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Anomaly Detection</div>
+    <div class="hero-pill"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Narrative Generation</div>
+  </div>
+  <div style="margin-top: 20px;">
+    <a href="https://colab.research.google.com/github/careeralign/careeralign.github.io/blob/main/agentic-designs/notebooks/08-open-data-investigator.ipynb"
+       class="btn btn-outline" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20">
+      Open Notebook in Colab
+    </a>
+  </div>
+</section>
+
+<div class="content-grid">
+  <aside class="toc">
+    <div class="toc-title">On This Page</div>
+    <a href="#problem" class="section">1 · The Problem</a>
+    <a href="#why-agent" class="section">2 · Why an Agent</a>
+    <a href="#architecture" class="section">3 · Architecture</a>
+    <a href="#tools" class="section">4 · Tools &amp; APIs</a>
+    <a href="#loop" class="section">5 · The Agent Loop</a>
+    <a href="#code" class="section">6 · Code Walkthrough</a>
+    <a href="#takeaways" class="section">7 · Key Takeaways</a>
+  </aside>
+
+  <main class="main">
+
+    <!-- SECTION 1: THE PROBLEM -->
+    <div class="section" id="problem">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>The Problem</h2>
+      </div>
+
+      <p><strong>There are over 300,000 datasets on data.gov alone.</strong> The US government publishes data on everything from air quality to hospital readmission rates to farm subsidies. The Census Bureau, Bureau of Labor Statistics, EPA, and dozens of other agencies all have their own APIs. For journalists, researchers, and policy analysts, the sheer volume makes it nearly impossible to know what is available, let alone find the specific dataset that answers their question.</p>
+
+      <p><strong>Discovery is fragmented.</strong> Each agency uses different data formats (CSV, JSON, XML, shapefiles), different APIs (CKAN, REST, SOAP), different metadata standards, and different update schedules. A question like "How has air quality changed in counties with high poverty rates?" requires joining data from the EPA, Census Bureau, and BLS — three different APIs with three different schemas.</p>
+
+      <p><strong>Analysis requires domain expertise.</strong> Once you find the data, you need to clean it, understand its limitations (sampling methodology, margin of error, vintage), run appropriate statistical tests, and interpret the results in context. A naive analysis of CDC mortality data without understanding age-adjustment will produce misleading conclusions.</p>
+
+      <p><strong>The investigation is exploratory.</strong> A journalist investigating hospital safety does not know in advance which datasets will be relevant. They might start with CMS Hospital Compare data, find an anomaly in readmission rates in rural hospitals, pivot to Census poverty data for those counties, discover a correlation, then check BLS employment data for healthcare workers in the same areas. This branching, discovery-driven process is what makes an agent the right architecture.</p>
+    </div>
+
+    <!-- SECTION 2: WHY AN AGENT -->
+    <div class="section" id="why-agent">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Why an Agent</h2>
+      </div>
+
+      <p><strong>Why not a dashboard?</strong> Dashboards show pre-selected metrics from pre-selected datasets. They cannot discover new datasets, join across agencies, or follow an investigative thread. The user must already know what they are looking for — the agent can explore and surprise.</p>
+
+      <p><strong>Why not a notebook?</strong> Notebooks require the analyst to write code for each step: API calls, data cleaning, analysis, visualization. The agent automates the mechanical parts (API calls, data loading, basic statistics) while using the LLM to guide the investigation — deciding what to look at next based on what it has found so far.</p>
+
+      <p><strong>Why an agent?</strong> The investigative workflow is inherently non-linear:</p>
+      <ul>
+        <li><strong>Search and discover</strong> — The agent searches data catalogs with natural language queries, finding datasets the user did not know existed.</li>
+        <li><strong>Download and profile</strong> — It downloads datasets, inspects their schema, and summarizes what is available before committing to a full analysis.</li>
+        <li><strong>Analyze and detect</strong> — It runs statistical analysis (trends, correlations, distributions) and flags anomalies that warrant investigation.</li>
+        <li><strong>Branch on findings</strong> — When it finds something interesting (e.g., a county with unusually high hospital readmission rates), it searches for related datasets to investigate the finding further.</li>
+        <li><strong>Synthesize</strong> — It generates a narrative that connects the findings across multiple datasets into a coherent story, with citations to the specific data sources.</li>
+      </ul>
+    </div>
+
+    <!-- SECTION 3: ARCHITECTURE -->
+    <div class="section" id="architecture">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>Architecture</h2>
+      </div>
+
+      <div class="skill-grid">
+        <div class="skill-card">
+          <h3>Catalog Searcher</h3>
+          <p>Searches the data.gov CKAN API and other catalogs with natural language queries. Returns dataset metadata including title, description, agency, format, update frequency, and download URLs.</p>
+        </div>
+        <div class="skill-card">
+          <h3>Dataset Downloader</h3>
+          <p>Downloads datasets from URLs, handles multiple formats (CSV, JSON, Excel, ZIP), and loads them into pandas DataFrames. Applies basic cleaning: header detection, encoding fixes, type inference.</p>
+        </div>
+        <div class="skill-card">
+          <h3>Statistical Analyzer</h3>
+          <p>Runs descriptive statistics, trend analysis (linear regression over time), correlation matrices, and distribution tests. Returns structured results that the LLM can interpret and report on.</p>
+        </div>
+        <div class="skill-card">
+          <h3>Anomaly Detector</h3>
+          <p>Identifies statistical anomalies: outlier values, trend breaks, unusual distributions, and geographic clusters. Flags findings with confidence levels and contextual information.</p>
+        </div>
+        <div class="skill-card">
+          <h3>Chart Generator</h3>
+          <p>Creates matplotlib visualizations: time series, scatter plots, choropleth maps, bar charts. Saves charts as images and returns file paths for inclusion in the narrative.</p>
+        </div>
+        <div class="skill-card">
+          <h3>Narrative Writer</h3>
+          <p>Uses the LLM to synthesize findings into a structured narrative with sections, citations, and embedded charts. Targets a journalistic style: lead with the most newsworthy finding.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: TOOLS & APIS -->
+    <div class="section" id="tools">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Tools &amp; APIs</h2>
+      </div>
+
+      <p>Tool definitions using real government APIs. The data.gov CKAN API is free, requires no authentication, and provides access to hundreds of thousands of datasets.</p>
+
+      <pre><code><span class="code-keyword">import</span> json, requests
+<span class="code-keyword">import</span> pandas <span class="code-keyword">as</span> pd
+<span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np
+<span class="code-keyword">import</span> matplotlib.pyplot <span class="code-keyword">as</span> plt
+<span class="code-keyword">from</span> scipy <span class="code-keyword">import</span> stats
+<span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+
+client = <span class="code-fn">OpenAI</span>()
+
+<span class="code-comment"># ── Tool Definitions ──</span>
+tools = [
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"search_catalog"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Search data.gov CKAN catalog for datasets matching a query. Returns dataset titles, descriptions, formats, and download URLs."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"query"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Natural language search query"</span>},
+                    <span class="code-string">"max_results"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"integer"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Max datasets to return (default 5)"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"query"</span>]
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"download_dataset"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Download a dataset from a URL and load it into memory. Returns schema, row count, and sample rows."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"url"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Download URL for the dataset"</span>},
+                    <span class="code-string">"dataset_id"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Unique ID to reference this dataset later"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"url"</span>, <span class="code-string">"dataset_id"</span>]
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"run_analysis"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Run statistical analysis on a loaded dataset: descriptive stats, trends, correlations, or group comparisons."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"dataset_id"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>},
+                    <span class="code-string">"analysis_type"</span>: {
+                        <span class="code-string">"type"</span>: <span class="code-string">"string"</span>,
+                        <span class="code-string">"enum"</span>: [<span class="code-string">"descriptive"</span>, <span class="code-string">"trend"</span>, <span class="code-string">"correlation"</span>, <span class="code-string">"group_comparison"</span>]
+                    },
+                    <span class="code-string">"columns"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"array"</span>, <span class="code-string">"items"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>}},
+                    <span class="code-string">"group_by"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Column to group by for comparisons"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"dataset_id"</span>, <span class="code-string">"analysis_type"</span>]
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"detect_anomaly"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Detect anomalies in a dataset column: outliers, trend breaks, or unusual distributions."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"dataset_id"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>},
+                    <span class="code-string">"column"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>},
+                    <span class="code-string">"method"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"enum"</span>: [<span class="code-string">"zscore"</span>, <span class="code-string">"iqr"</span>, <span class="code-string">"trend_break"</span>]}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"dataset_id"</span>, <span class="code-string">"column"</span>]
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"generate_chart"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Generate a chart (line, bar, scatter, histogram) from a dataset and save as PNG."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"dataset_id"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>},
+                    <span class="code-string">"chart_type"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"enum"</span>: [<span class="code-string">"line"</span>, <span class="code-string">"bar"</span>, <span class="code-string">"scatter"</span>, <span class="code-string">"histogram"</span>]},
+                    <span class="code-string">"x_column"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>},
+                    <span class="code-string">"y_column"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>},
+                    <span class="code-string">"title"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"dataset_id"</span>, <span class="code-string">"chart_type"</span>, <span class="code-string">"x_column"</span>, <span class="code-string">"y_column"</span>]
+            }
+        }
+    },
+    {
+        <span class="code-string">"type"</span>: <span class="code-string">"function"</span>,
+        <span class="code-string">"function"</span>: {
+            <span class="code-string">"name"</span>: <span class="code-string">"write_narrative"</span>,
+            <span class="code-string">"description"</span>: <span class="code-string">"Synthesize findings into a structured narrative with sections, data citations, and embedded chart references."</span>,
+            <span class="code-string">"parameters"</span>: {
+                <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+                <span class="code-string">"properties"</span>: {
+                    <span class="code-string">"headline"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>},
+                    <span class="code-string">"findings"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"array"</span>, <span class="code-string">"items"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"object"</span>}},
+                    <span class="code-string">"datasets_used"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"array"</span>, <span class="code-string">"items"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>}}
+                },
+                <span class="code-string">"required"</span>: [<span class="code-string">"headline"</span>, <span class="code-string">"findings"</span>]
+            }
+        }
+    }
+]</code></pre>
+    </div>
+
+    <!-- SECTION 5: THE AGENT LOOP -->
+    <div class="section" id="loop">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>The Agent Loop</h2>
+      </div>
+
+      <p>The investigator agent follows an <strong>exploratory branching loop</strong>. Unlike agents with a fixed workflow, this agent dynamically decides what to investigate next based on what it finds.</p>
+
+      <ol>
+        <li><strong>Search</strong> — The user provides a topic (e.g., "hospital safety in rural areas"). The agent searches data.gov for relevant datasets.</li>
+        <li><strong>Download and Profile</strong> — The agent downloads the most promising datasets, inspects their schemas, and determines which columns are relevant.</li>
+        <li><strong>Analyze</strong> — The agent runs descriptive statistics on key columns, looking for patterns, trends, and distributions.</li>
+        <li><strong>Detect Anomalies</strong> — The agent flags statistical anomalies: counties with unusually high/low values, trend breaks that coincide with policy changes, unexpected correlations.</li>
+        <li><strong>Branch</strong> — When an anomaly is found, the agent decides whether to investigate further. If the finding is interesting, it searches for related datasets that might explain the anomaly.</li>
+        <li><strong>Correlate</strong> — The agent joins datasets (e.g., hospital readmission rates with county poverty levels) and tests for correlations.</li>
+        <li><strong>Visualize</strong> — The agent generates charts for key findings: trend lines, scatter plots showing correlations, bar charts comparing groups.</li>
+        <li><strong>Narrate</strong> — Finally, the agent writes a data-driven narrative that connects the findings into a coherent story.</li>
+      </ol>
+
+      <p><strong>Why branching?</strong> A journalist investigating hospital safety might start with CMS data and discover that rural hospitals in Appalachian states have readmission rates 40% above the national average. This finding triggers a branch: search for poverty data in those counties. The correlation between poverty and readmission rates then triggers another branch: check healthcare worker shortage data. The agent follows the story wherever the data leads.</p>
+    </div>
+
+    <!-- SECTION 6: CODE WALKTHROUGH -->
+    <div class="section" id="code">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Code Walkthrough</h2>
+      </div>
+
+      <p>Complete implementation with real data.gov CKAN API calls, statistical analysis, and chart generation.</p>
+
+      <pre><code><span class="code-keyword">import</span> json, requests, os
+<span class="code-keyword">import</span> pandas <span class="code-keyword">as</span> pd
+<span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np
+<span class="code-keyword">import</span> matplotlib
+matplotlib.<span class="code-fn">use</span>(<span class="code-string">"Agg"</span>)  <span class="code-comment"># Non-interactive backend</span>
+<span class="code-keyword">import</span> matplotlib.pyplot <span class="code-keyword">as</span> plt
+<span class="code-keyword">from</span> scipy <span class="code-keyword">import</span> stats
+<span class="code-keyword">from</span> openai <span class="code-keyword">import</span> OpenAI
+
+client = <span class="code-fn">OpenAI</span>()
+datasets = {}  <span class="code-comment"># In-memory store: dataset_id -> DataFrame</span>
+charts = []    <span class="code-comment"># List of generated chart paths</span>
+
+<span class="code-comment"># ── Tool Implementations ──</span>
+<span class="code-keyword">def</span> <span class="code-fn">search_catalog</span>(query: str, max_results: int = <span class="code-num">5</span>) -> str:
+    <span class="code-string">"""Search data.gov CKAN API for datasets."""</span>
+    url = <span class="code-string">"https://catalog.data.gov/api/3/action/package_search"</span>
+    params = {<span class="code-string">"q"</span>: query, <span class="code-string">"rows"</span>: max_results}
+    <span class="code-keyword">try</span>:
+        resp = requests.<span class="code-fn">get</span>(url, params=params, timeout=<span class="code-num">15</span>)
+        data = resp.<span class="code-fn">json</span>()
+        results = []
+        <span class="code-keyword">for</span> pkg <span class="code-keyword">in</span> data[<span class="code-string">"result"</span>][<span class="code-string">"results"</span>]:
+            resources = [r <span class="code-keyword">for</span> r <span class="code-keyword">in</span> pkg.<span class="code-fn">get</span>(<span class="code-string">"resources"</span>, [])
+                         <span class="code-keyword">if</span> r.<span class="code-fn">get</span>(<span class="code-string">"format"</span>, <span class="code-string">""</span>).upper() <span class="code-keyword">in</span> (<span class="code-string">"CSV"</span>, <span class="code-string">"JSON"</span>)]
+            results.<span class="code-fn">append</span>({
+                <span class="code-string">"title"</span>: pkg[<span class="code-string">"title"</span>],
+                <span class="code-string">"description"</span>: pkg.<span class="code-fn">get</span>(<span class="code-string">"notes"</span>, <span class="code-string">""</span>)[:<span class="code-num">200</span>],
+                <span class="code-string">"organization"</span>: pkg.<span class="code-fn">get</span>(<span class="code-string">"organization"</span>, {}).<span class="code-fn">get</span>(<span class="code-string">"title"</span>, <span class="code-string">"Unknown"</span>),
+                <span class="code-string">"formats"</span>: [r.<span class="code-fn">get</span>(<span class="code-string">"format"</span>) <span class="code-keyword">for</span> r <span class="code-keyword">in</span> resources],
+                <span class="code-string">"download_urls"</span>: [r.<span class="code-fn">get</span>(<span class="code-string">"url"</span>) <span class="code-keyword">for</span> r <span class="code-keyword">in</span> resources[:<span class="code-num">3</span>]],
+            })
+        <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>({<span class="code-string">"count"</span>: data[<span class="code-string">"result"</span>][<span class="code-string">"count"</span>], <span class="code-string">"results"</span>: results})
+    <span class="code-keyword">except</span> Exception <span class="code-keyword">as</span> e:
+        <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>({<span class="code-string">"error"</span>: str(e)})
+
+<span class="code-keyword">def</span> <span class="code-fn">download_dataset</span>(url: str, dataset_id: str) -> str:
+    <span class="code-string">"""Download a CSV/JSON dataset and load into memory."""</span>
+    <span class="code-keyword">try</span>:
+        <span class="code-keyword">if</span> url.endswith(<span class="code-string">".json"</span>):
+            df = pd.<span class="code-fn">read_json</span>(url)
+        <span class="code-keyword">else</span>:
+            df = pd.<span class="code-fn">read_csv</span>(url, nrows=<span class="code-num">10000</span>)  <span class="code-comment"># Limit for safety</span>
+        datasets[dataset_id] = df
+        <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>({
+            <span class="code-string">"dataset_id"</span>: dataset_id,
+            <span class="code-string">"rows"</span>: len(df), <span class="code-string">"columns"</span>: list(df.columns),
+            <span class="code-string">"dtypes"</span>: {col: str(dt) <span class="code-keyword">for</span> col, dt <span class="code-keyword">in</span> df.dtypes.items()},
+            <span class="code-string">"sample"</span>: df.<span class="code-fn">head</span>(<span class="code-num">3</span>).to_dict(orient=<span class="code-string">"records"</span>)
+        })
+    <span class="code-keyword">except</span> Exception <span class="code-keyword">as</span> e:
+        <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>({<span class="code-string">"error"</span>: str(e)})
+
+<span class="code-keyword">def</span> <span class="code-fn">run_analysis</span>(dataset_id: str, analysis_type: str,
+                 columns: list = <span class="code-keyword">None</span>, group_by: str = <span class="code-keyword">None</span>) -> str:
+    <span class="code-string">"""Run statistical analysis on a loaded dataset."""</span>
+    df = datasets.<span class="code-fn">get</span>(dataset_id)
+    <span class="code-keyword">if</span> df <span class="code-keyword">is None</span>:
+        <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>({<span class="code-string">"error"</span>: f<span class="code-string">"Dataset '{dataset_id}' not loaded"</span>})
+    cols = columns <span class="code-keyword">or</span> df.select_dtypes(include=[np.number]).columns.tolist()
+
+    <span class="code-keyword">if</span> analysis_type == <span class="code-string">"descriptive"</span>:
+        result = df[cols].<span class="code-fn">describe</span>().to_dict()
+    <span class="code-keyword">elif</span> analysis_type == <span class="code-string">"trend"</span> <span class="code-keyword">and</span> len(cols) >= <span class="code-num">2</span>:
+        x, y = df[cols[<span class="code-num">0</span>]].<span class="code-fn">dropna</span>(), df[cols[<span class="code-num">1</span>]].<span class="code-fn">dropna</span>()
+        common = x.index.<span class="code-fn">intersection</span>(y.index)
+        slope, intercept, r, p, se = stats.<span class="code-fn">linregress</span>(x[common], y[common])
+        result = {<span class="code-string">"slope"</span>: round(slope, <span class="code-num">4</span>), <span class="code-string">"r_squared"</span>: round(r**<span class="code-num">2</span>, <span class="code-num">4</span>),
+                  <span class="code-string">"p_value"</span>: round(p, <span class="code-num">6</span>), <span class="code-string">"significant"</span>: p < <span class="code-num">0.05</span>}
+    <span class="code-keyword">elif</span> analysis_type == <span class="code-string">"correlation"</span>:
+        corr = df[cols].<span class="code-fn">corr</span>()
+        <span class="code-comment"># Find top correlations (exclude self-correlation)</span>
+        pairs = []
+        <span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-fn">range</span>(len(corr.columns)):
+            <span class="code-keyword">for</span> j <span class="code-keyword">in</span> <span class="code-fn">range</span>(i+<span class="code-num">1</span>, len(corr.columns)):
+                pairs.<span class="code-fn">append</span>({
+                    <span class="code-string">"col_a"</span>: corr.columns[i], <span class="code-string">"col_b"</span>: corr.columns[j],
+                    <span class="code-string">"correlation"</span>: round(corr.iloc[i, j], <span class="code-num">4</span>)
+                })
+        pairs.<span class="code-fn">sort</span>(key=<span class="code-keyword">lambda</span> x: abs(x[<span class="code-string">"correlation"</span>]), reverse=<span class="code-keyword">True</span>)
+        result = {<span class="code-string">"top_correlations"</span>: pairs[:<span class="code-num">10</span>]}
+    <span class="code-keyword">elif</span> analysis_type == <span class="code-string">"group_comparison"</span> <span class="code-keyword">and</span> group_by:
+        grouped = df.<span class="code-fn">groupby</span>(group_by)[cols].<span class="code-fn">mean</span>()
+        result = {<span class="code-string">"groups"</span>: grouped.<span class="code-fn">head</span>(<span class="code-num">20</span>).to_dict()}
+    <span class="code-keyword">else</span>:
+        result = {<span class="code-string">"error"</span>: <span class="code-string">"Invalid analysis type or missing columns"</span>}
+
+    <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>(result, default=str)
+
+<span class="code-keyword">def</span> <span class="code-fn">detect_anomaly</span>(dataset_id: str, column: str, method: str = <span class="code-string">"zscore"</span>) -> str:
+    <span class="code-string">"""Detect anomalies in a dataset column."""</span>
+    df = datasets.<span class="code-fn">get</span>(dataset_id)
+    <span class="code-keyword">if</span> df <span class="code-keyword">is None</span>:
+        <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>({<span class="code-string">"error"</span>: <span class="code-string">"Dataset not loaded"</span>})
+    series = pd.<span class="code-fn">to_numeric</span>(df[column], errors=<span class="code-string">"coerce"</span>).<span class="code-fn">dropna</span>()
+
+    <span class="code-keyword">if</span> method == <span class="code-string">"zscore"</span>:
+        z = np.<span class="code-fn">abs</span>(stats.<span class="code-fn">zscore</span>(series))
+        anomalies = series[z > <span class="code-num">3</span>]
+    <span class="code-keyword">elif</span> method == <span class="code-string">"iqr"</span>:
+        q1, q3 = series.<span class="code-fn">quantile</span>([<span class="code-num">0.25</span>, <span class="code-num">0.75</span>])
+        iqr = q3 - q1
+        anomalies = series[(series < q1 - <span class="code-num">1.5</span>*iqr) | (series > q3 + <span class="code-num">1.5</span>*iqr)]
+    <span class="code-keyword">elif</span> method == <span class="code-string">"trend_break"</span>:
+        rolling_mean = series.<span class="code-fn">rolling</span>(<span class="code-num">10</span>).<span class="code-fn">mean</span>()
+        deviations = (series - rolling_mean).<span class="code-fn">abs</span>()
+        threshold = deviations.<span class="code-fn">mean</span>() + <span class="code-num">2</span> * deviations.<span class="code-fn">std</span>()
+        anomalies = series[deviations > threshold]
+    <span class="code-keyword">else</span>:
+        <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>({<span class="code-string">"error"</span>: <span class="code-string">"Unknown method"</span>})
+
+    <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>({
+        <span class="code-string">"column"</span>: column, <span class="code-string">"method"</span>: method,
+        <span class="code-string">"total_values"</span>: len(series),
+        <span class="code-string">"anomaly_count"</span>: len(anomalies),
+        <span class="code-string">"anomaly_pct"</span>: round(len(anomalies) / len(series) * <span class="code-num">100</span>, <span class="code-num">2</span>),
+        <span class="code-string">"sample_anomalies"</span>: anomalies.<span class="code-fn">head</span>(<span class="code-num">5</span>).tolist(),
+        <span class="code-string">"normal_mean"</span>: round(series.<span class="code-fn">mean</span>(), <span class="code-num">2</span>),
+        <span class="code-string">"normal_std"</span>: round(series.<span class="code-fn">std</span>(), <span class="code-num">2</span>)
+    })
+
+<span class="code-keyword">def</span> <span class="code-fn">generate_chart</span>(dataset_id: str, chart_type: str,
+                    x_column: str, y_column: str, title: str = <span class="code-string">""</span>) -> str:
+    <span class="code-string">"""Generate a matplotlib chart and save as PNG."""</span>
+    df = datasets.<span class="code-fn">get</span>(dataset_id)
+    <span class="code-keyword">if</span> df <span class="code-keyword">is None</span>:
+        <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>({<span class="code-string">"error"</span>: <span class="code-string">"Dataset not loaded"</span>})
+    fig, ax = plt.<span class="code-fn">subplots</span>(figsize=(<span class="code-num">10</span>, <span class="code-num">6</span>))
+    <span class="code-keyword">if</span> chart_type == <span class="code-string">"line"</span>:
+        ax.<span class="code-fn">plot</span>(df[x_column], df[y_column])
+    <span class="code-keyword">elif</span> chart_type == <span class="code-string">"bar"</span>:
+        ax.<span class="code-fn">bar</span>(df[x_column].<span class="code-fn">head</span>(<span class="code-num">20</span>), df[y_column].<span class="code-fn">head</span>(<span class="code-num">20</span>))
+        plt.<span class="code-fn">xticks</span>(rotation=<span class="code-num">45</span>, ha=<span class="code-string">"right"</span>)
+    <span class="code-keyword">elif</span> chart_type == <span class="code-string">"scatter"</span>:
+        ax.<span class="code-fn">scatter</span>(df[x_column], df[y_column], alpha=<span class="code-num">0.5</span>)
+    <span class="code-keyword">elif</span> chart_type == <span class="code-string">"histogram"</span>:
+        ax.<span class="code-fn">hist</span>(df[y_column].<span class="code-fn">dropna</span>(), bins=<span class="code-num">30</span>)
+
+    ax.<span class="code-fn">set_xlabel</span>(x_column)
+    ax.<span class="code-fn">set_ylabel</span>(y_column)
+    ax.<span class="code-fn">set_title</span>(title <span class="code-keyword">or</span> f<span class="code-string">"{y_column} by {x_column}"</span>)
+    plt.<span class="code-fn">tight_layout</span>()
+    path = f<span class="code-string">"charts/{dataset_id}_{chart_type}.png"</span>
+    os.<span class="code-fn">makedirs</span>(<span class="code-string">"charts"</span>, exist_ok=<span class="code-keyword">True</span>)
+    fig.<span class="code-fn">savefig</span>(path, dpi=<span class="code-num">150</span>)
+    plt.<span class="code-fn">close</span>(fig)
+    charts.<span class="code-fn">append</span>(path)
+    <span class="code-keyword">return</span> json.<span class="code-fn">dumps</span>({<span class="code-string">"chart_path"</span>: path, <span class="code-string">"chart_type"</span>: chart_type})
+
+<span class="code-keyword">def</span> <span class="code-fn">write_narrative</span>(headline: str, findings: list, datasets_used: list = <span class="code-keyword">None</span>) -> str:
+    <span class="code-string">"""Generate a narrative report from findings."""</span>
+    prompt = f<span class="code-string">"""Write a data-driven investigative narrative.
+Headline: {headline}
+Findings: {json.dumps(findings)}
+Datasets used: {json.dumps(datasets_used or [])}
+
+Write in journalistic style. Lead with the most newsworthy finding.
+Include specific numbers. Cite dataset sources. 300-500 words."""</span>
+    resp = client.chat.completions.<span class="code-fn">create</span>(
+        model=<span class="code-string">"gpt-4o"</span>,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: prompt}]
+    )
+    <span class="code-keyword">return</span> resp.choices[<span class="code-num">0</span>].message.content</code></pre>
+
+      <p>The agent loop with the investigative system prompt:</p>
+
+      <pre><code><span class="code-comment"># ── Agent Loop ──</span>
+TOOL_MAP = {
+    <span class="code-string">"search_catalog"</span>: <span class="code-keyword">lambda</span> a: <span class="code-fn">search_catalog</span>(a[<span class="code-string">"query"</span>], a.<span class="code-fn">get</span>(<span class="code-string">"max_results"</span>, <span class="code-num">5</span>)),
+    <span class="code-string">"download_dataset"</span>: <span class="code-keyword">lambda</span> a: <span class="code-fn">download_dataset</span>(a[<span class="code-string">"url"</span>], a[<span class="code-string">"dataset_id"</span>]),
+    <span class="code-string">"run_analysis"</span>: <span class="code-keyword">lambda</span> a: <span class="code-fn">run_analysis</span>(a[<span class="code-string">"dataset_id"</span>], a[<span class="code-string">"analysis_type"</span>],
+                                            a.<span class="code-fn">get</span>(<span class="code-string">"columns"</span>), a.<span class="code-fn">get</span>(<span class="code-string">"group_by"</span>)),
+    <span class="code-string">"detect_anomaly"</span>: <span class="code-keyword">lambda</span> a: <span class="code-fn">detect_anomaly</span>(a[<span class="code-string">"dataset_id"</span>], a[<span class="code-string">"column"</span>],
+                                               a.<span class="code-fn">get</span>(<span class="code-string">"method"</span>, <span class="code-string">"zscore"</span>)),
+    <span class="code-string">"generate_chart"</span>: <span class="code-keyword">lambda</span> a: <span class="code-fn">generate_chart</span>(a[<span class="code-string">"dataset_id"</span>], a[<span class="code-string">"chart_type"</span>],
+                                               a[<span class="code-string">"x_column"</span>], a[<span class="code-string">"y_column"</span>],
+                                               a.<span class="code-fn">get</span>(<span class="code-string">"title"</span>, <span class="code-string">""</span>)),
+    <span class="code-string">"write_narrative"</span>: <span class="code-keyword">lambda</span> a: <span class="code-fn">write_narrative</span>(a[<span class="code-string">"headline"</span>], a[<span class="code-string">"findings"</span>],
+                                                a.<span class="code-fn">get</span>(<span class="code-string">"datasets_used"</span>)),
+}
+
+SYSTEM_PROMPT = <span class="code-string">"""You are an Open Data Investigator Agent. Your job is to explore
+government datasets and find newsworthy stories in the data.
+
+Workflow:
+1. Search data.gov for datasets related to the user's topic
+2. Download the most promising datasets (prefer CSV format)
+3. Run descriptive analysis to understand the data
+4. Detect anomalies — look for surprising patterns, outliers, trend breaks
+5. When you find something interesting, search for related datasets to investigate
+6. Generate charts for key findings
+7. Write a narrative that connects findings into a story
+
+Be curious: follow the data wherever it leads. Always cite specific numbers.
+When you find an anomaly, ask 'why?' and search for explanatory datasets.
+Stop after investigating 2-3 datasets or 15 tool calls."""</span>
+
+<span class="code-keyword">def</span> <span class="code-fn">run_investigator</span>(topic: str, max_steps: int = <span class="code-num">15</span>) -> str:
+    messages = [
+        {<span class="code-string">"role"</span>: <span class="code-string">"system"</span>, <span class="code-string">"content"</span>: SYSTEM_PROMPT},
+        {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: f<span class="code-string">"Investigate: {topic}"</span>}
+    ]
+
+    <span class="code-keyword">for</span> step <span class="code-keyword">in</span> <span class="code-fn">range</span>(max_steps):
+        resp = client.chat.completions.<span class="code-fn">create</span>(
+            model=<span class="code-string">"gpt-4o"</span>, messages=messages,
+            tools=tools, tool_choice=<span class="code-string">"auto"</span>
+        )
+        msg = resp.choices[<span class="code-num">0</span>].message
+        messages.<span class="code-fn">append</span>(msg)
+
+        <span class="code-keyword">if not</span> msg.tool_calls:
+            <span class="code-keyword">return</span> msg.content
+
+        <span class="code-keyword">for</span> tc <span class="code-keyword">in</span> msg.tool_calls:
+            fn = tc.function.name
+            args = json.<span class="code-fn">loads</span>(tc.function.arguments)
+            print(f<span class="code-string">"  [{step+1}] {fn}({list(args.keys())})"</span>)
+            result = TOOL_MAP[fn](args)
+            messages.<span class="code-fn">append</span>({
+                <span class="code-string">"role"</span>: <span class="code-string">"tool"</span>, <span class="code-string">"tool_call_id"</span>: tc.id, <span class="code-string">"content"</span>: result
+            })
+
+    <span class="code-keyword">return</span> <span class="code-string">"Investigation reached step limit."</span>
+
+<span class="code-comment"># ── Run ──</span>
+story = <span class="code-fn">run_investigator</span>(
+    <span class="code-string">"Air quality trends in US counties with high poverty rates. "</span>
+    <span class="code-string">"Are disadvantaged communities disproportionately affected by pollution?"</span>
+)
+print(story)</code></pre>
+    </div>
+
+    <!-- SECTION 7: KEY TAKEAWAYS -->
+    <div class="section" id="takeaways">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <h2>Key Takeaways</h2>
+      </div>
+
+      <div class="checklist">
+        <div class="checklist-item">The data.gov CKAN API is free, requires no authentication, and provides access to 300,000+ datasets — an ideal playground for data agents</div>
+        <div class="checklist-item">Exploratory data analysis is inherently non-linear: findings in one dataset trigger investigation of related datasets</div>
+        <div class="checklist-item">Always limit dataset downloads (nrows=10000) to prevent memory issues — the agent can request more rows if needed</div>
+        <div class="checklist-item">Statistical anomalies are not stories until explained: the agent must search for causal factors, not just report numbers</div>
+        <div class="checklist-item">Chart generation with matplotlib's Agg backend works in headless environments (Colab, servers) without display issues</div>
+        <div class="checklist-item">The narrative writer tool uses the LLM itself — this is a pattern where one tool call triggers another LLM call with a specialized prompt</div>
+        <div class="checklist-item">Data journalism requires citing sources: every number in the narrative must trace back to a specific dataset and column</div>
+        <div class="checklist-item">This pattern extends to any domain with large open data: scientific research, market analysis, urban planning</div>
+      </div>
+    </div>
+
+    <!-- NEXT / PREV -->
+    <div class="next-section">
+      <div>
+        <div class="next-label">&larr; Previous</div>
+        <a class="next-btn prev-btn" href="07-regulatory-compliance.html"><span>07 &middot; Regulatory Compliance Agent</span></a>
+      </div>
+      <div style="text-align:right;">
+        <div class="next-label">Next &rarr;</div>
+        <a class="next-btn" href="09-incident-root-cause.html">
+          <span>09 &middot; Incident Root Cause Agent</span>
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../theme.js"></script>
+</body>
+</html>
