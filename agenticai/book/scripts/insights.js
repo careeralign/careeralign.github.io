@@ -1568,6 +1568,7 @@
 
   function slugify(text) {
     return text.toLowerCase()
+      .replace(/['']/g, '')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
   }
@@ -1640,6 +1641,13 @@
     var cardMap = {};
     cards.forEach(function (card) {
       cardMap[card.dataset.section] = card;
+    });
+
+    // Auto-assign IDs to h2 elements from their text content
+    document.querySelectorAll('h2').forEach(function (h2) {
+      if (!h2.id) {
+        h2.id = slugify(h2.textContent.trim().replace(/^\d+\.\d+\s*/, ''));
+      }
     });
 
     // Collect all h2 elements with IDs
