@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 15 — Evaluating and Validating LLM Outputs | LLMs for Business &amp; Quality Analysts</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="ch14-custom-assistants.html" class="nav-prev">Custom Assistants</a>
+    <span class="nav-title">Part 4 — Advanced Patterns</span>
+    <a href="../part-05-capstones/capstone-01.html" class="nav-next">Capstone 1</a>
+  </nav>
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 4 — Advanced Patterns</span>
+      <h1>Evaluating and Validating LLM Outputs</h1>
+      <p class="chapter-intro">An LLM that sounds authoritative is not the same as an LLM that is correct. Every analyst who has used ChatGPT has experienced the unsettling moment when a perfectly fluent, well-structured response turns out to be confidently wrong. In production workflows where LLM outputs feed into business decisions, compliance documents, or test plans, undetected errors carry real consequences. This chapter gives you a systematic framework for evaluating, validating, and building trust in LLM-generated outputs — from automated metrics to human-in-the-loop review processes.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~25 min</span>
+        <span>Project: Validation Framework</span>
+      </div>
+    </header>
+
+    <!-- Objectives -->
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>Why validation is non-negotiable for any LLM workflow that touches production decisions</li>
+        <li>Quantitative metrics for evaluating text accuracy, completeness, and consistency</li>
+        <li>Automated hallucination detection techniques that catch fabricated facts and citations</li>
+        <li>Cross-run consistency checking to identify non-deterministic outputs</li>
+        <li>Designing human-in-the-loop validation workflows that scale</li>
+        <li>A/B testing methodologies for comparing LLM workflow variants</li>
+        <li>Strategies for building stakeholder trust in AI-assisted outputs</li>
+      </ul>
+    </section>
+
+    <!-- Section 1 -->
+    <section>
+      <h2>1. The Validation Imperative</h2>
+
+      <p>LLMs are probabilistic text generators. They do not "know" anything — they predict the next token based on statistical patterns in their training data. This means every output is a prediction, not a fact. For business analysts producing requirements documents or quality analysts generating test cases, this distinction matters enormously.</p>
+
+      <p>Consider the risk profile of different LLM use cases:</p>
+
+      <table>
+        <thead>
+          <tr><th>Use Case</th><th>Risk of Error</th><th>Impact of Error</th><th>Validation Level Needed</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Brainstorming ideas</td><td>Low concern</td><td>Low</td><td>None — errors are acceptable</td></tr>
+          <tr><td>Drafting emails</td><td>Medium</td><td>Low-Medium</td><td>Quick human scan</td></tr>
+          <tr><td>User story generation</td><td>Medium</td><td>Medium</td><td>Structured review checklist</td></tr>
+          <tr><td>Test case generation</td><td>Medium-High</td><td>High</td><td>Automated validation + human review</td></tr>
+          <tr><td>Compliance documentation</td><td>High</td><td>Very High</td><td>Multi-layer validation + legal review</td></tr>
+          <tr><td>Production code generation</td><td>High</td><td>Very High</td><td>Automated tests + code review + staging</td></tr>
+          <tr><td>Medical/legal advice</td><td>Very High</td><td>Critical</td><td>Expert human review mandatory</td></tr>
+        </tbody>
+      </table>
+
+      <p>The validation level should match the risk level. Using an LLM to brainstorm feature ideas requires no validation — a bad idea is easily discarded. Using an LLM to generate regulatory compliance documentation requires multiple validation layers because a wrong claim could result in legal liability.</p>
+
+      <p>The core validation question is always the same: <strong>How do you know this output is correct?</strong> If you cannot answer that question for your use case, you are not ready to put the LLM output into production.</p>
+
+      <div class="callout callout-warning">
+        <strong>Fluency is not accuracy.</strong> The most dangerous property of LLMs is that wrong answers are just as fluent and well-structured as right answers. A hallucinated requirement reads exactly like a real requirement. A fabricated test case looks exactly like a valid test case. You cannot rely on "it sounds right" as a validation strategy. You need systematic, repeatable validation processes.
+      </div>
+    </section>
+
+    <!-- Section 2 -->
+    <section>
+      <h2>2. Accuracy Metrics for Text</h2>
+
+      <p>Measuring the accuracy of generated text is harder than measuring the accuracy of a classification model (where you simply count correct predictions). Text accuracy has multiple dimensions: factual correctness, completeness, format compliance, and semantic equivalence.</p>
+
+      <pre><code class="language-python">from openai import OpenAI
+import json
+import re
+
+client = OpenAI()
+
+class TextAccuracyEvaluator:
+    """Evaluate LLM text output accuracy across dimensions."""
+
+    def __init__(self, model: str = "gpt-4o"):
+        self.model = model
+
+    def evaluate_factual_accuracy(self, generated: str,
+                                    reference: str) -> dict:
+        """Compare generated text against a reference for
+        factual accuracy. The reference is the ground truth."""
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=[{
+                "role": "user",
+                "content": f"""Compare the Generated text against
+the Reference text for factual accuracy.
+
+For each factual claim in the Generated text:
+1. Quote the claim
+2. Is it present in the Reference? (yes/no/partial)
+3. Is it accurate according to the Reference? (accurate/inaccurate/not_verifiable)
+
+Also identify:
+- Facts in the Reference that are MISSING from Generated text
+- Facts in the Generated text that CONTRADICT the Reference
+
+Reference (ground truth):
+{reference}
+
+Generated (to evaluate):
+{generated}
+
+Return JSON with:
+- "claims": array of {{claim, in_reference, accuracy}}
+- "missing_facts": array of facts in reference but not generated
+- "contradictions": array of contradicting claims
+- "accuracy_score": 0.0-1.0
+- "completeness_score": 0.0-1.0"""
+            }],
+            response_format={"type": "json_object"},
+            temperature=0
+        )
+        return json.loads(response.choices[0].message.content)
+
+    def evaluate_format_compliance(self, generated: str,
+                                     format_spec: dict) -> dict:
+        """Check if the output follows the required format."""
+        checks = {}
+
+        # Check structural requirements
+        if "required_sections" in format_spec:
+            for section in format_spec["required_sections"]:
+                checks[f"has_section_{section}"] = (
+                    section.lower() in generated.lower()
+                )
+
+        if "max_length" in format_spec:
+            checks["within_length"] = (
+                len(generated) <= format_spec["max_length"]
+            )
+
+        if "required_patterns" in format_spec:
+            for name, pattern in format_spec["required_patterns"].items():
+                checks[f"pattern_{name}"] = bool(
+                    re.search(pattern, generated)
+                )
+
+        if "prohibited_patterns" in format_spec:
+            for name, pattern in format_spec["prohibited_patterns"].items():
+                checks[f"no_{name}"] = not bool(
+                    re.search(pattern, generated)
+                )
+
+        passed = sum(1 for v in checks.values() if v)
+        total = len(checks)
+
+        return {
+            "checks": checks,
+            "passed": passed,
+            "total": total,
+            "compliance_score": round(passed / total, 3) if total else 1.0
+        }
+
+    def evaluate_semantic_equivalence(self, text_a: str,
+                                        text_b: str) -> dict:
+        """Determine if two texts convey the same meaning,
+        even if worded differently."""
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=[{
+                "role": "user",
+                "content": f"""Compare these two texts for semantic
+equivalence. Do they convey the same information and meaning?
+
+Text A:
+{text_a}
+
+Text B:
+{text_b}
+
+Evaluate on:
+1. same_core_meaning: Do they say the same thing? (0.0-1.0)
+2. same_details: Do they include the same specific details? (0.0-1.0)
+3. same_implications: Do they imply the same consequences? (0.0-1.0)
+4. differences: List any meaningful differences
+
+Return JSON."""
+            }],
+            response_format={"type": "json_object"},
+            temperature=0
+        )
+        return json.loads(response.choices[0].message.content)
+
+
+# Example: Validate a generated user story
+evaluator = TextAccuracyEvaluator()
+
+generated_story = """As a premium customer, I want to save up to 5
+payment methods in my account, so that I can check out faster on
+repeat purchases. Acceptance criteria: Given I am logged in as a
+premium customer, When I navigate to Payment Methods, Then I can
+add up to 5 cards."""
+
+reference_story = """As a registered customer, I want to save up to
+3 payment methods in my account, so that I can check out faster.
+Acceptance criteria: Given I am logged in, When I go to Payment
+Settings, Then I can add, edit, or delete up to 3 saved cards."""
+
+accuracy = evaluator.evaluate_factual_accuracy(
+    generated_story, reference_story
+)
+print(f"Accuracy: {accuracy['accuracy_score']}")
+print(f"Completeness: {accuracy['completeness_score']}")
+for c in accuracy.get("contradictions", []):
+    print(f"  CONTRADICTION: {c}")
+</code></pre>
+
+      <p>Key accuracy dimensions and how to measure each:</p>
+
+      <table>
+        <thead>
+          <tr><th>Dimension</th><th>Question</th><th>Measurement Method</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Factual accuracy</td><td>Are the stated facts correct?</td><td>Compare against reference documents or databases</td></tr>
+          <tr><td>Completeness</td><td>Are all required elements present?</td><td>Check against a requirements checklist</td></tr>
+          <tr><td>Format compliance</td><td>Does the output follow the required format?</td><td>Regex patterns, structural checks</td></tr>
+          <tr><td>Semantic accuracy</td><td>Does it mean what it should mean?</td><td>LLM-as-judge comparison against reference</td></tr>
+          <tr><td>Numerical accuracy</td><td>Are numbers, dates, and calculations correct?</td><td>Extract and verify programmatically</td></tr>
+          <tr><td>Logical consistency</td><td>Do the parts of the output agree with each other?</td><td>Cross-reference internal claims</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-tip">
+        <strong>Build a golden dataset.</strong> Create a set of 50-100 "golden" input-output pairs where you know the correct answer. Run every model change, prompt change, or pipeline change against the golden dataset and compare scores. This is your regression test suite for LLM output quality. Without it, you are flying blind.
+      </div>
+    </section>
+
+    <!-- Section 3 -->
+    <section>
+      <h2>3. Hallucination Detection</h2>
+
+      <p>Hallucination is the LLM failure mode that matters most for enterprise use cases. A hallucination occurs when the LLM generates information that is not grounded in its input (for RAG systems) or that is factually incorrect (for general generation). Detecting hallucinations automatically is one of the most valuable validation capabilities you can build.</p>
+
+      <pre><code class="language-python">from openai import OpenAI
+import json
+import re
+
+client = OpenAI()
+
+class HallucinationDetector:
+    """Detect various types of hallucination in LLM outputs."""
+
+    def __init__(self, model: str = "gpt-4o"):
+        self.model = model
+
+    def detect_ungrounded_claims(self, output: str,
+                                   source_documents: list[str]) -> dict:
+        """Find claims in the output that are not supported
+        by the source documents (for RAG systems)."""
+        sources = "\n---\n".join(source_documents)
+
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=[{
+                "role": "user",
+                "content": f"""Analyze the Output for hallucinations.
+A hallucination is any claim in the Output that is NOT supported
+by the Source Documents.
+
+Source Documents:
+{sources}
+
+Output to check:
+{output}
+
+For each claim in the output, determine:
+1. claim: The specific claim made
+2. grounded: Is it directly supported by the sources? (yes/no)
+3. evidence: Quote the supporting text from sources, or "none"
+4. severity: If ungrounded, how risky is this claim?
+   (low = stylistic, medium = potentially misleading,
+    high = factually wrong and could cause harm)
+
+Return JSON with:
+- "claims": array of claim objects
+- "grounded_count": number of grounded claims
+- "hallucinated_count": number of ungrounded claims
+- "hallucination_rate": 0.0-1.0
+- "high_severity_hallucinations": array of dangerous claims"""
+            }],
+            response_format={"type": "json_object"},
+            temperature=0
+        )
+        return json.loads(response.choices[0].message.content)
+
+    def detect_fabricated_references(self, output: str) -> dict:
+        """Detect fabricated citations, URLs, document names,
+        or statistics that the LLM may have invented."""
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=[{
+                "role": "user",
+                "content": f"""Analyze this text for potentially
+fabricated references. Look for:
+1. Citations to papers, books, or documents (are they real?)
+2. URLs (do they look real or invented?)
+3. Statistics and numbers (are they specific enough to be
+   verifiable, and do they seem plausible?)
+4. Named individuals or organizations in specific claims
+5. Dates of events or decisions
+
+For each reference found:
+- reference: The reference text
+- type: citation/url/statistic/person/date
+- suspicion_level: low/medium/high
+- reason: Why it might be fabricated
+
+Text:
+{output}
+
+Return JSON with key "references" (array) and
+"fabrication_risk_score" (0.0-1.0)."""
+            }],
+            response_format={"type": "json_object"},
+            temperature=0
+        )
+        return json.loads(response.choices[0].message.content)
+
+    def detect_internal_contradictions(self, output: str) -> dict:
+        """Find statements within the output that contradict
+        each other."""
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=[{
+                "role": "user",
+                "content": f"""Analyze this text for internal
+contradictions — places where the text says two things that
+cannot both be true.
+
+Examples of contradictions:
+- "The system supports 100 users" ... later ...
+  "Maximum capacity is 50 concurrent users"
+- "This feature is mandatory" ... later ...
+  "This feature is optional for Phase 1"
+
+Text:
+{output}
+
+Return JSON with:
+- "contradictions": array of {{statement_1, statement_2,
+  explanation}}
+- "contradiction_count": integer
+- "has_contradictions": boolean"""
+            }],
+            response_format={"type": "json_object"},
+            temperature=0
+        )
+        return json.loads(response.choices[0].message.content)
+
+    def comprehensive_check(self, output: str,
+                              source_documents: list[str] = None) -> dict:
+        """Run all hallucination checks and produce a report."""
+        results = {
+            "fabricated_references": self.detect_fabricated_references(
+                output
+            ),
+            "internal_contradictions":
+                self.detect_internal_contradictions(output),
+        }
+
+        if source_documents:
+            results["ungrounded_claims"] = self.detect_ungrounded_claims(
+                output, source_documents
+            )
+
+        # Overall risk assessment
+        risk_score = 0.0
+        if source_documents:
+            risk_score += results["ungrounded_claims"].get(
+                "hallucination_rate", 0
+            ) * 0.5
+        risk_score += results["fabricated_references"].get(
+            "fabrication_risk_score", 0
+        ) * 0.3
+        risk_score += (
+            0.2 if results["internal_contradictions"].get(
+                "has_contradictions", False
+            ) else 0
+        )
+
+        results["overall_risk_score"] = round(risk_score, 3)
+        results["recommendation"] = (
+            "SAFE" if risk_score < 0.2 else
+            "REVIEW" if risk_score < 0.5 else
+            "REJECT"
+        )
+
+        return results
+
+
+# Usage
+detector = HallucinationDetector()
+
+# Check a RAG-generated answer
+answer = """According to our data retention policy (DRP-2024-v3),
+customer PII must be deleted within 90 days of account closure.
+The GDPR requires this under Article 17 (Right to Erasure).
+Our compliance team confirmed in Q3 2025 that we are 98.5%
+compliant across all EU data centers."""
+
+sources = [
+    "Data Retention Policy DRP-2024-v3: Customer personally "
+    "identifiable information (PII) shall be purged within "
+    "30 days of account closure or upon written request.",
+    "GDPR Article 17 establishes the right to erasure, requiring "
+    "data controllers to delete personal data without undue delay."
+]
+
+results = detector.comprehensive_check(answer, sources)
+
+print(f"Overall risk: {results['overall_risk_score']}")
+print(f"Recommendation: {results['recommendation']}")
+if results.get("ungrounded_claims"):
+    rate = results["ungrounded_claims"]["hallucination_rate"]
+    print(f"Hallucination rate: {rate:.1%}")
+    for claim in results["ungrounded_claims"].get(
+        "high_severity_hallucinations", []
+    ):
+        print(f"  HIGH RISK: {claim}")
+</code></pre>
+
+      <p>In the example above, the detector should flag two issues: the policy says 30 days but the answer says 90 days (factual error), and the "98.5% compliant" statistic is not in the source documents (fabricated statistic). Both are dangerous hallucinations that could lead to compliance violations.</p>
+
+      <div class="callout callout-insight">
+        <strong>Hallucinations are more common in edge cases.</strong> LLMs hallucinate more when questions are ambiguous, when the topic is at the boundary of the training data, when the prompt asks for specific numbers or dates, and when the context window is near capacity. Track which types of queries produce the most hallucinations and add extra validation for those categories.
+      </div>
+    </section>
+
+    <!-- Section 4 -->
+    <section>
+      <h2>4. Consistency Checking</h2>
+
+      <p>LLMs are non-deterministic by design. Ask the same question twice and you may get different answers. For BA and QA workflows where consistency matters — the same requirement should always produce the same test case format, the same defect should always get the same severity rating — you need consistency checks.</p>
+
+      <pre><code class="language-python">from openai import OpenAI
+import json
+from collections import Counter
+
+client = OpenAI()
+
+class ConsistencyChecker:
+    """Check LLM output consistency across multiple runs."""
+
+    def __init__(self, model: str = "gpt-4o"):
+        self.model = model
+
+    def check_multi_run_consistency(self, prompt: str,
+                                      system_prompt: str = "",
+                                      n_runs: int = 5,
+                                      temperature: float = 0.3) -> dict:
+        """Run the same prompt multiple times and compare outputs."""
+        outputs = []
+
+        for i in range(n_runs):
+            messages = []
+            if system_prompt:
+                messages.append({"role": "system",
+                                 "content": system_prompt})
+            messages.append({"role": "user", "content": prompt})
+
+            response = client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=temperature
+            )
+            outputs.append(response.choices[0].message.content)
+
+        # Analyze consistency
+        return self._analyze_consistency(outputs, prompt)
+
+    def _analyze_consistency(self, outputs: list[str],
+                               original_prompt: str) -> dict:
+        """Use an LLM to analyze consistency across outputs."""
+        outputs_text = "\n\n===OUTPUT SEPARATOR===\n\n".join(
+            f"Output {i+1}:\n{output}"
+            for i, output in enumerate(outputs)
+        )
+
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=[{
+                "role": "user",
+                "content": f"""Analyze these {len(outputs)} outputs
+generated from the same prompt for consistency.
+
+Original prompt: {original_prompt}
+
+{outputs_text}
+
+Evaluate:
+1. structural_consistency: Do all outputs use the same format,
+   sections, and structure? (0.0-1.0)
+2. factual_consistency: Do all outputs agree on facts, numbers,
+   and specific claims? (0.0-1.0)
+3. semantic_consistency: Do all outputs convey the same core
+   meaning? (0.0-1.0)
+4. length_variance: How much does the length vary?
+   (standard deviation / mean)
+5. contradictions: List any facts that differ between outputs
+6. stable_elements: List elements that are identical across
+   all outputs
+7. volatile_elements: List elements that change between runs
+
+Return JSON with these keys plus "overall_consistency" (0.0-1.0)."""
+            }],
+            response_format={"type": "json_object"},
+            temperature=0
+        )
+        result = json.loads(response.choices[0].message.content)
+        result["n_runs"] = len(outputs)
+        result["outputs"] = outputs
+        return result
+
+    def check_cross_input_consistency(
+        self, similar_inputs: list[dict],
+        system_prompt: str
+    ) -> dict:
+        """Check that similar inputs produce proportionally
+        similar outputs (e.g., similar defects get similar severity
+        ratings)."""
+        results = []
+
+        for inp in similar_inputs:
+            response = client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": inp["text"]}
+                ],
+                temperature=0.2
+            )
+            results.append({
+                "input": inp["text"][:100],
+                "expected_category": inp.get("expected"),
+                "output": response.choices[0].message.content
+            })
+
+        # Check if similar inputs got similar outputs
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=[{
+                "role": "user",
+                "content": f"""These inputs are intentionally similar
+and should produce similar outputs. Analyze whether the LLM
+treated them consistently.
+
+{json.dumps(results, indent=2)}
+
+Return JSON with:
+- "consistent_pairs": inputs that were handled consistently
+- "inconsistent_pairs": inputs that were handled differently
+  despite being similar (include what differed and why it matters)
+- "consistency_score": 0.0-1.0
+- "recommendation": suggestions for improving consistency"""
+            }],
+            response_format={"type": "json_object"},
+            temperature=0
+        )
+        return json.loads(response.choices[0].message.content)
+
+
+# Example: Check defect severity consistency
+checker = ConsistencyChecker()
+
+# Are similar defects rated consistently?
+similar_defects = [
+    {"text": "Login button does not respond when clicked on iOS Safari",
+     "expected": "High"},
+    {"text": "Submit button is unresponsive on mobile Safari browser",
+     "expected": "High"},
+    {"text": "Clicking the sign-in button on Safari mobile has no effect",
+     "expected": "High"},
+    {"text": "The login button on desktop Chrome does not work",
+     "expected": "High"},
+]
+
+severity_prompt = """Rate the severity of this defect as:
+Critical / High / Medium / Low. Explain your reasoning briefly."""
+
+consistency = checker.check_cross_input_consistency(
+    similar_defects, severity_prompt
+)
+print(f"Consistency score: {consistency['consistency_score']}")
+for pair in consistency.get("inconsistent_pairs", []):
+    print(f"  INCONSISTENT: {pair}")
+</code></pre>
+
+      <p>Strategies for improving consistency:</p>
+
+      <table>
+        <thead>
+          <tr><th>Strategy</th><th>How It Works</th><th>Consistency Improvement</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Lower temperature</td><td>Set temperature to 0.0-0.2</td><td>Reduces variation but may reduce creativity</td></tr>
+          <tr><td>Few-shot examples</td><td>Include 3-5 examples in the system prompt</td><td>Anchors format and style strongly</td></tr>
+          <tr><td>Structured output (JSON)</td><td>Use response_format: json_object</td><td>Eliminates structural variation</td></tr>
+          <tr><td>Output schemas</td><td>Define exact fields and types expected</td><td>Ensures all required fields are present</td></tr>
+          <tr><td>Majority voting</td><td>Run N times, take the most common answer</td><td>High consistency but N times the cost</td></tr>
+          <tr><td>Canonical prompts</td><td>Use the exact same prompt template always</td><td>Eliminates prompt variation as a factor</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-tip">
+        <strong>Use temperature 0 for classification tasks.</strong> When the LLM is classifying defect severity, categorizing requirements, or making yes/no decisions, set temperature to 0. You want the same input to always produce the same classification. Save higher temperatures (0.5-0.8) for generative tasks where variety is desirable, like brainstorming test scenarios.
+      </div>
+    </section>
+
+    <!-- Section 5 -->
+    <section>
+      <h2>5. Human-in-the-Loop Validation</h2>
+
+      <p>Automated validation catches many errors, but some require human judgment: Is this requirement actually what the stakeholder meant? Does this test case cover the real risk? Is this defect description clear to a developer? Human-in-the-loop (HITL) validation combines the scale of automation with the judgment of domain experts.</p>
+
+      <pre><code class="language-python">from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+import json
+
+class ReviewDecision(Enum):
+    APPROVE = "approve"
+    REJECT = "reject"
+    MODIFY = "modify"
+    ESCALATE = "escalate"
+
+@dataclass
+class ReviewItem:
+    """An LLM output queued for human review."""
+    item_id: str
+    content: str
+    content_type: str  # "user_story", "test_case", "report", etc.
+    auto_validation: dict  # Results from automated checks
+    confidence_score: float
+    created_at: str = field(
+        default_factory=lambda: datetime.now().isoformat()
+    )
+    reviewed_by: str = ""
+    review_decision: str = ""
+    review_comments: str = ""
+    reviewed_at: str = ""
+    modifications: str = ""
+
+@dataclass
+class ReviewQueue:
+    """Manage a queue of LLM outputs for human review."""
+    items: list[ReviewItem] = field(default_factory=list)
+    review_policy: dict = field(default_factory=dict)
+
+    def __post_init__(self):
+        if not self.review_policy:
+            self.review_policy = {
+                "auto_approve_threshold": 0.95,
+                "auto_reject_threshold": 0.3,
+                "escalation_threshold": 0.5,
+                "max_queue_age_hours": 24,
+                "required_reviewers": {
+                    "user_story": ["ba_lead"],
+                    "test_case": ["qa_lead"],
+                    "compliance_doc": ["ba_lead", "legal"],
+                    "report": ["manager"],
+                }
+            }
+
+    def add_item(self, content: str, content_type: str,
+                 auto_validation: dict,
+                 confidence: float) -> ReviewItem:
+        """Add an item to the review queue based on policy."""
+        item = ReviewItem(
+            item_id=f"REV-{len(self.items)+1:04d}",
+            content=content,
+            content_type=content_type,
+            auto_validation=auto_validation,
+            confidence_score=confidence
+        )
+
+        policy = self.review_policy
+
+        # Auto-approve high-confidence items
+        if confidence >= policy["auto_approve_threshold"]:
+            if not auto_validation.get("has_hallucinations"):
+                item.review_decision = ReviewDecision.APPROVE.value
+                item.review_comments = "Auto-approved (high confidence)"
+                item.reviewed_at = datetime.now().isoformat()
+                print(f"  [AUTO-APPROVE] {item.item_id}: "
+                      f"confidence {confidence:.2f}")
+
+        # Auto-reject very low confidence items
+        elif confidence < policy["auto_reject_threshold"]:
+            item.review_decision = ReviewDecision.REJECT.value
+            item.review_comments = (
+                "Auto-rejected (below confidence threshold)"
+            )
+            item.reviewed_at = datetime.now().isoformat()
+            print(f"  [AUTO-REJECT] {item.item_id}: "
+                  f"confidence {confidence:.2f}")
+
+        # Queue for human review
+        else:
+            required = policy["required_reviewers"].get(
+                content_type, ["default_reviewer"]
+            )
+            print(f"  [QUEUE] {item.item_id}: confidence "
+                  f"{confidence:.2f}, needs review by {required}")
+
+        self.items.append(item)
+        return item
+
+    def get_pending_items(self,
+                          reviewer_role: str = None) -> list[ReviewItem]:
+        """Get items waiting for review, optionally filtered
+        by reviewer role."""
+        pending = [i for i in self.items if not i.review_decision]
+
+        if reviewer_role:
+            pending = [
+                i for i in pending
+                if reviewer_role in self.review_policy.get(
+                    "required_reviewers", {}
+                ).get(i.content_type, ["default_reviewer"])
+            ]
+
+        return sorted(pending, key=lambda x: x.confidence_score)
+
+    def submit_review(self, item_id: str, reviewer: str,
+                      decision: ReviewDecision,
+                      comments: str = "",
+                      modifications: str = "") -> None:
+        """Submit a human review for an item."""
+        item = next(
+            (i for i in self.items if i.item_id == item_id), None
+        )
+        if not item:
+            raise ValueError(f"Item {item_id} not found")
+
+        item.reviewed_by = reviewer
+        item.review_decision = decision.value
+        item.review_comments = comments
+        item.modifications = modifications
+        item.reviewed_at = datetime.now().isoformat()
+
+        print(f"  [REVIEWED] {item_id} by {reviewer}: "
+              f"{decision.value}")
+
+    def get_review_analytics(self) -> dict:
+        """Generate analytics about the review process."""
+        reviewed = [i for i in self.items if i.review_decision]
+        if not reviewed:
+            return {"message": "No items reviewed yet"}
+
+        decisions = [i.review_decision for i in reviewed]
+        auto_approved = sum(
+            1 for i in reviewed
+            if "Auto-approved" in (i.review_comments or "")
+        )
+        human_reviewed = len(reviewed) - auto_approved
+
+        return {
+            "total_items": len(self.items),
+            "reviewed": len(reviewed),
+            "pending": len(self.items) - len(reviewed),
+            "auto_approved": auto_approved,
+            "human_reviewed": human_reviewed,
+            "decisions": dict(Counter(decisions)),
+            "avg_confidence_approved": round(
+                sum(i.confidence_score for i in reviewed
+                    if i.review_decision == "approve")
+                / max(1, decisions.count("approve")), 3
+            ),
+            "avg_confidence_rejected": round(
+                sum(i.confidence_score for i in reviewed
+                    if i.review_decision == "reject")
+                / max(1, decisions.count("reject")), 3
+            ),
+            "modification_rate": round(
+                decisions.count("modify") / len(reviewed), 3
+            )
+        }
+
+
+# Usage
+queue = ReviewQueue()
+
+# Simulate adding items with different confidence levels
+items_to_review = [
+    ("As a customer, I want to reset my password via email...",
+     "user_story", {"has_hallucinations": False}, 0.97),
+    ("As a user, I want to access the quantum blockchain module...",
+     "user_story", {"has_hallucinations": True}, 0.45),
+    ("Test case: Verify login with expired session token...",
+     "test_case", {"has_hallucinations": False}, 0.82),
+    ("The system shall comply with ISO 27001 Section 14.2.3...",
+     "compliance_doc", {"has_hallucinations": False}, 0.78),
+]
+
+for content, ctype, validation, conf in items_to_review:
+    queue.add_item(content, ctype, validation, conf)
+
+# Show pending items
+pending = queue.get_pending_items("qa_lead")
+print(f"\nPending for QA Lead: {len(pending)} items")
+for item in pending:
+    print(f"  {item.item_id}: {item.content[:60]}... "
+          f"(conf: {item.confidence_score})")
+</code></pre>
+
+      <p>A well-designed HITL process balances thoroughness with efficiency:</p>
+
+      <table>
+        <thead>
+          <tr><th>Review Tier</th><th>Trigger</th><th>Reviewer</th><th>Expected Volume</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Auto-approve</td><td>Confidence &gt; 95%, no hallucinations</td><td>None</td><td>40-60% of outputs</td></tr>
+          <tr><td>Spot check</td><td>Confidence 80-95%</td><td>Domain expert (5 min/item)</td><td>25-35% of outputs</td></tr>
+          <tr><td>Full review</td><td>Confidence 50-80% or flagged issues</td><td>Senior analyst (15 min/item)</td><td>10-20% of outputs</td></tr>
+          <tr><td>Escalation</td><td>Confidence &lt; 50%, compliance content, or contradictions</td><td>Team lead + domain expert</td><td>5-10% of outputs</td></tr>
+          <tr><td>Auto-reject</td><td>Confidence &lt; 30% or high-severity hallucination</td><td>None (regenerate)</td><td>2-5% of outputs</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-insight">
+        <strong>Track the auto-approve accuracy rate.</strong> Randomly sample 10% of auto-approved items each week and manually review them. If more than 5% would have been modified or rejected by a human, your auto-approve threshold is too low. This feedback loop ensures your automation does not silently degrade quality.
+      </div>
+    </section>
+
+    <!-- Section 6 -->
+    <section>
+      <h2>6. A/B Testing LLM Workflows</h2>
+
+      <p>When you change a prompt, switch models, or modify the pipeline, how do you know the change is an improvement? A/B testing provides statistical evidence. Instead of guessing, you run both versions on the same inputs and measure which performs better.</p>
+
+      <pre><code class="language-python">import random
+import json
+from datetime import datetime
+from dataclasses import dataclass, field
+from openai import OpenAI
+
+client = OpenAI()
+
+@dataclass
+class ABTestConfig:
+    """Configuration for an A/B test of LLM workflows."""
+    test_name: str
+    variant_a: dict  # {"name": "...", "model": "...", "prompt": "..."}
+    variant_b: dict
+    metrics: list[str]  # ["accuracy", "latency", "cost", "preference"]
+    sample_size: int = 100
+    traffic_split: float = 0.5  # 50/50 by default
+
+@dataclass
+class ABTestResult:
+    """Result of a single test case in an A/B test."""
+    test_case_id: str
+    variant: str  # "A" or "B"
+    input_text: str
+    output: str
+    metrics: dict
+    timestamp: str = field(
+        default_factory=lambda: datetime.now().isoformat()
+    )
+
+class ABTestRunner:
+    """Run A/B tests on LLM workflow variants."""
+
+    def __init__(self):
+        self.results: list[ABTestResult] = []
+
+    def run_test(self, config: ABTestConfig,
+                 test_cases: list[dict],
+                 evaluator: TextAccuracyEvaluator) -> dict:
+        """Run an A/B test across all test cases."""
+        self.results = []
+
+        for i, tc in enumerate(test_cases):
+            # Assign variant
+            variant = ("A" if random.random() < config.traffic_split
+                       else "B")
+            variant_config = (config.variant_a if variant == "A"
+                              else config.variant_b)
+
+            # Run the variant
+            import time
+            start = time.time()
+
+            response = client.chat.completions.create(
+                model=variant_config["model"],
+                messages=[
+                    {"role": "system",
+                     "content": variant_config["prompt"]},
+                    {"role": "user", "content": tc["input"]}
+                ],
+                temperature=variant_config.get("temperature", 0.3)
+            )
+
+            output = response.choices[0].message.content
+            latency = time.time() - start
+            tokens = response.usage.total_tokens
+
+            # Evaluate
+            metrics = {
+                "latency_seconds": round(latency, 3),
+                "tokens": tokens,
+                "cost_usd": round(tokens * 0.000005, 6),
+                "output_length": len(output),
+            }
+
+            # If reference answer exists, measure accuracy
+            if tc.get("reference"):
+                accuracy = evaluator.evaluate_factual_accuracy(
+                    output, tc["reference"]
+                )
+                metrics["accuracy_score"] = accuracy.get(
+                    "accuracy_score", 0
+                )
+                metrics["completeness_score"] = accuracy.get(
+                    "completeness_score", 0
+                )
+
+            self.results.append(ABTestResult(
+                test_case_id=f"TC-{i+1}",
+                variant=variant,
+                input_text=tc["input"][:100],
+                output=output,
+                metrics=metrics
+            ))
+
+            if (i + 1) % 10 == 0:
+                print(f"  Completed {i+1}/{len(test_cases)} test cases")
+
+        return self._analyze_results(config)
+
+    def _analyze_results(self, config: ABTestConfig) -> dict:
+        """Statistical analysis of A/B test results."""
+        a_results = [r for r in self.results if r.variant == "A"]
+        b_results = [r for r in self.results if r.variant == "B"]
+
+        def avg_metric(results, metric):
+            values = [r.metrics.get(metric, 0) for r in results]
+            return round(sum(values) / len(values), 4) if values else 0
+
+        analysis = {
+            "test_name": config.test_name,
+            "total_samples": len(self.results),
+            "variant_a": {
+                "name": config.variant_a["name"],
+                "count": len(a_results),
+            },
+            "variant_b": {
+                "name": config.variant_b["name"],
+                "count": len(b_results),
+            },
+            "comparisons": {}
+        }
+
+        # Compare each metric
+        for metric in ["accuracy_score", "completeness_score",
+                       "latency_seconds", "tokens", "cost_usd"]:
+            a_avg = avg_metric(a_results, metric)
+            b_avg = avg_metric(b_results, metric)
+            diff_pct = (
+                round((b_avg - a_avg) / a_avg * 100, 1)
+                if a_avg > 0 else 0
+            )
+
+            # For latency and cost, lower is better
+            lower_is_better = metric in [
+                "latency_seconds", "tokens", "cost_usd"
+            ]
+            winner = (
+                "B" if (b_avg < a_avg) == lower_is_better else "A"
+            )
+
+            analysis["comparisons"][metric] = {
+                "variant_a": a_avg,
+                "variant_b": b_avg,
+                "difference_pct": diff_pct,
+                "winner": winner
+            }
+
+        # Overall recommendation
+        a_wins = sum(
+            1 for c in analysis["comparisons"].values()
+            if c["winner"] == "A"
+        )
+        b_wins = sum(
+            1 for c in analysis["comparisons"].values()
+            if c["winner"] == "B"
+        )
+        analysis["recommendation"] = (
+            f"Variant {'A' if a_wins > b_wins else 'B'} "
+            f"({config.variant_a['name'] if a_wins > b_wins else config.variant_b['name']}) "
+            f"wins on {max(a_wins, b_wins)}/{a_wins + b_wins} metrics"
+        )
+
+        return analysis
+
+
+# Example: Compare two prompt variants for user story generation
+ab_config = ABTestConfig(
+    test_name="User Story Prompt Comparison",
+    variant_a={
+        "name": "Concise Prompt",
+        "model": "gpt-4o",
+        "prompt": "Generate a user story from this requirement. "
+                  "Use format: As a [role], I want [what], "
+                  "so that [why]. Include acceptance criteria.",
+        "temperature": 0.3
+    },
+    variant_b={
+        "name": "Detailed Prompt with Examples",
+        "model": "gpt-4o",
+        "prompt": """Generate a user story from this requirement.
+
+Format:
+Title: [concise title]
+Story: As a [specific role], I want [specific capability],
+so that [measurable benefit].
+Acceptance Criteria:
+- Given [context], When [action], Then [outcome]
+(include 3-5 criteria covering happy path and edge cases)
+Story Points: [1/2/3/5/8/13]
+
+Example:
+Title: Password Reset via Email
+Story: As a registered customer, I want to reset my password
+via email, so that I can regain account access within 5 minutes.
+Acceptance Criteria:
+- Given I am on the login page, When I click "Forgot Password"
+  and enter my email, Then I receive a reset link within 60 seconds
+- Given I have a reset link, When I click it after 24 hours,
+  Then I see an "expired link" message""",
+        "temperature": 0.3
+    },
+    metrics=["accuracy", "completeness", "latency", "cost"],
+    sample_size=50
+)
+
+test_cases = [
+    {"input": "Users need to be able to export reports to PDF",
+     "reference": "As a report viewer, I want to export reports "
+                  "to PDF format, so that I can share them offline."},
+    {"input": "The system should send email notifications when "
+              "an order ships",
+     "reference": "As a customer, I want to receive an email "
+                  "when my order ships, so that I can track delivery."},
+    # Add more test cases...
+]
+
+runner = ABTestRunner()
+evaluator = TextAccuracyEvaluator()
+results = runner.run_test(ab_config, test_cases, evaluator)
+
+print(f"\n{results['test_name']}")
+print("=" * 50)
+for metric, comparison in results["comparisons"].items():
+    print(f"  {metric}:")
+    print(f"    A ({results['variant_a']['name']}): "
+          f"{comparison['variant_a']}")
+    print(f"    B ({results['variant_b']['name']}): "
+          f"{comparison['variant_b']}")
+    print(f"    Winner: Variant {comparison['winner']} "
+          f"({comparison['difference_pct']:+.1f}%)")
+print(f"\nRecommendation: {results['recommendation']}")
+</code></pre>
+
+      <div class="callout callout-warning">
+        <strong>Sample size matters.</strong> With 10 test cases, a 5% accuracy difference could be noise. With 100 test cases, a 5% difference is meaningful. As a rule of thumb, run at least 50 test cases per variant before drawing conclusions. For high-stakes decisions (switching models, changing production prompts), aim for 200+ test cases and compute confidence intervals.
+      </div>
+    </section>
+
+    <!-- Section 7 -->
+    <section>
+      <h2>7. Building Trust with Stakeholders</h2>
+
+      <p>The technical validation framework means nothing if stakeholders do not trust the outputs. Building trust is a communication and change-management challenge as much as a technical one. Stakeholders need to understand what the AI can and cannot do, see evidence of quality, and feel in control of the process.</p>
+
+      <pre><code class="language-python">class TrustBuildingFramework:
+    """Framework for building stakeholder trust in LLM outputs."""
+
+    @staticmethod
+    def generate_transparency_report(
+        pipeline_name: str,
+        evaluation_results: dict,
+        review_analytics: dict,
+        ab_test_results: dict = None
+    ) -> str:
+        """Generate a stakeholder-facing transparency report."""
+        report = f"""
+AI QUALITY TRANSPARENCY REPORT
+{'='*50}
+Pipeline: {pipeline_name}
+Report Date: {datetime.now().strftime('%Y-%m-%d')}
+Report Period: Last 30 days
+
+1. OUTPUT QUALITY METRICS
+{'-'*30}
+  Factual Accuracy:    {evaluation_results.get('avg_faithfulness', 0):.1%}
+  Answer Relevance:    {evaluation_results.get('avg_relevance', 0):.1%}
+  Format Compliance:   {evaluation_results.get('format_compliance', 0):.1%}
+  Hallucination Rate:  {evaluation_results.get('hallucination_rate', 0):.1%}
+
+2. HUMAN REVIEW SUMMARY
+{'-'*30}
+  Items generated:     {review_analytics.get('total_items', 0)}
+  Auto-approved:       {review_analytics.get('auto_approved', 0)}
+  Human-reviewed:      {review_analytics.get('human_reviewed', 0)}
+  Rejected:            {review_analytics.get('decisions', {}).get('reject', 0)}
+  Modified:            {review_analytics.get('decisions', {}).get('modify', 0)}
+  Modification rate:   {review_analytics.get('modification_rate', 0):.1%}
+
+3. WHAT THIS MEANS
+{'-'*30}
+"""
+        accuracy = evaluation_results.get('avg_faithfulness', 0)
+        if accuracy >= 0.95:
+            report += ("  The AI outputs are highly accurate. Over 95% of "
+                       "claims are\n  verified against source documents. "
+                       "Human reviewers modified\n  less than 5% of "
+                       "outputs.\n")
+        elif accuracy >= 0.85:
+            report += ("  The AI outputs are generally accurate but "
+                       "require spot-checking.\n  We recommend human "
+                       "review for compliance-sensitive content.\n")
+        else:
+            report += ("  The AI outputs require significant human "
+                       "review.\n  We are actively improving prompt "
+                       "quality and adding\n  validation checks.\n")
+
+        report += f"""
+4. GUARDRAILS IN PLACE
+{'-'*30}
+  - Automated hallucination detection on every output
+  - Confidence scoring with auto-reject below threshold
+  - Human review required for compliance and legal content
+  - Source citations required for all factual claims
+  - Weekly quality audits on random output samples
+
+5. KNOWN LIMITATIONS
+{'-'*30}
+  - May struggle with highly technical domain jargon
+  - Numerical calculations should be independently verified
+  - Cannot access real-time data (uses knowledge base snapshots)
+  - Performance varies with input quality (garbage in, garbage out)
+
+6. CONTINUOUS IMPROVEMENT
+{'-'*30}
+  - Golden test set expanded by {evaluation_results.get(
+      'new_test_cases', 0)} cases this month
+  - {evaluation_results.get('prompt_iterations', 0)} prompt
+    improvements deployed
+  - User feedback incorporated from {evaluation_results.get(
+      'feedback_count', 0)} ratings
+"""
+
+        if ab_test_results:
+            report += f"""
+7. RECENT A/B TEST RESULTS
+{'-'*30}
+  Test: {ab_test_results.get('test_name', 'N/A')}
+  Result: {ab_test_results.get('recommendation', 'N/A')}
+"""
+
+        return report
+
+    @staticmethod
+    def stakeholder_adoption_checklist() -> list[dict]:
+        """Checklist for stakeholder trust-building milestones."""
+        return [
+            {"phase": "Awareness",
+             "milestone": "Demo the tool to stakeholders",
+             "success_criteria": "Stakeholders understand what the "
+                                 "AI does and does not do",
+             "typical_duration": "Week 1"},
+            {"phase": "Awareness",
+             "milestone": "Share transparency report",
+             "success_criteria": "Stakeholders can see quality metrics "
+                                 "and guardrails",
+             "typical_duration": "Week 1"},
+            {"phase": "Pilot",
+             "milestone": "Run parallel process (AI + manual)",
+             "success_criteria": "AI outputs match manual quality on "
+                                 "80%+ of test cases",
+             "typical_duration": "Weeks 2-4"},
+            {"phase": "Pilot",
+             "milestone": "Collect user feedback",
+             "success_criteria": "Average rating >= 4.0/5.0 from "
+                                 "pilot users",
+             "typical_duration": "Weeks 2-4"},
+            {"phase": "Adoption",
+             "milestone": "AI-first with human review",
+             "success_criteria": "Review queue manageable (<30 min/day "
+                                 "per reviewer)",
+             "typical_duration": "Months 2-3"},
+            {"phase": "Adoption",
+             "milestone": "Expand to additional use cases",
+             "success_criteria": "First use case stable for 30+ days "
+                                 "before adding next",
+             "typical_duration": "Months 3-6"},
+            {"phase": "Optimization",
+             "milestone": "Reduce human review to spot-checks",
+             "success_criteria": "Auto-approve accuracy verified at "
+                                 "98%+ over 60 days",
+             "typical_duration": "Months 6+"},
+            {"phase": "Optimization",
+             "milestone": "Measure ROI and time savings",
+             "success_criteria": "Quantified hours saved per week per "
+                                 "team member",
+             "typical_duration": "Months 6+"},
+        ]
+</code></pre>
+
+      <p>The trust-building journey follows a predictable pattern:</p>
+
+      <table>
+        <thead>
+          <tr><th>Phase</th><th>Stakeholder Mindset</th><th>Your Actions</th><th>Duration</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Skepticism</td><td>"AI will make mistakes and we will be blamed"</td><td>Show guardrails, demonstrate transparency reports, emphasize human review</td><td>Weeks 1-2</td></tr>
+          <tr><td>Curiosity</td><td>"Let me see how it works on my actual work"</td><td>Run pilot with real workflows, collect side-by-side comparisons</td><td>Weeks 2-6</td></tr>
+          <tr><td>Cautious adoption</td><td>"It is good but I still check everything"</td><td>Optimize review process, show quality trends improving over time</td><td>Months 2-4</td></tr>
+          <tr><td>Confident use</td><td>"I trust it for routine tasks, review edge cases"</td><td>Expand to new use cases, measure and share time savings</td><td>Months 4-8</td></tr>
+          <tr><td>Advocacy</td><td>"My team could not work without it"</td><td>Document success stories, enable self-service for new workflows</td><td>Months 8+</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-insight">
+        <strong>The biggest trust-builder is the ability to be wrong gracefully.</strong> When the AI makes a mistake — and it will — how the system handles it determines whether stakeholders lose trust or gain it. An assistant that says "I am not confident about this claim — please verify the retention period in the DRP policy" builds more trust than one that states the wrong number confidently. Design your system to express uncertainty rather than hide it.
+      </div>
+    </section>
+
+    <!-- Project -->
+    <section class="project">
+      <h2>Project: Validation Framework</h2>
+
+      <p>Build a comprehensive validation framework that can be plugged into any LLM workflow to evaluate, validate, and report on output quality. The framework should combine automated metrics, hallucination detection, consistency checks, human review, and stakeholder reporting.</p>
+
+      <h3>Project Requirements</h3>
+      <ol>
+        <li>Implement automated accuracy evaluation against a golden dataset of at least 20 input-output pairs</li>
+        <li>Build a hallucination detector that checks for ungrounded claims, fabricated references, and internal contradictions</li>
+        <li>Add consistency checking that runs the same prompt 5 times and measures output stability</li>
+        <li>Implement a review queue with auto-approve, auto-reject, and human review tiers</li>
+        <li>Build an A/B test runner that can compare two prompt or model variants on the golden dataset</li>
+        <li>Generate a stakeholder transparency report summarizing all quality metrics</li>
+        <li>Log all validation results for trend analysis over time</li>
+      </ol>
+
+      <h3>Starter Code</h3>
+
+      <pre><code class="language-python">import json
+from datetime import datetime
+from pathlib import Path
+from openai import OpenAI
+
+client = OpenAI()
+
+class ValidationFramework:
+    """End-to-end validation framework for LLM outputs."""
+
+    def __init__(self, golden_dataset_path: str,
+                 model: str = "gpt-4o"):
+        self.model = model
+        self.golden_dataset = self._load_golden_dataset(
+            golden_dataset_path
+        )
+        self.accuracy_evaluator = TextAccuracyEvaluator(model)
+        self.hallucination_detector = HallucinationDetector(model)
+        self.consistency_checker = ConsistencyChecker(model)
+        self.review_queue = ReviewQueue()
+        self.ab_runner = ABTestRunner()
+        self.validation_log: list[dict] = []
+
+    def _load_golden_dataset(self, path: str) -> list[dict]:
+        """Load the golden test dataset."""
+        if Path(path).exists():
+            return json.loads(Path(path).read_text())
+        # Return a sample dataset for development
+        return [
+            {"input": "Requirement: Users must be able to reset "
+                      "their password via email",
+             "expected_output": "As a registered user, I want to "
+                                "reset my password via email link, "
+                                "so that I can regain access to my "
+                                "account without contacting support.",
+             "category": "user_story"},
+        ]
+
+    def validate_output(self, output: str,
+                         output_type: str,
+                         source_documents: list[str] = None,
+                         reference: str = None) -> dict:
+        """Run full validation on an LLM output."""
+        validation = {
+            "timestamp": datetime.now().isoformat(),
+            "output_type": output_type,
+            "output_length": len(output),
+            "checks": {}
+        }
+
+        # 1. Hallucination check
+        hallucination = self.hallucination_detector.comprehensive_check(
+            output, source_documents
+        )
+        validation["checks"]["hallucination"] = hallucination
+
+        # 2. Accuracy check (if reference available)
+        if reference:
+            accuracy = self.accuracy_evaluator.evaluate_factual_accuracy(
+                output, reference
+            )
+            validation["checks"]["accuracy"] = accuracy
+
+        # 3. Format compliance
+        format_specs = {
+            "user_story": {
+                "required_patterns": {
+                    "role": r"[Aa]s a .+",
+                    "want": r"I want .+",
+                    "benefit": r"so that .+",
+                    "criteria": r"[Aa]cceptance [Cc]riteria"
+                }
+            },
+            "test_case": {
+                "required_sections": [
+                    "preconditions", "steps", "expected"
+                ]
+            }
+        }
+        if output_type in format_specs:
+            format_check = self.accuracy_evaluator.evaluate_format_compliance(
+                output, format_specs[output_type]
+            )
+            validation["checks"]["format"] = format_check
+
+        # 4. Calculate overall confidence
+        confidence = self._calculate_confidence(validation)
+        validation["confidence_score"] = confidence
+
+        # 5. Route to review queue
+        has_hallucinations = (
+            hallucination.get("overall_risk_score", 0) > 0.3
+        )
+        self.review_queue.add_item(
+            output, output_type,
+            {"has_hallucinations": has_hallucinations},
+            confidence
+        )
+
+        # 6. Log the validation
+        self.validation_log.append(validation)
+
+        return validation
+
+    def _calculate_confidence(self, validation: dict) -> float:
+        """Calculate an overall confidence score from all checks."""
+        scores = []
+
+        hallucination = validation["checks"].get("hallucination", {})
+        risk = hallucination.get("overall_risk_score", 0.5)
+        scores.append(1.0 - risk)
+
+        accuracy = validation["checks"].get("accuracy", {})
+        if accuracy:
+            scores.append(accuracy.get("accuracy_score", 0.5))
+            scores.append(accuracy.get("completeness_score", 0.5))
+
+        format_check = validation["checks"].get("format", {})
+        if format_check:
+            scores.append(format_check.get("compliance_score", 0.5))
+
+        return round(sum(scores) / len(scores), 3) if scores else 0.5
+
+    def run_golden_dataset_evaluation(self,
+                                        pipeline_func) -> dict:
+        """Evaluate a pipeline against the golden dataset."""
+        results = []
+        for tc in self.golden_dataset:
+            output = pipeline_func(tc["input"])
+            validation = self.validate_output(
+                output, tc.get("category", "general"),
+                reference=tc.get("expected_output")
+            )
+            results.append(validation)
+
+        avg_confidence = sum(
+            r["confidence_score"] for r in results
+        ) / len(results)
+
+        return {
+            "dataset_size": len(self.golden_dataset),
+            "avg_confidence": round(avg_confidence, 3),
+            "results": results,
+            "review_analytics": self.review_queue.get_review_analytics()
+        }
+
+    def generate_transparency_report(self) -> str:
+        """Generate a stakeholder transparency report."""
+        if not self.validation_log:
+            return "No validations logged yet."
+
+        avg_confidence = sum(
+            v["confidence_score"] for v in self.validation_log
+        ) / len(self.validation_log)
+
+        hallucination_rates = [
+            v["checks"].get("hallucination", {}).get(
+                "overall_risk_score", 0
+            )
+            for v in self.validation_log
+        ]
+
+        eval_results = {
+            "avg_faithfulness": round(1 - sum(hallucination_rates)
+                                      / len(hallucination_rates), 3),
+            "avg_relevance": round(avg_confidence, 3),
+            "format_compliance": round(avg_confidence, 3),
+            "hallucination_rate": round(
+                sum(hallucination_rates) / len(hallucination_rates), 3
+            ),
+            "new_test_cases": 0,
+            "prompt_iterations": 0,
+            "feedback_count": len(self.review_queue.items),
+        }
+
+        return TrustBuildingFramework.generate_transparency_report(
+            "BA/QA Validation Pipeline",
+            eval_results,
+            self.review_queue.get_review_analytics()
+        )
+
+
+# Usage
+if __name__ == "__main__":
+    framework = ValidationFramework("golden_dataset.json")
+
+    # Validate a single output
+    story = """As a premium customer, I want to save up to 5
+    payment methods, so that I can check out faster. Acceptance
+    Criteria: Given I am logged in, When I navigate to Payment
+    Settings, Then I can add up to 5 cards."""
+
+    validation = framework.validate_output(
+        story, "user_story",
+        reference="As a registered customer, I want to save "
+                  "up to 3 payment methods..."
+    )
+
+    print(f"Confidence: {validation['confidence_score']}")
+    print(f"Hallucination risk: "
+          f"{validation['checks']['hallucination']['overall_risk_score']}")
+
+    # Generate report
+    print(framework.generate_transparency_report())
+</code></pre>
+
+      <h3>Extension Ideas</h3>
+      <ul>
+        <li>Add a web dashboard (Streamlit) that displays the transparency report with interactive charts showing quality trends over time</li>
+        <li>Implement "regression alerts" that notify the team when quality metrics drop below thresholds (e.g., accuracy drops from 95% to 88% after a prompt change)</li>
+        <li>Build a feedback loop where rejected items and human corrections are automatically added to the golden dataset</li>
+        <li>Add domain-specific validators: for user stories, check that every story follows INVEST criteria; for test cases, check that every case has at least one assertion</li>
+        <li>Implement cost-aware validation: skip expensive checks (LLM-as-judge) for low-risk outputs and reserve them for high-stakes content</li>
+      </ul>
+    </section>
+
+    <!-- Summary -->
+    <section class="summary">
+      <h2>Summary</h2>
+      <ul class="key-takeaways">
+        <li><strong>Validation is non-negotiable for production LLM workflows.</strong> The risk level of the use case determines the validation level — from no validation for brainstorming to multi-layer review for compliance content.</li>
+        <li><strong>Accuracy has multiple dimensions:</strong> factual correctness, completeness, format compliance, and semantic equivalence. A golden dataset of 50+ annotated examples is your regression test suite for output quality.</li>
+        <li><strong>Hallucination detection</strong> catches fabricated facts, ungrounded claims, and internal contradictions. Automated detection should flag outputs for human review rather than silently passing them through.</li>
+        <li><strong>Consistency checking</strong> reveals non-deterministic outputs that vary across runs. Use low temperature, structured output formats, and few-shot examples to reduce unwanted variation.</li>
+        <li><strong>Human-in-the-loop validation</strong> scales through tiered review: auto-approve high-confidence outputs, spot-check medium confidence, and fully review low confidence or flagged content.</li>
+        <li><strong>A/B testing</strong> provides statistical evidence for prompt and model changes. Run at least 50 test cases per variant before drawing conclusions about which performs better.</li>
+        <li><strong>Building stakeholder trust</strong> requires transparency (show quality metrics), gradual adoption (pilot before rollout), graceful failure (express uncertainty rather than hide it), and continuous improvement (track and report quality trends).</li>
+      </ul>
+
+      <div class="exercises">
+        <h3>Exercises</h3>
+        <ol>
+          <li><strong>Golden dataset.</strong> Create a golden dataset of 20 input-output pairs for a workflow you use regularly (user story generation, test case creation, or defect analysis). Run your current LLM pipeline against it and measure baseline accuracy.</li>
+          <li><strong>Hallucination hunt.</strong> Generate 10 outputs from your LLM workflow and manually check each one for hallucinations. Categorize each hallucination (fabricated fact, wrong number, invented reference). Then run the automated detector on the same outputs. How many did it catch?</li>
+          <li><strong>Consistency test.</strong> Pick a prompt you use frequently. Run it 10 times at temperature 0.3 and 10 times at temperature 0. Measure the consistency score for each. Is the difference significant?</li>
+          <li><strong>Review queue design.</strong> Design a review queue for your team's use case. Define the auto-approve threshold, required reviewers per content type, and escalation criteria. Simulate 50 items flowing through the queue and calculate reviewer workload.</li>
+          <li><strong>Transparency report.</strong> Generate a transparency report for a workflow you have been using for at least two weeks. Share it with a skeptical stakeholder. What questions do they ask? What additional information would increase their confidence?</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Footer Nav -->
+    <nav class="chapter-footer">
+      <a href="ch14-custom-assistants.html">&larr; Custom Assistants</a>
+      <span>Part 4 of 5</span>
+      <a href="../part-05-capstones/capstone-01.html">Capstone 1 &rarr;</a>
+    </nav>
+  </main>
+  <script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

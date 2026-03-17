@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capstone 1 — Requirements-to-Test-Cases Pipeline | LLMs for Business &amp; Quality Analysts</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="../part-04-advanced-patterns/ch15-evaluating-outputs.html" class="nav-prev">Evaluating Outputs</a>
+    <span class="nav-title">Part 5 — Capstones</span>
+    <a href="capstone-02.html" class="nav-next">Capstone 2</a>
+  </nav>
+
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 5 — Capstones</span>
+      <h1>Capstone 1: Requirements-to-Test-Cases Pipeline</h1>
+      <p class="chapter-intro">You have learned how to craft prompts, parse requirements, generate test cases, and evaluate LLM outputs. Now you will wire all of those skills into one end-to-end pipeline that ingests a raw requirements document and produces a prioritized, fully traceable test suite — ready for review and execution.</p>
+      <div class="chapter-meta">
+        <span>Building time: ~2 hours</span>
+        <span>Chapters used: 3, 5, 9, 15</span>
+      </div>
+    </header>
+
+    <section class="objectives">
+      <h3>What You Will Build</h3>
+      <ul>
+        <li>A document ingestion module that parses requirements from multiple formats (Markdown, Word, plain text)</li>
+        <li>A requirements classifier that tags each requirement by type, priority, and testability</li>
+        <li>A test-case generator that produces structured test cases with full traceability to source requirements</li>
+        <li>A prioritization engine that ranks test cases by risk, coverage, and business impact</li>
+        <li>A report generator that outputs a traceable requirements-to-tests matrix</li>
+      </ul>
+    </section>
+
+    <!-- Architecture Overview -->
+    <h2>Architecture Overview</h2>
+
+    <p>The pipeline follows a four-stage architecture. Each stage is a self-contained Python module that reads structured input and writes structured output, making the system easy to test, debug, and extend.</p>
+
+    <pre><code class="language-text">┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  1. Ingest &amp;     │────▶│  2. Classify &amp;  │────▶│  3. Generate    │────▶│  4. Prioritize  │
+│     Parse        │     │     Enrich      │     │     Test Cases  │     │     &amp; Report    │
+└─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘
+  Requirements.md        Structured reqs         Test cases w/           Ranked test suite
+  or .docx or .txt       with metadata           traceability            + coverage matrix</code></pre>
+
+    <p><strong>Data contracts between stages:</strong> Every stage communicates through Pydantic models. This ensures type safety, makes validation automatic, and gives you clear error messages when something goes wrong. The LLM never sees raw, unstructured data — it always receives a well-defined prompt with structured context.</p>
+
+    <pre><code class="language-python">from pydantic import BaseModel, Field
+from enum import Enum
+from typing import Optional
+
+class RequirementType(str, Enum):
+    FUNCTIONAL = "functional"
+    NON_FUNCTIONAL = "non_functional"
+    CONSTRAINT = "constraint"
+    INTERFACE = "interface"
+
+class Priority(str, Enum):
+    CRITICAL = "critical"
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+
+class Requirement(BaseModel):
+    id: str = Field(description="Unique identifier, e.g. REQ-001")
+    text: str = Field(description="Original requirement text")
+    type: RequirementType = Field(description="Classification of the requirement")
+    priority: Priority = Field(default=Priority.MEDIUM)
+    testable: bool = Field(default=True)
+    ambiguity_notes: Optional[str] = Field(default=None)
+
+class TestCase(BaseModel):
+    id: str = Field(description="Unique identifier, e.g. TC-001")
+    title: str
+    requirement_ids: list[str] = Field(description="Traced requirement IDs")
+    preconditions: list[str]
+    steps: list[str]
+    expected_result: str
+    priority: Priority
+    test_type: str = Field(description="e.g. positive, negative, boundary, edge")
+
+class TestSuite(BaseModel):
+    project_name: str
+    requirements: list[Requirement]
+    test_cases: list[TestCase]
+    coverage_matrix: dict[str, list[str]]  # req_id -> [test_case_ids]</code></pre>
+
+    <!-- Step 1 -->
+    <h2>Step 1: Setup and Data Ingestion</h2>
+
+    <p>Start by creating the project structure and the ingestion module. The ingestion module reads a requirements document, splits it into individual requirement statements, and assigns each one a unique identifier.</p>
+
+    <pre><code class="language-bash"># Project structure
+mkdir -p req_to_tests/{modules,data,output,tests}
+cd req_to_tests
+
+# Install dependencies
+pip install openai pydantic python-docx tiktoken jinja2</code></pre>
+
+    <p>Create a sample requirements document to work with throughout the capstone:</p>
+
+    <pre><code class="language-markdown"># E-Commerce Checkout System — Requirements
+
+## Functional Requirements
+
+FR-001: The system shall allow registered users to add items to a shopping cart.
+FR-002: The system shall calculate order totals including tax and shipping.
+FR-003: The system shall support payment via credit card, debit card, and PayPal.
+FR-004: The system shall send an order confirmation email within 30 seconds of
+        successful payment.
+FR-005: The system shall allow users to apply discount codes at checkout.
+FR-006: The system shall prevent checkout if any cart item is out of stock.
+
+## Non-Functional Requirements
+
+NFR-001: The checkout page shall load within 2 seconds under normal conditions.
+NFR-002: The system shall handle at least 500 concurrent checkout sessions.
+NFR-003: All payment data shall be encrypted using TLS 1.3 or higher.
+
+## Constraints
+
+CON-001: The system must integrate with the existing inventory microservice API.
+CON-002: The checkout flow shall comply with PCI-DSS requirements.</code></pre>
+
+    <p>Now build the ingestion module. It reads the document, extracts individual requirements, and assigns preliminary IDs:</p>
+
+    <pre><code class="language-python">"""modules/ingest.py — Parse requirements from various document formats."""
+import re
+from pathlib import Path
+
+def ingest_requirements(file_path: str) -> list[dict]:
+    """Read a requirements document and extract individual requirements.
+
+    Supports .md and .txt files. Each requirement is expected to start
+    with an identifier like FR-001, NFR-001, or CON-001.
+    """
+    path = Path(file_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Requirements file not found: {file_path}")
+
+    text = path.read_text(encoding="utf-8")
+
+    # Pattern matches lines starting with an ID like FR-001, NFR-001, CON-001
+    pattern = r"((?:FR|NFR|CON|REQ)-\d{3}):\s*(.+?)(?=\n(?:FR|NFR|CON|REQ)-\d{3}:|\n##|\Z)"
+    matches = re.findall(pattern, text, re.DOTALL)
+
+    requirements = []
+    for req_id, req_text in matches:
+        # Collapse multi-line text into a single line
+        cleaned = " ".join(req_text.strip().split())
+        requirements.append({
+            "id": req_id,
+            "text": cleaned,
+            "source_file": str(path.name),
+        })
+
+    print(f"Ingested {len(requirements)} requirements from {path.name}")
+    return requirements
+
+
+def ingest_docx(file_path: str) -> list[dict]:
+    """Read requirements from a Word document (.docx)."""
+    from docx import Document
+
+    doc = Document(file_path)
+    full_text = "\n".join(para.text for para in doc.paragraphs)
+
+    pattern = r"((?:FR|NFR|CON|REQ)-\d{3}):\s*(.+?)(?=\n(?:FR|NFR|CON|REQ)-\d{3}:|\n##|\Z)"
+    matches = re.findall(pattern, full_text, re.DOTALL)
+
+    requirements = []
+    for req_id, req_text in matches:
+        cleaned = " ".join(req_text.strip().split())
+        requirements.append({
+            "id": req_id,
+            "text": cleaned,
+            "source_file": Path(file_path).name,
+        })
+
+    print(f"Ingested {len(requirements)} requirements from {Path(file_path).name}")
+    return requirements</code></pre>
+
+    <!-- Step 2 -->
+    <h2>Step 2: Core Processing Pipeline — Classify and Enrich</h2>
+
+    <p>With raw requirements extracted, the next stage uses an LLM to classify each requirement by type, assess testability, flag ambiguity, and assign a priority. This is where prompt engineering from Chapter 3 comes into play — you need the LLM to return structured JSON, not free-form text.</p>
+
+    <pre><code class="language-python">"""modules/classify.py — Classify and enrich requirements using an LLM."""
+import json
+import os
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+CLASSIFICATION_PROMPT = """You are a senior business analyst. Analyze the following
+requirement and return a JSON object with these fields:
+
+- type: one of "functional", "non_functional", "constraint", "interface"
+- priority: one of "critical", "high", "medium", "low"
+- testable: boolean — can this requirement be verified with a concrete test?
+- ambiguity_notes: string or null — if the requirement is ambiguous, explain why
+
+Requirement ID: {req_id}
+Requirement Text: {req_text}
+
+Return ONLY valid JSON. No markdown fences. No explanation."""
+
+def classify_requirement(req: dict) -> dict:
+    """Send a single requirement to the LLM for classification."""
+    prompt = CLASSIFICATION_PROMPT.format(
+        req_id=req["id"],
+        req_text=req["text"],
+    )
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a requirements analyst. Respond only with JSON."},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.1,
+        max_tokens=300,
+    )
+
+    raw = response.choices[0].message.content.strip()
+
+    try:
+        classification = json.loads(raw)
+    except json.JSONDecodeError:
+        # Fallback: try to extract JSON from markdown fences
+        import re
+        match = re.search(r"\{.*\}", raw, re.DOTALL)
+        if match:
+            classification = json.loads(match.group())
+        else:
+            classification = {
+                "type": "functional",
+                "priority": "medium",
+                "testable": True,
+                "ambiguity_notes": "LLM response could not be parsed",
+            }
+
+    return {**req, **classification}
+
+
+def classify_all(requirements: list[dict]) -> list[dict]:
+    """Classify all requirements, with basic progress tracking."""
+    enriched = []
+    for i, req in enumerate(requirements, 1):
+        print(f"  Classifying {req['id']} ({i}/{len(requirements)})...")
+        enriched.append(classify_requirement(req))
+    return enriched</code></pre>
+
+    <p><strong>Why temperature 0.1?</strong> Classification is a deterministic task. You want consistent labels, not creative variation. A near-zero temperature ensures the same requirement gets the same classification across runs (Chapter 3, Section 3.4).</p>
+
+    <p><strong>Handling parse failures:</strong> LLMs occasionally wrap JSON in markdown fences or add explanatory text. The fallback regex extraction handles the most common failure mode. In a production system you would add retry logic with exponential backoff.</p>
+
+    <!-- Step 3 -->
+    <h2>Step 3: Generate Test Cases with Traceability</h2>
+
+    <p>This is the heart of the pipeline. For each classified requirement, the LLM generates one or more test cases — positive, negative, and boundary — with full traceability back to the source requirement. This draws directly on the techniques from Chapter 9 (Test Case Generation).</p>
+
+    <pre><code class="language-python">"""modules/generate.py — Generate traceable test cases from classified requirements."""
+import json
+import os
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+GENERATION_PROMPT = """You are a senior QA engineer. Generate test cases for the
+following requirement.
+
+Requirement ID: {req_id}
+Requirement Text: {req_text}
+Type: {req_type}
+Priority: {priority}
+
+Generate 2-4 test cases covering:
+1. A positive/happy-path test
+2. A negative test (invalid input, error condition)
+3. A boundary or edge-case test (if applicable)
+
+For each test case, return a JSON object with:
+- id: string (use format TC-XXX)
+- title: string (concise description)
+- requirement_ids: ["{req_id}"]
+- preconditions: [list of preconditions]
+- steps: [list of ordered test steps]
+- expected_result: string
+- priority: one of "critical", "high", "medium", "low"
+- test_type: one of "positive", "negative", "boundary", "edge"
+
+Return a JSON array of test case objects. No markdown fences."""
+
+_tc_counter = 0
+
+def generate_test_cases(req: dict) -> list[dict]:
+    """Generate test cases for a single enriched requirement."""
+    global _tc_counter
+
+    if not req.get("testable", True):
+        print(f"  Skipping {req['id']} — marked as not testable")
+        return []
+
+    prompt = GENERATION_PROMPT.format(
+        req_id=req["id"],
+        req_text=req["text"],
+        req_type=req.get("type", "functional"),
+        priority=req.get("priority", "medium"),
+    )
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a QA test designer. Respond only with a JSON array."},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.3,
+        max_tokens=1500,
+    )
+
+    raw = response.choices[0].message.content.strip()
+
+    try:
+        test_cases = json.loads(raw)
+    except json.JSONDecodeError:
+        import re
+        match = re.search(r"\[.*\]", raw, re.DOTALL)
+        if match:
+            test_cases = json.loads(match.group())
+        else:
+            print(f"  Warning: Could not parse test cases for {req['id']}")
+            return []
+
+    # Re-number test cases with globally unique IDs
+    for tc in test_cases:
+        _tc_counter += 1
+        tc["id"] = f"TC-{_tc_counter:03d}"
+        tc["requirement_ids"] = [req["id"]]
+
+    return test_cases
+
+
+def generate_all(requirements: list[dict]) -> list[dict]:
+    """Generate test cases for all requirements."""
+    all_test_cases = []
+    for i, req in enumerate(requirements, 1):
+        print(f"  Generating tests for {req['id']} ({i}/{len(requirements)})...")
+        cases = generate_test_cases(req)
+        all_test_cases.extend(cases)
+        print(f"    -> {len(cases)} test cases generated")
+    return all_test_cases</code></pre>
+
+    <p><strong>Traceability by design:</strong> Every test case carries a <code>requirement_ids</code> field that links it back to one or more source requirements. This is not just a nice-to-have — it is what makes the final coverage matrix possible and what auditors look for in regulated industries.</p>
+
+    <p><strong>Temperature 0.3:</strong> Test case generation benefits from slight creativity (to think of edge cases) but must remain grounded. A moderate temperature strikes the right balance (Chapter 3).</p>
+
+    <!-- Step 4 -->
+    <h2>Step 4: Prioritize, Validate, and Generate the Report</h2>
+
+    <p>The final stage brings everything together. It builds a traceability matrix, validates coverage, applies risk-based prioritization, and generates a human-readable report. This stage applies the evaluation patterns from Chapter 15.</p>
+
+    <pre><code class="language-python">"""modules/prioritize.py — Prioritize test cases and build the traceability matrix."""
+
+PRIORITY_WEIGHTS = {
+    "critical": 4,
+    "high": 3,
+    "medium": 2,
+    "low": 1,
+}
+
+def build_coverage_matrix(requirements: list[dict], test_cases: list[dict]) -> dict:
+    """Build a requirement-to-test-case traceability matrix."""
+    matrix = {req["id"]: [] for req in requirements}
+
+    for tc in test_cases:
+        for req_id in tc.get("requirement_ids", []):
+            if req_id in matrix:
+                matrix[req_id].append(tc["id"])
+
+    return matrix
+
+
+def find_coverage_gaps(matrix: dict) -> list[str]:
+    """Identify requirements with no test coverage."""
+    return [req_id for req_id, tc_ids in matrix.items() if len(tc_ids) == 0]
+
+
+def prioritize_test_cases(test_cases: list[dict]) -> list[dict]:
+    """Sort test cases by priority weight, then by type preference."""
+    type_bonus = {"positive": 0.3, "negative": 0.2, "boundary": 0.1, "edge": 0.0}
+
+    def score(tc):
+        base = PRIORITY_WEIGHTS.get(tc.get("priority", "medium"), 2)
+        bonus = type_bonus.get(tc.get("test_type", "positive"), 0)
+        return base + bonus
+
+    return sorted(test_cases, key=score, reverse=True)
+
+
+def validate_test_cases(test_cases: list[dict]) -> list[dict]:
+    """Run basic quality checks on generated test cases."""
+    issues = []
+    for tc in test_cases:
+        problems = []
+        if not tc.get("steps") or len(tc["steps"]) == 0:
+            problems.append("No test steps defined")
+        if not tc.get("expected_result"):
+            problems.append("No expected result defined")
+        if not tc.get("requirement_ids"):
+            problems.append("No traceability link")
+        if len(tc.get("title", "")) < 10:
+            problems.append("Title too short — may lack clarity")
+
+        if problems:
+            issues.append({"test_case_id": tc["id"], "issues": problems})
+
+    return issues</code></pre>
+
+    <p>Now build the report generator using Jinja2 templates:</p>
+
+    <pre><code class="language-python">"""modules/report.py — Generate the final HTML and JSON reports."""
+import json
+from datetime import datetime
+from pathlib import Path
+
+REPORT_TEMPLATE = """
+# Requirements-to-Test-Cases Report
+**Generated:** {timestamp}
+**Project:** {project_name}
+**Source:** {source_file}
+
+---
+
+## Summary
+| Metric                  | Value |
+|-------------------------|-------|
+| Requirements ingested   | {req_count} |
+| Test cases generated    | {tc_count} |
+| Coverage gaps           | {gap_count} |
+| Validation issues       | {issue_count} |
+
+## Coverage Matrix
+{coverage_table}
+
+## Coverage Gaps
+{gap_section}
+
+## Prioritized Test Cases
+{test_case_section}
+
+## Validation Issues
+{issue_section}
+"""
+
+def generate_report(
+    project_name: str,
+    source_file: str,
+    requirements: list[dict],
+    test_cases: list[dict],
+    coverage_matrix: dict,
+    gaps: list[str],
+    issues: list[dict],
+    output_dir: str = "output",
+) -> str:
+    """Generate a markdown report and a JSON export."""
+    out = Path(output_dir)
+    out.mkdir(exist_ok=True)
+
+    # Build coverage table
+    coverage_rows = []
+    for req_id, tc_ids in sorted(coverage_matrix.items()):
+        status = ", ".join(tc_ids) if tc_ids else "** NO COVERAGE **"
+        coverage_rows.append(f"| {req_id} | {status} |")
+    coverage_table = "| Requirement | Test Cases |\n|-------------|------------|\n"
+    coverage_table += "\n".join(coverage_rows)
+
+    # Build gap section
+    if gaps:
+        gap_section = "\n".join(f"- **{g}** — No test cases generated" for g in gaps)
+    else:
+        gap_section = "All requirements have at least one test case."
+
+    # Build test case section
+    tc_lines = []
+    for tc in test_cases:
+        tc_lines.append(f"### {tc['id']}: {tc.get('title', 'Untitled')}")
+        tc_lines.append(f"**Priority:** {tc.get('priority', 'medium')} | "
+                        f"**Type:** {tc.get('test_type', 'positive')} | "
+                        f"**Traces to:** {', '.join(tc.get('requirement_ids', []))}")
+        tc_lines.append(f"**Preconditions:** {'; '.join(tc.get('preconditions', ['None']))}")
+        tc_lines.append("**Steps:**")
+        for j, step in enumerate(tc.get("steps", []), 1):
+            tc_lines.append(f"  {j}. {step}")
+        tc_lines.append(f"**Expected Result:** {tc.get('expected_result', 'N/A')}")
+        tc_lines.append("")
+
+    # Build issue section
+    if issues:
+        issue_lines = []
+        for iss in issues:
+            issue_lines.append(f"- **{iss['test_case_id']}**: {'; '.join(iss['issues'])}")
+        issue_section = "\n".join(issue_lines)
+    else:
+        issue_section = "No validation issues found."
+
+    report = REPORT_TEMPLATE.format(
+        timestamp=datetime.now().strftime("%Y-%m-%d %H:%M"),
+        project_name=project_name,
+        source_file=source_file,
+        req_count=len(requirements),
+        tc_count=len(test_cases),
+        gap_count=len(gaps),
+        issue_count=len(issues),
+        coverage_table=coverage_table,
+        gap_section=gap_section,
+        test_case_section="\n".join(tc_lines),
+        issue_section=issue_section,
+    )
+
+    # Write markdown report
+    report_path = out / "test_suite_report.md"
+    report_path.write_text(report, encoding="utf-8")
+
+    # Write JSON export for programmatic consumption
+    json_path = out / "test_suite.json"
+    json_path.write_text(json.dumps({
+        "project_name": project_name,
+        "generated_at": datetime.now().isoformat(),
+        "requirements": requirements,
+        "test_cases": test_cases,
+        "coverage_matrix": coverage_matrix,
+        "gaps": gaps,
+        "validation_issues": issues,
+    }, indent=2), encoding="utf-8")
+
+    print(f"\nReport written to {report_path}")
+    print(f"JSON export written to {json_path}")
+    return str(report_path)</code></pre>
+
+    <p>Finally, wire everything together in a main script:</p>
+
+    <pre><code class="language-python">"""main.py — Orchestrate the full requirements-to-test-cases pipeline."""
+from modules.ingest import ingest_requirements
+from modules.classify import classify_all
+from modules.generate import generate_all
+from modules.prioritize import (
+    build_coverage_matrix,
+    find_coverage_gaps,
+    prioritize_test_cases,
+    validate_test_cases,
+)
+from modules.report import generate_report
+
+
+def run_pipeline(file_path: str, project_name: str = "My Project"):
+    """Execute the full pipeline end to end."""
+    print("=" * 60)
+    print(f"Requirements-to-Test-Cases Pipeline")
+    print(f"Project: {project_name}")
+    print("=" * 60)
+
+    # Stage 1: Ingest
+    print("\n[Stage 1] Ingesting requirements...")
+    raw_reqs = ingest_requirements(file_path)
+
+    # Stage 2: Classify and enrich
+    print("\n[Stage 2] Classifying requirements...")
+    enriched_reqs = classify_all(raw_reqs)
+
+    # Stage 3: Generate test cases
+    print("\n[Stage 3] Generating test cases...")
+    test_cases = generate_all(enriched_reqs)
+
+    # Stage 4: Prioritize and validate
+    print("\n[Stage 4] Prioritizing and validating...")
+    test_cases = prioritize_test_cases(test_cases)
+    matrix = build_coverage_matrix(enriched_reqs, test_cases)
+    gaps = find_coverage_gaps(matrix)
+    issues = validate_test_cases(test_cases)
+
+    # Stage 5: Generate report
+    print("\n[Stage 5] Generating report...")
+    report_path = generate_report(
+        project_name=project_name,
+        source_file=file_path,
+        requirements=enriched_reqs,
+        test_cases=test_cases,
+        coverage_matrix=matrix,
+        gaps=gaps,
+        issues=issues,
+    )
+
+    # Summary
+    print("\n" + "=" * 60)
+    print("Pipeline Complete!")
+    print(f"  Requirements: {len(enriched_reqs)}")
+    print(f"  Test cases:   {len(test_cases)}")
+    print(f"  Gaps:         {len(gaps)}")
+    print(f"  Issues:       {len(issues)}")
+    print("=" * 60)
+
+    return report_path
+
+
+if __name__ == "__main__":
+    import sys
+    file_path = sys.argv[1] if len(sys.argv) > 1 else "data/requirements.md"
+    project = sys.argv[2] if len(sys.argv) > 2 else "E-Commerce Checkout"
+    run_pipeline(file_path, project)</code></pre>
+
+    <!-- Extensions -->
+    <h2>Extensions and Portfolio Tips</h2>
+
+    <p>The base pipeline is a solid portfolio piece. Here are ways to make it stand out:</p>
+
+    <ul>
+      <li><strong>Add a Streamlit front end.</strong> Wrap the pipeline in a Streamlit app that lets users upload a requirements document and download the report. This transforms a script into a demo-ready tool. A dozen lines of Streamlit code is all you need.</li>
+      <li><strong>Support Jira integration.</strong> Use the Jira REST API to pull requirements from epics and push generated test cases back as Zephyr or Xray test items. This shows you can integrate LLM tooling into existing workflows.</li>
+      <li><strong>Implement batch processing with async calls.</strong> Replace the sequential LLM calls with <code>asyncio.gather()</code> to process multiple requirements in parallel. This cuts pipeline execution time by 3-5x.</li>
+      <li><strong>Add a feedback loop.</strong> Let QA reviewers mark test cases as "accepted" or "needs revision." Feed the revision reasons back into the prompt for the next generation pass. This demonstrates human-in-the-loop AI, a concept hiring managers value highly.</li>
+      <li><strong>Track costs.</strong> Log the token counts from each API call and compute the total cost per pipeline run. Include this in the report — it shows you think about LLM economics, not just functionality.</li>
+      <li><strong>Version your prompts.</strong> Store prompts in a separate YAML file with version numbers. When you change a prompt, bump the version and log which version generated each output. This is prompt-ops thinking, and it signals maturity.</li>
+    </ul>
+
+    <p><strong>Portfolio presentation tip:</strong> When presenting this project, lead with the problem ("QA teams spend 4-6 hours per sprint writing test cases from requirements") and the result ("this pipeline reduces that to 15 minutes with 85% acceptance rate"). Show the traceability matrix — it is visually impressive and immediately communicates the value.</p>
+
+    <!-- Summary -->
+    <section class="summary">
+      <h2>Summary</h2>
+      <ul class="key-takeaways">
+        <li>You built a complete, four-stage pipeline that transforms raw requirements into a prioritized, traceable test suite.</li>
+        <li>Pydantic models enforce data contracts between pipeline stages, catching errors early and making the system maintainable.</li>
+        <li>Low-temperature prompts with strict JSON output formatting produce reliable, parseable results from the LLM.</li>
+        <li>The traceability matrix connects every test case to its source requirement, satisfying audit and compliance needs.</li>
+        <li>Validation checks catch quality issues in generated test cases before they reach human reviewers.</li>
+        <li>The pipeline pattern — ingest, enrich, generate, validate, report — is reusable across many BA and QA automation scenarios.</li>
+      </ul>
+    </section>
+
+    <nav class="chapter-footer">
+      <a href="../part-04-advanced-patterns/ch15-evaluating-outputs.html">&larr; Evaluating Outputs</a>
+      <span>Part 5 of 5</span>
+      <a href="capstone-02.html">Capstone 2 &rarr;</a>
+    </nav>
+  </main>
+  <script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

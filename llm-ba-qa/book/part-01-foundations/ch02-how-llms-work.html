@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 2 — How LLMs Work (No PhD Required) | LLMs for Business &amp; Quality Analysts</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="ch01-why-llms-matter.html" class="nav-prev">Why LLMs Matter</a>
+    <span class="nav-title">Part 1 — Foundations</span>
+    <a href="ch03-prompt-engineering.html" class="nav-next">Prompt Engineering</a>
+  </nav>
+
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 1 — Foundations</span>
+      <h1>Chapter 2: How LLMs Work (No PhD Required)</h1>
+      <p class="chapter-intro">You don't need to understand how an engine works to drive a car — but a driver who understands the basics makes better decisions on the road. This chapter gives you the practical understanding of LLM internals that will make you a more effective prompt engineer, a better judge of model outputs, and a more informed participant in technical conversations about AI adoption.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~20 min</span>
+        <span>Project: Model Comparison Lab</span>
+      </div>
+    </header>
+
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>How text is broken into tokens and why token limits matter for your workflows</li>
+        <li>The core idea behind Transformers — the architecture powering every major LLM</li>
+        <li>How context windows, temperature, and other parameters affect output quality</li>
+        <li>How to choose the right model for different analyst tasks based on practical trade-offs</li>
+      </ul>
+    </section>
+
+    <!-- Section 2.1 -->
+    <h2>2.1 Tokens and Language</h2>
+
+    <p>Every interaction with an LLM begins and ends with tokens. Tokens are the fundamental units that LLMs process — not words, not characters, but something in between. Understanding tokens is not an academic exercise; it directly affects what you can do with an LLM and how much it costs.</p>
+
+    <p>A token is typically a word fragment, a whole word, or a punctuation mark. The exact tokenization depends on the model, but here are general rules of thumb:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Text</th>
+          <th>Approximate Tokens</th>
+          <th>Rule of Thumb</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1 English word</td>
+          <td>~1.3 tokens</td>
+          <td>Most common words = 1 token; longer/rarer words = 2-3 tokens</td>
+        </tr>
+        <tr>
+          <td>1 page of text (~500 words)</td>
+          <td>~650 tokens</td>
+          <td>Useful for estimating document sizes</td>
+        </tr>
+        <tr>
+          <td>A typical user story</td>
+          <td>~50-100 tokens</td>
+          <td>"As a [role], I want [feature], so that [benefit]" plus acceptance criteria</td>
+        </tr>
+        <tr>
+          <td>A BRD (20 pages)</td>
+          <td>~13,000 tokens</td>
+          <td>May exceed some models' context windows</td>
+        </tr>
+        <tr>
+          <td>A full test plan</td>
+          <td>~5,000-15,000 tokens</td>
+          <td>Depends on complexity and number of test cases</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Why do tokens matter practically? Three reasons:</p>
+
+    <p><strong>Cost:</strong> LLM APIs charge by the token — both for what you send (input tokens) and what you receive (output tokens). A prompt with a 10-page document attached costs roughly 10 times more than the same prompt without the document. Understanding token counts helps you manage costs and avoid surprises.</p>
+
+    <p><strong>Context limits:</strong> Every model has a maximum context window — the total number of tokens (input + output) it can handle in a single conversation. If your prompt plus the expected response exceeds this limit, the model will either truncate its response or refuse to process the input. We'll explore context windows in detail in Section 2.4.</p>
+
+    <p><strong>Quality:</strong> Longer prompts with more context generally produce better outputs — but only up to a point. Research has shown that information in the middle of very long contexts can be "lost" by the model, a phenomenon called the "lost in the middle" effect. Strategically placing your most important context at the beginning and end of your prompt can improve results.</p>
+
+    <pre><code class="language-python">"""
+Token counting utility for analysts.
+Uses the tiktoken library (OpenAI's tokenizer) for estimation.
+"""
+import tiktoken
+
+def count_tokens(text, model="gpt-4o"):
+    """Count tokens for a given text using the specified model's tokenizer."""
+    try:
+        encoding = tiktoken.encoding_for_model(model)
+    except KeyError:
+        encoding = tiktoken.get_encoding("cl100k_base")
+
+    tokens = encoding.encode(text)
+    return len(tokens)
+
+def estimate_cost(input_tokens, output_tokens, model="gpt-4o"):
+    """Estimate the API cost for a given number of tokens."""
+    # Approximate pricing per 1M tokens (as of early 2026)
+    pricing = {
+        "gpt-4o":       {"input": 2.50, "output": 10.00},
+        "gpt-4o-mini":  {"input": 0.15, "output": 0.60},
+        "claude-sonnet": {"input": 3.00, "output": 15.00},
+        "claude-haiku":  {"input": 0.25, "output": 1.25},
+    }
+
+    rates = pricing.get(model, pricing["gpt-4o"])
+    input_cost = (input_tokens / 1_000_000) * rates["input"]
+    output_cost = (output_tokens / 1_000_000) * rates["output"]
+    return input_cost + output_cost
+
+# Example: Estimate cost for a requirements analysis task
+requirement_doc = """
+As a customer service representative, I want to search for customer
+accounts by multiple criteria (name, email, phone, account number)
+so that I can quickly locate the correct account during a call.
+
+Acceptance Criteria:
+- Search returns results within 2 seconds
+- Partial matches are supported for name and email
+- Results are sorted by relevance score
+- Maximum 50 results displayed per page
+- Search history is maintained for the current session
+"""
+
+token_count = count_tokens(requirement_doc)
+print(f"Requirement document: {token_count} tokens")
+print(f"Estimated cost for analysis (assuming 500 output tokens):")
+for model in ["gpt-4o", "gpt-4o-mini", "claude-sonnet", "claude-haiku"]:
+    cost = estimate_cost(token_count, 500, model)
+    print(f"  {model}: ${cost:.4f}")</code></pre>
+
+    <div class="callout callout-tip">
+      <strong>Practical Tip:</strong> When working with large documents, pre-process them before sending to an LLM. Remove boilerplate (headers, footers, page numbers), compress whitespace, and consider sending only the relevant sections rather than the entire document. This reduces cost and often improves output quality.
+    </div>
+
+    <!-- Section 2.2 -->
+    <h2>2.2 The Transformer Architecture</h2>
+
+    <p>Every major LLM — GPT-4, Claude, Gemini, Llama — is built on the same fundamental architecture: the Transformer, introduced in a 2017 research paper titled "Attention Is All You Need." You don't need to understand the mathematics, but understanding the core concept — <em>attention</em> — will change how you think about prompt construction.</p>
+
+    <p>Before Transformers, language models processed text sequentially — one word at a time, left to right. This meant that by the time the model reached the end of a long paragraph, it had only a fading memory of the beginning. Transformers solved this with the <strong>attention mechanism</strong>, which allows the model to look at all parts of the input simultaneously and determine which parts are most relevant to each other.</p>
+
+    <p>Think of it this way: when you read the sentence "The bank was steep and muddy after the rain," you instantly connect "bank" with "steep," "muddy," and "rain" to conclude this is a riverbank, not a financial institution. You don't process words one at a time — you consider the relationships between all the words simultaneously. That's what attention does for an LLM.</p>
+
+    <p>The practical implications for analysts:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Transformer Feature</th>
+          <th>What It Means</th>
+          <th>Implication for Your Prompts</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Self-attention</strong></td>
+          <td>The model considers relationships between all parts of the input</td>
+          <td>You can reference things defined earlier in your prompt; the model will connect them</td>
+        </tr>
+        <tr>
+          <td><strong>Parallel processing</strong></td>
+          <td>All tokens are processed simultaneously, not sequentially</td>
+          <td>Longer prompts don't proportionally slow down processing (much)</td>
+        </tr>
+        <tr>
+          <td><strong>Layered understanding</strong></td>
+          <td>Multiple attention layers build progressively abstract representations</td>
+          <td>Models can capture both surface-level patterns and deeper semantic relationships</td>
+        </tr>
+        <tr>
+          <td><strong>Position encoding</strong></td>
+          <td>The model knows where each token appears in the sequence</td>
+          <td>Order matters in your prompts — put instructions before examples, context before questions</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-info">
+      <strong>The Attention Analogy:</strong> Imagine you're a BA reviewing a 50-page requirements document for a specific section about payment processing. You don't read every word with equal focus — you scan for relevant sections, then pay deep attention to the parts that matter. That's essentially what attention does in a Transformer: it learns to focus computational resources on the most relevant parts of the input for each part of the output it generates.
+    </div>
+
+    <p>The size of an LLM is typically described by its number of <strong>parameters</strong> — the learned values that encode all the patterns the model has absorbed during training. GPT-4 is estimated to have over a trillion parameters. More parameters generally means more capacity to capture nuance, but also higher computational costs. This is why smaller models can be surprisingly effective for specific tasks: if the task doesn't require broad knowledge, a smaller, faster, cheaper model may perform just as well.</p>
+
+    <!-- Section 2.3 -->
+    <h2>2.3 Pre-Training and Fine-Tuning</h2>
+
+    <p>LLMs are created in two major phases, and understanding these phases explains both the strengths and limitations you'll encounter.</p>
+
+    <p><strong>Phase 1: Pre-Training</strong></p>
+    <p>In pre-training, the model is exposed to enormous amounts of text — books, websites, articles, code, documentation — and learns to predict what comes next in a sequence. This is an unsupervised process: the model isn't told what's right or wrong, it simply learns the statistical patterns of language. Pre-training is astronomically expensive (millions of dollars in compute costs) and is done once by the model provider.</p>
+
+    <p>What pre-training gives the model:</p>
+    <ul>
+      <li>Grammar, syntax, and language fluency</li>
+      <li>General world knowledge (up to the training data cutoff date)</li>
+      <li>Understanding of document formats and structures (it has "seen" millions of requirements documents, test plans, and BRDs)</li>
+      <li>Reasoning patterns (from exposure to logical arguments, mathematical proofs, code, etc.)</li>
+      <li>Multi-language capability</li>
+    </ul>
+
+    <p><strong>Phase 2: Fine-Tuning and Alignment</strong></p>
+    <p>A pre-trained model is powerful but unrefined — it might generate offensive content, ignore instructions, or produce aimless text. Fine-tuning aligns the model to be helpful, harmless, and good at following instructions. This typically involves:</p>
+
+    <ul>
+      <li><strong>Supervised Fine-Tuning (SFT):</strong> Training on curated examples of good prompt-response pairs</li>
+      <li><strong>Reinforcement Learning from Human Feedback (RLHF):</strong> Human evaluators rate model responses, and the model is trained to produce higher-rated outputs</li>
+      <li><strong>Constitutional AI / RLAIF:</strong> Using AI systems to help evaluate and improve responses at scale</li>
+    </ul>
+
+    <p>For analysts, the key takeaway is: the model you interact with has been specifically trained to follow instructions and be helpful. This means clear, structured instructions will be followed more faithfully than vague ones. The model wants to help — your job is to tell it exactly what help looks like.</p>
+
+    <div class="callout callout-warning">
+      <strong>Knowledge Cutoff:</strong> Because pre-training uses a fixed dataset, every LLM has a knowledge cutoff date. GPT-4o's training data extends through a specific date; it genuinely does not know about events after that date. This means LLMs cannot tell you about your organization's recent policy changes, last week's sprint retrospective, or the latest framework release. Always provide relevant current context in your prompts.
+    </div>
+
+    <!-- Section 2.4 -->
+    <h2>2.4 Context Windows Explained</h2>
+
+    <p>The context window is the total amount of text (measured in tokens) that an LLM can process in a single interaction. It includes both your input (the prompt, any documents you attach, the conversation history) and the model's output. Think of it as the model's working memory — everything it can "see" at once.</p>
+
+    <p>Context window sizes vary dramatically between models:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Context Window</th>
+          <th>Approximate Page Equivalent</th>
+          <th>Good For</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>GPT-4o</td>
+          <td>128K tokens</td>
+          <td>~200 pages</td>
+          <td>Most analyst tasks, including large document analysis</td>
+        </tr>
+        <tr>
+          <td>GPT-4o-mini</td>
+          <td>128K tokens</td>
+          <td>~200 pages</td>
+          <td>Cost-effective tasks with large inputs</td>
+        </tr>
+        <tr>
+          <td>Claude 3.5 Sonnet</td>
+          <td>200K tokens</td>
+          <td>~300 pages</td>
+          <td>Very large document analysis and comparison</td>
+        </tr>
+        <tr>
+          <td>Gemini 1.5 Pro</td>
+          <td>1M+ tokens</td>
+          <td>~1,500 pages</td>
+          <td>Entire codebases, complete specification sets</td>
+        </tr>
+        <tr>
+          <td>Llama 3 (8B)</td>
+          <td>8K tokens</td>
+          <td>~12 pages</td>
+          <td>Quick, focused tasks with minimal context</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Context window management is one of the most practical skills an analyst can develop. Here are the key strategies:</p>
+
+    <p><strong>Strategy 1: Summarize and Reference</strong></p>
+    <p>Instead of pasting an entire 50-page document, summarize the relevant sections and paste only the specific parts you need analyzed. You can even ask the LLM to create a summary in one interaction, then use that summary as context in subsequent interactions.</p>
+
+    <p><strong>Strategy 2: Chunking</strong></p>
+    <p>Break large tasks into smaller pieces. Instead of asking the LLM to analyze an entire test plan, analyze it section by section. This also improves quality because the model can focus its attention more effectively on smaller inputs.</p>
+
+    <p><strong>Strategy 3: System Messages</strong></p>
+    <p>Use the system message (available in API calls) to set persistent context — your role, the project background, output format expectations. This is more token-efficient than repeating context in every user message.</p>
+
+    <pre><code class="language-python">"""
+Context window management utility.
+Helps analysts estimate whether their documents fit within model limits.
+"""
+
+def check_context_fit(prompt_tokens, document_tokens, expected_output_tokens,
+                      model_limit=128000):
+    """Check if a task fits within a model's context window."""
+    total = prompt_tokens + document_tokens + expected_output_tokens
+    utilization = (total / model_limit) * 100
+
+    result = {
+        "total_tokens": total,
+        "model_limit": model_limit,
+        "utilization": f"{utilization:.1f}%",
+        "fits": total <= model_limit,
+        "remaining": model_limit - total
+    }
+
+    if not result["fits"]:
+        excess = total - model_limit
+        result["recommendation"] = (
+            f"Exceeds limit by {excess:,} tokens. "
+            f"Consider: (1) summarizing the document to reduce by "
+            f"{excess:,}+ tokens, or (2) using a model with a larger "
+            f"context window, or (3) splitting into {(total // model_limit) + 1} chunks."
+        )
+
+    return result
+
+# Example: Can I analyze a BRD with GPT-4o?
+result = check_context_fit(
+    prompt_tokens=500,       # Your instructions
+    document_tokens=13000,   # 20-page BRD
+    expected_output_tokens=2000,  # Detailed analysis
+    model_limit=128000       # GPT-4o
+)
+print(f"Fits in context: {result['fits']}")
+print(f"Utilization: {result['utilization']}")
+print(f"Remaining capacity: {result['remaining']:,} tokens")</code></pre>
+
+    <div class="callout callout-tip">
+      <strong>Conversation Memory:</strong> In multi-turn conversations (like ChatGPT), the entire conversation history is sent with each new message. A conversation that starts small can gradually fill the context window. If you notice an LLM's responses becoming less coherent or accurate in a long conversation, start a new conversation and provide fresh context.
+    </div>
+
+    <!-- Section 2.5 -->
+    <h2>2.5 Temperature and Creativity</h2>
+
+    <p>When an LLM generates each token, it doesn't just pick the single most likely next word. Instead, it produces a probability distribution over all possible next tokens. The <strong>temperature</strong> parameter controls how this distribution is used to select the actual output token.</p>
+
+    <p>Understanding temperature is practical because it directly affects the type of output you get:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Temperature</th>
+          <th>Behavior</th>
+          <th>Best For (Analyst Context)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>0.0</strong></td>
+          <td>Always picks the most likely token. Deterministic — same input gives same output.</td>
+          <td>Structured data extraction, classification, test case generation from templates</td>
+        </tr>
+        <tr>
+          <td><strong>0.3-0.5</strong></td>
+          <td>Mostly predictable with slight variation. Focused and consistent.</td>
+          <td>Requirements writing, acceptance criteria, defect reports, technical documentation</td>
+        </tr>
+        <tr>
+          <td><strong>0.7-0.8</strong></td>
+          <td>Balanced between consistency and creativity. The default for most models.</td>
+          <td>Brainstorming user stories, stakeholder communications, exploratory analysis</td>
+        </tr>
+        <tr>
+          <td><strong>1.0+</strong></td>
+          <td>Highly creative and diverse. Outputs vary significantly between runs.</td>
+          <td>Generating alternative approaches, creative problem-solving, exploring edge cases</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>There are also related parameters you may encounter:</p>
+
+    <ul>
+      <li><strong>Top-p (nucleus sampling):</strong> Instead of temperature, some models use top-p to control randomness. A top-p of 0.1 means only tokens in the top 10% of probability are considered. Lower top-p = more focused output.</li>
+      <li><strong>Frequency penalty:</strong> Reduces the likelihood of repeating tokens that have already appeared. Useful for avoiding repetitive output in longer generations.</li>
+      <li><strong>Presence penalty:</strong> Encourages the model to introduce new topics. Useful when you want broader coverage rather than deep focus.</li>
+    </ul>
+
+    <div class="callout callout-tip">
+      <strong>Analyst's Rule of Thumb:</strong> Use temperature 0 for tasks where consistency and accuracy matter most (data extraction, classification, structured output). Use temperature 0.5-0.7 for tasks where quality writing matters (document drafting, communication). Use temperature 0.8+ only when you explicitly want variety and creative options.
+    </div>
+
+    <pre><code class="language-python">"""
+Demonstrate the effect of temperature on LLM output.
+This example uses the OpenAI API but the concept applies to all models.
+"""
+from openai import OpenAI
+
+client = OpenAI()  # Uses OPENAI_API_KEY environment variable
+
+user_story = """
+As an online shopper, I want to save items to a wishlist
+so that I can purchase them later.
+"""
+
+# Generate acceptance criteria at different temperatures
+for temp in [0.0, 0.5, 1.0]:
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        temperature=temp,
+        messages=[
+            {"role": "system", "content": "You are a senior Business Analyst. "
+             "Generate acceptance criteria in Given/When/Then format."},
+            {"role": "user", "content": f"Write acceptance criteria for: {user_story}"}
+        ]
+    )
+    print(f"\n--- Temperature {temp} ---")
+    print(response.choices[0].message.content)
+    print(f"Tokens used: {response.usage.total_tokens}")</code></pre>
+
+    <!-- Section 2.6 -->
+    <h2>2.6 Model Selection for Analysts</h2>
+
+    <p>Choosing the right model for a task is one of the most impactful decisions you'll make as an LLM-augmented analyst. The landscape is complex and evolving, but the selection framework is straightforward: match the model's strengths to your task's requirements.</p>
+
+    <p>Here's a practical decision matrix for common analyst tasks:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Task Type</th>
+          <th>Quality Need</th>
+          <th>Speed Need</th>
+          <th>Cost Sensitivity</th>
+          <th>Recommended Tier</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Quick classification / tagging</td>
+          <td>Medium</td>
+          <td>High</td>
+          <td>High</td>
+          <td>Small model (GPT-4o-mini, Haiku)</td>
+        </tr>
+        <tr>
+          <td>Requirements analysis</td>
+          <td>High</td>
+          <td>Medium</td>
+          <td>Medium</td>
+          <td>Large model (GPT-4o, Sonnet)</td>
+        </tr>
+        <tr>
+          <td>Test case generation (batch)</td>
+          <td>Medium-High</td>
+          <td>Medium</td>
+          <td>High</td>
+          <td>Medium model with good instruction following</td>
+        </tr>
+        <tr>
+          <td>Document summarization</td>
+          <td>High</td>
+          <td>Low</td>
+          <td>Medium</td>
+          <td>Large model with large context window</td>
+        </tr>
+        <tr>
+          <td>Creative brainstorming</td>
+          <td>Medium</td>
+          <td>High</td>
+          <td>Medium</td>
+          <td>Large model at higher temperature</td>
+        </tr>
+        <tr>
+          <td>Data extraction from text</td>
+          <td>Very High</td>
+          <td>Medium</td>
+          <td>Low</td>
+          <td>Large model at temperature 0</td>
+        </tr>
+        <tr>
+          <td>Sensitive internal analysis</td>
+          <td>High</td>
+          <td>Low</td>
+          <td>Low</td>
+          <td>Self-hosted open-source model</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><strong>The Multi-Model Strategy</strong></p>
+    <p>Sophisticated teams don't use a single model for everything. They adopt a tiered strategy:</p>
+    <ul>
+      <li><strong>Tier 1 (Frontier models):</strong> GPT-4o, Claude Sonnet, Gemini Pro — for complex analysis, nuanced writing, and critical deliverables where quality justifies cost</li>
+      <li><strong>Tier 2 (Efficient models):</strong> GPT-4o-mini, Claude Haiku, Gemini Flash — for high-volume, lower-complexity tasks like classification, summarization, and template-based generation</li>
+      <li><strong>Tier 3 (Local/Private models):</strong> Llama, Mistral, Phi — for sensitive data that cannot leave organizational boundaries, or for offline/air-gapped environments</li>
+    </ul>
+
+    <div class="callout callout-info">
+      <strong>Cost Optimization:</strong> A common pattern is to prototype with a frontier model (to get the best possible output and validate your prompt design), then test whether a cheaper model produces acceptable results with the same prompt. Many tasks that seem to require GPT-4-class models work perfectly well with GPT-4o-mini at one-tenth the cost.
+    </div>
+
+    <!-- Section 2.7 -->
+    <h2>2.7 Limitations You Must Know</h2>
+
+    <p>Working effectively with LLMs requires clear-eyed awareness of their limitations. These are not theoretical edge cases — they are issues you will encounter regularly in analyst work.</p>
+
+    <p><strong>Hallucination</strong></p>
+    <p>LLMs can generate text that is fluent, confident, and completely wrong. They may invent API endpoints that don't exist, cite regulations that were never written, or describe product features that are fabricated. This happens because the model generates text based on patterns, not facts. For analysts, this means every factual claim in LLM output must be verified against authoritative sources. Never use LLM-generated content in a deliverable without fact-checking.</p>
+
+    <p><strong>Inconsistency</strong></p>
+    <p>The same prompt can produce different outputs on different runs (unless temperature is set to 0). Even at temperature 0, minor changes in phrasing can produce significantly different results. This means you should not rely on a single LLM run for critical tasks. Generate multiple outputs and compare, or use structured evaluation criteria to assess quality.</p>
+
+    <p><strong>Bias</strong></p>
+    <p>LLMs inherit biases from their training data. This can manifest as gender bias in persona descriptions, cultural bias in scenario generation, regional bias in regulatory references, or recency bias toward popular frameworks and tools. Be particularly alert to bias when using LLMs for user research analysis, persona creation, or accessibility testing.</p>
+
+    <p><strong>Sycophancy</strong></p>
+    <p>LLMs are trained to be helpful, which can make them agreeable to a fault. If you present a flawed requirement and ask "is this good?", the model may praise it rather than identify problems. Always ask the model to critique, challenge, and identify issues — don't ask for validation.</p>
+
+    <p><strong>Context Sensitivity</strong></p>
+    <p>LLMs can be heavily influenced by irrelevant information in the prompt. A throwaway comment or example in your prompt can steer the output in unexpected directions. Be deliberate about what you include in your prompts — every word is signal to the model.</p>
+
+    <div class="callout callout-warning">
+      <strong>The Verification Imperative:</strong> The single most important habit you can develop as an LLM-augmented analyst is systematic verification. Build verification into your workflow: after every LLM generation, review against source materials, check for internal consistency, and validate against domain knowledge. This is not optional — it is the difference between augmented intelligence and automated mistakes.
+    </div>
+
+    <pre><code class="language-python">"""
+LLM Limitation Detector: A simple checklist tool for reviewing LLM output.
+"""
+
+def review_llm_output(output_text, task_type="general"):
+    """Generate a review checklist for LLM output based on known limitations."""
+
+    checklist = {
+        "hallucination_risks": [],
+        "bias_indicators": [],
+        "consistency_checks": [],
+        "verification_needed": []
+    }
+
+    # Check for specific factual claims that need verification
+    claim_indicators = ["according to", "studies show", "research indicates",
+                        "the standard requires", "best practice is",
+                        "typically", "industry standard", "regulation"]
+    for indicator in claim_indicators:
+        if indicator.lower() in output_text.lower():
+            checklist["hallucination_risks"].append(
+                f"Contains '{indicator}' — verify the specific claim"
+            )
+
+    # Check for numbers and statistics
+    import re
+    numbers = re.findall(r'\d+%|\d+\.\d+', output_text)
+    if numbers:
+        checklist["verification_needed"].append(
+            f"Contains {len(numbers)} numerical claims: {numbers[:5]}. "
+            f"Verify each against authoritative sources."
+        )
+
+    # Check for absolute statements
+    absolutes = ["always", "never", "all", "none", "every", "must"]
+    found_absolutes = [a for a in absolutes if a.lower() in output_text.lower()]
+    if found_absolutes:
+        checklist["bias_indicators"].append(
+            f"Contains absolute terms: {found_absolutes}. "
+            f"Verify these aren't overgeneralizations."
+        )
+
+    return checklist
+
+# Example usage
+sample_output = """
+According to industry standards, all user authentication systems must
+implement multi-factor authentication. Studies show that 85% of data
+breaches involve credential theft. The OWASP standard always requires
+session timeout after 15 minutes of inactivity.
+"""
+
+review = review_llm_output(sample_output)
+print("=== LLM Output Review ===")
+for category, items in review.items():
+    if items:
+        print(f"\n{category.upper()}:")
+        for item in items:
+            print(f"  - {item}")</code></pre>
+
+    <!-- Project Section -->
+    <section class="project">
+      <h2>Project: Model Comparison Lab</h2>
+
+      <p>In this hands-on project, you'll compare different LLM models on the same analyst task to build practical intuition about model selection. You'll evaluate outputs on quality, speed, cost, and fitness for purpose.</p>
+
+      <p><strong>The Task:</strong> Given a set of raw meeting notes, generate a structured requirements summary with user stories and acceptance criteria.</p>
+
+      <pre><code class="language-python">"""
+Model Comparison Lab
+Compare different LLMs on the same analyst task.
+Requires: openai, anthropic, tiktoken packages
+"""
+import time
+import json
+from openai import OpenAI
+from anthropic import Anthropic
+
+# Sample meeting notes (input for all models)
+meeting_notes = """
+Meeting: Customer Portal Redesign - Sprint Planning
+Date: March 15, 2026
+Attendees: Sarah (PM), Mike (Dev Lead), Lisa (UX), Tom (BA)
+
+Discussion Points:
+- Users are complaining about the current search taking too long.
+  Lisa showed heatmaps - users abandon after 3 seconds. Need instant
+  search with auto-suggestions.
+- Tom mentioned we need to support searching by order number, product
+  name, and date range. Lisa wants to add a visual filter panel.
+- Mike flagged that the current API can handle ~100 searches/sec.
+  New design might need 500/sec. Infrastructure upgrade needed.
+- Sarah wants this in the next 2 sprints (4 weeks). Mike says
+  infrastructure work alone is 1 sprint.
+- Mobile responsive design is a must - 60% of users are on mobile.
+- Accessibility: Lisa raised WCAG 2.1 AA compliance requirement.
+- Tom to write user stories by Thursday. Mike to assess API changes.
+"""
+
+prompt = """You are a Senior Business Analyst. Based on the following meeting notes,
+produce:
+1. A brief requirements summary (3-5 sentences)
+2. Three user stories in standard format (As a... I want... So that...)
+3. Acceptance criteria for each story in Given/When/Then format
+4. Any risks or open questions identified
+
+Meeting Notes:
+{notes}"""
+
+def evaluate_with_openai(model_name, prompt_text):
+    """Send prompt to an OpenAI model and measure performance."""
+    client = OpenAI()
+    start = time.time()
+    response = client.chat.completions.create(
+        model=model_name,
+        temperature=0.3,
+        messages=[{"role": "user", "content": prompt_text}]
+    )
+    elapsed = time.time() - start
+    return {
+        "model": model_name,
+        "output": response.choices[0].message.content,
+        "input_tokens": response.usage.prompt_tokens,
+        "output_tokens": response.usage.completion_tokens,
+        "time_seconds": round(elapsed, 2)
+    }
+
+def evaluate_with_anthropic(model_name, prompt_text):
+    """Send prompt to an Anthropic model and measure performance."""
+    client = Anthropic()
+    start = time.time()
+    response = client.messages.create(
+        model=model_name,
+        max_tokens=2000,
+        temperature=0.3,
+        messages=[{"role": "user", "content": prompt_text}]
+    )
+    elapsed = time.time() - start
+    return {
+        "model": model_name,
+        "output": response.content[0].text,
+        "input_tokens": response.usage.input_tokens,
+        "output_tokens": response.usage.output_tokens,
+        "time_seconds": round(elapsed, 2)
+    }
+
+# Run comparison
+filled_prompt = prompt.format(notes=meeting_notes)
+results = []
+
+# Test each model (uncomment models you have access to)
+models_to_test = [
+    ("openai", "gpt-4o"),
+    ("openai", "gpt-4o-mini"),
+    # ("anthropic", "claude-3-5-sonnet-20241022"),
+    # ("anthropic", "claude-3-5-haiku-20241022"),
+]
+
+for provider, model in models_to_test:
+    print(f"Testing {model}...")
+    if provider == "openai":
+        result = evaluate_with_openai(model, filled_prompt)
+    else:
+        result = evaluate_with_anthropic(model, filled_prompt)
+    results.append(result)
+
+# Display comparison
+print("\n" + "=" * 70)
+print("MODEL COMPARISON RESULTS")
+print("=" * 70)
+for r in results:
+    print(f"\nModel: {r['model']}")
+    print(f"  Time: {r['time_seconds']}s")
+    print(f"  Tokens (in/out): {r['input_tokens']}/{r['output_tokens']}")
+    print(f"  Output preview: {r['output'][:200]}...")
+    print("-" * 70)</code></pre>
+
+      <p><strong>Evaluation Criteria:</strong> After running the comparison, score each model's output on a 1-5 scale for:</p>
+      <ul>
+        <li><strong>Completeness:</strong> Did it capture all key points from the meeting notes?</li>
+        <li><strong>Structure:</strong> Are user stories properly formatted? Are acceptance criteria specific and testable?</li>
+        <li><strong>Accuracy:</strong> Did it introduce any information not present in the notes?</li>
+        <li><strong>Actionability:</strong> Could a developer work from these requirements without further clarification?</li>
+      </ul>
+    </section>
+
+    <!-- Summary -->
+    <section class="summary">
+      <h2>Summary</h2>
+      <ul class="key-takeaways">
+        <li>Tokens are the currency of LLMs — they determine cost, context limits, and quality. Roughly 750 words equals 1,000 tokens for English text.</li>
+        <li>The Transformer architecture's attention mechanism means LLMs consider relationships across all parts of your input simultaneously — making prompt structure and organization matter greatly.</li>
+        <li>Temperature controls the trade-off between consistency and creativity; use low temperature (0-0.3) for structured analyst tasks and higher values for brainstorming.</li>
+        <li>Model selection should be task-driven: frontier models for complex analysis, efficient models for high-volume tasks, and local models for sensitive data.</li>
+        <li>Hallucination, bias, sycophancy, and inconsistency are not bugs that will be fixed — they are inherent characteristics of current LLM technology that require systematic verification practices.</li>
+      </ul>
+
+      <div class="exercises">
+        <h3>Exercises</h3>
+        <div class="exercise-item">
+          <span class="exercise-type conceptual">Conceptual</span>
+          <p>Explain to a non-technical stakeholder why an LLM can write a convincing-sounding paragraph about your company's product even though it has never seen your product documentation. What does this tell you about the nature of LLM knowledge vs. human expertise?</p>
+        </div>
+        <div class="exercise-item">
+          <span class="exercise-type coding">Coding</span>
+          <p>Write a Python function that takes a document and a model's context window size as inputs, and returns a strategy for processing the document: "direct" if it fits, "chunked" if it needs splitting (with recommended chunk boundaries at paragraph breaks), or "summarize-first" if it's more than 3x the context window.</p>
+        </div>
+        <div class="exercise-item">
+          <span class="exercise-type design">Design</span>
+          <p>Your organization is evaluating three LLM providers for a team of 12 analysts. Design a 2-week evaluation protocol that tests each model on representative analyst tasks. Define the tasks, evaluation criteria, scoring rubric, and decision framework. Consider cost, quality, speed, privacy, and team usability.</p>
+        </div>
+      </div>
+    </section>
+
+    <nav class="chapter-footer">
+      <a href="ch01-why-llms-matter.html">&larr; Why LLMs Matter</a>
+      <span>Part 1 of 5</span>
+      <a href="ch03-prompt-engineering.html">Prompt Engineering &rarr;</a>
+    </nav>
+  </main>
+
+  <script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

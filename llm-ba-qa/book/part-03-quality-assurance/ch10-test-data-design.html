@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 10 — Test Data and Scenario Design | LLMs for Business &amp; Quality Analysts</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="ch09-test-case-generation.html" class="nav-prev">Test Case Generation</a>
+    <span class="nav-title">Part 3 — Quality Assurance with LLMs</span>
+    <a href="ch11-defect-analysis.html" class="nav-next">Defect Analysis</a>
+  </nav>
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 3 — Quality Assurance with LLMs</span>
+      <h1>Test Data and Scenario Design</h1>
+      <p class="chapter-intro">Good tests are only as good as the data behind them. In this chapter, you will learn how to use LLMs to generate realistic synthetic test data, discover hidden edge cases, build persona-driven test scenarios, and handle the critical challenge of data privacy — all without ever touching production databases.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~25 min</span>
+        <span>Project: Test Data Factory</span>
+      </div>
+    </header>
+
+    <!-- Objectives -->
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>How to generate realistic, domain-specific synthetic test data with LLMs</li>
+        <li>Techniques for discovering edge cases that production data reveals but test data rarely includes</li>
+        <li>Building persona-based test scenarios that reflect real user behavior</li>
+        <li>Methods for data masking and privacy-compliant test data generation</li>
+        <li>Creating cross-system test data that maintains referential integrity</li>
+        <li>Defining and validating data quality rules with LLM assistance</li>
+      </ul>
+    </section>
+
+    <!-- Section 1 -->
+    <section>
+      <h2>1. The Test Data Challenge</h2>
+
+      <p>Ask any QA team what slows them down, and test data ranks near the top. The problems are familiar: production data cannot be used because of privacy regulations (GDPR, HIPAA, CCPA). Manually created test data is too clean — it lacks the messiness of real-world data. Generated data from simple random functions lacks semantic coherence — a randomly generated "customer" might have a phone number from New York but an address in Tokyo.</p>
+
+      <p>The test data problem breaks down into five distinct challenges:</p>
+
+      <table>
+        <thead>
+          <tr><th>Challenge</th><th>Description</th><th>Impact on Testing</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Volume</strong></td><td>Need thousands of records for performance and load tests</td><td>Manual creation is infeasible</td></tr>
+          <tr><td><strong>Realism</strong></td><td>Data must look and behave like production data</td><td>Unrealistic data misses real bugs</td></tr>
+          <tr><td><strong>Privacy</strong></td><td>Cannot use real PII, health records, financial data</td><td>Legal and regulatory risk</td></tr>
+          <tr><td><strong>Consistency</strong></td><td>Cross-table and cross-system relationships must hold</td><td>Foreign key violations, orphaned records</td></tr>
+          <tr><td><strong>Edge cases</strong></td><td>Need data that triggers unusual code paths</td><td>Most bugs hide in rare data combinations</td></tr>
+        </tbody>
+      </table>
+
+      <p>LLMs address these challenges because they have absorbed patterns from vast amounts of text data. They understand that a valid US Social Security number has the format XXX-XX-XXXX, that "123 Main Street" is a plausible address but "123 !!$$ Street" is not, and that a person born in 1990 should not have a retirement date in 2015. This semantic understanding produces test data that is far more realistic than random generation.</p>
+
+      <div class="callout callout-warning">
+        <strong>LLMs can leak real data.</strong> Because LLMs are trained on internet text, they may occasionally generate real names, addresses, or phone numbers that belong to actual people. Always add a post-processing step that validates generated data is not accidentally real — check names against known public figures, verify phone numbers are from designated test ranges, and use clearly synthetic identifiers.
+      </div>
+    </section>
+
+    <!-- Section 2 -->
+    <section>
+      <h2>2. Synthetic Data Generation</h2>
+
+      <p>The core technique for LLM-based test data generation is to describe your data schema and domain constraints, then ask the LLM to generate records that are realistic but entirely fictional.</p>
+
+      <pre><code class="language-python">from openai import OpenAI
+import json
+import csv
+from io import StringIO
+
+client = OpenAI()
+
+DATAGEN_PROMPT = """You are a synthetic data generator for software testing.
+Generate realistic but entirely fictional test data. The data must:
+1. Be internally consistent (ages match birth dates, addresses are plausible)
+2. Include a realistic distribution (not all values identical)
+3. Cover common AND uncommon patterns
+4. NEVER use real people's names or real addresses
+5. Include realistic imperfections that real data has (optional middle names,
+   varied date formats, occasional missing optional fields)
+
+Return JSON with key "records" containing an array of objects."""
+
+def generate_test_data(schema: str, count: int = 20,
+                       domain: str = "", edge_cases: bool = True) -> list[dict]:
+    """Generate synthetic test data matching a schema description."""
+    prompt = f"""Generate {count} test data records for the following schema:
+
+{schema}
+
+Domain context: {domain if domain else 'General business application'}
+
+{"Include at least 20% edge case records (unusual but valid data)." if edge_cases else ""}
+
+Ensure realistic distribution of values — not all records should be similar.
+Include variation in optional fields (some filled, some empty/null)."""
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": DATAGEN_PROMPT},
+            {"role": "user", "content": prompt}
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.8  # higher temperature for variety
+    )
+    return json.loads(response.choices[0].message.content)["records"]
+
+
+# Example: Generate customer records for an insurance application
+schema = """
+Customer record:
+- customer_id: auto-incrementing integer starting at 10001
+- first_name: string (2-50 chars)
+- last_name: string (2-50 chars)
+- middle_name: string (optional, often null)
+- date_of_birth: ISO date (must be 18+ years old)
+- email: valid email format
+- phone: US phone format (xxx) xxx-xxxx
+- address_line1: street address
+- address_line2: optional (apt, suite, etc.)
+- city: US city
+- state: US state (2-letter code)
+- zip_code: 5-digit or 5+4 format
+- policy_type: one of [auto, home, life, health, umbrella]
+- annual_premium: decimal (100.00 to 50000.00)
+- risk_score: integer 1-100
+- status: one of [active, pending, suspended, cancelled]
+"""
+
+records = generate_test_data(schema, count=10, domain="Property & casualty insurance")
+for r in records[:3]:
+    print(json.dumps(r, indent=2))
+</code></pre>
+
+      <p>The LLM generates data like:</p>
+
+      <pre><code class="language-json">{
+  "customer_id": 10001,
+  "first_name": "Margaret",
+  "last_name": "Thornbury",
+  "middle_name": "Ellen",
+  "date_of_birth": "1978-03-14",
+  "email": "m.thornbury@inbox.example.com",
+  "phone": "(312) 555-0147",
+  "address_line1": "4521 Oakwood Drive",
+  "address_line2": null,
+  "city": "Naperville",
+  "state": "IL",
+  "zip_code": "60540",
+  "policy_type": "home",
+  "annual_premium": 2340.00,
+  "risk_score": 34,
+  "status": "active"
+}
+</code></pre>
+
+      <p>Notice the semantic coherence: the phone area code (312) matches Illinois, the zip code (60540) is valid for Naperville, IL, and the premium and risk score are reasonable for a home policy. A purely random generator would not produce this level of consistency.</p>
+
+      <h3>Scaling Beyond LLM Token Limits</h3>
+
+      <p>For large datasets (hundreds or thousands of records), you cannot generate everything in a single LLM call. Instead, use the LLM to generate a diverse seed set, then expand it programmatically:</p>
+
+      <pre><code class="language-python">import random
+from copy import deepcopy
+
+def scale_test_data(seed_records: list[dict], target_count: int) -> list[dict]:
+    """Scale a seed set of LLM-generated records to a target count."""
+    scaled = list(seed_records)  # start with originals
+    next_id = max(r["customer_id"] for r in seed_records) + 1
+
+    while len(scaled) < target_count:
+        # Pick a random seed record and create a variation
+        template = deepcopy(random.choice(seed_records))
+        template["customer_id"] = next_id
+        next_id += 1
+
+        # Vary numeric fields within realistic ranges
+        template["annual_premium"] = round(
+            template["annual_premium"] * random.uniform(0.7, 1.4), 2
+        )
+        template["risk_score"] = max(1, min(100,
+            template["risk_score"] + random.randint(-15, 15)
+        ))
+
+        # Randomly toggle optional fields
+        if random.random() < 0.3:
+            template["middle_name"] = None
+        if random.random() < 0.2:
+            template["address_line2"] = f"Apt {random.randint(1, 999)}"
+
+        scaled.append(template)
+
+    return scaled
+
+# Generate 10 seed records with LLM, then scale to 1000
+seed = generate_test_data(schema, count=10)
+full_dataset = scale_test_data(seed, target_count=1000)
+print(f"Generated {len(full_dataset)} records from {len(seed)} seeds")
+</code></pre>
+
+      <div class="callout callout-tip">
+        <strong>Use batched generation for variety.</strong> Instead of generating 10 seeds and scaling to 1000, generate 5 batches of 20 seeds with different prompts (e.g., "young urban customers," "rural elderly customers," "high-risk customers") and scale each batch. This produces a dataset with natural demographic clusters, which is more realistic than uniform random variation.
+      </div>
+    </section>
+
+    <!-- Section 3 -->
+    <section>
+      <h2>3. Edge Case Discovery</h2>
+
+      <p>The most valuable test data is data that triggers bugs — and bugs hide at the edges. LLMs are remarkably good at brainstorming edge cases because they have seen patterns of what goes wrong in real software. The key is to ask them to think like a destructive tester.</p>
+
+      <pre><code class="language-python">EDGE_CASE_PROMPT = """You are an expert at finding data edge cases that
+break software. For the given data schema and domain, generate records
+that are technically VALID but represent unusual, extreme, or tricky
+situations that developers often handle incorrectly.
+
+Categories of edge cases to consider:
+1. UNICODE: Names with accents, CJK characters, emojis, RTL text
+2. LENGTH EXTREMES: Minimum and maximum length values
+3. SPECIAL CHARACTERS: Apostrophes in names, hyphens, periods
+4. DATE BOUNDARIES: Leap years, century boundaries, time zones
+5. NUMERIC EDGES: Zero, negative zero, very large numbers, floating point precision
+6. FORMAT VARIATIONS: Different valid formats for the same field
+7. CULTURAL VARIATIONS: Non-Western name orders, multi-word surnames
+8. STATE TRANSITIONS: Records that have unusual but valid status combinations
+
+Return JSON with "edge_cases" array, each containing the record AND
+an "edge_case_reason" field explaining what makes it tricky."""
+
+def discover_edge_cases(schema: str, domain: str = "") -> list[dict]:
+    """Generate edge case test data that is valid but tricky."""
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": EDGE_CASE_PROMPT},
+            {"role": "user", "content": f"Schema:\n{schema}\n\nDomain: {domain}"}
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.7
+    )
+    return json.loads(response.choices[0].message.content)["edge_cases"]
+
+
+edge_cases = discover_edge_cases(schema, "Insurance policy management")
+for ec in edge_cases[:5]:
+    print(f"Edge case: {ec['edge_case_reason']}")
+    print(f"  Name: {ec.get('first_name', '')} {ec.get('last_name', '')}")
+    print(f"  DOB: {ec.get('date_of_birth', '')}")
+    print()
+</code></pre>
+
+      <p>The LLM discovers edge cases such as:</p>
+
+      <table>
+        <thead>
+          <tr><th>Edge Case</th><th>Example Value</th><th>Why It Breaks Software</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Apostrophe in name</td><td>O'Malley-Sanchez</td><td>SQL injection risk, string escaping failures</td></tr>
+          <tr><td>Unicode name</td><td>Ren&eacute;e Fran&ccedil;oise</td><td>Character encoding issues, sorting problems</td></tr>
+          <tr><td>Leap day birthday</td><td>2000-02-29</td><td>Age calculation breaks on non-leap years</td></tr>
+          <tr><td>Very long name</td><td>50-character first name</td><td>UI overflow, database truncation</td></tr>
+          <tr><td>Zip+4 format</td><td>60540-1234</td><td>Validation regex may reject valid format</td></tr>
+          <tr><td>Minimum age (exactly 18)</td><td>DOB = today minus 18 years</td><td>Off-by-one in age calculation</td></tr>
+          <tr><td>Zero premium pending policy</td><td>premium=0.00, status=pending</td><td>Division by zero in rate calculations</td></tr>
+          <tr><td>100 risk score</td><td>risk_score=100</td><td>Boundary: is 100 accepted or only 1-99?</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-insight">
+        <strong>Edge cases cluster around data type boundaries.</strong> Strings break with special characters and encoding. Numbers break at zero, negative values, and extremes. Dates break at month/year boundaries, leap days, and time zones. Enums break with unexpected values. Train yourself to think in these categories, and use the LLM to generate concrete examples for each.
+      </div>
+    </section>
+
+    <!-- Section 4 -->
+    <section>
+      <h2>4. Persona-Based Test Scenarios</h2>
+
+      <p>Real users do not interact with software randomly. A 72-year-old retiree navigates a banking app differently than a 25-year-old power user. Persona-based testing creates user profiles with realistic behaviors, goals, and limitations, then generates test scenarios that reflect how each persona would actually use the system.</p>
+
+      <pre><code class="language-python">PERSONA_PROMPT = """You are a UX researcher and QA specialist.
+Create detailed user personas and generate test scenarios that reflect
+how each persona would realistically interact with the system.
+
+For each persona, provide:
+- name: a fictional name
+- age: realistic age
+- tech_comfort: low, medium, or high
+- accessibility_needs: any relevant needs (vision, motor, cognitive)
+- typical_device: primary device type
+- usage_pattern: when and how they typically use the system
+- goals: what they're trying to accomplish
+- frustrations: what annoys them about similar systems
+- test_scenarios: 5-8 specific test scenarios reflecting this persona's
+  behavior, including realistic mistakes they would make
+
+Return JSON with key "personas"."""
+
+def generate_persona_scenarios(system_description: str,
+                                num_personas: int = 4) -> list[dict]:
+    """Generate user personas with realistic test scenarios."""
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": PERSONA_PROMPT},
+            {"role": "user", "content": f"""System description:
+{system_description}
+
+Generate {num_personas} diverse personas that cover different demographics,
+tech comfort levels, accessibility needs, and usage patterns.
+Include at least one persona with accessibility requirements and one
+who is likely to make common mistakes."""}
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.7
+    )
+    return json.loads(response.choices[0].message.content)["personas"]
+
+
+# Example: Banking application
+system = """Online banking application that allows users to:
+- View account balances and transaction history
+- Transfer money between accounts
+- Pay bills
+- Deposit checks via mobile camera
+- Set up recurring payments
+- Download statements"""
+
+personas = generate_persona_scenarios(system)
+for p in personas:
+    print(f"\n{'='*60}")
+    print(f"PERSONA: {p['name']}, age {p['age']}")
+    print(f"Tech comfort: {p['tech_comfort']}")
+    print(f"Device: {p['typical_device']}")
+    print(f"Accessibility: {p.get('accessibility_needs', 'None')}")
+    print(f"\nScenarios:")
+    for i, scenario in enumerate(p['test_scenarios'], 1):
+        print(f"  {i}. {scenario}")
+</code></pre>
+
+      <p>Persona-driven scenarios reveal testing gaps that functional test cases miss:</p>
+
+      <table>
+        <thead>
+          <tr><th>Persona</th><th>Scenario</th><th>What It Tests</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Elderly user (low tech comfort)</td><td>Taps "Transfer" button three times because the page is slow to respond</td><td>Duplicate transaction prevention</td></tr>
+          <tr><td>Visually impaired user</td><td>Uses screen reader to navigate bill pay form</td><td>ARIA labels, tab order, focus management</td></tr>
+          <tr><td>Power user (high tech comfort)</td><td>Opens 4 tabs, initiates transfers from the same account simultaneously</td><td>Concurrent session handling, balance consistency</td></tr>
+          <tr><td>Non-native speaker</td><td>Enters amount with comma as decimal separator (1.500,00)</td><td>Locale-aware input parsing</td></tr>
+          <tr><td>Rural user on slow connection</td><td>Starts mobile check deposit, connection drops mid-upload</td><td>Upload resume, partial data handling</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-tip">
+        <strong>Map personas to test environments.</strong> Each persona implies a specific test environment: the elderly user needs testing on a tablet with large fonts enabled. The rural user needs throttled network testing. The visually impaired user needs screen reader testing. Create a persona-to-environment mapping table and include it in your test plan.
+      </div>
+
+      <h3>Converting Personas to Test Data</h3>
+
+      <p>Once you have personas, you can generate matching test data — user accounts, transaction histories, and system state that reflects each persona's situation:</p>
+
+      <pre><code class="language-python">def generate_persona_data(persona: dict, schema: str) -> list[dict]:
+    """Generate test data records that match a persona's profile."""
+    prompt = f"""Generate test data records for this user persona:
+{json.dumps(persona, indent=2)}
+
+Data schema:
+{schema}
+
+Create records that reflect this persona's realistic usage:
+- Transaction history matching their patterns
+- Account balances appropriate for their profile
+- Any error states or edge cases they would encounter
+
+Return JSON with "records" key."""
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"},
+        temperature=0.6
+    )
+    return json.loads(response.choices[0].message.content)["records"]
+</code></pre>
+    </section>
+
+    <!-- Section 5 -->
+    <section>
+      <h2>5. Data Privacy and Masking</h2>
+
+      <p>When you need test data that preserves the <em>statistical properties</em> of production data without exposing any real personal information, LLMs can perform intelligent data masking. Unlike simple search-and-replace, LLM-based masking understands context: it knows that "John Smith" is a name, "123-45-6789" is an SSN, and "john.smith@company.com" is related to the same person.</p>
+
+      <pre><code class="language-python">MASKING_PROMPT = """You are a data privacy specialist. Transform the given
+records by replacing all personally identifiable information (PII) with
+realistic synthetic equivalents while preserving:
+
+1. Data types and formats (a phone number stays a phone number)
+2. Statistical distributions (if 60% of records are from California, keep that ratio)
+3. Referential relationships (if two records share an address, their masked
+   versions should also share an address — but a different one)
+4. Business logic validity (ages, dates, and derived fields remain consistent)
+
+PII fields to mask:
+- Names (first, last, middle) -> realistic synthetic names
+- SSN -> valid-format but non-real SSNs (use 900-999 range)
+- Email -> synthetic emails using example.com domain
+- Phone -> use 555-01XX range (reserved for fiction)
+- Address -> realistic but fictional addresses
+- Date of birth -> shift by consistent random offset (preserve age relationships)
+
+Return JSON with "masked_records" and "masking_log" (what was changed)."""
+
+def mask_production_data(records: list[dict]) -> dict:
+    """Mask PII in production-like data while preserving structure."""
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": MASKING_PROMPT},
+            {"role": "user", "content": f"""Mask these records:
+{json.dumps(records, indent=2)}"""}
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.5
+    )
+    result = json.loads(response.choices[0].message.content)
+    return result
+
+
+# Example: mask a small production sample
+production_sample = [
+    {
+        "id": 1,
+        "name": "Jane Doe",
+        "ssn": "123-45-6789",
+        "email": "jane.doe@company.com",
+        "phone": "(555) 123-4567",
+        "dob": "1985-06-15",
+        "salary": 85000
+    },
+    {
+        "id": 2,
+        "name": "John Doe",
+        "ssn": "123-45-6790",
+        "email": "john.doe@company.com",
+        "phone": "(555) 123-4568",
+        "dob": "1983-09-22",
+        "salary": 92000
+    }
+]
+
+masked = mask_production_data(production_sample)
+print("Original:", production_sample[0]["name"])
+print("Masked:  ", masked["masked_records"][0]["name"])
+print("\nMasking log:")
+for entry in masked["masking_log"]:
+    print(f"  {entry}")
+</code></pre>
+
+      <div class="callout callout-warning">
+        <strong>Never send real production data to an external LLM API.</strong> The masking approach above is for demonstration. In practice, you should either: (1) use an on-premises LLM that keeps data within your network, (2) use traditional masking tools (e.g., Microsoft Presidio, AWS Macie) for the initial pass, then use an LLM to enhance realism, or (3) use the LLM to generate a masking strategy that your team applies locally without sending the actual data.
+      </div>
+
+      <h3>Privacy-Safe Data Generation Strategy</h3>
+
+      <p>A safer approach is to analyze production data <em>locally</em> for patterns, then send only the patterns (not the data) to the LLM:</p>
+
+      <pre><code class="language-python">def analyze_data_patterns(records: list[dict]) -> dict:
+    """Analyze production data locally to extract patterns (no PII sent)."""
+    patterns = {
+        "record_count": len(records),
+        "fields": {},
+    }
+    for field in records[0].keys():
+        values = [r[field] for r in records if r.get(field) is not None]
+        field_info = {"type": type(values[0]).__name__}
+
+        if isinstance(values[0], (int, float)):
+            field_info["min"] = min(values)
+            field_info["max"] = max(values)
+            field_info["mean"] = sum(values) / len(values)
+        elif isinstance(values[0], str):
+            field_info["avg_length"] = sum(len(v) for v in values) / len(values)
+            field_info["unique_ratio"] = len(set(values)) / len(values)
+            field_info["sample_format"] = _infer_format(values[0])
+
+        field_info["null_ratio"] = sum(1 for r in records if r.get(field) is None) / len(records)
+        patterns["fields"][field] = field_info
+
+    return patterns
+
+def _infer_format(value: str) -> str:
+    """Infer the format of a string value without exposing it."""
+    import re
+    if re.match(r'\d{3}-\d{2}-\d{4}', value): return "SSN (XXX-XX-XXXX)"
+    if re.match(r'\(\d{3}\)\s?\d{3}-\d{4}', value): return "Phone ((XXX) XXX-XXXX)"
+    if "@" in value: return "Email"
+    if re.match(r'\d{4}-\d{2}-\d{2}', value): return "Date (YYYY-MM-DD)"
+    return "Free text"
+
+# Step 1: Analyze locally (no data leaves your machine)
+patterns = analyze_data_patterns(production_sample)
+
+# Step 2: Send ONLY patterns to LLM to generate synthetic data
+synthetic = generate_test_data(
+    schema=json.dumps(patterns, indent=2),
+    count=100,
+    domain="Match these statistical patterns exactly"
+)
+</code></pre>
+    </section>
+
+    <!-- Section 6 -->
+    <section>
+      <h2>6. Cross-System Test Data</h2>
+
+      <p>Enterprise applications rarely live in isolation. A customer order touches the CRM, the inventory system, the payment gateway, the shipping service, and the notification system. Test data for integration testing must maintain consistency across all these systems — an order ID in the payment system must reference the same order in the inventory system.</p>
+
+      <pre><code class="language-python">CROSS_SYSTEM_PROMPT = """You are a test data architect for enterprise
+integration testing. Generate test data that spans multiple systems
+while maintaining full referential integrity.
+
+Rules:
+1. Every foreign key must reference a valid record in the parent system
+2. Timestamps must be chronologically consistent (order created before payment)
+3. Status fields must be logically consistent across systems
+4. Quantities must balance (items ordered = items shipped + items backordered)
+
+Return JSON with separate arrays for each system's records, plus a
+"relationships" section documenting all cross-system references."""
+
+def generate_cross_system_data(systems: list[dict],
+                                scenario: str) -> dict:
+    """Generate consistent test data across multiple systems."""
+    system_desc = json.dumps(systems, indent=2)
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": CROSS_SYSTEM_PROMPT},
+            {"role": "user", "content": f"""Systems and their schemas:
+{system_desc}
+
+Test scenario: {scenario}
+
+Generate a complete set of test data that supports this scenario across
+all systems. Include at least 5 records per system with proper
+cross-references."""}
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.4
+    )
+    return json.loads(response.choices[0].message.content)
+
+
+# Define the systems
+systems = [
+    {
+        "name": "CRM",
+        "schema": {
+            "customer_id": "PK, integer",
+            "name": "string",
+            "email": "string",
+            "tier": "bronze|silver|gold|platinum"
+        }
+    },
+    {
+        "name": "OrderManagement",
+        "schema": {
+            "order_id": "PK, integer",
+            "customer_id": "FK -> CRM.customer_id",
+            "order_date": "datetime",
+            "status": "pending|confirmed|shipped|delivered|cancelled",
+            "total_amount": "decimal"
+        }
+    },
+    {
+        "name": "Inventory",
+        "schema": {
+            "product_id": "PK, integer",
+            "sku": "string",
+            "quantity_on_hand": "integer",
+            "reserved_quantity": "integer"
+        }
+    },
+    {
+        "name": "PaymentGateway",
+        "schema": {
+            "payment_id": "PK, integer",
+            "order_id": "FK -> OrderManagement.order_id",
+            "amount": "decimal (must match order total)",
+            "status": "authorized|captured|refunded|failed",
+            "timestamp": "datetime (after order_date)"
+        }
+    }
+]
+
+# Generate data for a specific test scenario
+cross_data = generate_cross_system_data(
+    systems,
+    scenario="A gold-tier customer places two orders: one is delivered "
+             "successfully, the other is partially shipped with one item "
+             "backordered. The first order's payment is captured, the second "
+             "is authorized but not yet captured."
+)
+
+# Validate referential integrity
+for payment in cross_data.get("PaymentGateway", []):
+    order_ids = [o["order_id"] for o in cross_data.get("OrderManagement", [])]
+    assert payment["order_id"] in order_ids, \
+        f"Payment {payment['payment_id']} references missing order {payment['order_id']}"
+    print(f"Payment {payment['payment_id']} -> Order {payment['order_id']}: OK")
+</code></pre>
+
+      <div class="callout callout-insight">
+        <strong>Think in terms of test scenarios, not test data.</strong> Instead of generating random data and hoping it covers your test cases, start with the scenario ("customer upgrades their subscription mid-billing-cycle") and generate only the data needed to support it. This produces smaller, more focused datasets that are easier to debug when tests fail.
+      </div>
+    </section>
+
+    <!-- Section 7 -->
+    <section>
+      <h2>7. Data Validation Rules</h2>
+
+      <p>Beyond generating data, LLMs can help you define and enforce the validation rules that your test data (and production data) must satisfy. This is especially useful when working with legacy systems where validation rules are buried in code and not documented.</p>
+
+      <pre><code class="language-python">VALIDATION_PROMPT = """You are a data quality analyst. Given a data schema
+and domain context, generate a comprehensive set of validation rules.
+
+For each rule, provide:
+- rule_id: unique identifier
+- field: the field(s) this rule applies to
+- rule_type: one of [format, range, required, dependency, uniqueness, cross-field]
+- description: human-readable description
+- validation_expression: a Python expression that returns True if valid
+- error_message: what to show when validation fails
+- severity: error (must fix) or warning (should investigate)
+
+Return JSON with key "validation_rules"."""
+
+def generate_validation_rules(schema: str, domain: str = "") -> list[dict]:
+    """Generate data validation rules from a schema description."""
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": VALIDATION_PROMPT},
+            {"role": "user", "content": f"Schema:\n{schema}\n\nDomain: {domain}"}
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.3
+    )
+    return json.loads(response.choices[0].message.content)["validation_rules"]
+
+
+def validate_records(records: list[dict], rules: list[dict]) -> list[dict]:
+    """Validate records against generated rules."""
+    violations = []
+    for i, record in enumerate(records):
+        for rule in rules:
+            try:
+                # Evaluate the validation expression against the record
+                is_valid = eval(rule["validation_expression"],
+                              {"__builtins__": {}},
+                              {"record": record, "len": len, "re": __import__("re")})
+                if not is_valid:
+                    violations.append({
+                        "record_index": i,
+                        "rule_id": rule["rule_id"],
+                        "field": rule["field"],
+                        "severity": rule["severity"],
+                        "error": rule["error_message"],
+                        "actual_value": record.get(rule["field"], "MISSING")
+                    })
+            except Exception as e:
+                violations.append({
+                    "record_index": i,
+                    "rule_id": rule["rule_id"],
+                    "error": f"Rule evaluation failed: {str(e)}"
+                })
+    return violations
+
+
+# Generate rules for our insurance schema
+rules = generate_validation_rules(schema, "Property & casualty insurance")
+
+print(f"Generated {len(rules)} validation rules:\n")
+for rule in rules[:6]:
+    print(f"[{rule['rule_id']}] {rule['rule_type'].upper()}: {rule['description']}")
+    print(f"  Expression: {rule['validation_expression']}")
+    print(f"  Severity: {rule['severity']}")
+    print()
+
+# Validate our generated test data
+violations = validate_records(records, rules)
+print(f"\nFound {len(violations)} violations in {len(records)} records")
+for v in violations:
+    print(f"  Record {v['record_index']}: [{v['severity']}] {v['error']} "
+          f"(value: {v['actual_value']})")
+</code></pre>
+
+      <p>Common validation rules the LLM generates:</p>
+
+      <table>
+        <thead>
+          <tr><th>Rule Type</th><th>Example</th><th>Expression</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Format</td><td>ZIP code format</td><td><code>re.match(r'^\d{5}(-\d{4})?$', record['zip_code'])</code></td></tr>
+          <tr><td>Range</td><td>Risk score bounds</td><td><code>1 &lt;= record['risk_score'] &lt;= 100</code></td></tr>
+          <tr><td>Required</td><td>Last name not empty</td><td><code>record.get('last_name') and len(record['last_name']) &gt; 0</code></td></tr>
+          <tr><td>Cross-field</td><td>Age consistent with DOB</td><td><code>calculated_age(record['dob']) &gt;= 18</code></td></tr>
+          <tr><td>Dependency</td><td>Active status needs premium</td><td><code>record['status'] != 'active' or record['annual_premium'] &gt; 0</code></td></tr>
+          <tr><td>Uniqueness</td><td>Customer ID unique</td><td><code>Check across all records</code></td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-tip">
+        <strong>Turn validation rules into test assertions.</strong> The validation expressions generated by the LLM can be directly converted into pytest assertions or data quality checks in your ETL pipeline. This creates a bridge between test data design and production data monitoring — the same rules that validate your test data can catch data quality issues in production.
+      </div>
+    </section>
+
+    <!-- Project -->
+    <section class="project">
+      <h2>Project: Test Data Factory</h2>
+
+      <p>Build a reusable Test Data Factory that generates, validates, and manages test data across multiple schemas and test scenarios.</p>
+
+      <h3>Project Requirements</h3>
+      <ol>
+        <li>Accept a YAML or JSON schema definition for one or more data entities</li>
+        <li>Generate synthetic records with configurable volume and edge case percentage</li>
+        <li>Support persona-based data generation with realistic usage patterns</li>
+        <li>Maintain cross-entity referential integrity</li>
+        <li>Auto-generate and apply validation rules</li>
+        <li>Export data in JSON, CSV, and SQL INSERT formats</li>
+      </ol>
+
+      <h3>Starter Code</h3>
+
+      <pre><code class="language-python">import json
+import yaml
+from pathlib import Path
+from openai import OpenAI
+
+client = OpenAI()
+
+class TestDataFactory:
+    """Reusable factory for generating and managing test data."""
+
+    def __init__(self, schema_path: str, model: str = "gpt-4o"):
+        self.model = model
+        self.schemas = self._load_schemas(schema_path)
+        self.generated_data = {}
+        self.validation_rules = {}
+
+    def _load_schemas(self, path: str) -> dict:
+        """Load entity schemas from YAML or JSON file."""
+        text = Path(path).read_text()
+        if path.endswith((".yml", ".yaml")):
+            return yaml.safe_load(text)
+        return json.loads(text)
+
+    def generate(self, entity: str, count: int = 20,
+                 edge_case_pct: float = 0.2,
+                 persona: dict = None) -> list[dict]:
+        """Generate test data for a specific entity."""
+        schema_str = json.dumps(self.schemas[entity], indent=2)
+
+        regular_count = int(count * (1 - edge_case_pct))
+        edge_count = count - regular_count
+
+        # Generate regular records
+        regular = generate_test_data(schema_str, regular_count)
+
+        # Generate edge case records
+        edges = discover_edge_cases(schema_str) if edge_count > 0 else []
+
+        all_records = regular + edges[:edge_count]
+        self.generated_data[entity] = all_records
+
+        # Auto-generate validation rules
+        self.validation_rules[entity] = generate_validation_rules(schema_str)
+
+        return all_records
+
+    def validate(self, entity: str) -> list[dict]:
+        """Validate generated data against rules."""
+        records = self.generated_data.get(entity, [])
+        rules = self.validation_rules.get(entity, [])
+        return validate_records(records, rules)
+
+    def export_csv(self, entity: str, output_path: str):
+        """Export generated data as CSV."""
+        records = self.generated_data.get(entity, [])
+        if not records:
+            raise ValueError(f"No data generated for {entity}")
+
+        import csv
+        with open(output_path, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=records[0].keys())
+            writer.writeheader()
+            writer.writerows(records)
+        print(f"Exported {len(records)} records to {output_path}")
+
+    def export_sql(self, entity: str, table_name: str,
+                   output_path: str):
+        """Export generated data as SQL INSERT statements."""
+        records = self.generated_data.get(entity, [])
+        if not records:
+            raise ValueError(f"No data generated for {entity}")
+
+        lines = []
+        for record in records:
+            cols = ", ".join(record.keys())
+            vals = ", ".join(
+                f"'{v}'" if isinstance(v, str)
+                else "NULL" if v is None
+                else str(v)
+                for v in record.values()
+            )
+            lines.append(f"INSERT INTO {table_name} ({cols}) VALUES ({vals});")
+
+        Path(output_path).write_text("\n".join(lines))
+        print(f"Exported {len(lines)} INSERT statements to {output_path}")
+
+
+# Usage
+if __name__ == "__main__":
+    factory = TestDataFactory("schemas.yaml")
+    customers = factory.generate("customer", count=50, edge_case_pct=0.3)
+    violations = factory.validate("customer")
+    print(f"Generated {len(customers)} customers, {len(violations)} violations")
+    factory.export_csv("customer", "test_customers.csv")
+    factory.export_sql("customer", "customers", "test_customers.sql")
+</code></pre>
+
+      <h3>Extension Ideas</h3>
+      <ul>
+        <li>Add a Streamlit UI where testers can configure schemas, adjust parameters, and preview data</li>
+        <li>Build a data lineage tracker that shows which LLM call generated each record</li>
+        <li>Add support for time-series data (transaction logs, event streams)</li>
+        <li>Integrate with database seeding tools (Flyway, Liquibase) for automated test environment setup</li>
+      </ul>
+    </section>
+
+    <!-- Summary -->
+    <section class="summary">
+      <h2>Summary</h2>
+      <ul class="key-takeaways">
+        <li><strong>LLMs produce semantically coherent test data</strong> — names match regions, dates are consistent with ages, and business rules are respected — unlike random generators.</li>
+        <li><strong>Synthetic data generation</strong> avoids privacy risks while maintaining the statistical properties of production data.</li>
+        <li><strong>Edge case discovery</strong> is where LLMs add the most value, finding unusual-but-valid data combinations (Unicode names, leap day birthdays, boundary values) that manual creation misses.</li>
+        <li><strong>Persona-based scenarios</strong> uncover usability and accessibility issues that functional test cases overlook.</li>
+        <li><strong>Data privacy</strong> requires a defense-in-depth approach: analyze patterns locally, generate data via LLM, and never send real PII to external APIs.</li>
+        <li><strong>Cross-system data</strong> must maintain referential integrity and chronological consistency across all participating systems.</li>
+        <li><strong>Validation rules</strong> generated by LLMs serve double duty: validating test data quality and monitoring production data integrity.</li>
+      </ul>
+
+      <div class="exercises">
+        <h3>Exercises</h3>
+        <ol>
+          <li><strong>Generate and validate.</strong> Create a schema for your project's main entity, generate 100 records, and validate them. How many violations does the LLM-generated validation ruleset catch?</li>
+          <li><strong>Edge case tournament.</strong> Generate edge cases at three different temperatures (0.3, 0.6, 0.9) and compare. Which temperature produces the most useful edge cases?</li>
+          <li><strong>Persona coverage matrix.</strong> Create four personas for a system you test. Map each persona's scenarios against your existing test cases. What gaps do the personas reveal?</li>
+          <li><strong>Privacy-safe pipeline.</strong> Implement the "analyze locally, generate remotely" pattern from Section 5. Compare the statistical properties of the synthetic data against the original.</li>
+          <li><strong>Cross-system integrity checker.</strong> Write a validation function that checks all foreign key relationships in cross-system test data and reports any orphaned references.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Footer Nav -->
+    <nav class="chapter-footer">
+      <a href="ch09-test-case-generation.html">&larr; Test Case Generation</a>
+      <span>Part 3 of 5</span>
+      <a href="ch11-defect-analysis.html">Defect Analysis &rarr;</a>
+    </nav>
+  </main>
+  <script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

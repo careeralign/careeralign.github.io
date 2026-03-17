@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capstone 3 — Intelligent Test Suite Generator | LLMs for Business &amp; Quality Analysts</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="capstone-02.html" class="nav-prev">Capstone 2</a>
+    <span class="nav-title">Part 5 — Capstones</span>
+    <a href="capstone-04.html" class="nav-next">Capstone 4</a>
+  </nav>
+
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 5 — Capstones</span>
+      <h1>Capstone 3: Intelligent Test Suite Generator</h1>
+      <p class="chapter-intro">Test suites decay. New features get added without corresponding tests, defect patterns repeat in the same modules, and nobody has time to reprioritize the regression suite. In this capstone, you will build a system that generates, prioritizes, and maintains test suites by learning from your application's change history and defect data — turning reactive QA into proactive quality engineering.</p>
+      <div class="chapter-meta">
+        <span>Building time: ~2 hours</span>
+        <span>Chapters used: 9, 10, 12, 15</span>
+      </div>
+    </header>
+
+    <section class="objectives">
+      <h3>What You Will Build</h3>
+      <ul>
+        <li>A change analyzer that reads git diffs and identifies which features and modules were modified</li>
+        <li>A defect pattern engine that mines historical bug data to find recurring failure modes</li>
+        <li>An intelligent test generator that creates new test cases targeting high-risk changes</li>
+        <li>A test suite optimizer that ranks and trims the regression suite based on risk and coverage</li>
+        <li>A test data generator that produces realistic, privacy-safe test data for each test case</li>
+      </ul>
+    </section>
+
+    <!-- Architecture Overview -->
+    <h2>Architecture Overview</h2>
+
+    <p>The system has three input channels — code changes, defect history, and existing test coverage — that feed into a central intelligence layer. The intelligence layer uses an LLM to synthesize these signals into prioritized test generation decisions.</p>
+
+    <pre><code class="language-text">┌───────────┐  ┌───────────────┐  ┌────────────────┐
+│ Git Diffs │  │ Defect History│  │ Existing Tests │
+│ (changes) │  │ (CSV/JSON)    │  │ (test files)   │
+└─────┬─────┘  └───────┬───────┘  └───────┬────────┘
+      │                │                   │
+      └────────────────┼───────────────────┘
+                       │
+              ┌────────▼─────────┐
+              │  Risk Analysis   │
+              │  Engine          │
+              └────────┬─────────┘
+                       │
+         ┌─────────────┼─────────────┐
+         │             │             │
+   ┌─────▼─────┐ ┌────▼─────┐ ┌────▼──────┐
+   │ Generate  │ │ Generate │ │ Optimize  │
+   │ New Tests │ │ Test Data│ │ Existing  │
+   └─────┬─────┘ └────┬─────┘ └────┬──────┘
+         │             │             │
+         └─────────────┼─────────────┘
+                       │
+              ┌────────▼─────────┐
+              │  Output: Smart   │
+              │  Test Suite      │
+              └──────────────────┘</code></pre>
+
+    <p><strong>Data models:</strong></p>
+
+    <pre><code class="language-python">from pydantic import BaseModel, Field
+from enum import Enum
+from typing import Optional
+from datetime import datetime
+
+class RiskLevel(str, Enum):
+    CRITICAL = "critical"
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+
+class ChangeType(str, Enum):
+    ADDED = "added"
+    MODIFIED = "modified"
+    DELETED = "deleted"
+    RENAMED = "renamed"
+
+class CodeChange(BaseModel):
+    file_path: str
+    change_type: ChangeType
+    lines_added: int = 0
+    lines_deleted: int = 0
+    diff_content: str = ""
+    module: str = Field(description="Inferred module or feature area")
+
+class DefectRecord(BaseModel):
+    id: str
+    title: str
+    module: str
+    severity: str
+    root_cause: Optional[str] = None
+    date_found: str
+    component: Optional[str] = None
+
+class RiskAssessment(BaseModel):
+    module: str
+    risk_level: RiskLevel
+    risk_score: float = Field(ge=0, le=100)
+    change_factor: float = Field(description="Risk from recent changes")
+    defect_factor: float = Field(description="Risk from historical defects")
+    coverage_factor: float = Field(description="Risk from low test coverage")
+    rationale: str
+
+class GeneratedTest(BaseModel):
+    id: str
+    title: str
+    module: str
+    risk_level: RiskLevel
+    test_type: str
+    preconditions: list[str]
+    steps: list[str]
+    expected_result: str
+    test_data: Optional[dict] = None
+    triggered_by: str = Field(description="What triggered this test: change, defect, or gap")</code></pre>
+
+    <!-- Step 1 -->
+    <h2>Step 1: Setup and Data Ingestion</h2>
+
+    <pre><code class="language-bash">mkdir -p smart_test_gen/{modules,data,output}
+cd smart_test_gen
+pip install openai pydantic gitpython faker</code></pre>
+
+    <p>The change analyzer reads git history to identify what changed and maps file paths to logical modules:</p>
+
+    <pre><code class="language-python">"""modules/change_analyzer.py — Analyze git changes to identify affected modules."""
+import subprocess
+import re
+from pathlib import Path
+
+# Configurable mapping from file paths to logical modules
+MODULE_MAP = {
+    "auth/": "Authentication",
+    "user/": "User Management",
+    "payment/": "Payment Processing",
+    "cart/": "Shopping Cart",
+    "order/": "Order Management",
+    "report/": "Reporting",
+    "api/": "API Layer",
+    "db/": "Database",
+    "ui/": "User Interface",
+}
+
+
+def get_recent_changes(repo_path: str, since: str = "1 week ago") -> list[dict]:
+    """Extract recent code changes from git history."""
+    result = subprocess.run(
+        ["git", "log", f"--since={since}", "--name-status", "--pretty=format:"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+    )
+
+    changes = []
+    for line in result.stdout.strip().split("\n"):
+        line = line.strip()
+        if not line:
+            continue
+        parts = line.split("\t")
+        if len(parts) >= 2:
+            status_code = parts[0][0]  # A, M, D, R
+            file_path = parts[-1]
+
+            change_type_map = {"A": "added", "M": "modified", "D": "deleted", "R": "renamed"}
+            change_type = change_type_map.get(status_code, "modified")
+
+            changes.append({
+                "file_path": file_path,
+                "change_type": change_type,
+                "module": infer_module(file_path),
+            })
+
+    # Get diff stats for modified files
+    for change in changes:
+        if change["change_type"] in ("modified", "added"):
+            diff = get_file_diff(repo_path, change["file_path"])
+            change["diff_content"] = diff
+            change["lines_added"] = diff.count("\n+") if diff else 0
+            change["lines_deleted"] = diff.count("\n-") if diff else 0
+
+    print(f"Found {len(changes)} changes since {since}")
+    return changes
+
+
+def get_file_diff(repo_path: str, file_path: str) -> str:
+    """Get the unified diff for a specific file."""
+    result = subprocess.run(
+        ["git", "diff", "HEAD~5", "--", file_path],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+    )
+    # Truncate large diffs to save tokens
+    diff = result.stdout
+    if len(diff) > 3000:
+        diff = diff[:3000] + "\n... [truncated]"
+    return diff
+
+
+def infer_module(file_path: str) -> str:
+    """Map a file path to a logical module name."""
+    for prefix, module in MODULE_MAP.items():
+        if prefix in file_path.lower():
+            return module
+    # Fallback: use the top-level directory
+    parts = Path(file_path).parts
+    if len(parts) > 1:
+        return parts[0].replace("_", " ").title()
+    return "General"</code></pre>
+
+    <p>The defect history loader reads historical bug data and extracts patterns:</p>
+
+    <pre><code class="language-python">"""modules/defect_analyzer.py — Analyze defect history for recurring patterns."""
+import json
+import csv
+from pathlib import Path
+from collections import Counter
+
+
+def load_defects(file_path: str) -> list[dict]:
+    """Load defect records from CSV or JSON."""
+    path = Path(file_path)
+
+    if path.suffix == ".json":
+        with open(path) as f:
+            return json.load(f)
+    elif path.suffix == ".csv":
+        with open(path) as f:
+            return list(csv.DictReader(f))
+    else:
+        raise ValueError(f"Unsupported format: {path.suffix}")
+
+
+def analyze_defect_patterns(defects: list[dict]) -> dict:
+    """Identify defect hotspots and recurring patterns."""
+    module_counts = Counter(d.get("module", "Unknown") for d in defects)
+    severity_counts = Counter(d.get("severity", "medium") for d in defects)
+    root_cause_counts = Counter(
+        d.get("root_cause", "unclassified") for d in defects
+        if d.get("root_cause")
+    )
+
+    # Calculate defect density per module
+    total = len(defects) if defects else 1
+    hotspots = []
+    for module, count in module_counts.most_common():
+        density = count / total
+        hotspots.append({
+            "module": module,
+            "defect_count": count,
+            "density": round(density, 3),
+            "severity_breakdown": dict(Counter(
+                d.get("severity", "medium") for d in defects
+                if d.get("module") == module
+            )),
+        })
+
+    return {
+        "total_defects": total,
+        "hotspots": hotspots,
+        "top_root_causes": dict(root_cause_counts.most_common(10)),
+        "severity_distribution": dict(severity_counts),
+    }
+
+
+# Sample defect data for testing
+SAMPLE_DEFECTS = [
+    {"id": "BUG-101", "title": "Login fails with special chars in password",
+     "module": "Authentication", "severity": "critical",
+     "root_cause": "input_validation", "date_found": "2025-09-15"},
+    {"id": "BUG-102", "title": "Cart total wrong with multiple discounts",
+     "module": "Shopping Cart", "severity": "high",
+     "root_cause": "calculation_logic", "date_found": "2025-09-20"},
+    {"id": "BUG-103", "title": "Payment timeout not handled gracefully",
+     "module": "Payment Processing", "severity": "critical",
+     "root_cause": "error_handling", "date_found": "2025-10-01"},
+    {"id": "BUG-104", "title": "SSO redirect loop on expired session",
+     "module": "Authentication", "severity": "high",
+     "root_cause": "session_management", "date_found": "2025-10-05"},
+    {"id": "BUG-105", "title": "Report CSV export missing headers",
+     "module": "Reporting", "severity": "medium",
+     "root_cause": "output_formatting", "date_found": "2025-10-10"},
+    {"id": "BUG-106", "title": "Order status not updated after refund",
+     "module": "Order Management", "severity": "high",
+     "root_cause": "state_management", "date_found": "2025-10-12"},
+    {"id": "BUG-107", "title": "Password reset token never expires",
+     "module": "Authentication", "severity": "critical",
+     "root_cause": "security", "date_found": "2025-10-18"},
+    {"id": "BUG-108", "title": "Cart items duplicated on page refresh",
+     "module": "Shopping Cart", "severity": "medium",
+     "root_cause": "state_management", "date_found": "2025-10-22"},
+]</code></pre>
+
+    <!-- Step 2 -->
+    <h2>Step 2: Core Processing Pipeline — Risk-Based Test Generation</h2>
+
+    <p>The risk analysis engine combines change data and defect patterns to calculate a risk score for each module. Modules with both recent changes and a history of defects get the highest scores:</p>
+
+    <pre><code class="language-python">"""modules/risk_engine.py — Calculate risk scores and prioritize test generation."""
+import json
+import os
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+def calculate_risk_scores(
+    changes: list[dict],
+    defect_patterns: dict,
+    existing_test_count: dict = None,
+) -> list[dict]:
+    """Calculate risk score for each module based on changes, defects, and coverage."""
+    if existing_test_count is None:
+        existing_test_count = {}
+
+    # Gather all modules mentioned in changes or defects
+    modules = set()
+    for c in changes:
+        modules.add(c.get("module", "Unknown"))
+    for hotspot in defect_patterns.get("hotspots", []):
+        modules.add(hotspot["module"])
+
+    assessments = []
+    for module in sorted(modules):
+        # Change factor: more lines changed = higher risk
+        module_changes = [c for c in changes if c.get("module") == module]
+        total_lines = sum(
+            c.get("lines_added", 0) + c.get("lines_deleted", 0)
+            for c in module_changes
+        )
+        change_factor = min(100, total_lines * 2)  # Cap at 100
+
+        # Defect factor: more historical defects = higher risk
+        hotspot = next(
+            (h for h in defect_patterns.get("hotspots", [])
+             if h["module"] == module),
+            None,
+        )
+        defect_count = hotspot["defect_count"] if hotspot else 0
+        has_critical = False
+        if hotspot:
+            has_critical = hotspot.get("severity_breakdown", {}).get("critical", 0) > 0
+        defect_factor = min(100, defect_count * 20 + (30 if has_critical else 0))
+
+        # Coverage factor: fewer existing tests = higher risk
+        test_count = existing_test_count.get(module, 0)
+        coverage_factor = max(0, 100 - test_count * 10)  # 0 tests = 100 risk
+
+        # Weighted composite score
+        risk_score = (
+            change_factor * 0.40 +
+            defect_factor * 0.35 +
+            coverage_factor * 0.25
+        )
+
+        risk_level = (
+            "critical" if risk_score >= 75 else
+            "high" if risk_score >= 50 else
+            "medium" if risk_score >= 25 else
+            "low"
+        )
+
+        assessments.append({
+            "module": module,
+            "risk_level": risk_level,
+            "risk_score": round(risk_score, 1),
+            "change_factor": round(change_factor, 1),
+            "defect_factor": round(defect_factor, 1),
+            "coverage_factor": round(coverage_factor, 1),
+            "rationale": (
+                f"{len(module_changes)} files changed ({total_lines} lines), "
+                f"{defect_count} historical defects"
+                f"{' (includes critical)' if has_critical else ''}, "
+                f"{test_count} existing tests"
+            ),
+        })
+
+    # Sort by risk score descending
+    assessments.sort(key=lambda a: a["risk_score"], reverse=True)
+    return assessments</code></pre>
+
+    <p>With risk scores calculated, the test generator focuses its efforts on the highest-risk modules, using the LLM to create targeted test cases:</p>
+
+    <pre><code class="language-python">"""modules/test_generator.py — Generate test cases based on risk assessments."""
+import json
+import os
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+GENERATION_PROMPT = """You are a senior QA engineer designing test cases for
+a {module} module. This module has been flagged as {risk_level} risk.
+
+Risk context:
+{rationale}
+
+Recent code changes in this module:
+{change_summary}
+
+Historical defect patterns in this module:
+{defect_summary}
+
+Generate {test_count} focused test cases that specifically target:
+1. Areas where code changed recently (regression risk)
+2. Failure patterns seen in historical defects (repeat risk)
+3. Edge cases and boundary conditions in the changed code
+
+For each test case, return a JSON object:
+{{
+  "title": "concise test title",
+  "test_type": "regression|smoke|boundary|negative|integration",
+  "preconditions": ["list of preconditions"],
+  "steps": ["ordered test steps"],
+  "expected_result": "what should happen",
+  "triggered_by": "change|defect_pattern|coverage_gap"
+}}
+
+Return a JSON array. No markdown fences."""
+
+_counter = 0
+
+def generate_tests_for_module(
+    assessment: dict,
+    changes: list[dict],
+    defect_patterns: dict,
+) -> list[dict]:
+    """Generate test cases for a specific module based on its risk profile."""
+    global _counter
+
+    module = assessment["module"]
+
+    # Determine how many tests to generate based on risk
+    risk_to_count = {"critical": 5, "high": 4, "medium": 2, "low": 1}
+    test_count = risk_to_count.get(assessment["risk_level"], 2)
+
+    # Summarize changes for this module
+    module_changes = [c for c in changes if c.get("module") == module]
+    if module_changes:
+        change_summary = "\n".join(
+            f"- {c['file_path']} ({c['change_type']}, "
+            f"+{c.get('lines_added', 0)}/-{c.get('lines_deleted', 0)} lines)"
+            for c in module_changes[:5]
+        )
+    else:
+        change_summary = "No recent changes detected."
+
+    # Summarize defect patterns
+    hotspot = next(
+        (h for h in defect_patterns.get("hotspots", [])
+         if h["module"] == module),
+        None,
+    )
+    if hotspot:
+        defect_summary = (
+            f"Total defects: {hotspot['defect_count']}\n"
+            f"Severity breakdown: {json.dumps(hotspot.get('severity_breakdown', {}))}"
+        )
+    else:
+        defect_summary = "No historical defects recorded."
+
+    prompt = GENERATION_PROMPT.format(
+        module=module,
+        risk_level=assessment["risk_level"],
+        rationale=assessment["rationale"],
+        change_summary=change_summary,
+        defect_summary=defect_summary,
+        test_count=test_count,
+    )
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a QA engineer. Return only a JSON array."},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.3,
+        max_tokens=2000,
+    )
+
+    raw = response.choices[0].message.content.strip()
+    try:
+        test_cases = json.loads(raw)
+    except json.JSONDecodeError:
+        import re
+        match = re.search(r"\[.*\]", raw, re.DOTALL)
+        test_cases = json.loads(match.group()) if match else []
+
+    # Assign IDs and module
+    for tc in test_cases:
+        _counter += 1
+        tc["id"] = f"TC-{_counter:03d}"
+        tc["module"] = module
+        tc["risk_level"] = assessment["risk_level"]
+
+    return test_cases
+
+
+def generate_all_tests(
+    assessments: list[dict],
+    changes: list[dict],
+    defect_patterns: dict,
+) -> list[dict]:
+    """Generate tests for all modules, prioritized by risk."""
+    all_tests = []
+    for assessment in assessments:
+        if assessment["risk_level"] == "low":
+            print(f"  Skipping {assessment['module']} (low risk)")
+            continue
+        print(f"  Generating tests for {assessment['module']} "
+              f"({assessment['risk_level']} risk)...")
+        tests = generate_tests_for_module(assessment, changes, defect_patterns)
+        all_tests.extend(tests)
+        print(f"    -> {len(tests)} tests generated")
+    return all_tests</code></pre>
+
+    <!-- Step 3 -->
+    <h2>Step 3: Output Generation — Test Data and Suite Report</h2>
+
+    <p>Each test case needs realistic test data. The test data generator uses the Faker library for base data and the LLM for domain-specific values (Chapter 10):</p>
+
+    <pre><code class="language-python">"""modules/test_data.py — Generate realistic test data for test cases."""
+import json
+import os
+from faker import Faker
+from openai import OpenAI
+
+fake = Faker()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# Standard data generators for common field types
+STANDARD_GENERATORS = {
+    "email": lambda: fake.email(),
+    "name": lambda: fake.name(),
+    "phone": lambda: fake.phone_number(),
+    "address": lambda: fake.address(),
+    "date": lambda: fake.date_this_year().isoformat(),
+    "amount": lambda: round(fake.pyfloat(min_value=0.01, max_value=9999.99), 2),
+    "username": lambda: fake.user_name(),
+    "password": lambda: fake.password(length=12, special_chars=True),
+    "credit_card": lambda: fake.credit_card_number(),
+    "url": lambda: fake.url(),
+}
+
+
+def generate_test_data(test_case: dict) -> dict:
+    """Generate appropriate test data for a test case."""
+    module = test_case.get("module", "").lower()
+    test_type = test_case.get("test_type", "positive")
+
+    # For negative tests, generate invalid data
+    if test_type == "negative":
+        return generate_negative_data(test_case)
+
+    # For boundary tests, generate boundary values
+    if test_type == "boundary":
+        return generate_boundary_data(test_case)
+
+    # For standard tests, use Faker with LLM-suggested fields
+    return generate_standard_data(test_case)
+
+
+def generate_standard_data(test_case: dict) -> dict:
+    """Use LLM to determine what fields are needed, then Faker to generate values."""
+    prompt = f"""Given this test case, list the test data fields needed.
+
+Test: {test_case.get('title', '')}
+Module: {test_case.get('module', '')}
+Steps: {json.dumps(test_case.get('steps', []))}
+
+Return a JSON object mapping field names to their data types.
+Use these types: email, name, phone, address, date, amount,
+username, password, credit_card, url, text, number, boolean.
+Example: {{"user_email": "email", "order_total": "amount"}}
+
+Return ONLY the JSON object."""
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.1,
+        max_tokens=300,
+    )
+
+    raw = response.choices[0].message.content.strip()
+    try:
+        field_spec = json.loads(raw)
+    except json.JSONDecodeError:
+        return {"note": "Auto-generated data not available"}
+
+    # Generate values using Faker
+    data = {}
+    for field_name, field_type in field_spec.items():
+        generator = STANDARD_GENERATORS.get(field_type)
+        if generator:
+            data[field_name] = generator()
+        elif field_type == "text":
+            data[field_name] = fake.sentence()
+        elif field_type == "number":
+            data[field_name] = fake.random_int(min=1, max=1000)
+        elif field_type == "boolean":
+            data[field_name] = fake.boolean()
+        else:
+            data[field_name] = fake.word()
+
+    return data
+
+
+def generate_negative_data(test_case: dict) -> dict:
+    """Generate intentionally invalid data for negative testing."""
+    return {
+        "invalid_email": "not-an-email",
+        "empty_field": "",
+        "sql_injection": "'; DROP TABLE users; --",
+        "xss_payload": "<script>alert('xss')</script>",
+        "oversized_input": "A" * 10000,
+        "negative_amount": -99.99,
+        "future_date": "2099-12-31",
+        "special_chars": "!@#$%^&*(){}[]|\\",
+        "null_value": None,
+        "zero_value": 0,
+    }
+
+
+def generate_boundary_data(test_case: dict) -> dict:
+    """Generate boundary and edge case values."""
+    return {
+        "min_value": 0,
+        "max_value": 2147483647,
+        "min_length_string": "a",
+        "max_length_string": "X" * 255,
+        "empty_string": "",
+        "whitespace_only": "   ",
+        "unicode_text": "Cafe\u0301 re\u0301sume\u0301 nai\u0308ve",
+        "min_date": "1900-01-01",
+        "max_date": "2099-12-31",
+        "float_precision": 0.1 + 0.2,  # Classic floating point issue
+        "zero_quantity": 0,
+        "max_quantity": 99999,
+    }
+
+
+def enrich_tests_with_data(test_cases: list[dict]) -> list[dict]:
+    """Add test data to each test case."""
+    for i, tc in enumerate(test_cases):
+        print(f"  Generating data for {tc['id']} ({i+1}/{len(test_cases)})...")
+        tc["test_data"] = generate_test_data(tc)
+    return test_cases</code></pre>
+
+    <p>The suite report generator produces a ranked test execution plan:</p>
+
+    <pre><code class="language-python">"""modules/suite_report.py — Generate the test suite execution report."""
+import json
+from datetime import datetime
+from pathlib import Path
+
+
+def generate_suite_report(
+    assessments: list[dict],
+    test_cases: list[dict],
+    defect_patterns: dict,
+    output_dir: str = "output",
+) -> str:
+    """Generate a comprehensive test suite report."""
+    out = Path(output_dir)
+    out.mkdir(exist_ok=True)
+
+    lines = [
+        "# Intelligent Test Suite Report",
+        f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+        "",
+        "## Risk Assessment Summary",
+        "",
+        "| Module | Risk | Score | Changes | Defects | Tests to Run |",
+        "|--------|------|-------|---------|---------|-------------|",
+    ]
+
+    for a in assessments:
+        test_count = len([t for t in test_cases if t.get("module") == a["module"]])
+        lines.append(
+            f"| {a['module']} | {a['risk_level'].upper()} | "
+            f"{a['risk_score']:.0f} | {a['change_factor']:.0f} | "
+            f"{a['defect_factor']:.0f} | {test_count} |"
+        )
+
+    lines.extend(["", "## Generated Test Suite", ""])
+
+    # Group tests by module
+    modules = {}
+    for tc in test_cases:
+        modules.setdefault(tc.get("module", "General"), []).append(tc)
+
+    for module, tests in modules.items():
+        lines.append(f"### {module}")
+        lines.append("")
+        for tc in tests:
+            lines.append(f"#### {tc['id']}: {tc.get('title', 'Untitled')}")
+            lines.append(f"**Risk:** {tc.get('risk_level', 'medium')} | "
+                         f"**Type:** {tc.get('test_type', 'regression')} | "
+                         f"**Triggered by:** {tc.get('triggered_by', 'unknown')}")
+            lines.append("")
+            lines.append("**Preconditions:**")
+            for pre in tc.get("preconditions", ["None"]):
+                lines.append(f"- {pre}")
+            lines.append("")
+            lines.append("**Steps:**")
+            for j, step in enumerate(tc.get("steps", []), 1):
+                lines.append(f"{j}. {step}")
+            lines.append("")
+            lines.append(f"**Expected:** {tc.get('expected_result', 'N/A')}")
+            if tc.get("test_data"):
+                lines.append("")
+                lines.append("**Test Data:**")
+                lines.append(f"```json\n{json.dumps(tc['test_data'], indent=2, default=str)}\n```")
+            lines.append("")
+
+    # Execution plan
+    lines.extend([
+        "## Recommended Execution Order",
+        "",
+        "Run tests in this order to maximize early defect detection:",
+        "",
+    ])
+    for i, tc in enumerate(test_cases, 1):
+        lines.append(f"{i}. **{tc['id']}** — {tc.get('title', '')} "
+                     f"[{tc.get('risk_level', 'medium')}]")
+
+    report_text = "\n".join(lines)
+
+    report_path = out / "smart_test_suite.md"
+    report_path.write_text(report_text, encoding="utf-8")
+
+    json_path = out / "smart_test_suite.json"
+    json_path.write_text(json.dumps({
+        "generated_at": datetime.now().isoformat(),
+        "risk_assessments": assessments,
+        "test_cases": test_cases,
+        "defect_patterns": defect_patterns,
+    }, indent=2, default=str), encoding="utf-8")
+
+    print(f"\nReport: {report_path}")
+    print(f"JSON:   {json_path}")
+    return str(report_path)</code></pre>
+
+    <!-- Step 4 -->
+    <h2>Step 4: Validation and Quality</h2>
+
+    <p>The validation stage checks the generated test suite for quality and completeness. It ensures every high-risk module has sufficient coverage and that no generated test is a duplicate of an existing test:</p>
+
+    <pre><code class="language-python">"""modules/suite_validator.py — Validate the generated test suite."""
+import json
+import os
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+
+def check_coverage_completeness(
+    assessments: list[dict],
+    test_cases: list[dict],
+) -> list[dict]:
+    """Ensure high-risk modules have adequate test coverage."""
+    issues = []
+    min_tests = {"critical": 4, "high": 3, "medium": 1, "low": 0}
+
+    for a in assessments:
+        module_tests = [t for t in test_cases if t.get("module") == a["module"]]
+        required = min_tests.get(a["risk_level"], 1)
+
+        if len(module_tests) < required:
+            issues.append({
+                "type": "coverage_gap",
+                "module": a["module"],
+                "message": (
+                    f"{a['module']} is {a['risk_level']} risk but only has "
+                    f"{len(module_tests)} tests (minimum: {required})"
+                ),
+            })
+
+        # Check test type diversity
+        test_types = set(t.get("test_type", "") for t in module_tests)
+        if a["risk_level"] in ("critical", "high") and "negative" not in test_types:
+            issues.append({
+                "type": "missing_test_type",
+                "module": a["module"],
+                "message": (
+                    f"{a['module']} has no negative tests despite "
+                    f"being {a['risk_level']} risk"
+                ),
+            })
+
+    return issues
+
+
+def check_duplicate_tests(test_cases: list[dict]) -> list[dict]:
+    """Use the LLM to identify semantically duplicate test cases."""
+    if len(test_cases) < 2:
+        return []
+
+    titles = [{"id": tc["id"], "title": tc.get("title", "")} for tc in test_cases]
+
+    prompt = f"""Review these test case titles and identify any that are
+semantically duplicated (testing the same thing with different words).
+
+Test cases:
+{json.dumps(titles, indent=2)}
+
+Return a JSON array of duplicate groups:
+[{{"duplicate_ids": ["TC-001", "TC-005"], "reason": "both test X"}}]
+
+Return an empty array [] if no duplicates found."""
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a QA lead reviewing test suites. "
+             "Return only JSON."},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.1,
+        max_tokens=500,
+    )
+
+    raw = response.choices[0].message.content.strip()
+    try:
+        duplicates = json.loads(raw)
+    except json.JSONDecodeError:
+        return []
+
+    issues = []
+    for dup in duplicates:
+        issues.append({
+            "type": "duplicate",
+            "ids": dup.get("duplicate_ids", []),
+            "message": f"Potential duplicates: {', '.join(dup.get('duplicate_ids', []))} "
+                       f"— {dup.get('reason', '')}",
+        })
+
+    return issues</code></pre>
+
+    <p>The main orchestrator:</p>
+
+    <pre><code class="language-python">"""main.py — Orchestrate the intelligent test suite generator."""
+from modules.change_analyzer import get_recent_changes
+from modules.defect_analyzer import load_defects, analyze_defect_patterns, SAMPLE_DEFECTS
+from modules.risk_engine import calculate_risk_scores
+from modules.test_generator import generate_all_tests
+from modules.test_data import enrich_tests_with_data
+from modules.suite_validator import check_coverage_completeness, check_duplicate_tests
+from modules.suite_report import generate_suite_report
+
+
+def run_pipeline(
+    repo_path: str = ".",
+    defect_file: str = None,
+    since: str = "1 week ago",
+):
+    """Run the intelligent test suite generation pipeline."""
+    print("=" * 60)
+    print("Intelligent Test Suite Generator")
+    print("=" * 60)
+
+    # Stage 1: Gather inputs
+    print("\n[1/5] Analyzing recent changes...")
+    changes = get_recent_changes(repo_path, since=since)
+
+    print("\n[2/5] Analyzing defect history...")
+    if defect_file:
+        defects = load_defects(defect_file)
+    else:
+        print("  Using sample defect data...")
+        defects = SAMPLE_DEFECTS
+    defect_patterns = analyze_defect_patterns(defects)
+
+    # Stage 2: Risk analysis
+    print("\n[3/5] Calculating risk scores...")
+    assessments = calculate_risk_scores(changes, defect_patterns)
+    for a in assessments:
+        print(f"  {a['module']:25s} {a['risk_level']:10s} (score: {a['risk_score']:.0f})")
+
+    # Stage 3: Generate tests
+    print("\n[4/5] Generating targeted test cases...")
+    test_cases = generate_all_tests(assessments, changes, defect_patterns)
+
+    # Enrich with test data
+    print("\n  Adding test data...")
+    test_cases = enrich_tests_with_data(test_cases)
+
+    # Stage 4: Validate
+    print("\n[5/5] Validating test suite...")
+    coverage_issues = check_coverage_completeness(assessments, test_cases)
+    duplicate_issues = check_duplicate_tests(test_cases)
+
+    all_issues = coverage_issues + duplicate_issues
+    if all_issues:
+        print(f"  Found {len(all_issues)} issues:")
+        for issue in all_issues:
+            print(f"    - {issue['message']}")
+    else:
+        print("  No issues found.")
+
+    # Generate report
+    print("\nGenerating report...")
+    report_path = generate_suite_report(
+        assessments, test_cases, defect_patterns
+    )
+
+    print("\n" + "=" * 60)
+    print(f"Generated {len(test_cases)} test cases across "
+          f"{len(set(t.get('module') for t in test_cases))} modules")
+    print("=" * 60)
+
+    return report_path
+
+
+if __name__ == "__main__":
+    import sys
+    repo = sys.argv[1] if len(sys.argv) > 1 else "."
+    run_pipeline(repo_path=repo)</code></pre>
+
+    <!-- Extensions -->
+    <h2>Extensions and Portfolio Tips</h2>
+
+    <ul>
+      <li><strong>Add CI/CD integration.</strong> Run the generator as a GitHub Action that triggers on every pull request. It analyzes the PR's diff, generates targeted test cases, and posts them as a PR comment. This demonstrates DevOps awareness and makes the tool immediately practical.</li>
+      <li><strong>Build a test decay detector.</strong> Compare the existing test suite against recent code changes to identify tests that no longer exercise the code they were written for. Flag stale tests for review or deletion. This solves the "test suite bloat" problem that plagues mature projects.</li>
+      <li><strong>Implement a learning loop.</strong> Track which generated tests actually find defects. Feed this data back into the risk engine to improve future prioritization. Over time, the system learns which types of changes are most likely to cause failures.</li>
+      <li><strong>Add visual coverage maps.</strong> Generate a heatmap showing test coverage across modules, color-coded by risk level. Use matplotlib or Plotly to create an interactive visualization. Visual outputs make strong portfolio demos.</li>
+      <li><strong>Support multiple test frameworks.</strong> Generate test code directly in pytest, JUnit, or Cypress format instead of plain-text test cases. This makes the output immediately executable.</li>
+    </ul>
+
+    <p><strong>Portfolio presentation tip:</strong> Demo this tool on a real open-source project. Clone a popular GitHub repo, run the generator against its recent commit history, and show the risk assessment and generated tests. Using real data (not just samples) demonstrates that your tool works in the wild.</p>
+
+    <!-- Summary -->
+    <section class="summary">
+      <h2>Summary</h2>
+      <ul class="key-takeaways">
+        <li>You built a system that combines three data sources — code changes, defect history, and test coverage — to make intelligent test generation decisions.</li>
+        <li>Risk-based prioritization ensures testing effort focuses where it matters most, rather than generating tests uniformly.</li>
+        <li>The test data generator uses Faker for speed and the LLM for domain-specific field selection, balancing efficiency and quality.</li>
+        <li>Validation checks catch coverage gaps and duplicate tests before the suite reaches human reviewers.</li>
+        <li>The modular architecture allows each component to be tested, replaced, or extended independently.</li>
+      </ul>
+    </section>
+
+    <nav class="chapter-footer">
+      <a href="capstone-02.html">&larr; Capstone 2</a>
+      <span>Part 5 of 5</span>
+      <a href="capstone-04.html">Capstone 4 &rarr;</a>
+    </nav>
+  </main>
+  <script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

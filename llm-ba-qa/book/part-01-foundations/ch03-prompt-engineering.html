@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 3 — Prompt Engineering Fundamentals | LLMs for Business &amp; Quality Analysts</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="ch02-how-llms-work.html" class="nav-prev">How LLMs Work</a>
+    <span class="nav-title">Part 1 — Foundations</span>
+    <a href="ch04-first-llm-workflow.html" class="nav-next">First LLM Workflow</a>
+  </nav>
+
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 1 — Foundations</span>
+      <h1>Chapter 3: Prompt Engineering Fundamentals</h1>
+      <p class="chapter-intro">The difference between a mediocre LLM output and a brilliant one almost never lies in the model — it lies in the prompt. Prompt engineering is the single most important skill for any analyst working with LLMs, and the good news is that it builds directly on skills you already have: clear communication, structured thinking, and precise specification of requirements.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~20 min</span>
+        <span>Project: Prompt Library Builder</span>
+      </div>
+    </header>
+
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>The structural components that make a prompt effective and how to combine them</li>
+        <li>When and how to use zero-shot, few-shot, and chain-of-thought prompting strategies</li>
+        <li>How to use role-based prompting to get domain-appropriate outputs</li>
+        <li>Techniques for controlling output format, building reusable prompt templates, and avoiding common pitfalls</li>
+      </ul>
+    </section>
+
+    <!-- Section 3.1 -->
+    <h2>3.1 The Anatomy of a Good Prompt</h2>
+
+    <p>A well-constructed prompt has a clear structure, just like a well-written requirement. The components don't always need to appear in the same order, and not every prompt needs every component, but understanding the full anatomy lets you diagnose why a prompt isn't working and fix it systematically.</p>
+
+    <p>The six components of a complete prompt are:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>Purpose</th>
+          <th>Example</th>
+          <th>When to Use</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Role / Persona</strong></td>
+          <td>Sets the expertise and perspective</td>
+          <td>"You are a senior QA engineer with 10 years of experience in financial systems"</td>
+          <td>Almost always — it calibrates the model's response style and depth</td>
+        </tr>
+        <tr>
+          <td><strong>Context</strong></td>
+          <td>Provides background information the model needs</td>
+          <td>"We are building a patient portal for a hospital system. The system must be HIPAA-compliant."</td>
+          <td>Whenever the task requires domain or project knowledge</td>
+        </tr>
+        <tr>
+          <td><strong>Task / Instruction</strong></td>
+          <td>Specifies exactly what you want the model to do</td>
+          <td>"Analyze the following user story and identify missing acceptance criteria"</td>
+          <td>Always — this is the core of every prompt</td>
+        </tr>
+        <tr>
+          <td><strong>Input Data</strong></td>
+          <td>The material to be processed</td>
+          <td>The actual user story, document excerpt, or data to analyze</td>
+          <td>Whenever you're asking the model to process specific content</td>
+        </tr>
+        <tr>
+          <td><strong>Output Specification</strong></td>
+          <td>Defines the format, length, and structure of the response</td>
+          <td>"Respond in a numbered list with no more than 10 items. Each item should include a severity rating."</td>
+          <td>Whenever you need structured or consistently formatted output</td>
+        </tr>
+        <tr>
+          <td><strong>Constraints / Rules</strong></td>
+          <td>Boundaries and requirements the output must respect</td>
+          <td>"Do not suggest changes to the database schema. Focus only on UI/UX improvements."</td>
+          <td>Whenever you need to exclude certain types of responses</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Let's see the difference between a weak prompt and a strong one for the same task:</p>
+
+    <p><strong>Weak prompt:</strong></p>
+    <pre><code>Write test cases for a login page.</code></pre>
+
+    <p><strong>Strong prompt:</strong></p>
+    <pre><code>Role: You are a senior QA analyst specializing in web application security testing.
+
+Context: We are testing a login page for an online banking application. The login
+supports email/password authentication, Google SSO, and biometric login on mobile.
+The application must comply with OWASP Top 10 security standards. The system locks
+accounts after 5 failed attempts.
+
+Task: Generate a comprehensive set of test cases for the login page.
+
+Output Format: Present each test case as a table row with these columns:
+- Test Case ID (TC-LOGIN-001 format)
+- Category (Functional / Security / Usability / Performance / Edge Case)
+- Description (one sentence)
+- Preconditions
+- Test Steps (numbered)
+- Expected Result
+- Priority (Critical / High / Medium / Low)
+
+Constraints:
+- Include at least 3 security-specific test cases aligned with OWASP
+- Include at least 2 test cases for each authentication method
+- Include edge cases for the account lockout mechanism
+- Do not include test cases for registration or password reset (those are separate)</code></pre>
+
+    <div class="callout callout-tip">
+      <strong>The Specificity Principle:</strong> The more specific your prompt, the better the output. Vague prompts produce generic outputs. Specific prompts produce targeted, actionable outputs. As a BA, you already know this — it's the same principle that makes "the system shall be fast" a bad requirement and "the system shall return search results within 200ms under a load of 1,000 concurrent users" a good one.
+    </div>
+
+    <!-- Section 3.2 -->
+    <h2>3.2 Zero-Shot vs Few-Shot</h2>
+
+    <p>One of the most powerful techniques in prompt engineering is providing examples of the desired output. The terminology comes from machine learning research, but the concept is simple:</p>
+
+    <p><strong>Zero-shot prompting:</strong> You give the model instructions but no examples. The model must figure out what you want from the description alone.</p>
+
+    <p><strong>Few-shot prompting:</strong> You provide one or more examples of inputs paired with desired outputs. The model learns the pattern from your examples and applies it to new inputs.</p>
+
+    <p><strong>When to use zero-shot:</strong></p>
+    <ul>
+      <li>The task is straightforward and well-defined</li>
+      <li>You're using a capable model (GPT-4o, Claude Sonnet)</li>
+      <li>Standard output formats are acceptable</li>
+      <li>You want to minimize prompt length (and cost)</li>
+    </ul>
+
+    <p><strong>When to use few-shot:</strong></p>
+    <ul>
+      <li>You need output in a very specific format or style</li>
+      <li>The task involves domain-specific conventions</li>
+      <li>You want consistency across multiple runs</li>
+      <li>The model misunderstands your zero-shot instructions</li>
+    </ul>
+
+    <p>Here's a practical example of few-shot prompting for a BA task — converting informal requirements into structured user stories:</p>
+
+    <pre><code class="language-text">Task: Convert informal requirements into structured user stories with
+acceptance criteria.
+
+Example 1:
+Input: "Users need to be able to export their data"
+Output:
+  User Story: As a registered user, I want to export my account data
+  in a standard format so that I can maintain a personal backup or
+  migrate to another service.
+
+  Acceptance Criteria:
+  - Given a logged-in user on the account settings page
+    When they click "Export My Data"
+    Then the system generates a ZIP file containing their data in JSON format
+  - Given an export is requested
+    When the data exceeds 100MB
+    Then the system emails a download link instead of direct download
+  - Given a user has requested an export
+    When they request another within 24 hours
+    Then the system shows a message: "Export already in progress"
+
+Example 2:
+Input: "The dashboard needs to load faster"
+Output:
+  User Story: As a daily dashboard user, I want the main dashboard to
+  load within 2 seconds so that I can begin my morning workflow without delay.
+
+  Acceptance Criteria:
+  - Given a user navigates to the dashboard
+    When the page loads on a broadband connection (>10 Mbps)
+    Then all above-the-fold content renders within 2 seconds
+  - Given a user accesses the dashboard on a mobile device
+    When the connection speed is 3G or better
+    Then the critical metrics display within 4 seconds
+  - Given the dashboard has more than 10 widgets configured
+    When the page loads
+    Then widgets load progressively with skeleton screens shown for pending widgets
+
+Now convert this requirement:
+Input: "Managers want to see who's doing what"</code></pre>
+
+    <p>Notice how the examples encode implicit standards: the level of specificity expected, the tone, the format of acceptance criteria, and the practice of adding quantifiable metrics. The model will mirror these patterns in its output without you needing to explain each convention explicitly.</p>
+
+    <div class="callout callout-info">
+      <strong>Quality of Examples Matters More Than Quantity:</strong> Two excellent examples typically outperform five mediocre ones. Choose examples that demonstrate the nuances of what you want: proper specificity levels, edge case handling, appropriate domain language. Your examples are a specification — they define the contract the model will follow.
+    </div>
+
+    <!-- Section 3.3 -->
+    <h2>3.3 Role-Based Prompting</h2>
+
+    <p>Role-based prompting is the technique of instructing the LLM to adopt a specific persona, expertise level, or perspective. This is not a gimmick — it meaningfully affects the quality, depth, and style of outputs because it activates different patterns in the model's learned representations.</p>
+
+    <p>Consider how different roles produce different analyses of the same requirement:</p>
+
+    <pre><code class="language-text">Requirement: "The system shall support up to 10,000 concurrent users."
+
+Prompt with BA role:
+"As a Senior Business Analyst, analyze this requirement for completeness
+and ambiguity."
+→ Focuses on: Who are these users? What actions are they performing
+  concurrently? What is the business impact if this limit is exceeded?
+  Is 10,000 based on current or projected usage?
+
+Prompt with QA role:
+"As a Performance Test Engineer, analyze this requirement for testability."
+→ Focuses on: How do we define "concurrent"? What load testing tool and
+  approach? What are the pass/fail criteria? What's the ramp-up profile?
+  What infrastructure matches production?
+
+Prompt with Security role:
+"As a Security Analyst, analyze this requirement for security implications."
+→ Focuses on: What happens during a DDoS attack above 10,000? Is there
+  rate limiting per user? How is concurrency measured — sessions,
+  connections, active requests? What authentication load does this imply?</code></pre>
+
+    <p>Effective role specifications include three elements:</p>
+    <ol>
+      <li><strong>Title and seniority:</strong> "Senior Business Analyst" vs "Junior BA" vs "VP of Product" — each implies different depth and perspective</li>
+      <li><strong>Domain expertise:</strong> "specializing in healthcare systems" or "with 10 years in fintech" — narrows the domain lens</li>
+      <li><strong>Behavioral instructions:</strong> "You are thorough and always identify at least 3 risks" or "You write concisely and avoid jargon" — shapes the communication style</li>
+    </ol>
+
+    <p>Here are proven role templates for common analyst scenarios:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Scenario</th>
+          <th>Effective Role Prompt</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Requirements review</td>
+          <td>"You are a Senior BA with a reputation for finding gaps that other analysts miss. You are constructively critical and always substantiate concerns with specific questions."</td>
+        </tr>
+        <tr>
+          <td>Test case design</td>
+          <td>"You are a QA Engineer who has found critical production bugs that saved millions. You think in edge cases and boundary conditions. You never assume the happy path will work."</td>
+        </tr>
+        <tr>
+          <td>Stakeholder communication</td>
+          <td>"You are a BA who excels at translating technical concepts for executive audiences. You use analogies, avoid acronyms, and focus on business impact."</td>
+        </tr>
+        <tr>
+          <td>Process documentation</td>
+          <td>"You are a process analyst who creates documentation that new team members can follow without additional training. You use numbered steps, include decision points, and add notes for common mistakes."</td>
+        </tr>
+        <tr>
+          <td>Devil's advocate</td>
+          <td>"You are a seasoned analyst who has seen many projects fail. Your job is to challenge assumptions, identify risks, and ask the uncomfortable questions that need asking."</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-warning">
+      <strong>Avoid Unrealistic Roles:</strong> Asking the model to be "the world's best analyst who never makes mistakes" doesn't improve output — it can actually make the model more likely to give overconfident responses. Ground your role prompts in realistic expertise descriptions. The model performs best when the role is specific and authentic.
+    </div>
+
+    <!-- Section 3.4 -->
+    <h2>3.4 Chain-of-Thought for Analysis</h2>
+
+    <p>Chain-of-thought (CoT) prompting is a technique where you instruct the model to show its reasoning process step by step rather than jumping directly to an answer. For analyst tasks, this technique is invaluable because it makes the model's reasoning transparent and auditable.</p>
+
+    <p>The basic mechanism is simple: include a phrase like "Think through this step by step" or "Show your reasoning process" in your prompt. But for analyst work, structured chain-of-thought is far more powerful than the generic approach.</p>
+
+    <p><strong>Generic CoT:</strong></p>
+    <pre><code>"Analyze this requirement. Think step by step."</code></pre>
+
+    <p><strong>Structured CoT for Requirements Analysis:</strong></p>
+    <pre><code>"Analyze this requirement using the following framework:
+
+Step 1 — COMPREHENSION: Restate the requirement in your own words
+to confirm understanding.
+
+Step 2 — COMPLETENESS: Identify any missing elements using the
+INVEST criteria (Independent, Negotiable, Valuable, Estimable,
+Small, Testable).
+
+Step 3 — AMBIGUITY: Highlight any terms or phrases that could be
+interpreted in multiple ways. For each, suggest a clarifying question.
+
+Step 4 — TESTABILITY: Assess whether the requirement as written
+can be definitively tested. If not, suggest measurable criteria.
+
+Step 5 — DEPENDENCIES: Identify any implicit dependencies on other
+requirements, systems, or decisions.
+
+Step 6 — RECOMMENDATION: Provide a rewritten version that addresses
+the issues found in steps 2-5."</code></pre>
+
+    <p>The structured approach produces dramatically better output because it forces the model through a systematic analysis rather than allowing it to jump to whatever pattern matches first.</p>
+
+    <p>Here's another powerful CoT pattern for QA work — defect root cause analysis:</p>
+
+    <pre><code class="language-text">You are investigating a production defect. Think through the analysis
+systematically:
+
+Step 1 — SYMPTOM: Describe what the user observed (from the defect report).
+
+Step 2 — REPRODUCTION: Based on the report, outline the likely steps
+to reproduce.
+
+Step 3 — HYPOTHESES: Generate at least 3 possible root causes, ranked
+by likelihood. For each:
+  a) What would cause this behavior?
+  b) What evidence would confirm or rule out this hypothesis?
+  c) What other symptoms would this cause produce?
+
+Step 4 — INVESTIGATION PLAN: Recommend the specific logs, code areas,
+or tests to check, ordered by highest-probability hypothesis first.
+
+Step 5 — IMPACT ASSESSMENT: Based on the most likely root cause, what
+else might be affected? What is the blast radius?
+
+Defect Report:
+[paste defect report here]</code></pre>
+
+    <div class="callout callout-tip">
+      <strong>When to Use Chain-of-Thought:</strong> CoT is most valuable for complex analytical tasks where you need to trust the model's reasoning — requirements analysis, defect investigation, impact assessment, risk evaluation. For simple generative tasks (drafting an email, formatting data), CoT adds token cost without much benefit. Use it when the <em>reasoning</em> matters as much as the conclusion.
+    </div>
+
+    <!-- Section 3.5 -->
+    <h2>3.5 Output Formatting Techniques</h2>
+
+    <p>Controlling the format of LLM output is critical for analyst work. You need outputs that can be directly incorporated into deliverables, imported into tools, or consistently compared across multiple runs. LLMs are remarkably good at following formatting instructions when those instructions are explicit.</p>
+
+    <p><strong>Technique 1: Structured Formats with Delimiters</strong></p>
+
+    <pre><code class="language-text">Format your response using the following structure:
+
+## Summary
+[2-3 sentence overview]
+
+## User Stories
+For each story, use this format:
+---
+**ID:** US-[NNN]
+**Story:** As a [role], I want [feature], so that [benefit]
+**Priority:** [Critical | High | Medium | Low]
+**Acceptance Criteria:**
+- Given [context] When [action] Then [result]
+---
+
+## Risks
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|------------|
+| ...  | ...       | ...    | ...        |</code></pre>
+
+    <p><strong>Technique 2: JSON Output for Tool Integration</strong></p>
+
+    <pre><code class="language-text">Analyze the following test results and return your analysis as a JSON
+object with this exact schema:
+
+{
+  "summary": "string — overall assessment in one sentence",
+  "pass_rate": "number — percentage of tests passing",
+  "critical_failures": [
+    {
+      "test_id": "string",
+      "failure_reason": "string",
+      "recommended_action": "string",
+      "severity": "critical | high | medium"
+    }
+  ],
+  "trends": ["string — observed pattern or trend"],
+  "recommendation": "string — next steps"
+}
+
+Return ONLY the JSON object, no additional text or explanation.</code></pre>
+
+    <p><strong>Technique 3: Markdown Tables for Reports</strong></p>
+
+    <pre><code class="language-text">Present the comparison as a Markdown table with these exact columns:
+| Feature | Current System | Proposed System | Gap | Effort Estimate |
+
+Include at least 8 rows covering the major functional areas.
+Use emoji indicators: ✅ for met, ⚠️ for partial, ❌ for not met.</code></pre>
+
+    <p><strong>Technique 4: Constrained Length</strong></p>
+    <pre><code class="language-text">Provide your response in exactly 5 bullet points, each no longer
+than 2 sentences. Focus on actionable insights, not observations.</code></pre>
+
+    <p>A critical technique for ensuring format compliance is to include a negative constraint — tell the model what NOT to include:</p>
+    <ul>
+      <li>"Do not include introductory or concluding remarks"</li>
+      <li>"Do not explain your reasoning — output only the final result"</li>
+      <li>"Do not add fields beyond the specified schema"</li>
+      <li>"Do not wrap the JSON in markdown code fences"</li>
+    </ul>
+
+    <div class="callout callout-info">
+      <strong>JSON Mode:</strong> Many LLM APIs now offer a dedicated JSON output mode that guarantees structurally valid JSON. When building automated workflows (Chapter 4), always use this feature instead of relying on prompt instructions alone. OpenAI's API supports <code>response_format={"type": "json_object"}</code>, and Anthropic's Claude supports similar structured output controls.
+    </div>
+
+    <!-- Section 3.6 -->
+    <h2>3.6 Prompt Templates and Libraries</h2>
+
+    <p>Once you've developed effective prompts for recurring tasks, the next step is to systematize them into reusable templates. A prompt template is a prompt with placeholders for variable inputs, allowing you to reuse the same carefully crafted structure across different projects and contexts.</p>
+
+    <p>Here's a framework for building a prompt library for analyst work:</p>
+
+    <pre><code class="language-python">"""
+Prompt Library for Business and Quality Analysts.
+A structured collection of reusable prompt templates.
+"""
+
+class PromptTemplate:
+    """A reusable prompt template with variable substitution."""
+
+    def __init__(self, name, category, template, variables,
+                 model_recommendation, temperature):
+        self.name = name
+        self.category = category
+        self.template = template
+        self.variables = variables  # dict of variable_name: description
+        self.model_recommendation = model_recommendation
+        self.temperature = temperature
+
+    def render(self, **kwargs):
+        """Render the template with provided variable values."""
+        missing = [v for v in self.variables if v not in kwargs]
+        if missing:
+            raise ValueError(f"Missing variables: {missing}")
+        return self.template.format(**kwargs)
+
+
+# === Requirements Analysis Templates ===
+
+user_story_generator = PromptTemplate(
+    name="User Story Generator",
+    category="Requirements",
+    template="""You are a Senior Business Analyst with expertise in {domain}.
+
+Context: {project_context}
+
+Task: Convert the following informal requirement into a well-structured
+user story with acceptance criteria.
+
+Informal Requirement:
+{requirement}
+
+Output Format:
+## User Story
+**As a** [specific role]
+**I want** [specific capability]
+**So that** [measurable business value]
+
+## Acceptance Criteria
+Write 3-5 acceptance criteria in Given/When/Then format. Each must be:
+- Specific and testable
+- Independent of implementation details
+- Inclusive of at least one edge case
+
+## Questions for Stakeholder
+List 2-3 clarifying questions that would improve this story.
+
+## Definition of Done Checklist
+- [ ] Acceptance criteria reviewed by QA
+- [ ] UI/UX design completed (if applicable)
+- [ ] API contract defined (if applicable)
+- [ ] Performance requirements specified""",
+    variables={
+        "domain": "The business domain (e.g., healthcare, fintech)",
+        "project_context": "Brief project description and constraints",
+        "requirement": "The informal requirement to convert"
+    },
+    model_recommendation="gpt-4o or claude-sonnet",
+    temperature=0.3
+)
+
+# === Test Case Templates ===
+
+test_case_generator = PromptTemplate(
+    name="Test Case Generator",
+    category="Quality Assurance",
+    template="""You are a Senior QA Engineer specializing in {test_type} testing.
+
+Context: {system_context}
+
+Task: Generate comprehensive test cases for the following requirement:
+
+Requirement:
+{requirement}
+
+Acceptance Criteria:
+{acceptance_criteria}
+
+Generate test cases in this format:
+
+| TC ID | Category | Scenario | Preconditions | Steps | Expected Result | Priority |
+|-------|----------|----------|--------------|-------|-----------------|----------|
+
+Requirements:
+- Include at least {min_cases} test cases
+- Cover: happy path, negative cases, boundary values, edge cases
+- At least 2 test cases must focus on {focus_area}
+- Each step must be specific enough for a junior tester to execute
+- Priority must be one of: Critical, High, Medium, Low""",
+    variables={
+        "test_type": "Type of testing (functional, security, performance, etc.)",
+        "system_context": "Description of the system under test",
+        "requirement": "The requirement being tested",
+        "acceptance_criteria": "The acceptance criteria to validate",
+        "min_cases": "Minimum number of test cases to generate",
+        "focus_area": "Specific area to emphasize (e.g., security, edge cases)"
+    },
+    model_recommendation="gpt-4o or claude-sonnet",
+    temperature=0.2
+)
+
+# === Usage Example ===
+
+prompt = user_story_generator.render(
+    domain="e-commerce",
+    project_context="Building a B2C marketplace platform for handmade goods. "
+                    "Target launch Q3 2026. Must support mobile and web.",
+    requirement="Sellers want to offer discount codes to their customers"
+)
+print(prompt)</code></pre>
+
+    <p><strong>Organizing Your Prompt Library</strong></p>
+    <p>A well-organized prompt library becomes a team asset. Consider this structure:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Templates</th>
+          <th>Use Frequency</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Requirements</strong></td>
+          <td>User Story Generator, BRD Section Drafter, Gap Analysis, Stakeholder Impact</td>
+          <td>Daily</td>
+        </tr>
+        <tr>
+          <td><strong>Quality Assurance</strong></td>
+          <td>Test Case Generator, Defect Report Enhancer, Test Data Creator, Regression Analyzer</td>
+          <td>Daily</td>
+        </tr>
+        <tr>
+          <td><strong>Analysis</strong></td>
+          <td>Requirements Review, Ambiguity Detector, INVEST Validator, Dependency Mapper</td>
+          <td>Weekly</td>
+        </tr>
+        <tr>
+          <td><strong>Communication</strong></td>
+          <td>Status Report Generator, Meeting Notes Summarizer, Stakeholder Email Drafter</td>
+          <td>Daily</td>
+        </tr>
+        <tr>
+          <td><strong>Documentation</strong></td>
+          <td>Process Flow Describer, Data Dictionary Builder, API Documentation Generator</td>
+          <td>Weekly</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+      <strong>Version Your Prompts:</strong> Treat your prompt library like code — store it in version control, document changes, and test new versions before deploying them. A prompt that works well with GPT-4o may need adjustment for Claude or Gemini. Track which model and version each template was tested against.
+    </div>
+
+    <!-- Section 3.7 -->
+    <h2>3.7 Common Prompt Pitfalls</h2>
+
+    <p>Even experienced prompt engineers fall into recurring traps. Here are the most common pitfalls for analyst work, with concrete examples and fixes.</p>
+
+    <p><strong>Pitfall 1: The Vague Instruction</strong></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Bad</th>
+          <th>Good</th>
+          <th>Why</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>"Analyze this requirement"</td>
+          <td>"Evaluate this requirement against INVEST criteria and identify specific gaps in testability and completeness"</td>
+          <td>Specifies the framework and focus areas</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><strong>Pitfall 2: Missing Context</strong></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Bad</th>
+          <th>Good</th>
+          <th>Why</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>"Write test cases for the payment feature"</td>
+          <td>"Write test cases for the payment feature of our B2B SaaS invoicing system. Supports credit card (Stripe), ACH, and wire transfer. Users are finance managers at mid-size companies."</td>
+          <td>Domain context dramatically changes what test cases are relevant</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><strong>Pitfall 3: Conflicting Instructions</strong></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Bad</th>
+          <th>Good</th>
+          <th>Why</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>"Be concise. Provide a comprehensive, detailed analysis covering all aspects."</td>
+          <td>"Provide a focused analysis of the three highest-risk areas. For each, include 2-3 sentences of explanation and a specific recommendation."</td>
+          <td>Resolves the concise-vs-comprehensive conflict with specific expectations</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><strong>Pitfall 4: Asking for Confirmation Instead of Critique</strong></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Bad</th>
+          <th>Good</th>
+          <th>Why</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>"Is this a good requirement? 'The system shall be user-friendly.'"</td>
+          <td>"Identify every problem with this requirement and suggest a specific improvement for each: 'The system shall be user-friendly.'"</td>
+          <td>The first phrasing invites sycophancy; the second demands critical analysis</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><strong>Pitfall 5: Prompt Overload</strong></p>
+    <p>Asking the model to do too many things in a single prompt. A prompt that says "analyze the requirements, generate test cases, write the test plan, create test data, and estimate the testing effort" will produce mediocre results for all five tasks. Better to run five focused prompts and get excellent results for each.</p>
+
+    <p><strong>Pitfall 6: Example Contamination</strong></p>
+    <p>In few-shot prompting, if all your examples share a characteristic that is coincidental rather than desired (e.g., all examples are about user authentication), the model may incorrectly assume that characteristic is part of the pattern. Ensure your examples are diverse enough to show the general pattern, not a narrow slice.</p>
+
+    <p><strong>Pitfall 7: Ignoring the System Message</strong></p>
+    <p>When using APIs, the system message is your most powerful formatting tool. It sets persistent context that doesn't need to be repeated. Many analysts put everything in the user message, leading to verbose, repetitive prompts. Use the system message for role, constraints, and output format; use the user message for the specific task and input data.</p>
+
+    <div class="callout callout-warning">
+      <strong>The Debugging Approach:</strong> When a prompt produces poor results, resist the urge to add more instructions. Instead, diagnose which component is failing. Is the output in the wrong format? Fix the output specification. Is the content domain-inappropriate? Fix the context. Is the analysis shallow? Add chain-of-thought steps. Targeted fixes outperform prompt bloat every time.
+    </div>
+
+    <!-- Project Section -->
+    <section class="project">
+      <h2>Project: Prompt Library Builder</h2>
+
+      <p>In this project, you'll build a personal prompt library with at least 5 tested templates that you can use in your daily work. The library will be structured, version-controlled, and ready for team sharing.</p>
+
+      <p><strong>Step 1: Identify Your Top 5 Tasks</strong></p>
+      <p>From your LLM Impact Assessment (Chapter 1), select the 5 analyst tasks you perform most frequently that involve text generation or analysis.</p>
+
+      <p><strong>Step 2: Build Templates</strong></p>
+      <p>For each task, create a template using the PromptTemplate class. Include role, context placeholders, specific instructions, output format, and constraints.</p>
+
+      <p><strong>Step 3: Test and Iterate</strong></p>
+      <p>Run each template with real data from your work. Score the output on a 1-5 scale for quality, format compliance, and usefulness. Iterate on templates that score below 4.</p>
+
+      <pre><code class="language-python">"""
+Prompt Library Builder — Your personal analyst toolkit.
+"""
+import json
+from datetime import datetime
+
+class PromptLibrary:
+    """Manage a collection of tested prompt templates."""
+
+    def __init__(self, analyst_name):
+        self.analyst_name = analyst_name
+        self.templates = {}
+        self.test_results = []
+
+    def add_template(self, name, category, template_text, variables,
+                     model="gpt-4o", temperature=0.3):
+        """Add a new template to the library."""
+        self.templates[name] = {
+            "name": name,
+            "category": category,
+            "template": template_text,
+            "variables": variables,
+            "model": model,
+            "temperature": temperature,
+            "created": datetime.now().isoformat(),
+            "version": 1,
+            "test_score": None
+        }
+
+    def test_template(self, name, score, notes):
+        """Record a test result for a template."""
+        self.test_results.append({
+            "template": name,
+            "score": score,
+            "notes": notes,
+            "date": datetime.now().isoformat()
+        })
+        if name in self.templates:
+            self.templates[name]["test_score"] = score
+
+    def get_template(self, name, **kwargs):
+        """Retrieve and render a template."""
+        if name not in self.templates:
+            raise KeyError(f"Template '{name}' not found")
+        return self.templates[name]["template"].format(**kwargs)
+
+    def export_library(self, filepath):
+        """Export the library to a JSON file for sharing."""
+        data = {
+            "analyst": self.analyst_name,
+            "exported": datetime.now().isoformat(),
+            "templates": self.templates,
+            "test_results": self.test_results
+        }
+        with open(filepath, "w") as f:
+            json.dump(data, f, indent=2)
+        print(f"Library exported to {filepath}")
+
+    def summary(self):
+        """Print a summary of the library."""
+        print(f"\n{'='*50}")
+        print(f"Prompt Library: {self.analyst_name}")
+        print(f"Templates: {len(self.templates)}")
+        print(f"{'='*50}")
+        for name, tmpl in self.templates.items():
+            score = tmpl['test_score'] or 'Not tested'
+            print(f"  [{tmpl['category']}] {name} — Score: {score}")
+
+# Example: Build your library
+library = PromptLibrary("Your Name")
+
+library.add_template(
+    name="Meeting Notes to Action Items",
+    category="Communication",
+    template="""You are a Senior Business Analyst.
+
+Convert the following meeting notes into structured action items.
+
+Meeting Notes:
+{meeting_notes}
+
+Output Format:
+## Action Items
+| # | Action | Owner | Due Date | Priority | Dependencies |
+|---|--------|-------|----------|----------|-------------|
+
+## Decisions Made
+- [List each decision with brief context]
+
+## Open Questions
+- [List unresolved items with suggested owner]
+
+## Next Meeting Agenda Items
+- [Suggest 3-5 items based on open questions and pending actions]
+
+Rules:
+- Infer owners from context when mentioned by name
+- Flag any action without a clear owner as "TBD — needs assignment"
+- Set priority based on business impact and urgency discussed""",
+    variables={"meeting_notes": "Raw meeting notes or transcript"},
+    model="gpt-4o",
+    temperature=0.2
+)
+
+library.add_template(
+    name="Requirement Ambiguity Detector",
+    category="Requirements",
+    template="""You are a meticulous Senior BA known for catching ambiguous requirements
+before they cause development issues.
+
+Analyze the following requirement for ambiguity:
+
+Requirement:
+{requirement}
+
+For each ambiguity found:
+1. Quote the ambiguous phrase
+2. Explain why it is ambiguous (multiple interpretations)
+3. List 2-3 possible interpretations
+4. Suggest a rewritten version that eliminates the ambiguity
+5. Provide a clarifying question for the stakeholder
+
+After the analysis, rate the requirement:
+- Clarity Score: [1-5]
+- Testability Score: [1-5]
+- Implementation Readiness: [Ready / Needs Clarification / Needs Rewrite]""",
+    variables={"requirement": "The requirement text to analyze"},
+    model="gpt-4o",
+    temperature=0.1
+)
+
+library.summary()</code></pre>
+
+      <p><strong>Deliverable:</strong> A JSON file containing your prompt library with at least 5 templates, each tested at least once with a score of 4 or higher. Share it with your team and invite them to contribute their own templates.</p>
+    </section>
+
+    <!-- Summary -->
+    <section class="summary">
+      <h2>Summary</h2>
+      <ul class="key-takeaways">
+        <li>Effective prompts have six components: role, context, task, input data, output specification, and constraints. Not every prompt needs all six, but knowing the full anatomy lets you diagnose and fix underperforming prompts.</li>
+        <li>Few-shot prompting (providing examples) is your most powerful technique for getting consistent, domain-appropriate output. Invest time in crafting high-quality examples — they function as implicit specifications.</li>
+        <li>Role-based prompting meaningfully changes output quality and perspective. Use specific, realistic roles with domain expertise and behavioral instructions.</li>
+        <li>Chain-of-thought prompting makes LLM reasoning transparent and auditable. Use structured CoT with named steps for complex analytical tasks like requirements review and defect investigation.</li>
+        <li>Build and maintain a prompt library — it transforms individual expertise into a team asset and ensures consistency across projects and analysts.</li>
+      </ul>
+
+      <div class="exercises">
+        <h3>Exercises</h3>
+        <div class="exercise-item">
+          <span class="exercise-type conceptual">Conceptual</span>
+          <p>A fellow analyst shows you their prompt: "Write a good BRD for a mobile banking app." Identify at least 5 specific improvements you would make to this prompt, referencing the components from Section 3.1. Explain why each improvement matters.</p>
+        </div>
+        <div class="exercise-item">
+          <span class="exercise-type coding">Coding</span>
+          <p>Create a Python function called <code>prompt_quality_checker</code> that takes a prompt string as input and evaluates it against the six components from Section 3.1. The function should return a score (0-100) and specific recommendations for improvement. Test it against 3 prompts of varying quality.</p>
+        </div>
+        <div class="exercise-item">
+          <span class="exercise-type design">Design</span>
+          <p>Design a few-shot prompt template for converting JIRA defect tickets into structured root cause analysis reports. Include 2 realistic examples with different defect categories (functional bug, performance issue). The output should include: root cause hypothesis, affected components, recommended fix, and regression test suggestions.</p>
+        </div>
+      </div>
+    </section>
+
+    <nav class="chapter-footer">
+      <a href="ch02-how-llms-work.html">&larr; How LLMs Work</a>
+      <span>Part 1 of 5</span>
+      <a href="ch04-first-llm-workflow.html">First LLM Workflow &rarr;</a>
+    </nav>
+  </main>
+
+  <script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

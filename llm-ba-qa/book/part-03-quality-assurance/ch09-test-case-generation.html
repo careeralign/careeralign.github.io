@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 9 — Test Case Generation | LLMs for Business &amp; Quality Analysts</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="../part-02-business-analysis/ch08-stakeholder-communication.html" class="nav-prev">Stakeholder Communication</a>
+    <span class="nav-title">Part 3 — Quality Assurance with LLMs</span>
+    <a href="ch10-test-data-design.html" class="nav-next">Test Data Design</a>
+  </nav>
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 3 — Quality Assurance with LLMs</span>
+      <h1>Test Case Generation</h1>
+      <p class="chapter-intro">Writing test cases is the most time-consuming activity in the QA lifecycle — yet most test cases follow predictable patterns that an LLM can generate in seconds. In this chapter, you will build a system that reads a requirement and produces comprehensive, categorized test cases automatically.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~25 min</span>
+        <span>Project: Test Case Generator</span>
+      </div>
+    </header>
+
+    <!-- Objectives -->
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>How to prompt LLMs to generate functional, negative, and boundary test cases from plain-language requirements</li>
+        <li>Techniques for boundary value analysis and equivalence partitioning using LLMs</li>
+        <li>Methods for generating negative test cases that probe failure modes</li>
+        <li>How to prioritize generated test cases by risk and coverage</li>
+        <li>Strategies for measuring and improving test coverage with LLM assistance</li>
+        <li>Building a reusable Test Case Generator pipeline in Python</li>
+      </ul>
+    </section>
+
+    <!-- Section 1 -->
+    <section>
+      <h2>1. The Testing Bottleneck</h2>
+
+      <p>Every QA professional knows the pain: a sprint planning session reveals twelve new user stories, each needing test cases by the end of the week. Manual test case writing is slow, inconsistent, and prone to blind spots. Senior QAs write better tests than juniors, but even the best testers miss edge cases when working under time pressure.</p>
+
+      <p>Consider the numbers. A typical requirement like <em>"Users can reset their password via email verification"</em> needs at minimum:</p>
+
+      <table>
+        <thead>
+          <tr><th>Test Category</th><th>Typical Count</th><th>Manual Time (min)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Happy path / positive tests</td><td>3–5</td><td>15–25</td></tr>
+          <tr><td>Negative / invalid input tests</td><td>5–10</td><td>25–50</td></tr>
+          <tr><td>Boundary value tests</td><td>4–8</td><td>20–40</td></tr>
+          <tr><td>Security-related tests</td><td>3–6</td><td>15–30</td></tr>
+          <tr><td>Integration / cross-system tests</td><td>2–4</td><td>10–20</td></tr>
+          <tr><td><strong>Total</strong></td><td><strong>17–33</strong></td><td><strong>85–165</strong></td></tr>
+        </tbody>
+      </table>
+
+      <p>An LLM can generate a first draft of all these categories in under a minute. The QA analyst's role shifts from <em>writing</em> to <em>reviewing, refining, and augmenting</em> — a far better use of their expertise.</p>
+
+      <div class="callout callout-warning">
+        <strong>Human-in-the-loop is non-negotiable.</strong> LLM-generated test cases are a starting point. They may miss domain-specific constraints, security nuances, or regulatory requirements that only a human tester would know. Always review, validate, and supplement generated test cases before adding them to your test suite.
+      </div>
+
+      <p>The bottleneck is not just speed — it is <strong>consistency</strong>. When five QAs write tests for five features, you get five different styles, five different levels of coverage depth, and five different interpretations of "thorough." An LLM-driven pipeline standardizes the output format, ensures every category is considered, and provides a baseline that the team can then customize.</p>
+    </section>
+
+    <!-- Section 2 -->
+    <section>
+      <h2>2. Generating Tests from Requirements</h2>
+
+      <p>The foundation of LLM-based test generation is a well-structured prompt that takes a requirement as input and produces categorized test cases as output. The key insight is to provide the LLM with a clear taxonomy of test types and ask it to populate each category systematically.</p>
+
+      <p>Here is the core function that drives our test case generator:</p>
+
+      <pre><code class="language-python">from openai import OpenAI
+import json
+
+client = OpenAI()  # uses OPENAI_API_KEY env var
+
+SYSTEM_PROMPT = """You are a senior QA engineer with 15 years of experience.
+Given a software requirement, generate comprehensive test cases organized
+into categories. For each test case, provide:
+- test_id: a unique identifier (e.g., TC-001)
+- category: one of [positive, negative, boundary, security, integration]
+- title: a concise description
+- preconditions: what must be true before the test runs
+- steps: numbered list of actions
+- expected_result: what should happen
+- priority: high, medium, or low
+
+Return valid JSON with a top-level key "test_cases" containing an array."""
+
+def generate_test_cases(requirement: str, context: str = "") -> list[dict]:
+    """Generate test cases from a requirement using an LLM."""
+    user_prompt = f"""Requirement: {requirement}
+
+Additional context: {context if context else 'None provided.'}
+
+Generate at least 15 test cases covering all five categories:
+positive, negative, boundary, security, and integration.
+Ensure thorough coverage of edge cases and failure modes."""
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_prompt}
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.3  # lower temperature for more consistent output
+    )
+
+    result = json.loads(response.choices[0].message.content)
+    return result["test_cases"]
+
+
+# Example usage
+requirement = """Users can reset their password by clicking 'Forgot Password'
+on the login page. The system sends a reset link to the registered email.
+The link expires after 30 minutes. The new password must be at least 8
+characters and include one uppercase letter, one number, and one special
+character. Users cannot reuse their last 5 passwords."""
+
+test_cases = generate_test_cases(requirement)
+
+for tc in test_cases:
+    print(f"[{tc['test_id']}] ({tc['category']}) {tc['title']}")
+    print(f"  Priority: {tc['priority']}")
+    print(f"  Expected: {tc['expected_result']}")
+    print()
+</code></pre>
+
+      <p>This produces output such as:</p>
+
+      <pre><code>[TC-001] (positive) Successful password reset with valid email
+  Priority: high
+  Expected: User receives reset email within 2 minutes
+
+[TC-002] (positive) Password reset with valid new password meeting all criteria
+  Priority: high
+  Expected: Password is updated, user can log in with new password
+
+[TC-003] (negative) Reset link used after 30-minute expiration
+  Priority: high
+  Expected: System displays "Link expired" and prompts new reset request
+
+[TC-004] (boundary) New password with exactly 8 characters meeting all criteria
+  Priority: medium
+  Expected: Password accepted and updated successfully
+
+[TC-005] (security) Attempt to reuse the 5th most recent password
+  Priority: high
+  Expected: System rejects password with "Cannot reuse recent passwords" message
+</code></pre>
+
+      <div class="callout callout-tip">
+        <strong>Prompt engineering tip.</strong> Setting <code>temperature=0.3</code> makes the output more deterministic across runs. For test case generation, you want consistency — the same requirement should produce similar test cases each time. Use higher temperatures (0.7–0.9) only when you want creative, exploratory test ideas.
+      </div>
+
+      <p>Notice that the system prompt defines the exact schema we expect. This is critical: without a clear output structure, the LLM may return test cases in an unpredictable format, making downstream processing brittle. Using <code>response_format={"type": "json_object"}</code> ensures we always get valid JSON back.</p>
+    </section>
+
+    <!-- Section 3 -->
+    <section>
+      <h2>3. Boundary Value Analysis with LLMs</h2>
+
+      <p>Boundary value analysis (BVA) is one of the most effective testing techniques — and one of the most tedious to apply manually. For every input field with a defined range, you need to test at minimum the lower boundary, just below it, just above it, the upper boundary, and nominal values in between.</p>
+
+      <p>LLMs excel at BVA because they can parse natural-language constraints and systematically derive boundary values:</p>
+
+      <pre><code class="language-python">BVA_PROMPT = """Analyze the following requirement and identify ALL input
+fields with numeric, length, or date-based boundaries. For each field,
+generate boundary value test cases using the standard BVA approach:
+
+For each boundary:
+- min - 1 (just below minimum, should fail)
+- min (at minimum, should pass)
+- min + 1 (just above minimum, should pass)
+- nominal (typical valid value)
+- max - 1 (just below maximum, should pass)
+- max (at maximum, should pass)
+- max + 1 (just above maximum, should fail)
+
+Return a JSON object with key "boundary_tests" containing an array of
+objects with: field_name, boundary_type, test_value, expected_result."""
+
+def generate_boundary_tests(requirement: str) -> list[dict]:
+    """Generate boundary value test cases from a requirement."""
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": BVA_PROMPT},
+            {"role": "user", "content": requirement}
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.2
+    )
+    result = json.loads(response.choices[0].message.content)
+    return result["boundary_tests"]
+
+
+# Example: password length boundaries
+requirement = """The new password must be between 8 and 64 characters long.
+The user's age must be between 18 and 120. The reset code is a 6-digit number."""
+
+boundaries = generate_boundary_tests(requirement)
+for b in boundaries:
+    status = "PASS" if "pass" in b["expected_result"].lower() else "FAIL"
+    print(f"  {b['field_name']:20s} | {b['boundary_type']:10s} | "
+          f"Value: {str(b['test_value']):10s} | Expected: {status}")
+</code></pre>
+
+      <p>The output produces a comprehensive boundary table:</p>
+
+      <table>
+        <thead>
+          <tr><th>Field</th><th>Boundary</th><th>Value</th><th>Expected</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>password_length</td><td>min - 1</td><td>7 chars</td><td>FAIL</td></tr>
+          <tr><td>password_length</td><td>min</td><td>8 chars</td><td>PASS</td></tr>
+          <tr><td>password_length</td><td>min + 1</td><td>9 chars</td><td>PASS</td></tr>
+          <tr><td>password_length</td><td>nominal</td><td>20 chars</td><td>PASS</td></tr>
+          <tr><td>password_length</td><td>max - 1</td><td>63 chars</td><td>PASS</td></tr>
+          <tr><td>password_length</td><td>max</td><td>64 chars</td><td>PASS</td></tr>
+          <tr><td>password_length</td><td>max + 1</td><td>65 chars</td><td>FAIL</td></tr>
+          <tr><td>user_age</td><td>min - 1</td><td>17</td><td>FAIL</td></tr>
+          <tr><td>user_age</td><td>min</td><td>18</td><td>PASS</td></tr>
+          <tr><td>reset_code</td><td>min</td><td>100000</td><td>PASS</td></tr>
+          <tr><td>reset_code</td><td>max</td><td>999999</td><td>PASS</td></tr>
+          <tr><td>reset_code</td><td>max + 1</td><td>1000000</td><td>FAIL</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-insight">
+        <strong>Why LLMs beat templates for BVA.</strong> Traditional BVA templates require you to manually identify each bounded field and fill in values. An LLM reads the requirement in natural language, identifies all bounded fields automatically, and generates the full boundary table. When requirements change — say the password max moves from 64 to 128 characters — you simply re-run the prompt, and the entire table updates.
+      </div>
+    </section>
+
+    <!-- Section 4 -->
+    <section>
+      <h2>4. Equivalence Partitioning Automation</h2>
+
+      <p>Equivalence partitioning divides input data into groups (partitions) where all values in a partition should produce the same behavior. Instead of testing every possible input, you test one representative from each partition. This dramatically reduces the number of tests while maintaining coverage.</p>
+
+      <p>An LLM can identify equivalence classes from requirement text and generate representative test values for each:</p>
+
+      <pre><code class="language-python">EP_PROMPT = """You are a QA engineer performing equivalence partitioning.
+Analyze the requirement and identify all equivalence classes for each input.
+
+For each input field, identify:
+1. Valid equivalence classes (groups of inputs that should all behave the same)
+2. Invalid equivalence classes (groups of inputs that should all produce errors)
+
+For each class, provide:
+- field: the input field name
+- class_type: "valid" or "invalid"
+- class_description: what this group represents
+- representative_value: a concrete test value
+- expected_behavior: what should happen
+
+Return JSON with key "equivalence_classes"."""
+
+def partition_inputs(requirement: str) -> list[dict]:
+    """Identify equivalence classes for requirement inputs."""
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": EP_PROMPT},
+            {"role": "user", "content": requirement}
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.2
+    )
+    return json.loads(response.choices[0].message.content)["equivalence_classes"]
+
+
+# Example
+requirement = """A shipping calculator accepts:
+- Weight in kg (0.1 to 50.0)
+- Destination: domestic, international-standard, international-express
+- Insurance: yes/no
+Domestic shipments under 5kg cost $5, 5-20kg cost $15, over 20kg cost $30.
+International standard is 3x domestic rate. Express is 5x domestic rate.
+Insurance adds 10% to the total."""
+
+classes = partition_inputs(requirement)
+
+# Display as a partitioning table
+print(f"{'Field':<15} {'Type':<8} {'Class':<35} {'Value':<15} {'Expected'}")
+print("-" * 100)
+for c in classes:
+    print(f"{c['field']:<15} {c['class_type']:<8} "
+          f"{c['class_description']:<35} {str(c['representative_value']):<15} "
+          f"{c['expected_behavior']}")
+</code></pre>
+
+      <p>The LLM identifies partitions such as:</p>
+
+      <table>
+        <thead>
+          <tr><th>Field</th><th>Type</th><th>Class</th><th>Value</th><th>Expected</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>weight</td><td>valid</td><td>Light parcel (0.1–4.99 kg)</td><td>2.5</td><td>$5 base rate</td></tr>
+          <tr><td>weight</td><td>valid</td><td>Medium parcel (5.0–20.0 kg)</td><td>12.0</td><td>$15 base rate</td></tr>
+          <tr><td>weight</td><td>valid</td><td>Heavy parcel (20.01–50.0 kg)</td><td>35.0</td><td>$30 base rate</td></tr>
+          <tr><td>weight</td><td>invalid</td><td>Below minimum (less than 0.1 kg)</td><td>0.05</td><td>Error: weight too low</td></tr>
+          <tr><td>weight</td><td>invalid</td><td>Above maximum (over 50.0 kg)</td><td>55.0</td><td>Error: weight exceeds limit</td></tr>
+          <tr><td>destination</td><td>valid</td><td>Domestic</td><td>domestic</td><td>1x rate multiplier</td></tr>
+          <tr><td>destination</td><td>valid</td><td>International standard</td><td>intl-std</td><td>3x rate multiplier</td></tr>
+          <tr><td>destination</td><td>valid</td><td>International express</td><td>intl-exp</td><td>5x rate multiplier</td></tr>
+          <tr><td>insurance</td><td>valid</td><td>With insurance</td><td>yes</td><td>+10% to total</td></tr>
+          <tr><td>insurance</td><td>valid</td><td>Without insurance</td><td>no</td><td>No surcharge</td></tr>
+        </tbody>
+      </table>
+
+      <p>The power of combining equivalence partitioning with LLMs becomes clear when you consider <strong>pairwise combinations</strong>. With three fields (weight: 5 classes, destination: 3, insurance: 2), full combinatorial testing requires 30 test cases. Pairwise testing covers all two-way interactions with far fewer. You can ask the LLM to generate a pairwise covering array:</p>
+
+      <pre><code class="language-python">def generate_pairwise_tests(classes: list[dict]) -> list[dict]:
+    """Generate pairwise test combinations from equivalence classes."""
+    prompt = f"""Given these equivalence classes:
+{json.dumps(classes, indent=2)}
+
+Generate a minimal set of test cases that achieves pairwise coverage —
+every pair of classes from different fields appears in at least one test.
+Return JSON with key "pairwise_tests", each containing: test_id, inputs
+(dict of field->value), expected_outcome."""
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"},
+        temperature=0.2
+    )
+    return json.loads(response.choices[0].message.content)["pairwise_tests"]
+</code></pre>
+
+      <div class="callout callout-warning">
+        <strong>Verify pairwise coverage.</strong> LLMs sometimes miss pairs in their generated covering arrays. Always validate that the returned test set actually achieves full pairwise coverage by checking each pair of classes programmatically. Use the generated set as a starting point and add any missing pairs.
+      </div>
+    </section>
+
+    <!-- Section 5 -->
+    <section>
+      <h2>5. Negative Test Case Generation</h2>
+
+      <p>Negative testing — verifying that the system handles invalid, unexpected, and malicious input gracefully — is where LLMs truly shine. Human testers tend to have a "happy path bias," instinctively thinking about how users are <em>supposed</em> to use the system. LLMs, prompted correctly, can generate an exhaustive catalogue of things that can go wrong.</p>
+
+      <pre><code class="language-python">NEGATIVE_PROMPT = """You are a destructive tester and security analyst.
+Your goal is to find ways to BREAK the system described in the requirement.
+
+Generate negative test cases across these categories:
+1. INVALID INPUT: wrong types, formats, encodings
+2. MISSING DATA: null, empty, whitespace-only values
+3. OVERFLOW: extremely large values, extremely long strings
+4. INJECTION: SQL injection, XSS, command injection attempts
+5. RACE CONDITIONS: concurrent operations, double submissions
+6. STATE VIOLATIONS: operations performed out of sequence
+7. AUTHORIZATION: accessing other users' data, privilege escalation
+
+For each test case provide: test_id, category, attack_description,
+input_payload (the actual malicious/invalid input), expected_behavior
+(how the system should handle it safely).
+
+Return JSON with key "negative_tests"."""
+
+def generate_negative_tests(requirement: str) -> list[dict]:
+    """Generate negative and adversarial test cases."""
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": NEGATIVE_PROMPT},
+            {"role": "user", "content": requirement}
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.5  # slightly higher for creative attack vectors
+    )
+    return json.loads(response.choices[0].message.content)["negative_tests"]
+
+
+# Example
+requirement = """Users can transfer money between their own accounts.
+They enter the source account, destination account, and amount.
+The amount must be positive and cannot exceed the source account balance.
+Transfers are processed immediately."""
+
+negative_tests = generate_negative_tests(requirement)
+for nt in negative_tests:
+    print(f"[{nt['test_id']}] {nt['category']}")
+    print(f"  Attack: {nt['attack_description']}")
+    print(f"  Payload: {nt['input_payload']}")
+    print(f"  Expected: {nt['expected_behavior']}")
+    print()
+</code></pre>
+
+      <p>A well-prompted LLM generates test cases that many testers would miss:</p>
+
+      <table>
+        <thead>
+          <tr><th>Category</th><th>Attack</th><th>Payload</th><th>Expected Safe Behavior</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Injection</td><td>SQL injection in account field</td><td><code>' OR 1=1; DROP TABLE accounts;--</code></td><td>Input rejected, error logged</td></tr>
+          <tr><td>Overflow</td><td>Transfer amount of MAX_FLOAT</td><td><code>1.7976931348623157e+308</code></td><td>Rejected: amount exceeds limit</td></tr>
+          <tr><td>Race condition</td><td>Two simultaneous transfers draining same account</td><td>Concurrent $500 transfers from $600 balance</td><td>Second transfer rejected or queued</td></tr>
+          <tr><td>State violation</td><td>Transfer from a frozen account</td><td>Source account with status=frozen</td><td>Transfer blocked with clear error message</td></tr>
+          <tr><td>Authorization</td><td>Transfer from another user's account</td><td>Source account owned by different user</td><td>403 Forbidden, attempt logged</td></tr>
+          <tr><td>Invalid input</td><td>Negative transfer amount</td><td><code>-500.00</code></td><td>Rejected: amount must be positive</td></tr>
+          <tr><td>Missing data</td><td>Empty destination account</td><td><code>""</code></td><td>Validation error: destination required</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-tip">
+        <strong>Layer negative tests by severity.</strong> Not all negative tests are equal. Injection and authorization tests are critical — they represent real attack vectors. Missing data tests are important for UX. Overflow tests catch edge cases. Prioritize your negative test suite so the critical security tests run first in every regression cycle.
+      </div>
+    </section>
+
+    <!-- Section 6 -->
+    <section>
+      <h2>6. Test Case Prioritization</h2>
+
+      <p>Generating 50 test cases is useful; knowing which 15 to run when you only have an hour before release is essential. LLMs can prioritize test cases by analyzing risk factors, historical defect data, and business impact.</p>
+
+      <pre><code class="language-python">PRIORITIZATION_PROMPT = """You are a QA lead prioritizing test cases for
+a time-constrained release. Score each test case on three dimensions:
+
+1. RISK (1-5): How likely is this scenario to fail? Consider complexity,
+   recent code changes, and historical defect patterns.
+2. IMPACT (1-5): If this fails in production, how severe is the
+   consequence? Consider financial loss, data corruption, security breach,
+   user experience degradation.
+3. COVERAGE (1-5): How much unique functionality does this test cover
+   that no other test in the suite covers?
+
+Calculate a composite score: RISK * 0.4 + IMPACT * 0.4 + COVERAGE * 0.2
+
+Return JSON with key "prioritized_tests" sorted by composite score
+(highest first), each containing: test_id, title, risk_score,
+impact_score, coverage_score, composite_score, rationale."""
+
+def prioritize_tests(test_cases: list[dict],
+                     time_budget_minutes: int = 60,
+                     avg_test_duration_minutes: int = 5) -> list[dict]:
+    """Prioritize test cases and select top N that fit time budget."""
+    max_tests = time_budget_minutes // avg_test_duration_minutes
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": PRIORITIZATION_PROMPT},
+            {"role": "user", "content": f"""Test cases to prioritize:
+{json.dumps(test_cases, indent=2)}
+
+Time budget: {time_budget_minutes} minutes
+Max tests: {max_tests}
+
+Prioritize all tests, then mark the top {max_tests} as "selected": true."""}
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.2
+    )
+    result = json.loads(response.choices[0].message.content)
+    return result["prioritized_tests"]
+
+
+# Usage with previously generated test cases
+prioritized = prioritize_tests(test_cases, time_budget_minutes=60)
+
+print("PRIORITIZED TEST EXECUTION ORDER")
+print("=" * 70)
+for i, pt in enumerate(prioritized, 1):
+    selected = ">>> RUN" if pt.get("selected") else "    skip"
+    print(f"{selected} {i:2d}. [{pt['test_id']}] Score: {pt['composite_score']:.1f} "
+          f"| {pt['title']}")
+    print(f"         Risk={pt['risk_score']} Impact={pt['impact_score']} "
+          f"Coverage={pt['coverage_score']}")
+    print(f"         {pt['rationale']}")
+    print()
+</code></pre>
+
+      <p>The prioritization output gives QA leads a clear execution order:</p>
+
+      <pre><code>&gt;&gt;&gt; RUN  1. [TC-005] Score: 4.6 | Reuse of recent password (security)
+         Risk=5 Impact=5 Coverage=4
+         Password reuse bypass could lead to account compromise
+
+&gt;&gt;&gt; RUN  2. [TC-003] Score: 4.4 | Expired reset link used
+         Risk=5 Impact=4 Coverage=5
+         Only test covering expiration logic — critical timing boundary
+
+&gt;&gt;&gt; RUN  3. [TC-012] Score: 4.2 | SQL injection in email field
+         Risk=4 Impact=5 Coverage=4
+         Injection attacks are high-impact and commonly exploited
+
+    skip  9. [TC-008] Score: 2.4 | Valid reset with Gmail address
+         Risk=2 Impact=2 Coverage=2
+         Covered by other positive tests; low incremental value</code></pre>
+
+      <div class="callout callout-insight">
+        <strong>Feed historical data for smarter prioritization.</strong> If your defect tracker has data on which modules and features have the most bugs, include that context in the prompt. For example: <em>"The authentication module has had 12 defects in the last 3 sprints, mostly around session handling."</em> This lets the LLM weight risk scores based on real project history, not just general heuristics.
+      </div>
+    </section>
+
+    <!-- Section 7 -->
+    <section>
+      <h2>7. Coverage Analysis</h2>
+
+      <p>Generating test cases is only half the battle. You also need to verify that your test suite <em>actually covers</em> the requirement. LLMs can perform a gap analysis by comparing the requirement text against the generated test cases and identifying untested scenarios.</p>
+
+      <pre><code class="language-python">COVERAGE_PROMPT = """You are a QA coverage analyst. Compare the requirement
+against the test cases and identify:
+
+1. COVERED: Which parts of the requirement are fully tested
+2. PARTIALLY COVERED: Which parts have some tests but need more
+3. GAPS: Which parts of the requirement have NO test cases at all
+4. IMPLICIT: Requirements not explicitly stated but implied (e.g.,
+   performance under load, accessibility, localization)
+
+For each gap, suggest specific test cases to fill it.
+
+Return JSON with keys: "covered" (array of strings),
+"partially_covered" (array with "area" and "missing_tests"),
+"gaps" (array with "area" and "suggested_tests"),
+"implicit_requirements" (array with "area" and "suggested_tests"),
+"coverage_percentage" (estimated overall coverage as integer)."""
+
+def analyze_coverage(requirement: str, test_cases: list[dict]) -> dict:
+    """Analyze test coverage gaps for a requirement."""
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": COVERAGE_PROMPT},
+            {"role": "user", "content": f"""Requirement:
+{requirement}
+
+Existing test cases:
+{json.dumps(test_cases, indent=2)}"""}
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.2
+    )
+    return json.loads(response.choices[0].message.content)
+
+
+# Analyze coverage
+coverage = analyze_coverage(requirement, test_cases)
+
+print(f"COVERAGE ESTIMATE: {coverage['coverage_percentage']}%\n")
+
+print("COVERED:")
+for item in coverage["covered"]:
+    print(f"  [OK] {item}")
+
+print("\nGAPS FOUND:")
+for gap in coverage["gaps"]:
+    print(f"  [!!] {gap['area']}")
+    for test in gap["suggested_tests"]:
+        print(f"       -> Add: {test}")
+
+print("\nIMPLICIT REQUIREMENTS (not in spec but should be tested):")
+for imp in coverage["implicit_requirements"]:
+    print(f"  [?] {imp['area']}")
+    for test in imp["suggested_tests"]:
+        print(f"      -> Add: {test}")
+</code></pre>
+
+      <p>A typical coverage analysis reveals gaps like these:</p>
+
+      <table>
+        <thead>
+          <tr><th>Status</th><th>Area</th><th>Action Needed</th></tr>
+        </thead>
+        <tbody>
+          <tr><td style="color:green;">Covered</td><td>Happy path password reset</td><td>None</td></tr>
+          <tr><td style="color:green;">Covered</td><td>Password complexity rules</td><td>None</td></tr>
+          <tr><td style="color:orange;">Partial</td><td>Link expiration</td><td>Add test for link used at exactly 30 min</td></tr>
+          <tr><td style="color:red;">Gap</td><td>Multiple simultaneous reset requests</td><td>Test: user requests reset twice — which link is valid?</td></tr>
+          <tr><td style="color:red;">Gap</td><td>Email delivery failure</td><td>Test: what happens when email service is down?</td></tr>
+          <tr><td style="color:blue;">Implicit</td><td>Rate limiting on reset requests</td><td>Test: 100 reset requests in 1 minute from same IP</td></tr>
+          <tr><td style="color:blue;">Implicit</td><td>Accessibility of reset form</td><td>Test: screen reader compatibility, keyboard navigation</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-tip">
+        <strong>Iterative coverage improvement.</strong> Run the coverage analysis, generate tests for the gaps, add them to your suite, and run the analysis again. Two or three iterations typically push coverage from 60–70% (first generation) to 90%+ (after gap-filling). Automate this loop in your CI pipeline for continuous coverage monitoring.
+      </div>
+    </section>
+
+    <!-- Project -->
+    <section class="project">
+      <h2>Project: Test Case Generator</h2>
+
+      <p>Build a complete test case generation pipeline that takes a requirements document (multiple requirements) and produces a structured test plan with prioritized, categorized test cases and a coverage report.</p>
+
+      <h3>Project Requirements</h3>
+      <ol>
+        <li>Accept a text file containing multiple requirements (one per paragraph)</li>
+        <li>Generate test cases for each requirement across all five categories</li>
+        <li>Perform boundary value analysis for all bounded fields</li>
+        <li>Generate negative and security test cases</li>
+        <li>Prioritize the complete test suite</li>
+        <li>Run coverage analysis and fill gaps</li>
+        <li>Output a structured test plan in JSON and a human-readable summary</li>
+      </ol>
+
+      <h3>Starter Code</h3>
+
+      <pre><code class="language-python">import json
+from pathlib import Path
+from openai import OpenAI
+
+client = OpenAI()
+
+class TestCaseGenerator:
+    """End-to-end test case generation pipeline."""
+
+    def __init__(self, model: str = "gpt-4o"):
+        self.model = model
+        self.all_test_cases = []
+
+    def parse_requirements(self, filepath: str) -> list[str]:
+        """Read a requirements file and split into individual requirements."""
+        text = Path(filepath).read_text()
+        # Split on double newlines (each requirement is a paragraph)
+        requirements = [r.strip() for r in text.split("\n\n") if r.strip()]
+        return requirements
+
+    def generate_for_requirement(self, req_id: str, requirement: str) -> dict:
+        """Generate all test case types for a single requirement."""
+        # Step 1: Core test cases (positive, negative, boundary, security, integration)
+        core_tests = generate_test_cases(requirement)
+
+        # Step 2: Detailed boundary analysis
+        boundary_tests = generate_boundary_tests(requirement)
+
+        # Step 3: Dedicated negative / adversarial tests
+        negative_tests = generate_negative_tests(requirement)
+
+        # Step 4: Merge and deduplicate
+        all_tests = core_tests + boundary_tests + negative_tests
+        all_tests = self._deduplicate(all_tests)
+
+        # Step 5: Coverage analysis
+        coverage = analyze_coverage(requirement, all_tests)
+
+        # Step 6: Fill coverage gaps
+        if coverage["gaps"]:
+            gap_tests = self._fill_gaps(requirement, coverage["gaps"])
+            all_tests.extend(gap_tests)
+
+        return {
+            "requirement_id": req_id,
+            "requirement_text": requirement,
+            "test_cases": all_tests,
+            "coverage": coverage
+        }
+
+    def _deduplicate(self, tests: list[dict]) -> list[dict]:
+        """Remove duplicate test cases based on title similarity."""
+        # Use LLM to identify duplicates
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=[{
+                "role": "user",
+                "content": f"""Identify and remove duplicate test cases from this list.
+Two tests are duplicates if they test the same scenario with the same inputs.
+Keep the more detailed version. Return JSON with "unique_tests" key.
+
+{json.dumps(tests, indent=2)}"""
+            }],
+            response_format={"type": "json_object"},
+            temperature=0.1
+        )
+        return json.loads(response.choices[0].message.content)["unique_tests"]
+
+    def _fill_gaps(self, requirement: str, gaps: list[dict]) -> list[dict]:
+        """Generate test cases for identified coverage gaps."""
+        gap_descriptions = "\n".join(
+            f"- {g['area']}: {', '.join(g['suggested_tests'])}"
+            for g in gaps
+        )
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=[{
+                "role": "user",
+                "content": f"""Generate test cases for these coverage gaps:
+{gap_descriptions}
+
+Original requirement: {requirement}
+
+Return JSON with "gap_tests" key, using the standard test case format."""
+            }],
+            response_format={"type": "json_object"},
+            temperature=0.3
+        )
+        return json.loads(response.choices[0].message.content)["gap_tests"]
+
+    def generate_test_plan(self, filepath: str, output_path: str = "test_plan.json"):
+        """Run the full pipeline and output a test plan."""
+        requirements = self.parse_requirements(filepath)
+        test_plan = {"requirements": [], "summary": {}}
+        total_tests = 0
+
+        for i, req in enumerate(requirements, 1):
+            req_id = f"REQ-{i:03d}"
+            print(f"Processing {req_id}...")
+            result = self.generate_for_requirement(req_id, req)
+            test_plan["requirements"].append(result)
+            total_tests += len(result["test_cases"])
+
+        # Prioritize across all requirements
+        all_tests = []
+        for r in test_plan["requirements"]:
+            all_tests.extend(r["test_cases"])
+
+        prioritized = prioritize_tests(all_tests)
+        test_plan["prioritized_execution_order"] = prioritized
+
+        test_plan["summary"] = {
+            "total_requirements": len(requirements),
+            "total_test_cases": total_tests,
+            "categories": self._count_categories(all_tests),
+            "avg_coverage": sum(
+                r["coverage"]["coverage_percentage"]
+                for r in test_plan["requirements"]
+            ) / len(test_plan["requirements"])
+        }
+
+        Path(output_path).write_text(json.dumps(test_plan, indent=2))
+        print(f"\nTest plan written to {output_path}")
+        print(f"Total requirements: {test_plan['summary']['total_requirements']}")
+        print(f"Total test cases: {test_plan['summary']['total_test_cases']}")
+        print(f"Average coverage: {test_plan['summary']['avg_coverage']:.0f}%")
+
+        return test_plan
+
+    def _count_categories(self, tests: list[dict]) -> dict:
+        """Count test cases by category."""
+        counts = {}
+        for t in tests:
+            cat = t.get("category", "unknown")
+            counts[cat] = counts.get(cat, 0) + 1
+        return counts
+
+
+# Run the pipeline
+if __name__ == "__main__":
+    generator = TestCaseGenerator()
+    plan = generator.generate_test_plan("requirements.txt")
+</code></pre>
+
+      <h3>Extension Ideas</h3>
+      <ul>
+        <li>Add Gherkin (Given/When/Then) output format for BDD teams</li>
+        <li>Integrate with Jira or Azure DevOps to push test cases directly into your test management tool</li>
+        <li>Add a Streamlit UI for non-technical stakeholders to input requirements and review generated tests</li>
+        <li>Export to CSV/Excel for teams that use spreadsheet-based test management</li>
+      </ul>
+    </section>
+
+    <!-- Summary -->
+    <section class="summary">
+      <h2>Summary</h2>
+      <ul class="key-takeaways">
+        <li><strong>LLMs accelerate test case generation</strong> by producing categorized test cases from plain-language requirements in seconds rather than hours.</li>
+        <li><strong>Boundary value analysis</strong> becomes automated — the LLM identifies bounded fields and generates the full BVA table with min, max, and edge values.</li>
+        <li><strong>Equivalence partitioning</strong> is enhanced by LLMs that can identify valid and invalid classes and generate pairwise covering arrays.</li>
+        <li><strong>Negative testing</strong> benefits most from LLMs because they generate adversarial scenarios (injection, race conditions, authorization bypasses) that human testers often overlook.</li>
+        <li><strong>Prioritization</strong> uses risk, impact, and coverage scores to ensure the most critical tests run first when time is limited.</li>
+        <li><strong>Coverage analysis</strong> closes the loop by identifying gaps, implicit requirements, and areas needing additional test cases.</li>
+        <li><strong>Human review remains essential</strong> — LLM output is a high-quality first draft, not a finished product.</li>
+      </ul>
+
+      <div class="exercises">
+        <h3>Exercises</h3>
+        <ol>
+          <li><strong>Generate and compare.</strong> Take a real requirement from your current project and generate test cases using the pipeline in this chapter. Compare them against your existing test cases — what did the LLM find that you missed? What did you have that the LLM missed?</li>
+          <li><strong>Tune the temperature.</strong> Run the negative test generator three times at temperatures 0.2, 0.5, and 0.9. Compare the creativity and relevance of the generated attacks at each setting.</li>
+          <li><strong>Build a coverage dashboard.</strong> Extend the coverage analysis to produce a visual HTML report showing covered, partially covered, and uncovered requirement areas with color coding.</li>
+          <li><strong>Cross-requirement coverage.</strong> Modify the pipeline to detect when test cases from one requirement also cover aspects of another requirement, reducing total test count.</li>
+          <li><strong>Gherkin output.</strong> Add an output formatter that converts generated test cases into Gherkin (Given/When/Then) syntax suitable for Cucumber or Behave.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Footer Nav -->
+    <nav class="chapter-footer">
+      <a href="../part-02-business-analysis/ch08-stakeholder-communication.html">&larr; Stakeholder Communication</a>
+      <span>Part 3 of 5</span>
+      <a href="ch10-test-data-design.html">Test Data Design &rarr;</a>
+    </nav>
+  </main>
+  <script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

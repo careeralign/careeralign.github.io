@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 8 — Stakeholder Communication and Reporting | LLMs for Business &amp; Quality Analysts</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="ch07-process-modeling.html" class="nav-prev">Process Modeling</a>
+    <span class="nav-title">Part 2 — Business Analysis with LLMs</span>
+    <a href="../part-03-quality-assurance/ch09-test-case-generation.html" class="nav-next">Test Case Generation</a>
+  </nav>
+
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 2 — Business Analysis with LLMs</span>
+      <h1>Chapter 8: Stakeholder Communication and Reporting</h1>
+      <p class="chapter-intro">The best analysis in the world is worthless if it cannot be communicated effectively. In this chapter you will learn how to use LLMs to generate executive summaries, translate between technical and business language, automate status reports, extract action items from meetings, draft presentation decks, and adapt content for different audiences &mdash; all while maintaining accuracy and your professional voice.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~25 min</span>
+        <span>Project: Report Generator</span>
+      </div>
+    </header>
+
+    <!-- ──────────────────────────────────────────── -->
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>Why communication is the BA's most critical skill and how LLMs augment it</li>
+        <li>Generating executive summaries that highlight decisions, risks, and actions</li>
+        <li>Translating between technical and business terminology bidirectionally</li>
+        <li>Automating weekly and monthly status reports from project data</li>
+        <li>Extracting action items and decisions from meeting transcripts</li>
+        <li>Drafting structured presentation outlines for different audiences</li>
+        <li>Adapting a single piece of content for executive, technical, and operational audiences</li>
+      </ul>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>8.1 The Communication Challenge</h2>
+
+      <p>Business Analysts sit at the intersection of business and technology, and their primary deliverable is not a document &mdash; it is <em>shared understanding</em>. Every day, BAs translate between stakeholders who speak different languages: executives care about revenue impact and strategic alignment; developers care about APIs, data models, and edge cases; compliance officers care about regulatory adherence and audit trails.</p>
+
+      <h3>The Cost of Miscommunication</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Communication Failure</th>
+            <th>Typical Impact</th>
+            <th>Frequency</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Status report misrepresents risk level</td>
+            <td>Delayed escalation, budget overrun</td>
+            <td>Common</td>
+          </tr>
+          <tr>
+            <td>Technical detail overwhelms executive audience</td>
+            <td>Decision paralysis, lost sponsorship</td>
+            <td>Very common</td>
+          </tr>
+          <tr>
+            <td>Meeting action items lost or ambiguous</td>
+            <td>Repeated meetings, stalled progress</td>
+            <td>Extremely common</td>
+          </tr>
+          <tr>
+            <td>Requirements doc too vague for developers</td>
+            <td>Implementation deviates from intent</td>
+            <td>Common</td>
+          </tr>
+          <tr>
+            <td>Presentation lacks business case framing</td>
+            <td>Initiative not funded despite technical merit</td>
+            <td>Occasional</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Where LLMs Fit In</h3>
+
+      <p>LLMs excel at three communication tasks that consume disproportionate BA time:</p>
+
+      <ol>
+        <li><strong>First-draft generation:</strong> Producing an 80-percent-ready draft of a report, summary, or presentation in seconds.</li>
+        <li><strong>Tone and audience adaptation:</strong> Rewriting the same content for different audiences without losing accuracy.</li>
+        <li><strong>Information extraction:</strong> Pulling structured data (action items, decisions, risks) from unstructured text (transcripts, email threads).</li>
+      </ol>
+
+      <div class="callout callout-info">
+        <strong>The 80/20 Rule:</strong> LLMs generate the first 80 percent of a communication artifact in minutes. The remaining 20 percent &mdash; verifying facts, adding organisational context, adjusting political nuance &mdash; requires human expertise and takes the same time it always did. The net result is a 60 to 70 percent time saving on communication tasks.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>8.2 Executive Summary Generation</h2>
+
+      <p>An executive summary distils a complex document into its essential elements: the situation, the findings, the recommended action, and the associated risks. Executives typically need to make decisions in minutes, not hours, so the summary must front-load the most important information.</p>
+
+      <h3>The Pyramid Principle</h3>
+
+      <p>Barbara Minto's Pyramid Principle is the gold standard for executive communication: start with the conclusion, then provide the supporting arguments, then the details. LLMs can be instructed to follow this structure explicitly.</p>
+
+      <h3>Executive Summary Prompt</h3>
+
+      <pre><code class="language-python">
+import openai, json, textwrap
+
+EXEC_SUMMARY_PROMPT = textwrap.dedent("""\
+    Write an executive summary of the following document using the
+    Pyramid Principle structure.
+
+    STRUCTURE:
+    1. HEADLINE: One sentence stating the key conclusion or recommendation.
+    2. SITUATION: 2-3 sentences providing context (what, who, when).
+    3. KEY FINDINGS: 3-5 bullet points, each starting with a bolded
+       finding and followed by one sentence of evidence.
+    4. RECOMMENDATION: 1-2 sentences with a clear call to action.
+    5. RISKS: 2-3 bullet points listing risks of action and inaction.
+    6. NEXT STEPS: 3-5 numbered action items with owners and dates.
+
+    RULES:
+    - Maximum 400 words.
+    - No jargon, no acronyms without expansion.
+    - Use concrete numbers wherever available in the source.
+    - Write in active voice.
+    - If the source lacks information for a section, note it explicitly.
+
+    DOCUMENT:
+    {document_text}
+""")
+
+
+def generate_executive_summary(document_text: str) -> str:
+    """Generate a Pyramid Principle executive summary from a document."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.2,
+        messages=[
+            {"role": "system", "content": (
+                "You write concise, decision-focused executive summaries. "
+                "You never fabricate data. If the source lacks a data point, you say so."
+            )},
+            {"role": "user", "content": EXEC_SUMMARY_PROMPT.format(
+                document_text=document_text
+            )},
+        ],
+    )
+    return response.choices[0].message.content
+      </code></pre>
+
+      <h3>Batch Summarisation</h3>
+
+      <p>When preparing for a steering committee, you may need to summarise multiple documents into a single briefing package:</p>
+
+      <pre><code class="language-python">
+def generate_briefing_package(documents: dict[str, str]) -> str:
+    """Generate a consolidated briefing from multiple documents.
+
+    Args:
+        documents: mapping of document name to document text
+    """
+    summaries = {}
+    for name, text in documents.items():
+        summaries[name] = generate_executive_summary(text)
+
+    # Now consolidate into a single briefing
+    consolidated_prompt = textwrap.dedent("""\
+        You have individual summaries of multiple project documents.
+        Create a single consolidated briefing for a steering committee.
+
+        STRUCTURE:
+        1. Overall status (one paragraph)
+        2. Cross-cutting themes and risks
+        3. Per-project highlights (one bullet each)
+        4. Decisions required (numbered list)
+        5. Combined timeline of next steps
+
+        INDIVIDUAL SUMMARIES:
+        {summaries_text}
+    """)
+
+    summaries_text = "\n\n---\n\n".join(
+        f"### {name}\n{summary}" for name, summary in summaries.items()
+    )
+
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.2,
+        messages=[
+            {"role": "system", "content": "You write steering committee briefings."},
+            {"role": "user", "content": consolidated_prompt.format(
+                summaries_text=summaries_text
+            )},
+        ],
+    )
+    return response.choices[0].message.content
+      </code></pre>
+
+      <div class="callout callout-tip">
+        <strong>Tip:</strong> Always review the executive summary for <em>hallucinated statistics</em>. LLMs sometimes fabricate specific numbers (e.g., "a 23% improvement") when the source document does not contain them. Cross-check every number against the original.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>8.3 Technical-to-Business Translation</h2>
+
+      <p>One of the BA's core skills is translating between technical and business language. LLMs can do this bidirectionally &mdash; converting a developer's technical description into business-friendly language, or converting a business request into a technical specification.</p>
+
+      <h3>Bidirectional Translation</h3>
+
+      <pre><code class="language-python">
+TRANSLATION_PROMPT = textwrap.dedent("""\
+    Translate the following text from {source_style} to {target_style}.
+
+    RULES:
+    - {source_style} TO {target_style} translation guidelines:
+      {guidelines}
+    - Preserve ALL factual content. Do not omit or add information.
+    - Replace jargon with equivalent terms in the target style.
+    - Maintain the same logical structure.
+    - If a concept cannot be simplified without losing accuracy,
+      include a brief parenthetical explanation.
+
+    SOURCE TEXT ({source_style}):
+    {source_text}
+
+    Write the translated version directly, without preamble.
+""")
+
+GUIDELINES = {
+    ("TECHNICAL", "BUSINESS"): (
+        "Replace API names with capability descriptions. "
+        "Replace performance metrics with business impact. "
+        "Replace system component names with functional descriptions. "
+        "Use 'the system' instead of specific module names. "
+        "Frame everything in terms of user outcomes and business value."
+    ),
+    ("BUSINESS", "TECHNICAL"): (
+        "Identify implicit technical requirements. "
+        "Replace vague terms with specific, measurable criteria. "
+        "Map business capabilities to system components where possible. "
+        "Add notes about likely technical constraints. "
+        "Use standard technical vocabulary consistently."
+    ),
+}
+
+
+def translate_content(
+    source_text: str,
+    source_style: str = "TECHNICAL",
+    target_style: str = "BUSINESS",
+) -> str:
+    """Translate content between technical and business language."""
+    guidelines = GUIDELINES.get(
+        (source_style.upper(), target_style.upper()),
+        "Translate clearly and accurately."
+    )
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.2,
+        messages=[
+            {"role": "system", "content": "You are a business-technical translator."},
+            {"role": "user", "content": TRANSLATION_PROMPT.format(
+                source_style=source_style.upper(),
+                target_style=target_style.upper(),
+                guidelines=guidelines,
+                source_text=source_text,
+            )},
+        ],
+    )
+    return response.choices[0].message.content
+      </code></pre>
+
+      <h3>Translation Examples</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Technical Version</th>
+            <th>Business Version</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>"The REST API endpoint returns a 429 status code when rate limits are exceeded, causing the batch ETL pipeline to fail."</td>
+            <td>"When too many data requests are sent at once, the data import process stops, which delays report availability."</td>
+          </tr>
+          <tr>
+            <td>"We need to implement connection pooling and add a circuit breaker pattern to the payment gateway integration."</td>
+            <td>"We need to make the payment system more resilient so it recovers automatically from temporary outages instead of failing completely."</td>
+          </tr>
+          <tr>
+            <td>"The database query plan shows a full table scan on the 4.2M-row transactions table, causing P99 latency to exceed 8 seconds."</td>
+            <td>"Transaction lookups are slow for about 1% of users because the system searches through all records instead of using an index. This affects users during peak hours."</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-warning">
+        <strong>Warning:</strong> Translation can introduce subtle inaccuracies. "The API returns a 429" is precise; "too many requests" is an approximation. Always have the original author review the translation to ensure no critical nuance is lost.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>8.4 Status Report Automation</h2>
+
+      <p>Status reports are necessary but time-consuming. Most BAs spend 2 to 4 hours per week compiling data from Jira, Confluence, email, and Slack into a coherent weekly report. LLMs can automate the narrative portions while you provide the raw data.</p>
+
+      <h3>Data-Driven Status Report</h3>
+
+      <pre><code class="language-python">
+STATUS_PROMPT = textwrap.dedent("""\
+    Generate a professional project status report from the following data.
+
+    STRUCTURE:
+    1. STATUS INDICATOR: GREEN / AMBER / RED (with one-line justification)
+    2. PERIOD: {period}
+    3. ACCOMPLISHMENTS: Narrative summary of what was completed
+    4. IN PROGRESS: What is currently being worked on
+    5. BLOCKERS & RISKS: Issues requiring attention
+    6. METRICS TABLE: Format the metrics data as a table
+    7. NEXT PERIOD PLAN: Key activities for next period
+    8. DECISIONS NEEDED: Any decisions required from leadership
+
+    RAW DATA:
+    - Sprint velocity: {velocity} story points (target: {target_velocity})
+    - Stories completed: {completed}
+    - Stories in progress: {in_progress}
+    - Stories blocked: {blocked}
+    - Bugs found: {bugs_found}
+    - Bugs resolved: {bugs_resolved}
+    - Blockers: {blockers}
+    - Key accomplishments: {accomplishments}
+    - Risks: {risks}
+    - Upcoming milestones: {milestones}
+
+    Write in a professional, concise tone. Use bullet points.
+    Do not fabricate information not present in the raw data.
+""")
+
+
+def generate_status_report(project_data: dict) -> str:
+    """Generate a formatted status report from project metrics."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.2,
+        messages=[
+            {"role": "system", "content": "You write clear, data-driven project status reports."},
+            {"role": "user", "content": STATUS_PROMPT.format(**project_data)},
+        ],
+    )
+    return response.choices[0].message.content
+      </code></pre>
+
+      <h3>Pulling Data from Jira</h3>
+
+      <pre><code class="language-python">
+import requests
+from datetime import datetime, timedelta
+
+
+class JiraDataCollector:
+    """Collect project data from Jira for status report generation."""
+
+    def __init__(self, base_url: str, email: str, api_token: str, project_key: str):
+        self.base_url = base_url.rstrip("/")
+        self.auth = (email, api_token)
+        self.project = project_key
+
+    def _search(self, jql: str) -> list[dict]:
+        """Run a JQL query and return issues."""
+        response = requests.get(
+            f"{self.base_url}/rest/api/3/search",
+            auth=self.auth,
+            params={"jql": jql, "maxResults": 200},
+        )
+        response.raise_for_status()
+        return response.json().get("issues", [])
+
+    def collect_sprint_data(self, sprint_name: str) -> dict:
+        """Collect all data needed for a status report."""
+        base_jql = f"project = {self.project} AND sprint = '{sprint_name}'"
+
+        completed = self._search(f"{base_jql} AND status = Done")
+        in_progress = self._search(f"{base_jql} AND status = 'In Progress'")
+        blocked = self._search(f"{base_jql} AND status = Blocked")
+
+        one_week_ago = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+        bugs_found = self._search(
+            f"project = {self.project} AND issuetype = Bug AND created >= {one_week_ago}"
+        )
+        bugs_resolved = self._search(
+            f"project = {self.project} AND issuetype = Bug AND resolved >= {one_week_ago}"
+        )
+
+        # Calculate velocity from completed story points
+        velocity = sum(
+            issue["fields"].get("story_points", 0) or 0
+            for issue in completed
+        )
+
+        return {
+            "period": f"Sprint: {sprint_name}",
+            "velocity": velocity,
+            "target_velocity": 40,  # Configure per team
+            "completed": "; ".join(i["fields"]["summary"] for i in completed[:10]),
+            "in_progress": "; ".join(i["fields"]["summary"] for i in in_progress[:10]),
+            "blocked": len(blocked),
+            "blockers": "; ".join(i["fields"]["summary"] for i in blocked),
+            "bugs_found": len(bugs_found),
+            "bugs_resolved": len(bugs_resolved),
+            "accomplishments": "; ".join(i["fields"]["summary"] for i in completed[:5]),
+            "risks": "See blockers",
+            "milestones": "Configure from roadmap",
+        }
+      </code></pre>
+
+      <div class="callout callout-info">
+        <strong>Automation Idea:</strong> Schedule this script to run every Friday afternoon using a cron job or CI/CD pipeline. It pulls data from Jira, generates the status report, posts it to Confluence, and sends a Slack notification. Total human effort: a 5-minute review and send.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>8.5 Meeting Notes and Action Items</h2>
+
+      <p>Meetings generate valuable decisions and commitments, but these are routinely lost because notes are incomplete or action items are not tracked. LLMs can process meeting transcripts (from tools like Otter.ai, Fireflies, or Microsoft Teams recordings) and produce structured output.</p>
+
+      <h3>Meeting Transcript Processor</h3>
+
+      <pre><code class="language-python">
+MEETING_PROMPT = textwrap.dedent("""\
+    Process the following meeting transcript and produce structured notes.
+
+    OUTPUT FORMAT (JSON):
+    {{
+      "meeting_title": "inferred title based on content",
+      "date": "{meeting_date}",
+      "attendees": ["extracted from transcript"],
+      "summary": "2-3 sentence overview of the meeting",
+      "topics_discussed": [
+        {{
+          "topic": "topic name",
+          "summary": "what was discussed",
+          "decision": "decision made (if any)",
+          "open_questions": ["unanswered questions"]
+        }}
+      ],
+      "action_items": [
+        {{
+          "action": "specific, actionable task",
+          "owner": "person responsible",
+          "deadline": "mentioned or inferred deadline",
+          "priority": "HIGH | MEDIUM | LOW",
+          "context": "why this action was assigned"
+        }}
+      ],
+      "risks_raised": ["risks mentioned during the meeting"],
+      "parking_lot": ["items deferred to a future meeting"],
+      "follow_up_meeting": "any scheduled follow-up"
+    }}
+
+    RULES:
+    - Only include action items that were explicitly agreed upon.
+    - If an owner is not clear, mark as "TBD".
+    - Distinguish between decisions (finalized) and open questions (unresolved).
+    - Capture the intent, not verbatim quotes.
+
+    TRANSCRIPT:
+    {transcript}
+""")
+
+
+def process_meeting_transcript(transcript: str, meeting_date: str = "") -> dict:
+    """Extract structured notes and action items from a meeting transcript."""
+    if not meeting_date:
+        from datetime import date
+        meeting_date = date.today().isoformat()
+
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.1,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": "You process meeting transcripts accurately."},
+            {"role": "user", "content": MEETING_PROMPT.format(
+                meeting_date=meeting_date,
+                transcript=transcript,
+            )},
+        ],
+    )
+    return json.loads(response.choices[0].message.content)
+      </code></pre>
+
+      <h3>Action Item Tracker</h3>
+
+      <pre><code class="language-python">
+class ActionItemTracker:
+    """Track action items across multiple meetings."""
+
+    def __init__(self):
+        self.items: list[dict] = []
+
+    def add_from_meeting(self, meeting_notes: dict) -> None:
+        """Add action items from processed meeting notes."""
+        meeting_title = meeting_notes.get("meeting_title", "Untitled")
+        meeting_date = meeting_notes.get("date", "Unknown")
+        for item in meeting_notes.get("action_items", []):
+            item["source_meeting"] = meeting_title
+            item["source_date"] = meeting_date
+            item["status"] = "OPEN"
+            self.items.append(item)
+
+    def get_overdue(self) -> list[dict]:
+        """Return action items past their deadline."""
+        from datetime import date
+        today = date.today().isoformat()
+        return [
+            item for item in self.items
+            if item["status"] == "OPEN"
+            and item.get("deadline", "9999-12-31") < today
+        ]
+
+    def get_by_owner(self, owner: str) -> list[dict]:
+        """Return all open items for a specific person."""
+        return [
+            item for item in self.items
+            if item.get("owner", "").lower() == owner.lower()
+            and item["status"] == "OPEN"
+        ]
+
+    def generate_reminder_email(self, owner: str) -> str:
+        """Generate a reminder email for overdue items assigned to an owner."""
+        overdue = [
+            item for item in self.get_overdue()
+            if item.get("owner", "").lower() == owner.lower()
+        ]
+        if not overdue:
+            return f"No overdue items for {owner}."
+
+        response = openai.chat.completions.create(
+            model="gpt-4o",
+            temperature=0.3,
+            messages=[
+                {"role": "system", "content": "You write professional, friendly reminder emails."},
+                {"role": "user", "content": (
+                    f"Write a brief, professional reminder email to {owner} about "
+                    f"these overdue action items:\n{json.dumps(overdue, indent=2)}\n\n"
+                    "Be friendly but clear about urgency. Include the original "
+                    "deadline and source meeting for each item."
+                )},
+            ],
+        )
+        return response.choices[0].message.content
+      </code></pre>
+
+      <div class="callout callout-tip">
+        <strong>Tip:</strong> Integrate the action item tracker with your project management tool. Create a Jira task for each action item automatically, with the owner, deadline, and meeting context pre-filled. This closes the loop between meetings and actual task tracking.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>8.6 Presentation Deck Drafting</h2>
+
+      <p>BAs frequently create presentations for steering committees, sprint reviews, and stakeholder demos. While LLMs cannot generate visual slides directly, they can produce structured outlines with speaker notes that dramatically accelerate deck creation.</p>
+
+      <h3>Presentation Outline Generator</h3>
+
+      <pre><code class="language-python">
+DECK_PROMPT = textwrap.dedent("""\
+    Create a presentation outline for the following context.
+
+    AUDIENCE: {audience}
+    PURPOSE: {purpose}
+    TIME SLOT: {duration} minutes
+    KEY MESSAGE: {key_message}
+
+    For each slide, provide:
+      - slide_number: sequential
+      - title: slide headline (max 8 words)
+      - layout: TITLE | BULLETS | TABLE | CHART | QUOTE | IMAGE_TEXT | COMPARISON
+      - content: the main content (bullet points, table data, etc.)
+      - speaker_notes: what to say while showing this slide (2-3 sentences)
+      - visual_suggestion: what image, chart, or graphic to include
+
+    RULES:
+    - Start with a hook, not an agenda slide.
+    - Follow the situation-complication-resolution structure.
+    - No more than 5 bullets per slide.
+    - Include a "So What?" slide before the closing.
+    - End with a clear call to action.
+    - Total slides: {duration} / 2 (approximately 2 minutes per slide).
+
+    SOURCE MATERIAL:
+    {source_text}
+
+    Return a JSON object with: title, total_slides, estimated_duration,
+    slides (array).
+""")
+
+
+def generate_presentation_outline(
+    source_text: str,
+    audience: str = "Senior Leadership",
+    purpose: str = "Project status update",
+    duration: int = 20,
+    key_message: str = "",
+) -> dict:
+    """Generate a structured presentation outline with speaker notes."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.3,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": "You design compelling business presentations."},
+            {"role": "user", "content": DECK_PROMPT.format(
+                audience=audience,
+                purpose=purpose,
+                duration=duration,
+                key_message=key_message or "To be inferred from content",
+                source_text=source_text,
+            )},
+        ],
+    )
+    return json.loads(response.choices[0].message.content)
+      </code></pre>
+
+      <h3>From Outline to Slides</h3>
+
+      <p>Once you have the JSON outline, you can convert it to actual slides using Python libraries:</p>
+
+      <pre><code class="language-python">
+from pptx import Presentation
+from pptx.util import Inches, Pt
+
+
+def create_powerpoint(outline: dict, output_path: str = "presentation.pptx") -> str:
+    """Create a PowerPoint file from a structured outline."""
+    prs = Presentation()
+
+    for slide_data in outline.get("slides", []):
+        layout = prs.slide_layouts[1]  # Title and Content layout
+        slide = prs.slides.add_slide(layout)
+
+        # Set title
+        slide.shapes.title.text = slide_data.get("title", "")
+
+        # Set content
+        content_placeholder = slide.placeholders[1]
+        tf = content_placeholder.text_frame
+        content = slide_data.get("content", "")
+
+        if isinstance(content, list):
+            for i, bullet in enumerate(content):
+                if i == 0:
+                    tf.text = bullet
+                else:
+                    p = tf.add_paragraph()
+                    p.text = bullet
+        else:
+            tf.text = str(content)
+
+        # Add speaker notes
+        notes_slide = slide.notes_slide
+        notes_slide.notes_text_frame.text = slide_data.get("speaker_notes", "")
+
+    prs.save(output_path)
+    return output_path
+      </code></pre>
+
+      <div class="callout callout-info">
+        <strong>Advanced Approach:</strong> For teams using Google Slides, you can use the Google Slides API to create slides programmatically from the outline JSON. The python-pptx library shown above works for Microsoft PowerPoint. For web-based presentations, generate Reveal.js HTML slides directly.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>8.7 Multi-Audience Adaptation</h2>
+
+      <p>The ultimate communication skill is taking a single piece of analysis and presenting it effectively to completely different audiences. LLMs make this scalable by allowing you to generate audience-specific versions from a single source of truth.</p>
+
+      <h3>Audience Profile Framework</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Audience</th>
+            <th>Cares About</th>
+            <th>Tone</th>
+            <th>Detail Level</th>
+            <th>Preferred Format</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>C-Suite</td>
+            <td>ROI, risk, strategic alignment</td>
+            <td>Confident, concise</td>
+            <td>High-level only</td>
+            <td>1-page brief, 5-slide deck</td>
+          </tr>
+          <tr>
+            <td>Middle Management</td>
+            <td>Timeline, resources, dependencies</td>
+            <td>Professional, balanced</td>
+            <td>Medium</td>
+            <td>Status report, Gantt chart</td>
+          </tr>
+          <tr>
+            <td>Development Team</td>
+            <td>Technical requirements, architecture, APIs</td>
+            <td>Direct, technical</td>
+            <td>High detail</td>
+            <td>Technical spec, ADRs</td>
+          </tr>
+          <tr>
+            <td>End Users</td>
+            <td>What changes, when, how to use</td>
+            <td>Friendly, supportive</td>
+            <td>Step-by-step</td>
+            <td>FAQ, training guide</td>
+          </tr>
+          <tr>
+            <td>Compliance/Legal</td>
+            <td>Regulatory adherence, audit trails</td>
+            <td>Precise, formal</td>
+            <td>Very high detail</td>
+            <td>Formal report with references</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Multi-Audience Adapter</h3>
+
+      <pre><code class="language-python">
+AUDIENCE_PROFILES = {
+    "executive": {
+        "label": "C-Suite Executive",
+        "guidelines": (
+            "Maximum 300 words. Lead with the business impact and recommendation. "
+            "No technical jargon. Use metrics: revenue, cost, time-to-market, risk. "
+            "End with a clear decision point or call to action."
+        ),
+        "format": "One-page executive brief",
+    },
+    "manager": {
+        "label": "Project/Program Manager",
+        "guidelines": (
+            "500-800 words. Include timeline, resource requirements, dependencies, "
+            "and risk mitigation plan. Use RAG status indicators. "
+            "Include a summary table of key metrics."
+        ),
+        "format": "Status report with metrics table",
+    },
+    "developer": {
+        "label": "Software Development Team",
+        "guidelines": (
+            "Include technical details: APIs, data models, system components, "
+            "performance requirements. Use code examples where relevant. "
+            "Reference architecture diagrams. Be precise about constraints."
+        ),
+        "format": "Technical specification",
+    },
+    "end_user": {
+        "label": "End User / Customer",
+        "guidelines": (
+            "Use simple, friendly language. Explain what changes and why. "
+            "Provide step-by-step instructions where applicable. "
+            "Anticipate questions and address them proactively. "
+            "Include a FAQ section."
+        ),
+        "format": "User communication / FAQ",
+    },
+}
+
+ADAPT_PROMPT = textwrap.dedent("""\
+    Adapt the following content for a {audience_label} audience.
+
+    TARGET FORMAT: {format}
+
+    GUIDELINES:
+    {guidelines}
+
+    ORIGINAL CONTENT:
+    {source_text}
+
+    Write the adapted version directly. Do not include meta-commentary.
+""")
+
+
+def adapt_for_audience(source_text: str, audience: str) -> str:
+    """Adapt content for a specific audience profile."""
+    profile = AUDIENCE_PROFILES.get(audience, AUDIENCE_PROFILES["manager"])
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.3,
+        messages=[
+            {"role": "system", "content": (
+                f"You write for {profile['label']} audiences. "
+                "You are accurate and never add information not in the source."
+            )},
+            {"role": "user", "content": ADAPT_PROMPT.format(
+                audience_label=profile["label"],
+                format=profile["format"],
+                guidelines=profile["guidelines"],
+                source_text=source_text,
+            )},
+        ],
+    )
+    return response.choices[0].message.content
+
+
+def generate_all_versions(source_text: str) -> dict[str, str]:
+    """Generate versions of the content for all defined audiences."""
+    versions = {}
+    for audience_key in AUDIENCE_PROFILES:
+        versions[audience_key] = adapt_for_audience(source_text, audience_key)
+    return versions
+      </code></pre>
+
+      <div class="callout callout-warning">
+        <strong>Warning:</strong> When generating multiple audience versions from the same source, there is a risk of <em>information drift</em> &mdash; where the adapted versions subtly diverge in facts or emphasis. After generating all versions, use a verification prompt that compares them for factual consistency. Any discrepancies should be resolved by referring back to the original source.
+      </div>
+
+      <h3>Verification Step</h3>
+
+      <pre><code class="language-python">
+def verify_consistency(source_text: str, versions: dict[str, str]) -> dict:
+    """Check that all audience-adapted versions are factually consistent."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.0,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": "You are a fact-checker."},
+            {"role": "user", "content": textwrap.dedent(f"""\
+                Compare the following audience-adapted versions against the
+                original source. Flag any factual inconsistencies.
+
+                ORIGINAL SOURCE:
+                {source_text}
+
+                VERSIONS:
+                {json.dumps(versions, indent=2)}
+
+                Return a JSON object with:
+                - consistent: true/false
+                - discrepancies: array of objects with:
+                    - audience: which version
+                    - claim: the inconsistent statement
+                    - source_says: what the original actually says
+                    - severity: HIGH | MEDIUM | LOW
+            """)},
+        ],
+    )
+    return json.loads(response.choices[0].message.content)
+      </code></pre>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section class="project">
+      <h2>Project: Report Generator</h2>
+
+      <p>Build a multi-format report generator that takes raw project data and meeting transcripts and produces a complete communication package: executive summary, status report, meeting minutes with action items, and a presentation outline &mdash; each adapted for the appropriate audience.</p>
+
+      <h3>Architecture</h3>
+
+      <pre><code>
+┌───────────────────┐     ┌───────────────────┐     ┌───────────────────┐
+│  Jira Data        │────▶│  Status Report    │────▶│  Multi-Audience   │
+│  Collector        │     │  Generator        │     │  Adapter          │
+└───────────────────┘     └───────────────────┘     └───────────────────┘
+
+┌───────────────────┐     ┌───────────────────┐     ┌───────────────────┐
+│  Meeting          │────▶│  Transcript       │────▶│  Action Item      │
+│  Transcripts      │     │  Processor        │     │  Tracker          │
+└───────────────────┘     └───────────────────┘     └───────────────────┘
+
+┌───────────────────┐     ┌───────────────────┐     ┌───────────────────┐
+│  All Outputs      │────▶│  Presentation     │────▶│  PowerPoint       │
+│  Combined         │     │  Outliner         │     │  Generator        │
+└───────────────────┘     └───────────────────┘     └───────────────────┘
+      </code></pre>
+
+      <h3>Main Pipeline</h3>
+
+      <pre><code class="language-python">
+# report_generator/main.py
+import json, pathlib, argparse
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Multi-Format Report Generator")
+    parser.add_argument("--project-data", type=pathlib.Path, required=True,
+                        help="JSON file with project metrics")
+    parser.add_argument("--transcripts", type=pathlib.Path, nargs="*",
+                        help="Meeting transcript files")
+    parser.add_argument("--output", type=pathlib.Path, default=pathlib.Path("output"))
+    parser.add_argument("--audiences", nargs="*",
+                        default=["executive", "manager", "developer"],
+                        help="Target audiences")
+    args = parser.parse_args()
+
+    args.output.mkdir(exist_ok=True)
+
+    # Load project data
+    project_data = json.loads(args.project_data.read_text())
+
+    # Step 1: Generate status report
+    print("[1/5] Generating status report...")
+    status_report = generate_status_report(project_data)
+    (args.output / "status_report.md").write_text(status_report, encoding="utf-8")
+
+    # Step 2: Process meeting transcripts
+    tracker = ActionItemTracker()
+    if args.transcripts:
+        print(f"[2/5] Processing {len(args.transcripts)} meeting transcripts...")
+        for transcript_file in args.transcripts:
+            transcript = transcript_file.read_text(encoding="utf-8")
+            notes = process_meeting_transcript(transcript)
+            tracker.add_from_meeting(notes)
+            name = transcript_file.stem
+            (args.output / f"meeting_notes_{name}.json").write_text(
+                json.dumps(notes, indent=2), encoding="utf-8"
+            )
+    else:
+        print("[2/5] No transcripts provided, skipping...")
+
+    # Step 3: Generate audience-specific versions
+    print(f"[3/5] Adapting for {len(args.audiences)} audiences...")
+    for audience in args.audiences:
+        adapted = adapt_for_audience(status_report, audience)
+        (args.output / f"report_{audience}.md").write_text(adapted, encoding="utf-8")
+
+    # Step 4: Generate presentation outline
+    print("[4/5] Generating presentation outline...")
+    outline = generate_presentation_outline(
+        source_text=status_report,
+        audience="Senior Leadership",
+        purpose="Sprint review and planning",
+        duration=15,
+    )
+    (args.output / "presentation_outline.json").write_text(
+        json.dumps(outline, indent=2), encoding="utf-8"
+    )
+
+    # Step 5: Generate PowerPoint (if python-pptx available)
+    print("[5/5] Creating PowerPoint...")
+    try:
+        pptx_path = create_powerpoint(outline, str(args.output / "presentation.pptx"))
+        print(f"       PowerPoint created: {pptx_path}")
+    except ImportError:
+        print("       python-pptx not installed; skipping PowerPoint generation")
+
+    # Write action items summary
+    if tracker.items:
+        (args.output / "action_items.json").write_text(
+            json.dumps(tracker.items, indent=2), encoding="utf-8"
+        )
+
+    print(f"\nAll outputs written to {args.output}/")
+    print(f"  - Status report: status_report.md")
+    print(f"  - Audience versions: report_*.md")
+    print(f"  - Presentation: presentation_outline.json")
+    print(f"  - Action items: action_items.json ({len(tracker.items)} items)")
+
+
+if __name__ == "__main__":
+    main()
+      </code></pre>
+
+      <h3>Testing the Pipeline</h3>
+
+      <ol>
+        <li>Create a sample <code>project_data.json</code> with realistic sprint metrics.</li>
+        <li>Find or create a sample meeting transcript (even 2 to 3 paragraphs of simulated conversation work).</li>
+        <li>Run the pipeline and review each output for accuracy and appropriateness.</li>
+        <li>Compare the executive and developer versions of the status report &mdash; verify they contain the same facts but different framing.</li>
+        <li>Open the PowerPoint file and verify the slide structure matches the outline.</li>
+      </ol>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section class="summary">
+      <h2>Summary</h2>
+
+      <ul class="key-takeaways">
+        <li><strong>Communication is the BA's highest-leverage skill,</strong> and LLMs provide an 80/20 acceleration &mdash; generating first drafts in seconds while the BA adds the crucial 20 percent of verification, context, and nuance.</li>
+        <li><strong>Executive summaries</strong> should follow the Pyramid Principle: conclusion first, then evidence, then detail. LLMs can generate this structure reliably.</li>
+        <li><strong>Technical-to-business translation</strong> is bidirectional and requires careful review to ensure precision is not lost during simplification.</li>
+        <li><strong>Status report automation</strong> combines structured project data with LLM narrative generation, potentially saving 2 to 4 hours per week.</li>
+        <li><strong>Meeting transcript processing</strong> extracts decisions, action items, and risks &mdash; closing the gap between what is discussed and what is tracked.</li>
+        <li><strong>Presentation outlining</strong> with structured JSON output can feed directly into PowerPoint or Google Slides generation.</li>
+        <li><strong>Multi-audience adaptation</strong> from a single source ensures consistency while tailoring tone, detail level, and format for each stakeholder group. Always verify consistency across versions.</li>
+      </ul>
+
+      <div class="exercises">
+        <h3>Exercises</h3>
+
+        <h4>Conceptual</h4>
+        <ol>
+          <li>A project is behind schedule but the team is confident they can recover. Write two opening paragraphs for the status report: one that would alarm the steering committee unnecessarily, and one that communicates the situation honestly without causing panic. Explain the differences.</li>
+          <li>Describe three situations where an LLM-generated executive summary could be actively harmful if sent without human review.</li>
+          <li>Why is the "verification step" for multi-audience adaptation important? Give an example of information drift that could cause a real problem.</li>
+        </ol>
+
+        <h4>Coding</h4>
+        <ol>
+          <li>Extend the <code>JiraDataCollector</code> to include a trend analysis &mdash; compare this sprint's metrics to the previous three sprints and include the trend in the status report.</li>
+          <li>Write a function that takes meeting notes from three consecutive meetings and generates a "progress tracker" showing how action items evolved across meetings (created, progressed, completed, or stalled).</li>
+          <li>Build a "communication style detector" that analyses a stakeholder's previous emails and generates a profile of their preferred communication style (formal/informal, detail level, preferred length). Use this profile to personalise LLM-generated communications.</li>
+        </ol>
+
+        <h4>Design</h4>
+        <ol>
+          <li>Design a "Communication Hub" web application where BAs can paste or upload content, select target audiences, and receive adapted versions with a consistency verification report. Sketch the UI and list the API endpoints.</li>
+          <li>Propose a system that learns from BA feedback on LLM-generated communications over time, building an organisation-specific style guide that improves output quality. How would you collect feedback and integrate it into prompts?</li>
+        </ol>
+      </div>
+    </section>
+
+    <nav class="chapter-footer">
+      <a href="ch07-process-modeling.html">&larr; Process Modeling</a>
+      <span>Part 2 of 5</span>
+      <a href="../part-03-quality-assurance/ch09-test-case-generation.html">Test Case Generation &rarr;</a>
+    </nav>
+  </main>
+
+  <script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

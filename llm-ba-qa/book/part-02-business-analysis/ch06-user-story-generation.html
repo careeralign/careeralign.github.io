@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 6 — User Story Generation and Refinement | LLMs for Business &amp; Quality Analysts</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="ch05-requirements-elicitation.html" class="nav-prev">Requirements Elicitation</a>
+    <span class="nav-title">Part 2 — Business Analysis with LLMs</span>
+    <a href="ch07-process-modeling.html" class="nav-next">Process Modeling</a>
+  </nav>
+
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 2 — Business Analysis with LLMs</span>
+      <h1>Chapter 6: User Story Generation and Refinement</h1>
+      <p class="chapter-intro">Translating business requirements into well-formed user stories is both an art and a craft. In this chapter you will learn how LLMs can generate, split, validate, and refine user stories &mdash; turning a backlog from a wish list into an actionable development plan.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~25 min</span>
+        <span>Project: Agile Story Generator</span>
+      </div>
+    </header>
+
+    <!-- ──────────────────────────────────────────── -->
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>How to convert structured requirements into user stories following standard templates</li>
+        <li>Techniques for generating comprehensive acceptance criteria with LLMs</li>
+        <li>Automated story splitting strategies that produce right-sized work items</li>
+        <li>Using LLMs to validate stories against the INVEST criteria</li>
+        <li>AI-assisted story mapping for release planning</li>
+        <li>Building an intelligent backlog grooming assistant</li>
+        <li>End-to-end project: an Agile Story Generator pipeline</li>
+      </ul>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>6.1 From Requirements to Stories</h2>
+
+      <p>Requirements and user stories serve different purposes. A requirement describes <em>what</em> the system must do; a user story describes <em>who</em> needs it, <em>what</em> they need, and <em>why</em>. The canonical template &mdash; "As a [role], I want [capability], so that [benefit]" &mdash; forces the author to think from the user's perspective.</p>
+
+      <p>The translation from requirements to stories is not one-to-one. A single requirement may generate multiple stories (one per user role or interaction path), and multiple requirements may collapse into a single story when they describe facets of the same user goal.</p>
+
+      <h3>Why LLMs Excel at This Translation</h3>
+
+      <ul>
+        <li><strong>Role inference:</strong> LLMs can identify implicit user roles from requirement text ("the finance team needs..." implies an "Accountant" or "Finance Manager" role).</li>
+        <li><strong>Benefit articulation:</strong> Requirements often omit the "so that" clause. LLMs can infer the business benefit from context.</li>
+        <li><strong>Decomposition:</strong> LLMs can break compound requirements into atomic stories that each deliver a testable increment of value.</li>
+      </ul>
+
+      <h3>The Translation Pipeline</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Input</th>
+            <th>Process</th>
+            <th>Output</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Classified requirement</td>
+            <td>Role extraction, benefit inference</td>
+            <td>Draft user story</td>
+          </tr>
+          <tr>
+            <td>Draft user story</td>
+            <td>Acceptance criteria generation</td>
+            <td>Story + AC</td>
+          </tr>
+          <tr>
+            <td>Story + AC</td>
+            <td>INVEST validation</td>
+            <td>Validated story or split candidates</td>
+          </tr>
+          <tr>
+            <td>Split candidates</td>
+            <td>Story splitting</td>
+            <td>Right-sized stories</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-info">
+        <strong>Terminology Note:</strong> Throughout this chapter, "AC" refers to Acceptance Criteria, and "story" is shorthand for "user story" unless otherwise specified. "Epic" refers to a large body of work that can be decomposed into multiple stories.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>6.2 Generating User Stories with LLMs</h2>
+
+      <p>The core generation step converts a requirement into one or more user stories. The quality of the output depends heavily on the prompt design. A good prompt provides the requirement text, any known user roles, the project domain, and explicit instructions about the output format.</p>
+
+      <h3>Story Generation Prompt</h3>
+
+      <pre><code class="language-python">
+import openai, json, textwrap
+
+STORY_GEN_PROMPT = textwrap.dedent("""\
+    You are a senior Product Owner experienced in Agile methodologies.
+
+    TASK:
+    Convert the following requirement into one or more user stories
+    using the standard template: "As a [role], I want [capability],
+    so that [benefit]."
+
+    RULES:
+    1. Each story must be atomic — it delivers exactly one piece of
+       user-visible functionality.
+    2. If the requirement implies multiple user roles, create a
+       separate story for each role.
+    3. If the requirement is compound (contains "and" joining distinct
+       capabilities), split into separate stories.
+    4. The "so that" clause must state a concrete business benefit,
+       not merely restate the capability.
+    5. Include a story_id (STORY-001, STORY-002, ...) and link it
+       back to the source requirement ID.
+
+    OUTPUT FORMAT:
+    Return a JSON array of objects with keys:
+      story_id, req_id, role, capability, benefit, story_text
+
+    CONTEXT:
+    Project domain: {domain}
+    Known user roles: {roles}
+
+    REQUIREMENT:
+    ID: {req_id}
+    Text: {req_text}
+    Type: {req_type}
+""")
+
+
+def generate_stories(
+    requirement: dict,
+    domain: str = "Enterprise Software",
+    roles: list[str] | None = None,
+) -> list[dict]:
+    """Generate user stories from a single requirement."""
+    if roles is None:
+        roles = ["End User", "Administrator", "Manager"]
+
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.3,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": "You are a senior Product Owner."},
+            {"role": "user", "content": STORY_GEN_PROMPT.format(
+                domain=domain,
+                roles=json.dumps(roles),
+                req_id=requirement["id"],
+                req_text=requirement["text"],
+                req_type=requirement.get("type", "FUNCTIONAL"),
+            )},
+        ],
+    )
+    stories = json.loads(response.choices[0].message.content)
+    if isinstance(stories, dict):
+        stories = next(iter(stories.values()))
+    return stories
+      </code></pre>
+
+      <h3>Batch Generation Across a Requirement Set</h3>
+
+      <pre><code class="language-python">
+import asyncio
+from openai import AsyncOpenAI
+
+aclient = AsyncOpenAI()
+
+
+async def generate_stories_async(requirement: dict, domain: str, roles: list[str]) -> list[dict]:
+    """Async version for parallel processing."""
+    response = await aclient.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.3,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": "You are a senior Product Owner."},
+            {"role": "user", "content": STORY_GEN_PROMPT.format(
+                domain=domain,
+                roles=json.dumps(roles),
+                req_id=requirement["id"],
+                req_text=requirement["text"],
+                req_type=requirement.get("type", "FUNCTIONAL"),
+            )},
+        ],
+    )
+    stories = json.loads(response.choices[0].message.content)
+    if isinstance(stories, dict):
+        stories = next(iter(stories.values()))
+    return stories
+
+
+async def batch_generate(requirements: list[dict], domain: str, roles: list[str]) -> list[dict]:
+    """Generate stories for all requirements in parallel."""
+    tasks = [generate_stories_async(req, domain, roles) for req in requirements]
+    results = await asyncio.gather(*tasks)
+    all_stories = []
+    counter = 1
+    for story_list in results:
+        for story in story_list:
+            story["story_id"] = f"STORY-{counter:03d}"
+            counter += 1
+            all_stories.append(story)
+    return all_stories
+      </code></pre>
+
+      <div class="callout callout-tip">
+        <strong>Tip:</strong> Use async generation with rate limiting (e.g., <code>asyncio.Semaphore(10)</code>) to process large requirement sets efficiently without hitting API rate limits.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>6.3 Acceptance Criteria Automation</h2>
+
+      <p>Acceptance criteria define when a story is "done." Well-written AC are specific, testable, and complete. LLMs can generate AC in both the Given/When/Then (Gherkin) format and the checklist format, depending on your team's preference.</p>
+
+      <h3>Generating Gherkin-Style AC</h3>
+
+      <pre><code class="language-python">
+AC_PROMPT = textwrap.dedent("""\
+    Generate acceptance criteria for the following user story using
+    Gherkin syntax (Given/When/Then).
+
+    RULES:
+    1. Cover the happy path, at least one edge case, and one error scenario.
+    2. Each scenario must be independently testable.
+    3. Use concrete values, not placeholders (e.g., "3 seconds" not "quickly").
+    4. Include boundary conditions where applicable.
+
+    USER STORY:
+    {story_text}
+
+    Return a JSON object with:
+      - story_id: the story identifier
+      - scenarios: array of objects, each with:
+          - scenario_name: descriptive name
+          - given: precondition(s)
+          - when: action(s)
+          - then: expected outcome(s)
+          - type: HAPPY_PATH | EDGE_CASE | ERROR
+""")
+
+
+def generate_acceptance_criteria(story: dict) -> dict:
+    """Generate Gherkin-style acceptance criteria for a user story."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.2,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": "You write precise, testable acceptance criteria."},
+            {"role": "user", "content": AC_PROMPT.format(story_text=story["story_text"])},
+        ],
+    )
+    return json.loads(response.choices[0].message.content)
+      </code></pre>
+
+      <h3>Example Output</h3>
+
+      <p>For the story "As a Finance Manager, I want to export monthly reports as PDF, so that I can share them with auditors," the LLM might generate:</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Scenario</th>
+            <th>Given</th>
+            <th>When</th>
+            <th>Then</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Successful export</td>
+            <td>A report for March 2026 exists with 150 line items</td>
+            <td>The user clicks "Export as PDF"</td>
+            <td>A PDF file is downloaded within 5 seconds containing all 150 line items</td>
+            <td>Happy path</td>
+          </tr>
+          <tr>
+            <td>Empty report</td>
+            <td>A report for April 2026 exists with zero line items</td>
+            <td>The user clicks "Export as PDF"</td>
+            <td>A PDF is generated with a "No data available" message</td>
+            <td>Edge case</td>
+          </tr>
+          <tr>
+            <td>Export timeout</td>
+            <td>A report has 50,000 line items and the export exceeds 30 seconds</td>
+            <td>The user clicks "Export as PDF"</td>
+            <td>The user sees a progress indicator and can cancel; the system queues the export for background processing</td>
+            <td>Error</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-warning">
+        <strong>Warning:</strong> LLM-generated acceptance criteria often miss domain-specific edge cases (e.g., fiscal year boundaries, currency rounding rules, timezone handling). Always review AC with domain experts before marking them as final.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>6.4 Story Splitting Strategies</h2>
+
+      <p>Stories that are too large cannot be completed within a single sprint. Stories that are too small create overhead without delivering meaningful value. The art of splitting is finding the right granularity. LLMs can apply well-known splitting patterns systematically.</p>
+
+      <h3>The Nine Splitting Patterns</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Pattern</th>
+            <th>When to Use</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Workflow steps</td>
+            <td>Story covers a multi-step process</td>
+            <td>Split "checkout" into cart review, payment, confirmation</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Business rules</td>
+            <td>Multiple rules govern the behaviour</td>
+            <td>Split discount calculation by rule type</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Happy/unhappy paths</td>
+            <td>Error handling is complex</td>
+            <td>Separate success flow from error handling</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>Input methods</td>
+            <td>Multiple input channels exist</td>
+            <td>Split "upload document" into drag-drop, file picker, API</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>Data types</td>
+            <td>Different data entities are involved</td>
+            <td>Split "manage users" into create, update, deactivate</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>Operations (CRUD)</td>
+            <td>Story involves multiple operations</td>
+            <td>Separate read from write operations</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>User roles</td>
+            <td>Different roles have different needs</td>
+            <td>Admin view vs. end-user view</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td>Platforms</td>
+            <td>Cross-platform support needed</td>
+            <td>Web version first, then mobile</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td>Performance levels</td>
+            <td>Non-functional requirements are separable</td>
+            <td>Basic functionality first, then optimise for scale</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Automated Splitting</h3>
+
+      <pre><code class="language-python">
+SPLIT_PROMPT = textwrap.dedent("""\
+    You are an Agile coach. The following user story is too large for
+    a single sprint (estimated at {points} story points; target is 5 or fewer).
+
+    Analyse the story and split it using the most appropriate pattern(s)
+    from this list: workflow_steps, business_rules, happy_unhappy_paths,
+    input_methods, data_types, crud_operations, user_roles, platforms,
+    performance_levels.
+
+    For each resulting sub-story, provide:
+      - sub_story_id: STORY-{parent_num}.1, STORY-{parent_num}.2, ...
+      - story_text: the full "As a... I want... so that..." text
+      - pattern_used: which splitting pattern was applied
+      - estimated_points: your estimate (1, 2, 3, or 5)
+      - dependencies: list of sub_story_ids this depends on (if any)
+
+    ORIGINAL STORY:
+    ID: {story_id}
+    Text: {story_text}
+    Acceptance Criteria: {acceptance_criteria}
+
+    Return a JSON object with keys: original_story_id, split_rationale,
+    sub_stories (array).
+""")
+
+
+def split_story(story: dict, estimated_points: int = 13) -> dict:
+    """Split an oversized story into smaller, sprint-sized stories."""
+    parent_num = story["story_id"].split("-")[1]
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.3,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": "You are an experienced Agile coach."},
+            {"role": "user", "content": SPLIT_PROMPT.format(
+                points=estimated_points,
+                parent_num=parent_num,
+                story_id=story["story_id"],
+                story_text=story["story_text"],
+                acceptance_criteria=json.dumps(story.get("acceptance_criteria", [])),
+            )},
+        ],
+    )
+    return json.loads(response.choices[0].message.content)
+      </code></pre>
+
+      <div class="callout callout-tip">
+        <strong>Tip:</strong> After splitting, re-run acceptance criteria generation on each sub-story. The original AC should be distributed across the sub-stories, with each sub-story getting the specific scenarios it covers.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>6.5 INVEST Criteria Validation</h2>
+
+      <p>The INVEST acronym defines six qualities of a well-formed user story: <strong>I</strong>ndependent, <strong>N</strong>egotiable, <strong>V</strong>aluable, <strong>E</strong>stimable, <strong>S</strong>mall, and <strong>T</strong>estable. LLMs can evaluate each criterion and flag stories that need refinement.</p>
+
+      <h3>INVEST Validator</h3>
+
+      <pre><code class="language-python">
+INVEST_PROMPT = textwrap.dedent("""\
+    Evaluate the following user story against the INVEST criteria.
+    For each criterion, provide:
+      - criterion: I | N | V | E | S | T
+      - name: Independent | Negotiable | Valuable | Estimable | Small | Testable
+      - pass: true | false
+      - score: 1 (poor) to 5 (excellent)
+      - explanation: why it passes or fails
+      - suggestion: how to improve (if score < 4)
+
+    Also provide an overall_score (average of all six) and a
+    recommendation: READY | NEEDS_REFINEMENT | NEEDS_SPLIT | REJECT.
+
+    USER STORY:
+    ID: {story_id}
+    Text: {story_text}
+    Acceptance Criteria: {acceptance_criteria}
+
+    Return as a JSON object.
+""")
+
+
+def validate_invest(story: dict) -> dict:
+    """Validate a user story against INVEST criteria."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.1,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": "You are an Agile quality coach."},
+            {"role": "user", "content": INVEST_PROMPT.format(
+                story_id=story["story_id"],
+                story_text=story["story_text"],
+                acceptance_criteria=json.dumps(story.get("acceptance_criteria", [])),
+            )},
+        ],
+    )
+    return json.loads(response.choices[0].message.content)
+      </code></pre>
+
+      <h3>Interpreting Results</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Overall Score</th>
+            <th>Recommendation</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>4.0 &ndash; 5.0</td>
+            <td>READY</td>
+            <td>Story can go directly to sprint planning</td>
+          </tr>
+          <tr>
+            <td>3.0 &ndash; 3.9</td>
+            <td>NEEDS_REFINEMENT</td>
+            <td>Address the specific failing criteria before planning</td>
+          </tr>
+          <tr>
+            <td>2.0 &ndash; 2.9</td>
+            <td>NEEDS_SPLIT</td>
+            <td>Story is likely too large or too dependent; split first</td>
+          </tr>
+          <tr>
+            <td>&lt; 2.0</td>
+            <td>REJECT</td>
+            <td>Story needs fundamental rework; return to requirements</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-info">
+        <strong>Key Insight:</strong> The "Testable" criterion is the most reliable LLM evaluation because it is objectively assessable from the acceptance criteria. The "Independent" criterion is the least reliable because it requires knowledge of the full backlog context. Always supply related stories when checking independence.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>6.6 Story Mapping with AI</h2>
+
+      <p>Story mapping, popularised by Jeff Patton, arranges stories along two axes: the <em>user journey</em> (horizontal) and <em>priority</em> (vertical). It provides a bird's-eye view of the product and helps teams plan releases by drawing horizontal "release lines" across the map.</p>
+
+      <h3>LLM-Assisted Story Mapping</h3>
+
+      <p>An LLM can help with two aspects of story mapping: (1) identifying the user activities and steps that form the horizontal backbone, and (2) placing stories under the correct activity at the right priority level.</p>
+
+      <pre><code class="language-python">
+STORY_MAP_PROMPT = textwrap.dedent("""\
+    You are building a User Story Map. Given the following user stories,
+    produce a story map structure.
+
+    OUTPUT FORMAT (JSON):
+    {{
+      "activities": [
+        {{
+          "name": "Activity Name",
+          "steps": [
+            {{
+              "name": "Step Name",
+              "stories": [
+                {{
+                  "story_id": "STORY-001",
+                  "summary": "brief summary",
+                  "priority": "must_have | should_have | could_have",
+                  "release": 1  // suggested release number
+                }}
+              ]
+            }}
+          ]
+        }}
+      ],
+      "release_plan": [
+        {{
+          "release": 1,
+          "theme": "MVP - Core Workflow",
+          "story_count": 8,
+          "story_ids": ["STORY-001", ...]
+        }}
+      ]
+    }}
+
+    RULES:
+    - Activities are high-level user goals (e.g., "Manage Account").
+    - Steps are specific actions within an activity (e.g., "Register", "Log In").
+    - Assign each story to exactly one step.
+    - Must-have stories go in Release 1, should-have in Release 2, could-have in Release 3.
+
+    USER STORIES:
+    {stories_json}
+""")
+
+
+def generate_story_map(stories: list[dict]) -> dict:
+    """Generate a user story map from a list of stories."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.3,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": "You are a product strategist."},
+            {"role": "user", "content": STORY_MAP_PROMPT.format(
+                stories_json=json.dumps(stories, indent=2)
+            )},
+        ],
+    )
+    return json.loads(response.choices[0].message.content)
+      </code></pre>
+
+      <h3>Visualising the Story Map</h3>
+
+      <p>The JSON output can be rendered as an interactive HTML table or exported to tools like Miro or Mural. For a quick text-based visualisation:</p>
+
+      <pre><code class="language-python">
+def print_story_map(story_map: dict) -> None:
+    """Print a text-based story map to the console."""
+    for activity in story_map["activities"]:
+        print(f"\n{'='*60}")
+        print(f"  ACTIVITY: {activity['name']}")
+        print(f"{'='*60}")
+        for step in activity["steps"]:
+            print(f"\n  Step: {step['name']}")
+            print(f"  {'-'*40}")
+            for release_num in [1, 2, 3]:
+                release_stories = [s for s in step["stories"] if s["release"] == release_num]
+                if release_stories:
+                    label = {1: "R1 (Must)", 2: "R2 (Should)", 3: "R3 (Could)"}[release_num]
+                    summaries = ", ".join(s["story_id"] for s in release_stories)
+                    print(f"    {label}: {summaries}")
+      </code></pre>
+
+      <div class="callout callout-tip">
+        <strong>Tip:</strong> Feed the story map back to the LLM with the prompt "Identify any gaps in the user journey &mdash; steps where no stories exist but a user would logically need functionality." This is a powerful way to discover missing stories.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>6.7 Backlog Grooming Assistant</h2>
+
+      <p>Backlog grooming (or refinement) is a recurring ceremony where the team reviews, re-prioritises, and refines upcoming stories. An LLM-powered grooming assistant can prepare for these sessions by pre-analysing the backlog and surfacing issues.</p>
+
+      <h3>Pre-Grooming Analysis</h3>
+
+      <pre><code class="language-python">
+GROOMING_PROMPT = textwrap.dedent("""\
+    You are preparing a backlog grooming session. Analyse the following
+    backlog and produce a grooming report with:
+
+    1. STALE STORIES: Stories that haven't been updated in 30+ days
+       and may need re-evaluation.
+    2. DUPLICATES: Stories that appear to overlap significantly.
+       Suggest which to merge or remove.
+    3. DEPENDENCY CHAINS: Groups of stories that must be delivered in
+       a specific order. Flag any circular dependencies.
+    4. ESTIMATION GAPS: Stories missing estimates or with estimates
+       that seem inconsistent (e.g., similar stories with vastly
+       different point values).
+    5. BLOCKED ITEMS: Stories that reference external dependencies
+       or prerequisites not in the backlog.
+    6. REFINEMENT CANDIDATES: Stories that need more detail before
+       they are ready for sprint planning.
+
+    BACKLOG:
+    {backlog_json}
+
+    Return a JSON object with keys matching the six categories above.
+""")
+
+
+def pre_grooming_analysis(backlog: list[dict]) -> dict:
+    """Analyse a backlog before a grooming session and surface issues."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.2,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": "You are a Scrum Master preparing for grooming."},
+            {"role": "user", "content": GROOMING_PROMPT.format(
+                backlog_json=json.dumps(backlog, indent=2)
+            )},
+        ],
+    )
+    return json.loads(response.choices[0].message.content)
+      </code></pre>
+
+      <h3>Interactive Refinement Loop</h3>
+
+      <p>During the grooming session itself, the assistant can operate in a conversational mode, answering questions about stories, suggesting rewrites, and recording decisions:</p>
+
+      <pre><code class="language-python">
+class GroomingAssistant:
+    """Interactive backlog grooming assistant backed by an LLM."""
+
+    def __init__(self, backlog: list[dict]):
+        self.backlog = backlog
+        self.decisions: list[dict] = []
+        self.conversation: list[dict] = [
+            {"role": "system", "content": (
+                "You are an Agile coach helping a team refine their backlog. "
+                "You have access to the full backlog. Answer questions, suggest "
+                "improvements, and record decisions. Be concise and actionable."
+            )},
+            {"role": "user", "content": f"Here is our current backlog:\n{json.dumps(backlog, indent=2)}"},
+        ]
+
+    def ask(self, question: str) -> str:
+        """Ask the assistant a question about the backlog."""
+        self.conversation.append({"role": "user", "content": question})
+        response = openai.chat.completions.create(
+            model="gpt-4o",
+            temperature=0.3,
+            messages=self.conversation,
+        )
+        answer = response.choices[0].message.content
+        self.conversation.append({"role": "assistant", "content": answer})
+        return answer
+
+    def record_decision(self, story_id: str, decision: str, rationale: str) -> None:
+        """Record a grooming decision for the session log."""
+        self.decisions.append({
+            "story_id": story_id,
+            "decision": decision,
+            "rationale": rationale,
+        })
+
+    def session_summary(self) -> str:
+        """Generate a summary of all decisions made during grooming."""
+        return self.ask(
+            "Summarise all decisions made during this session in a format "
+            "suitable for meeting minutes. Include: stories reviewed, "
+            "decisions made, action items, and who is responsible."
+        )
+      </code></pre>
+
+      <div class="callout callout-warning">
+        <strong>Warning:</strong> The grooming assistant should augment, not replace, the Scrum Master. Use it to surface data and suggestions, but let the team make the decisions. Over-reliance on AI in ceremonies can reduce team engagement and ownership.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section class="project">
+      <h2>Project: Agile Story Generator</h2>
+
+      <p>Build a complete pipeline that converts a set of requirements into a sprint-ready backlog, including user stories with acceptance criteria, INVEST validation results, and a story map.</p>
+
+      <h3>Pipeline Architecture</h3>
+
+      <pre><code>
+┌──────────────────┐     ┌───────────────────┐     ┌──────────────────┐
+│  Requirements    │────▶│  Story Generator  │────▶│  AC Generator    │
+│  (from Ch. 5)    │     │  (per requirement)│     │  (per story)     │
+└──────────────────┘     └───────────────────┘     └──────┬───────────┘
+                                                          │
+                         ┌───────────────────┐     ┌──────▼───────────┐
+                         │  Story Splitter   │◀────│  INVEST Validator│
+                         │  (if needed)      │     │                  │
+                         └──────┬────────────┘     └──────────────────┘
+                                │
+                         ┌──────▼────────────┐     ┌──────────────────┐
+                         │  Story Mapper     │────▶│  Output:         │
+                         │                   │     │  JSON + HTML map │
+                         └───────────────────┘     └──────────────────┘
+      </code></pre>
+
+      <h3>Main Pipeline Code</h3>
+
+      <pre><code class="language-python">
+# agile_story_generator/pipeline.py
+import asyncio, json, pathlib
+
+
+async def run_pipeline(requirements_file: pathlib.Path, output_dir: pathlib.Path):
+    """End-to-end story generation pipeline."""
+    requirements = json.loads(requirements_file.read_text())
+    output_dir.mkdir(exist_ok=True)
+
+    # Step 1: Generate stories from all requirements
+    print(f"[1/4] Generating stories from {len(requirements)} requirements...")
+    stories = await batch_generate(requirements, domain="Healthcare Portal", roles=[
+        "Patient", "Doctor", "Nurse", "Administrator", "Pharmacist"
+    ])
+    print(f"       Generated {len(stories)} stories")
+
+    # Step 2: Generate acceptance criteria for each story
+    print("[2/4] Generating acceptance criteria...")
+    for story in stories:
+        ac = generate_acceptance_criteria(story)
+        story["acceptance_criteria"] = ac.get("scenarios", [])
+
+    # Step 3: Validate and split
+    print("[3/4] Validating against INVEST criteria...")
+    final_stories = []
+    for story in stories:
+        result = validate_invest(story)
+        story["invest_score"] = result.get("overall_score", 0)
+        story["invest_recommendation"] = result.get("recommendation", "UNKNOWN")
+
+        if result.get("recommendation") == "NEEDS_SPLIT":
+            split_result = split_story(story, estimated_points=13)
+            for sub in split_result.get("sub_stories", []):
+                sub["acceptance_criteria"] = []  # Will need AC generation
+                final_stories.append(sub)
+        else:
+            final_stories.append(story)
+
+    print(f"       Final backlog: {len(final_stories)} stories")
+
+    # Step 4: Generate story map
+    print("[4/4] Generating story map...")
+    story_map = generate_story_map(final_stories)
+
+    # Write outputs
+    (output_dir / "stories.json").write_text(json.dumps(final_stories, indent=2))
+    (output_dir / "story_map.json").write_text(json.dumps(story_map, indent=2))
+    print(f"       Outputs written to {output_dir}/")
+
+
+if __name__ == "__main__":
+    asyncio.run(run_pipeline(
+        pathlib.Path("input/requirements.json"),
+        pathlib.Path("output"),
+    ))
+      </code></pre>
+
+      <h3>Testing Your Pipeline</h3>
+
+      <p>Create a sample <code>requirements.json</code> with 10 requirements covering different types (functional, non-functional, constraint). Run the pipeline and verify that:</p>
+
+      <ul>
+        <li>Each requirement produces at least one story</li>
+        <li>Stories follow the "As a... I want... so that..." template</li>
+        <li>Each story has at least three acceptance criteria scenarios</li>
+        <li>INVEST scores are reasonable (compare against your own assessment)</li>
+        <li>The story map has a logical activity structure</li>
+      </ul>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section class="summary">
+      <h2>Summary</h2>
+
+      <ul class="key-takeaways">
+        <li><strong>LLMs bridge the requirements-to-stories gap</strong> by inferring roles, articulating benefits, and decomposing compound requirements into atomic stories.</li>
+        <li><strong>Acceptance criteria generation</strong> in Gherkin format produces testable scenarios for happy paths, edge cases, and error conditions &mdash; but domain-specific edge cases still require human review.</li>
+        <li><strong>Nine splitting patterns</strong> provide a systematic framework for breaking oversized stories into sprint-sized work items.</li>
+        <li><strong>INVEST validation</strong> gives each story a quality score, with "Testable" being the most reliable LLM assessment and "Independent" requiring the most human judgment.</li>
+        <li><strong>Story mapping</strong> with LLM assistance creates a visual product plan and reveals gaps in the user journey.</li>
+        <li><strong>Backlog grooming assistants</strong> can pre-analyse the backlog, surface issues, and record decisions &mdash; but should augment, not replace, team ceremonies.</li>
+      </ul>
+
+      <div class="exercises">
+        <h3>Exercises</h3>
+
+        <h4>Conceptual</h4>
+        <ol>
+          <li>Explain why the "so that" clause in a user story is critical for prioritisation. How would a backlog without benefits statements affect sprint planning?</li>
+          <li>Compare the strengths and weaknesses of Gherkin-style versus checklist-style acceptance criteria. When would you use each?</li>
+          <li>A team is debating whether to let the LLM assign story points. What are the arguments for and against, and what is your recommendation?</li>
+        </ol>
+
+        <h4>Coding</h4>
+        <ol>
+          <li>Extend the <code>generate_stories</code> function to detect and reject stories that violate the "Independent" criterion by checking for shared data dependencies.</li>
+          <li>Write a function that takes two story maps (current and previous sprint) and highlights new stories, removed stories, and stories that moved between releases.</li>
+          <li>Implement a "story quality dashboard" that reads a backlog JSON file and displays INVEST scores as a colour-coded table (green/yellow/red).</li>
+        </ol>
+
+        <h4>Design</h4>
+        <ol>
+          <li>Design a Slack bot that integrates with the Agile Story Generator. Sketch the conversation flow for a user who wants to generate stories from a pasted requirement.</li>
+          <li>Propose a feedback loop where developers mark stories as "unclear during implementation" and this feedback is used to improve the story generation prompt over time.</li>
+        </ol>
+      </div>
+    </section>
+
+    <nav class="chapter-footer">
+      <a href="ch05-requirements-elicitation.html">&larr; Requirements Elicitation</a>
+      <span>Part 2 of 5</span>
+      <a href="ch07-process-modeling.html">Process Modeling &rarr;</a>
+    </nav>
+  </main>
+
+  <script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 14 — Building Custom AI Assistants | LLMs for Business &amp; Quality Analysts</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="ch13-rag-enterprise.html" class="nav-prev">RAG for Enterprise</a>
+    <span class="nav-title">Part 4 — Advanced Patterns</span>
+    <a href="ch15-evaluating-outputs.html" class="nav-next">Evaluating Outputs</a>
+  </nav>
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 4 — Advanced Patterns</span>
+      <h1>Building Custom AI Assistants</h1>
+      <p class="chapter-intro">One-off prompts are powerful, but they hit a ceiling. You type a prompt, get a response, copy-paste it somewhere, and start over. A custom AI assistant, by contrast, remembers context, calls external tools, follows multi-step workflows, and integrates into the systems your team already uses. In this chapter, you will move from isolated prompts to persistent, tool-equipped assistants that automate entire BA and QA workflows end-to-end.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~25 min</span>
+        <span>Project: BA/QA Assistant</span>
+      </div>
+    </header>
+
+    <!-- Objectives -->
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>Why persistent assistants with memory and tools outperform one-off prompts for recurring workflows</li>
+        <li>How to design assistant workflows with clear states, decision points, and fallbacks</li>
+        <li>Building multi-step reasoning chains that break complex tasks into manageable subtasks</li>
+        <li>Integrating external tools (APIs, databases, file systems) into assistant workflows</li>
+        <li>Managing conversation memory and context windows effectively</li>
+        <li>Designing user experiences that build trust and handle assistant failures gracefully</li>
+        <li>Deploying, monitoring, and iterating on custom assistants in production</li>
+      </ul>
+    </section>
+
+    <!-- Section 1 -->
+    <section>
+      <h2>1. Beyond One-Off Prompts</h2>
+
+      <p>Most BA and QA professionals start with LLMs by pasting text into ChatGPT and copying the result back. This works for simple tasks, but it breaks down when the workflow requires multiple steps, external data, or consistency across interactions.</p>
+
+      <p>Consider a typical BA workflow: gathering requirements from a stakeholder interview transcript. A one-off prompt approach requires you to manually paste the transcript, copy out the requirements, paste them into Jira, go back to the LLM to generate acceptance criteria, copy those into each story, then return to generate test cases. Each step is disconnected. A custom assistant handles the entire flow in one conversation:</p>
+
+      <table>
+        <thead>
+          <tr><th>Capability</th><th>One-Off Prompts</th><th>Custom Assistant</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Context retention</td><td>None — each prompt is independent</td><td>Remembers the full conversation and prior outputs</td></tr>
+          <tr><td>Tool access</td><td>Manual copy-paste to/from external systems</td><td>Reads from Jira, writes to Confluence, queries databases</td></tr>
+          <tr><td>Multi-step workflows</td><td>User orchestrates each step manually</td><td>Assistant follows a defined workflow automatically</td></tr>
+          <tr><td>Consistency</td><td>Varies with each prompt</td><td>System prompt ensures consistent format and tone</td></tr>
+          <tr><td>Error handling</td><td>User must notice and correct errors</td><td>Built-in validation and fallback logic</td></tr>
+          <tr><td>Auditability</td><td>No history unless manually saved</td><td>Full conversation logs with timestamps</td></tr>
+        </tbody>
+      </table>
+
+      <p>The shift from one-off prompts to custom assistants is the difference between using a calculator and using a spreadsheet. Both do math, but only one remembers your data, applies formulas across cells, and updates automatically.</p>
+
+      <div class="callout callout-insight">
+        <strong>Start with the workflow, not the technology.</strong> Before writing any code, map out the manual workflow you want to automate. Identify the inputs, outputs, decision points, and external systems involved. The most common mistake is building an assistant that is impressive in a demo but does not match how people actually work. Shadow a BA or QA analyst for a day and document every step they take — then decide which steps the assistant should handle.
+      </div>
+    </section>
+
+    <!-- Section 2 -->
+    <section>
+      <h2>2. Designing Assistant Workflows</h2>
+
+      <p>An assistant workflow is a state machine. At each state, the assistant either waits for user input, performs an action, or makes a decision about what to do next. Designing these workflows explicitly — rather than letting the LLM improvise — is key to reliability.</p>
+
+      <pre><code class="language-python">from enum import Enum
+from dataclasses import dataclass, field
+from typing import Callable
+
+class WorkflowState(Enum):
+    """States in a requirements-gathering assistant workflow."""
+    INIT = "init"
+    GATHER_CONTEXT = "gather_context"
+    ANALYZE_INPUT = "analyze_input"
+    GENERATE_ARTIFACTS = "generate_artifacts"
+    REVIEW = "review"
+    REFINE = "refine"
+    EXPORT = "export"
+    COMPLETE = "complete"
+
+@dataclass
+class StateTransition:
+    """Defines a transition between workflow states."""
+    from_state: WorkflowState
+    to_state: WorkflowState
+    condition: str  # Description of when this transition fires
+    action: str     # What happens during the transition
+
+@dataclass
+class AssistantWorkflow:
+    """Define a structured workflow for the assistant."""
+    name: str
+    description: str
+    states: list[WorkflowState]
+    transitions: list[StateTransition]
+    current_state: WorkflowState = WorkflowState.INIT
+    context: dict = field(default_factory=dict)
+
+    def get_valid_transitions(self) -> list[StateTransition]:
+        """Get transitions available from the current state."""
+        return [t for t in self.transitions
+                if t.from_state == self.current_state]
+
+    def transition_to(self, new_state: WorkflowState) -> None:
+        """Move to a new state if the transition is valid."""
+        valid = [t.to_state for t in self.get_valid_transitions()]
+        if new_state not in valid:
+            raise ValueError(
+                f"Cannot transition from {self.current_state} "
+                f"to {new_state}. Valid: {valid}"
+            )
+        print(f"  [{self.current_state.value}] -> [{new_state.value}]")
+        self.current_state = new_state
+
+
+# Define a requirements gathering workflow
+requirements_workflow = AssistantWorkflow(
+    name="Requirements Gathering Assistant",
+    description="Guides a BA through requirements elicitation",
+    states=list(WorkflowState),
+    transitions=[
+        StateTransition(
+            WorkflowState.INIT,
+            WorkflowState.GATHER_CONTEXT,
+            "User provides project name or description",
+            "Ask clarifying questions about scope, stakeholders, constraints"
+        ),
+        StateTransition(
+            WorkflowState.GATHER_CONTEXT,
+            WorkflowState.ANALYZE_INPUT,
+            "User provides transcript, notes, or raw requirements",
+            "Parse input to extract requirements, assumptions, risks"
+        ),
+        StateTransition(
+            WorkflowState.ANALYZE_INPUT,
+            WorkflowState.GENERATE_ARTIFACTS,
+            "Analysis complete",
+            "Generate user stories, acceptance criteria, test cases"
+        ),
+        StateTransition(
+            WorkflowState.GENERATE_ARTIFACTS,
+            WorkflowState.REVIEW,
+            "Artifacts generated",
+            "Present artifacts for review, ask for feedback"
+        ),
+        StateTransition(
+            WorkflowState.REVIEW,
+            WorkflowState.REFINE,
+            "User requests changes",
+            "Apply requested changes to specific artifacts"
+        ),
+        StateTransition(
+            WorkflowState.REFINE,
+            WorkflowState.REVIEW,
+            "Changes applied",
+            "Present updated artifacts for re-review"
+        ),
+        StateTransition(
+            WorkflowState.REVIEW,
+            WorkflowState.EXPORT,
+            "User approves artifacts",
+            "Export to Jira, Confluence, or file"
+        ),
+        StateTransition(
+            WorkflowState.EXPORT,
+            WorkflowState.COMPLETE,
+            "Export successful",
+            "Summarize what was created and where"
+        ),
+    ]
+)
+</code></pre>
+
+      <p>Each state maps to a specific system prompt and set of available tools. This prevents the assistant from jumping ahead (generating stories before understanding context) or going off-track (discussing unrelated topics during review).</p>
+
+      <table>
+        <thead>
+          <tr><th>State</th><th>System Prompt Focus</th><th>Available Tools</th><th>Exit Condition</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>GATHER_CONTEXT</td><td>Ask probing questions about scope and constraints</td><td>None (conversation only)</td><td>User says "ready to analyze"</td></tr>
+          <tr><td>ANALYZE_INPUT</td><td>Extract structured requirements from raw input</td><td>Document parser, summarizer</td><td>Analysis JSON produced</td></tr>
+          <tr><td>GENERATE_ARTIFACTS</td><td>Create user stories, acceptance criteria, test cases</td><td>Template engine, prior stories DB</td><td>All artifacts generated</td></tr>
+          <tr><td>REVIEW</td><td>Present artifacts clearly, accept feedback</td><td>Diff viewer, comment tracker</td><td>User approves or requests changes</td></tr>
+          <tr><td>EXPORT</td><td>Format and push to external systems</td><td>Jira API, Confluence API, file writer</td><td>Export confirmed</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-tip">
+        <strong>Always include an escape hatch.</strong> Users must be able to override the workflow — go back to a previous step, skip a step, or abandon the workflow entirely. An assistant that forces users through a rigid sequence will frustrate them. Model the escape transitions explicitly (e.g., from any state back to GATHER_CONTEXT) rather than hoping the LLM handles it gracefully.
+      </div>
+    </section>
+
+    <!-- Section 3 -->
+    <section>
+      <h2>3. Multi-Step Reasoning Chains</h2>
+
+      <p>Complex BA and QA tasks require the assistant to break a problem into subtasks, execute them in sequence, and combine the results. This is "chain of thought" at the workflow level — not just inside a single prompt, but across multiple LLM calls.</p>
+
+      <pre><code class="language-python">from openai import OpenAI
+import json
+
+client = OpenAI()
+
+class ReasoningChain:
+    """Execute a multi-step reasoning chain with intermediate results."""
+
+    def __init__(self, model: str = "gpt-4o"):
+        self.model = model
+        self.steps: list[dict] = []
+        self.results: list[dict] = []
+
+    def add_step(self, name: str, prompt_template: str,
+                 depends_on: list[str] = None,
+                 output_format: str = "text") -> "ReasoningChain":
+        """Add a step to the chain."""
+        self.steps.append({
+            "name": name,
+            "prompt_template": prompt_template,
+            "depends_on": depends_on or [],
+            "output_format": output_format
+        })
+        return self
+
+    def execute(self, initial_input: str) -> dict:
+        """Execute all steps in sequence, passing results forward."""
+        context = {"input": initial_input}
+        self.results = []
+
+        for step in self.steps:
+            print(f"  Step: {step['name']}...")
+
+            # Resolve dependencies
+            prompt = step["prompt_template"]
+            for dep in step["depends_on"]:
+                dep_result = next(
+                    (r["output"] for r in self.results
+                     if r["name"] == dep), ""
+                )
+                prompt = prompt.replace(f"{{{dep}}}", str(dep_result))
+
+            prompt = prompt.replace("{input}", initial_input)
+
+            # Execute step
+            messages = [{"role": "user", "content": prompt}]
+            kwargs = {"model": self.model, "messages": messages,
+                      "temperature": 0.3}
+
+            if step["output_format"] == "json":
+                kwargs["response_format"] = {"type": "json_object"}
+
+            response = client.chat.completions.create(**kwargs)
+            output = response.choices[0].message.content
+
+            if step["output_format"] == "json":
+                output = json.loads(output)
+
+            self.results.append({
+                "name": step["name"],
+                "output": output,
+                "tokens_used": response.usage.total_tokens
+            })
+
+            context[step["name"]] = output
+
+        return {
+            "final_output": self.results[-1]["output"],
+            "all_steps": self.results,
+            "total_tokens": sum(r["tokens_used"] for r in self.results)
+        }
+
+
+# Example: Requirements Analysis Chain
+chain = ReasoningChain()
+
+chain.add_step(
+    name="extract_requirements",
+    prompt_template="""Extract all functional and non-functional
+requirements from this stakeholder interview transcript.
+Return JSON with keys: "functional" (array), "non_functional" (array),
+"assumptions" (array), "open_questions" (array).
+
+Transcript:
+{input}""",
+    output_format="json"
+)
+
+chain.add_step(
+    name="generate_stories",
+    prompt_template="""Convert these requirements into user stories
+in standard format: "As a [role], I want [capability],
+so that [benefit]."
+
+Requirements:
+{extract_requirements}
+
+For each story, include:
+- Story title
+- User story text
+- Acceptance criteria (Given/When/Then)
+- Priority estimate (must/should/could)
+- Story points estimate (1, 2, 3, 5, 8, 13)
+
+Return JSON with key "stories" (array of objects).""",
+    depends_on=["extract_requirements"],
+    output_format="json"
+)
+
+chain.add_step(
+    name="generate_test_cases",
+    prompt_template="""Generate test cases for each user story.
+Include positive, negative, and edge case scenarios.
+
+Stories:
+{generate_stories}
+
+For each test case, include:
+- test_id, story_ref, title, type (positive/negative/edge),
+  preconditions, steps, expected_result, priority
+
+Return JSON with key "test_cases".""",
+    depends_on=["generate_stories"],
+    output_format="json"
+)
+
+chain.add_step(
+    name="risk_analysis",
+    prompt_template="""Analyze the requirements and stories for risks.
+
+Requirements: {extract_requirements}
+Stories: {generate_stories}
+
+Identify:
+1. Missing requirements (gaps in the transcript)
+2. Conflicting requirements
+3. Ambiguous requirements needing clarification
+4. Technical risks
+5. Business risks
+
+Return JSON with key "risks" (array of objects with
+risk_type, description, severity, mitigation).""",
+    depends_on=["extract_requirements", "generate_stories"],
+    output_format="json"
+)
+
+chain.add_step(
+    name="summary",
+    prompt_template="""Create an executive summary of the requirements
+analysis. Include:
+
+1. Project scope summary (2-3 sentences)
+2. Key statistics (number of stories, test cases, risks)
+3. Top 3 risks requiring immediate attention
+4. Recommended next steps
+5. Open questions for stakeholders
+
+Requirements: {extract_requirements}
+Stories: {generate_stories}
+Test Cases: {generate_test_cases}
+Risks: {risk_analysis}""",
+    depends_on=["extract_requirements", "generate_stories",
+                "generate_test_cases", "risk_analysis"]
+)
+
+# Execute the chain
+transcript = """[Stakeholder interview transcript would go here]"""
+result = chain.execute(transcript)
+
+print(f"\nChain complete. Total tokens: {result['total_tokens']}")
+print(f"\nExecutive Summary:\n{result['final_output']}")
+</code></pre>
+
+      <p>Multi-step chains provide several advantages over single-prompt approaches:</p>
+
+      <ol>
+        <li><strong>Better quality:</strong> Each step focuses on one task, reducing the cognitive load on the LLM and improving output quality.</li>
+        <li><strong>Debuggability:</strong> When something goes wrong, you can identify which step produced the bad output and fix it in isolation.</li>
+        <li><strong>Reusability:</strong> Steps can be reused across different chains. The "generate_test_cases" step works whether the stories come from a transcript, a Jira export, or manual entry.</li>
+        <li><strong>Token efficiency:</strong> Each step only receives the context it needs, rather than the entire conversation history.</li>
+      </ol>
+
+      <div class="callout callout-warning">
+        <strong>Chain failures cascade.</strong> If step 2 produces bad output, every downstream step will also produce bad output. Build validation checks between steps: verify that the JSON is well-formed, that required fields exist, and that counts make sense (e.g., each story should have at least one acceptance criterion). If validation fails, retry the step or ask the user for clarification before proceeding.
+      </div>
+    </section>
+
+    <!-- Section 4 -->
+    <section>
+      <h2>4. Tool Integration Patterns</h2>
+
+      <p>Tools extend the assistant's capabilities beyond text generation. A tool is any function the assistant can call: reading from a database, creating a Jira ticket, querying an API, or running a calculation. The LLM decides when to call a tool and how to use the result.</p>
+
+      <pre><code class="language-python">from openai import OpenAI
+import json
+import requests
+from datetime import datetime
+
+client = OpenAI()
+
+# Define tools the assistant can use
+TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "search_jira",
+            "description": "Search Jira for issues matching a JQL query",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "jql": {
+                        "type": "string",
+                        "description": "JQL query string"
+                    },
+                    "max_results": {
+                        "type": "integer",
+                        "description": "Maximum results to return",
+                        "default": 10
+                    }
+                },
+                "required": ["jql"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_jira_story",
+            "description": "Create a new user story in Jira",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "project_key": {"type": "string"},
+                    "summary": {"type": "string"},
+                    "description": {"type": "string"},
+                    "story_points": {"type": "integer"},
+                    "priority": {"type": "string",
+                                 "enum": ["Highest", "High",
+                                          "Medium", "Low", "Lowest"]},
+                    "labels": {
+                        "type": "array",
+                        "items": {"type": "string"}
+                    }
+                },
+                "required": ["project_key", "summary", "description"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "query_test_results",
+            "description": "Query test execution results from the test management system",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "test_plan": {"type": "string"},
+                    "status": {
+                        "type": "string",
+                        "enum": ["passed", "failed", "blocked", "all"]
+                    },
+                    "since": {
+                        "type": "string",
+                        "description": "ISO date string (YYYY-MM-DD)"
+                    }
+                },
+                "required": ["test_plan"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "generate_report",
+            "description": "Generate a formatted report document",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string"},
+                    "sections": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "heading": {"type": "string"},
+                                "content": {"type": "string"}
+                            }
+                        }
+                    },
+                    "format": {
+                        "type": "string",
+                        "enum": ["markdown", "html", "confluence"]
+                    }
+                },
+                "required": ["title", "sections"]
+            }
+        }
+    }
+]
+
+
+def execute_tool(name: str, arguments: dict) -> str:
+    """Execute a tool call and return the result.
+    In production, these would call actual APIs."""
+
+    if name == "search_jira":
+        # Simulated Jira search
+        return json.dumps({
+            "total": 3,
+            "issues": [
+                {"key": "PROJ-101", "summary": "User login flow",
+                 "status": "In Progress", "assignee": "Jane D."},
+                {"key": "PROJ-102", "summary": "Password reset",
+                 "status": "To Do", "assignee": "Unassigned"},
+                {"key": "PROJ-103", "summary": "SSO integration",
+                 "status": "Done", "assignee": "Bob S."},
+            ]
+        })
+
+    elif name == "create_jira_story":
+        return json.dumps({
+            "key": f"{arguments['project_key']}-{104}",
+            "url": f"https://jira.example.com/browse/"
+                   f"{arguments['project_key']}-104",
+            "status": "Created"
+        })
+
+    elif name == "query_test_results":
+        return json.dumps({
+            "test_plan": arguments["test_plan"],
+            "total_tests": 45,
+            "passed": 38,
+            "failed": 5,
+            "blocked": 2,
+            "pass_rate": "84.4%",
+            "failed_tests": [
+                {"id": "TC-201", "title": "Checkout with expired card",
+                 "failure": "Expected error message not displayed"},
+                {"id": "TC-215", "title": "Search with special characters",
+                 "failure": "500 Internal Server Error"},
+            ]
+        })
+
+    elif name == "generate_report":
+        content = f"# {arguments['title']}\n\n"
+        for section in arguments["sections"]:
+            content += f"## {section['heading']}\n{section['content']}\n\n"
+        return json.dumps({
+            "status": "generated",
+            "format": arguments.get("format", "markdown"),
+            "preview": content[:500]
+        })
+
+    return json.dumps({"error": f"Unknown tool: {name}"})
+
+
+class ToolEquippedAssistant:
+    """Assistant that can call external tools."""
+
+    def __init__(self, system_prompt: str, tools: list[dict],
+                 model: str = "gpt-4o"):
+        self.model = model
+        self.tools = tools
+        self.messages = [{"role": "system", "content": system_prompt}]
+
+    def chat(self, user_message: str) -> str:
+        """Send a message and handle any tool calls."""
+        self.messages.append({"role": "user", "content": user_message})
+
+        while True:
+            response = client.chat.completions.create(
+                model=self.model,
+                messages=self.messages,
+                tools=self.tools,
+                temperature=0.3
+            )
+
+            message = response.choices[0].message
+            self.messages.append(message)
+
+            # If no tool calls, return the text response
+            if not message.tool_calls:
+                return message.content
+
+            # Execute each tool call
+            for tool_call in message.tool_calls:
+                func_name = tool_call.function.name
+                func_args = json.loads(tool_call.function.arguments)
+
+                print(f"  [Tool] {func_name}({func_args})")
+                result = execute_tool(func_name, func_args)
+
+                self.messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": result
+                })
+
+            # Loop back to get the LLM's response after tool results
+
+
+# Create a BA assistant
+ba_assistant = ToolEquippedAssistant(
+    system_prompt="""You are a Business Analyst assistant.
+You help BAs manage requirements, user stories, and test results.
+
+When asked about existing work, search Jira first.
+When creating new stories, use the create_jira_story tool.
+When reporting on quality, query test results first.
+Always confirm with the user before creating or modifying anything.
+
+Be concise and professional.""",
+    tools=TOOLS
+)
+
+# Interactive usage
+response = ba_assistant.chat(
+    "What stories do we have for the authentication epic?"
+)
+print(response)
+</code></pre>
+
+      <div class="callout callout-tip">
+        <strong>Confirm before mutating.</strong> Read-only tools (search, query) can run automatically. Write tools (create, update, delete) should always ask the user for confirmation before executing. This prevents the assistant from creating 50 duplicate Jira tickets because it misunderstood a request. Pattern: "I am ready to create these 5 stories in PROJ. Shall I proceed?"
+      </div>
+    </section>
+
+    <!-- Section 5 -->
+    <section>
+      <h2>5. Memory and Context Management</h2>
+
+      <p>LLMs have finite context windows. A conversation that accumulates 100 messages with tool results will eventually overflow. Effective memory management keeps the assistant responsive while retaining the information that matters.</p>
+
+      <pre><code class="language-python">from openai import OpenAI
+import json
+from datetime import datetime
+
+client = OpenAI()
+
+class ConversationMemory:
+    """Manage assistant memory across conversations."""
+
+    def __init__(self, max_messages: int = 50,
+                 model: str = "gpt-4o"):
+        self.model = model
+        self.max_messages = max_messages
+        self.messages: list[dict] = []
+        self.summary_buffer: str = ""
+        self.facts: dict = {}  # Persistent key-value facts
+        self.session_id: str = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    def add_message(self, role: str, content: str) -> None:
+        """Add a message and manage context window."""
+        self.messages.append({
+            "role": role,
+            "content": content,
+            "timestamp": datetime.now().isoformat()
+        })
+
+        # If we are approaching the limit, summarize older messages
+        if len(self.messages) > self.max_messages:
+            self._compress_history()
+
+    def _compress_history(self) -> None:
+        """Summarize older messages to free up context space."""
+        # Keep the last 20 messages, summarize the rest
+        to_summarize = self.messages[:-20]
+        to_keep = self.messages[-20:]
+
+        summary_input = "\n".join(
+            f"[{m['role']}]: {m['content'][:200]}"
+            for m in to_summarize
+        )
+
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=[{
+                "role": "user",
+                "content": f"""Summarize this conversation history
+into a concise paragraph. Focus on: decisions made, artifacts
+created, key facts established, and current task status.
+
+Conversation:
+{summary_input}"""
+            }],
+            temperature=0,
+            max_tokens=300
+        )
+
+        self.summary_buffer = response.choices[0].message.content
+        self.messages = to_keep
+        print(f"  [Memory] Compressed {len(to_summarize)} messages "
+              f"into summary")
+
+    def extract_facts(self, message: str) -> None:
+        """Extract persistent facts from a message."""
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=[{
+                "role": "user",
+                "content": f"""Extract any factual information from this
+message that should be remembered across conversations. Examples:
+project names, deadlines, stakeholder names, decisions, preferences.
+
+Message: {message}
+
+Return JSON with key "facts" (object of key-value pairs).
+If no facts to extract, return {{"facts": {{}}}}."""
+            }],
+            response_format={"type": "json_object"},
+            temperature=0
+        )
+        new_facts = json.loads(
+            response.choices[0].message.content
+        ).get("facts", {})
+
+        if new_facts:
+            self.facts.update(new_facts)
+            print(f"  [Memory] Stored facts: {list(new_facts.keys())}")
+
+    def get_context_messages(self, system_prompt: str) -> list[dict]:
+        """Build the message list for the LLM call."""
+        messages = [{"role": "system", "content": system_prompt}]
+
+        # Add summary of older conversation if it exists
+        if self.summary_buffer:
+            messages.append({
+                "role": "system",
+                "content": f"Summary of earlier conversation: "
+                           f"{self.summary_buffer}"
+            })
+
+        # Add persistent facts
+        if self.facts:
+            facts_str = "\n".join(
+                f"- {k}: {v}" for k, v in self.facts.items()
+            )
+            messages.append({
+                "role": "system",
+                "content": f"Known facts about this project:\n{facts_str}"
+            })
+
+        # Add recent messages (without timestamps for the LLM)
+        for m in self.messages:
+            messages.append({
+                "role": m["role"],
+                "content": m["content"]
+            })
+
+        return messages
+
+    def save_session(self, path: str) -> None:
+        """Save the session state to disk for later resumption."""
+        state = {
+            "session_id": self.session_id,
+            "messages": self.messages,
+            "summary_buffer": self.summary_buffer,
+            "facts": self.facts,
+            "saved_at": datetime.now().isoformat()
+        }
+        with open(path, "w") as f:
+            json.dump(state, f, indent=2)
+        print(f"  [Memory] Session saved to {path}")
+
+    def load_session(self, path: str) -> None:
+        """Resume a previous session."""
+        with open(path) as f:
+            state = json.load(f)
+        self.session_id = state["session_id"]
+        self.messages = state["messages"]
+        self.summary_buffer = state["summary_buffer"]
+        self.facts = state["facts"]
+        print(f"  [Memory] Resumed session {self.session_id} "
+              f"({len(self.messages)} messages, "
+              f"{len(self.facts)} facts)")
+</code></pre>
+
+      <p>Memory management strategies and when to use each:</p>
+
+      <table>
+        <thead>
+          <tr><th>Strategy</th><th>Mechanism</th><th>Best For</th><th>Tradeoff</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Full history</td><td>Keep all messages</td><td>Short conversations (&lt; 30 messages)</td><td>Hits context limit on long sessions</td></tr>
+          <tr><td>Sliding window</td><td>Keep last N messages</td><td>Support conversations</td><td>Loses early context (names, decisions)</td></tr>
+          <tr><td>Summarize + recent</td><td>Compress old messages, keep recent</td><td>Multi-hour work sessions</td><td>Summary may lose details</td></tr>
+          <tr><td>Fact extraction</td><td>Extract key-value facts persistently</td><td>Cross-session memory</td><td>Extra LLM calls, facts can become stale</td></tr>
+          <tr><td>RAG over history</td><td>Embed and retrieve past messages</td><td>Very long-running projects</td><td>Complex, retrieval may miss relevant history</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-insight">
+        <strong>The best memory strategy combines approaches.</strong> Use fact extraction for persistent project knowledge (stakeholder names, project codes, decisions), summarize-and-keep-recent for the active conversation, and full history for short interactions. The assistant should gracefully degrade: if context is running low, summarize more aggressively rather than silently dropping messages.
+      </div>
+    </section>
+
+    <!-- Section 6 -->
+    <section>
+      <h2>6. User Experience Design</h2>
+
+      <p>An assistant that produces perfect outputs but is confusing to use will be abandoned within a week. UX design for AI assistants follows different rules than traditional software UX because the interaction is conversational and the outputs are probabilistic.</p>
+
+      <pre><code class="language-python">class AssistantUX:
+    """UX patterns for building trustworthy AI assistants."""
+
+    @staticmethod
+    def format_confidence_indicator(confidence: float) -> str:
+        """Show the user how confident the assistant is."""
+        if confidence >= 0.9:
+            return "[High confidence] "
+        elif confidence >= 0.7:
+            return "[Medium confidence — please verify] "
+        else:
+            return "[Low confidence — treat as a starting point] "
+
+    @staticmethod
+    def format_progressive_output(sections: list[dict]) -> str:
+        """Present output progressively so users can give
+        feedback before the assistant does all the work."""
+        output = ""
+        for i, section in enumerate(sections):
+            output += f"\n{'='*50}\n"
+            output += f"Step {i+1} of {len(sections)}: "
+            output += f"{section['title']}\n"
+            output += f"{'='*50}\n"
+            output += section['content']
+
+            if i < len(sections) - 1:
+                output += ("\n\n> Does this look right? Say 'continue' "
+                          "to proceed or provide feedback.\n")
+        return output
+
+    @staticmethod
+    def format_action_confirmation(actions: list[dict]) -> str:
+        """Ask for explicit confirmation before taking actions."""
+        output = "\nI am ready to take the following actions:\n\n"
+        for i, action in enumerate(actions, 1):
+            output += f"  {i}. {action['description']}\n"
+            if action.get('details'):
+                output += f"     Details: {action['details']}\n"
+            output += f"     System: {action['system']}\n\n"
+
+        output += ("Shall I proceed with all actions, or would you "
+                   "like to modify or skip any?\n"
+                   "Options: 'proceed all', 'skip N', 'modify N', "
+                   "'cancel'\n")
+        return output
+
+    @staticmethod
+    def format_error_recovery(error: str,
+                               suggestions: list[str]) -> str:
+        """Handle errors gracefully with actionable suggestions."""
+        output = f"\nI encountered an issue: {error}\n\n"
+        output += "Here is what you can try:\n"
+        for i, suggestion in enumerate(suggestions, 1):
+            output += f"  {i}. {suggestion}\n"
+        output += ("\nWould you like me to try one of these "
+                   "approaches, or would you prefer to handle "
+                   "this manually?\n")
+        return output
+
+    @staticmethod
+    def format_source_attribution(answer: str,
+                                    sources: list[dict]) -> str:
+        """Show where information came from."""
+        output = answer + "\n\n"
+        output += "---\nSources:\n"
+        for s in sources:
+            output += (f"  - [{s['type']}] {s['title']}"
+                      f" (last updated: {s.get('date', 'unknown')})\n")
+        return output
+
+
+# UX principles for AI assistants
+UX_PRINCIPLES = """
+1. TRANSPARENCY: Always show confidence levels and sources.
+   Users must know when the assistant is guessing.
+
+2. PROGRESSIVE DISCLOSURE: Show one step at a time for complex
+   workflows. Let users course-correct early.
+
+3. CONFIRMATION BEFORE ACTION: Never modify external systems
+   without explicit user approval.
+
+4. GRACEFUL DEGRADATION: When the assistant cannot complete a
+   task, explain why and suggest alternatives.
+
+5. UNDO CAPABILITY: Every action should be reversible, or at
+   minimum, the user should be warned if it is not.
+
+6. CONTEXT INDICATORS: Show what the assistant "knows" about
+   the current session — project name, loaded documents,
+   active workflow state.
+
+7. ESCAPE HATCHES: Users should always be able to override
+   the assistant's suggestions, restart a workflow, or switch
+   to manual mode.
+"""
+</code></pre>
+
+      <p>Common UX mistakes in AI assistants and how to avoid them:</p>
+
+      <table>
+        <thead>
+          <tr><th>Mistake</th><th>Symptom</th><th>Fix</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Wall of text responses</td><td>Users stop reading after the first paragraph</td><td>Use progressive disclosure; break output into steps with headers</td></tr>
+          <tr><td>Overconfident tone</td><td>Users trust wrong answers</td><td>Add confidence indicators; always cite sources</td></tr>
+          <tr><td>No feedback mechanism</td><td>Same mistakes repeat</td><td>Add thumbs up/down, "this is wrong" button, correction flow</td></tr>
+          <tr><td>Silent failures</td><td>Tool call fails, assistant pretends it worked</td><td>Explicit error messages with recovery suggestions</td></tr>
+          <tr><td>Rigid conversation flow</td><td>Users feel trapped</td><td>Support "go back," "start over," and free-form questions at any point</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-tip">
+        <strong>Add a "/status" command.</strong> Let users type "/status" at any time to see: the current workflow state, what documents or data the assistant has loaded, how many messages are in the context window, and what tools are available. This builds trust by making the assistant's internal state visible.
+      </div>
+    </section>
+
+    <!-- Section 7 -->
+    <section>
+      <h2>7. Deployment and Monitoring</h2>
+
+      <p>Deploying a custom assistant means running it reliably for multiple users while monitoring quality, cost, and performance. Unlike traditional software, AI assistants can degrade silently — producing subtly worse answers without throwing errors — so monitoring requires quality metrics, not just uptime checks.</p>
+
+      <pre><code class="language-python">import json
+import time
+from datetime import datetime, timedelta
+from dataclasses import dataclass, field
+
+@dataclass
+class AssistantMetrics:
+    """Track assistant performance metrics for monitoring."""
+    queries: list[dict] = field(default_factory=list)
+    errors: list[dict] = field(default_factory=list)
+    tool_calls: list[dict] = field(default_factory=list)
+    feedback: list[dict] = field(default_factory=list)
+
+    def log_query(self, query: str, response: str,
+                  latency_ms: int, tokens: int,
+                  model: str) -> None:
+        """Log a query-response pair."""
+        self.queries.append({
+            "timestamp": datetime.now().isoformat(),
+            "query": query[:200],
+            "response_length": len(response),
+            "latency_ms": latency_ms,
+            "tokens": tokens,
+            "model": model
+        })
+
+    def log_error(self, error_type: str, message: str,
+                  context: str = "") -> None:
+        """Log an error event."""
+        self.errors.append({
+            "timestamp": datetime.now().isoformat(),
+            "type": error_type,
+            "message": message,
+            "context": context[:500]
+        })
+
+    def log_tool_call(self, tool_name: str, success: bool,
+                      latency_ms: int) -> None:
+        """Log a tool execution."""
+        self.tool_calls.append({
+            "timestamp": datetime.now().isoformat(),
+            "tool": tool_name,
+            "success": success,
+            "latency_ms": latency_ms
+        })
+
+    def log_feedback(self, query: str, rating: int,
+                     comment: str = "") -> None:
+        """Log user feedback (1-5 stars)."""
+        self.feedback.append({
+            "timestamp": datetime.now().isoformat(),
+            "query": query[:200],
+            "rating": rating,
+            "comment": comment
+        })
+
+    def get_dashboard(self) -> dict:
+        """Generate a monitoring dashboard summary."""
+        now = datetime.now()
+        last_24h = now - timedelta(hours=24)
+
+        recent_queries = [
+            q for q in self.queries
+            if datetime.fromisoformat(q["timestamp"]) > last_24h
+        ]
+        recent_errors = [
+            e for e in self.errors
+            if datetime.fromisoformat(e["timestamp"]) > last_24h
+        ]
+        recent_feedback = [
+            f for f in self.feedback
+            if datetime.fromisoformat(f["timestamp"]) > last_24h
+        ]
+        recent_tools = [
+            t for t in self.tool_calls
+            if datetime.fromisoformat(t["timestamp"]) > last_24h
+        ]
+
+        latencies = [q["latency_ms"] for q in recent_queries]
+        tokens = [q["tokens"] for q in recent_queries]
+        ratings = [f["rating"] for f in recent_feedback]
+
+        return {
+            "period": "Last 24 hours",
+            "total_queries": len(recent_queries),
+            "total_errors": len(recent_errors),
+            "error_rate": (
+                f"{len(recent_errors)/len(recent_queries)*100:.1f}%"
+                if recent_queries else "N/A"
+            ),
+            "avg_latency_ms": (
+                round(sum(latencies) / len(latencies))
+                if latencies else 0
+            ),
+            "p95_latency_ms": (
+                round(sorted(latencies)[int(len(latencies) * 0.95)])
+                if latencies else 0
+            ),
+            "total_tokens": sum(tokens),
+            "estimated_cost_usd": round(sum(tokens) * 0.000005, 2),
+            "avg_rating": (
+                round(sum(ratings) / len(ratings), 1)
+                if ratings else "No feedback"
+            ),
+            "tool_calls": len(recent_tools),
+            "tool_success_rate": (
+                f"{sum(1 for t in recent_tools if t['success'])"
+                f"/{len(recent_tools)}"
+                if recent_tools else "No tool calls"
+            ),
+            "low_rating_queries": [
+                f["query"] for f in recent_feedback if f["rating"] <= 2
+            ]
+        }
+
+
+class ProductionAssistant:
+    """Production-ready assistant with monitoring and guardrails."""
+
+    def __init__(self, system_prompt: str, tools: list[dict],
+                 model: str = "gpt-4o"):
+        self.model = model
+        self.tools = tools
+        self.system_prompt = system_prompt
+        self.memory = ConversationMemory()
+        self.metrics = AssistantMetrics()
+
+        # Guardrails
+        self.max_tokens_per_query = 4000
+        self.max_tool_calls_per_turn = 5
+        self.blocked_topics = ["salary", "personal_data", "credentials"]
+
+    def chat(self, user_message: str, user_id: str = "default") -> str:
+        """Process a user message with full monitoring."""
+        start_time = time.time()
+
+        try:
+            # Input guardrails
+            if self._check_blocked_topics(user_message):
+                return ("I cannot assist with that topic. Please contact "
+                        "your manager or HR directly.")
+
+            # Add to memory
+            self.memory.add_message("user", user_message)
+            self.memory.extract_facts(user_message)
+
+            # Build context
+            messages = self.memory.get_context_messages(
+                self.system_prompt
+            )
+
+            # Call LLM with tool support
+            response = client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                tools=self.tools if self.tools else None,
+                temperature=0.3,
+                max_tokens=self.max_tokens_per_query
+            )
+
+            message = response.choices[0].message
+            tool_call_count = 0
+
+            # Handle tool calls with limits
+            while (message.tool_calls
+                   and tool_call_count < self.max_tool_calls_per_turn):
+                for tool_call in message.tool_calls:
+                    tool_start = time.time()
+                    try:
+                        result = execute_tool(
+                            tool_call.function.name,
+                            json.loads(tool_call.function.arguments)
+                        )
+                        self.metrics.log_tool_call(
+                            tool_call.function.name, True,
+                            int((time.time() - tool_start) * 1000)
+                        )
+                    except Exception as e:
+                        result = json.dumps({"error": str(e)})
+                        self.metrics.log_tool_call(
+                            tool_call.function.name, False,
+                            int((time.time() - tool_start) * 1000)
+                        )
+                    tool_call_count += 1
+
+                # Get next response after tool results
+                response = client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    tools=self.tools,
+                    temperature=0.3
+                )
+                message = response.choices[0].message
+
+            assistant_response = message.content or ""
+            self.memory.add_message("assistant", assistant_response)
+
+            # Log metrics
+            latency_ms = int((time.time() - start_time) * 1000)
+            self.metrics.log_query(
+                user_message, assistant_response,
+                latency_ms, response.usage.total_tokens,
+                self.model
+            )
+
+            return assistant_response
+
+        except Exception as e:
+            self.metrics.log_error(
+                type(e).__name__, str(e), user_message
+            )
+            return ("I encountered an unexpected error. The issue has "
+                    "been logged. Please try rephrasing your question "
+                    "or contact support if the problem persists.")
+
+    def _check_blocked_topics(self, message: str) -> bool:
+        """Check if the message touches blocked topics."""
+        message_lower = message.lower()
+        return any(topic in message_lower
+                   for topic in self.blocked_topics)
+
+    def get_monitoring_dashboard(self) -> str:
+        """Get a formatted monitoring dashboard."""
+        dashboard = self.metrics.get_dashboard()
+        output = "\nAssistant Monitoring Dashboard\n"
+        output += "=" * 40 + "\n"
+        for key, value in dashboard.items():
+            if key != "low_rating_queries":
+                output += f"  {key}: {value}\n"
+        if dashboard.get("low_rating_queries"):
+            output += "\nLow-rated queries requiring attention:\n"
+            for q in dashboard["low_rating_queries"]:
+                output += f"  - {q}\n"
+        return output
+</code></pre>
+
+      <p>Key monitoring dimensions for production assistants:</p>
+
+      <table>
+        <thead>
+          <tr><th>Dimension</th><th>Metrics</th><th>Alert Threshold</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Reliability</td><td>Error rate, timeout rate</td><td>Error rate &gt; 5%</td></tr>
+          <tr><td>Performance</td><td>P50/P95 latency, tokens per query</td><td>P95 latency &gt; 10s</td></tr>
+          <tr><td>Quality</td><td>User rating, feedback sentiment</td><td>Avg rating &lt; 3.5</td></tr>
+          <tr><td>Cost</td><td>Tokens per day, cost per query</td><td>Daily cost &gt; budget threshold</td></tr>
+          <tr><td>Usage</td><td>Queries per day, unique users, peak hours</td><td>Traffic spike &gt; 3x normal</td></tr>
+          <tr><td>Tools</td><td>Tool call success rate, tool latency</td><td>Tool failure rate &gt; 10%</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-warning">
+        <strong>Monitor quality, not just uptime.</strong> A traditional web service is either up or down. An AI assistant can be "up" while returning increasingly poor answers — for example, if the model provider changes the model version, if source documents become stale, or if user queries shift to topics outside the assistant's training. Schedule weekly reviews of low-rated queries and randomly sample 10 conversations per week for manual quality review.
+      </div>
+    </section>
+
+    <!-- Project -->
+    <section class="project">
+      <h2>Project: BA/QA Assistant</h2>
+
+      <p>Build a custom AI assistant that supports the full BA/QA workflow: gathering requirements, generating user stories, creating test cases, querying project status, and producing reports. The assistant should maintain conversation memory, call external tools, and follow a structured workflow.</p>
+
+      <h3>Project Requirements</h3>
+      <ol>
+        <li>Implement a workflow state machine with at least 5 states (gather context, analyze, generate artifacts, review, export)</li>
+        <li>Support at least 3 tools: search existing stories, create new stories, query test results</li>
+        <li>Implement conversation memory with summarization for long sessions</li>
+        <li>Build a multi-step reasoning chain that goes from raw input to user stories to test cases</li>
+        <li>Add confirmation prompts before any write operations</li>
+        <li>Include a monitoring dashboard showing query count, latency, and error rate</li>
+        <li>Handle errors gracefully with user-friendly messages and recovery suggestions</li>
+      </ol>
+
+      <h3>Starter Code</h3>
+
+      <pre><code class="language-python">from openai import OpenAI
+import json
+
+client = OpenAI()
+
+class BAQAAssistant:
+    """Full-featured BA/QA assistant with workflow,
+    tools, and memory."""
+
+    def __init__(self, project_key: str, model: str = "gpt-4o"):
+        self.project_key = project_key
+        self.model = model
+        self.workflow = requirements_workflow  # From Section 2
+        self.memory = ConversationMemory()
+        self.metrics = AssistantMetrics()
+        self.chain = self._build_chain()
+
+    def _build_chain(self) -> ReasoningChain:
+        """Set up the requirements-to-tests reasoning chain."""
+        chain = ReasoningChain(self.model)
+        chain.add_step("extract", "...", output_format="json")
+        chain.add_step("stories", "...", depends_on=["extract"],
+                       output_format="json")
+        chain.add_step("tests", "...", depends_on=["stories"],
+                       output_format="json")
+        chain.add_step("summary", "...",
+                       depends_on=["extract", "stories", "tests"])
+        return chain
+
+    def _get_system_prompt(self) -> str:
+        """Get the system prompt for the current workflow state."""
+        state = self.workflow.current_state.value
+        prompts = {
+            "init": f"""You are a BA/QA assistant for project
+{self.project_key}. Greet the user and ask what they need help
+with: requirements gathering, test planning, or project status.""",
+            "gather_context": """You are gathering context for a
+requirements analysis. Ask about: project scope, stakeholders,
+constraints, deadlines, and any existing documentation.""",
+            "analyze_input": """Analyze the provided input to extract
+requirements. Be thorough — identify functional requirements,
+non-functional requirements, assumptions, and risks.""",
+            "generate_artifacts": """Generate user stories and test
+cases from the analyzed requirements. Follow standard formats
+and include acceptance criteria.""",
+            "review": """Present the generated artifacts for review.
+Accept feedback and be ready to modify specific items.""",
+            "export": """Export approved artifacts to Jira and
+Confluence. Confirm each action before executing.""",
+        }
+        return prompts.get(state, prompts["init"])
+
+    def chat(self, message: str) -> str:
+        """Process a user message within the workflow."""
+        import time
+        start = time.time()
+
+        self.memory.add_message("user", message)
+        messages = self.memory.get_context_messages(
+            self._get_system_prompt()
+        )
+
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            tools=TOOLS,
+            temperature=0.3
+        )
+
+        reply = response.choices[0].message.content or ""
+        self.memory.add_message("assistant", reply)
+
+        self.metrics.log_query(
+            message, reply,
+            int((time.time() - start) * 1000),
+            response.usage.total_tokens,
+            self.model
+        )
+
+        return reply
+
+    def analyze_transcript(self, transcript: str) -> dict:
+        """Run the full analysis chain on a transcript."""
+        self.workflow.transition_to(WorkflowState.ANALYZE_INPUT)
+        result = self.chain.execute(transcript)
+        self.workflow.transition_to(
+            WorkflowState.GENERATE_ARTIFACTS
+        )
+        return result
+
+    def status(self) -> str:
+        """Show current assistant status."""
+        return f"""
+BA/QA Assistant Status
+======================
+Project: {self.project_key}
+Workflow state: {self.workflow.current_state.value}
+Messages in context: {len(self.memory.messages)}
+Known facts: {len(self.memory.facts)}
+Session: {self.memory.session_id}
+
+{self.metrics.get_dashboard()}
+"""
+
+
+# Usage
+if __name__ == "__main__":
+    assistant = BAQAAssistant(project_key="ECOM")
+
+    print(assistant.chat("Hi, I need to analyze a stakeholder "
+                         "interview for the checkout redesign."))
+    print(assistant.chat("The stakeholders want: faster checkout, "
+                         "guest checkout option, saved payment "
+                         "methods, and order tracking."))
+
+    # Run full analysis
+    result = assistant.analyze_transcript(
+        "Interview transcript content here..."
+    )
+
+    print(assistant.status())
+</code></pre>
+
+      <h3>Extension Ideas</h3>
+      <ul>
+        <li>Add a Slack or Microsoft Teams integration so team members can interact with the assistant in their usual chat tool</li>
+        <li>Implement a web UI with Streamlit that shows the workflow state, memory contents, and monitoring dashboard side-by-side with the chat</li>
+        <li>Add role-based access: BAs can create stories, QAs can generate test cases, managers can view reports but not modify artifacts</li>
+        <li>Build a feedback loop: when users correct the assistant, store corrections and include them in future system prompts as examples</li>
+        <li>Implement session handoff: allow a user to share their assistant session with a colleague, including all context and memory</li>
+      </ul>
+    </section>
+
+    <!-- Summary -->
+    <section class="summary">
+      <h2>Summary</h2>
+      <ul class="key-takeaways">
+        <li><strong>Custom assistants outperform one-off prompts</strong> for recurring workflows because they retain context, call external tools, and follow structured processes — eliminating the copy-paste overhead between the LLM and external systems.</li>
+        <li><strong>Design workflows as state machines</strong> with explicit states, transitions, and available tools per state. This prevents the assistant from skipping steps or going off-track.</li>
+        <li><strong>Multi-step reasoning chains</strong> break complex tasks (transcript to stories to test cases) into focused subtasks, improving quality and debuggability while enabling step-by-step validation.</li>
+        <li><strong>Tool integration</strong> extends the assistant beyond text generation — reading from Jira, writing to Confluence, querying databases — but always confirm before write operations.</li>
+        <li><strong>Memory management</strong> combines summarization of older messages, persistent fact extraction, and full history for recent context to work within context window limits.</li>
+        <li><strong>UX design for AI assistants</strong> requires transparency (confidence indicators, source citations), progressive disclosure (one step at a time), and escape hatches (undo, override, restart).</li>
+        <li><strong>Production monitoring</strong> must track quality (user ratings, sampled reviews), not just reliability (uptime, error rate), because AI assistants can degrade silently.</li>
+      </ul>
+
+      <div class="exercises">
+        <h3>Exercises</h3>
+        <ol>
+          <li><strong>Workflow design.</strong> Map out a manual workflow you perform weekly (e.g., sprint planning, test reporting, requirements review). Identify the states, transitions, and tools needed. Draw the state machine diagram before writing any code.</li>
+          <li><strong>Tool integration.</strong> Connect the assistant to one real external system (Jira, Confluence, a database, or even a Google Sheet via API). Implement both read and write operations with proper confirmation prompts.</li>
+          <li><strong>Memory stress test.</strong> Have a 50-message conversation with your assistant. Does it remember facts from the beginning? At what point does it lose context? Implement the summarization strategy and test again.</li>
+          <li><strong>Reasoning chain.</strong> Build a 4-step chain for your domain. Run it on 5 different inputs. Track where errors occur and add validation between steps to catch them.</li>
+          <li><strong>UX audit.</strong> Have three colleagues use your assistant for 15 minutes each without guidance. Note where they get confused, frustrated, or misled. Redesign the UX based on their feedback.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Footer Nav -->
+    <nav class="chapter-footer">
+      <a href="ch13-rag-enterprise.html">&larr; RAG for Enterprise</a>
+      <span>Part 4 of 5</span>
+      <a href="ch15-evaluating-outputs.html">Evaluating Outputs &rarr;</a>
+    </nav>
+  </main>
+  <script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

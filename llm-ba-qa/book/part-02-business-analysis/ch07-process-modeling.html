@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 7 — Process Modeling and Optimization | LLMs for Business &amp; Quality Analysts</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="ch06-user-story-generation.html" class="nav-prev">User Story Generation</a>
+    <span class="nav-title">Part 2 — Business Analysis with LLMs</span>
+    <a href="ch08-stakeholder-communication.html" class="nav-next">Stakeholder Communication</a>
+  </nav>
+
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 2 — Business Analysis with LLMs</span>
+      <h1>Chapter 7: Process Modeling and Optimization</h1>
+      <p class="chapter-intro">Every organisation runs on processes, yet most processes are poorly documented, inconsistently followed, and ripe for improvement. In this chapter you will learn how to use LLMs to discover processes from documentation, generate formal BPMN models, identify bottlenecks, and propose data-driven optimisations.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~25 min</span>
+        <span>Project: Process Discovery Engine</span>
+      </div>
+    </header>
+
+    <!-- ──────────────────────────────────────────── -->
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>Core concepts of business process modeling and the BPMN 2.0 standard</li>
+        <li>How to extract process descriptions from unstructured documents using LLMs</li>
+        <li>Generating BPMN-compliant process definitions from natural language</li>
+        <li>Automated bottleneck detection using LLM analysis of process data</li>
+        <li>Techniques for generating process improvement recommendations</li>
+        <li>As-Is to To-Be process mapping with AI assistance</li>
+        <li>Change impact analysis for process modifications</li>
+      </ul>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>7.1 Understanding Business Processes</h2>
+
+      <p>A business process is a sequence of activities that transforms inputs into outputs to deliver value to a customer or stakeholder. Processes range from simple (expense approval) to complex (end-to-end order fulfilment spanning multiple departments and systems).</p>
+
+      <h3>Process Hierarchy</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Level</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>L0</td>
+            <td>Value Chain</td>
+            <td>End-to-end enterprise capabilities</td>
+            <td>Order to Cash</td>
+          </tr>
+          <tr>
+            <td>L1</td>
+            <td>Process Group</td>
+            <td>Major functional processes</td>
+            <td>Sales, Fulfilment, Billing</td>
+          </tr>
+          <tr>
+            <td>L2</td>
+            <td>Process</td>
+            <td>Defined sequence of activities</td>
+            <td>Order Processing</td>
+          </tr>
+          <tr>
+            <td>L3</td>
+            <td>Sub-Process</td>
+            <td>Detailed steps within a process</td>
+            <td>Credit Check, Inventory Allocation</td>
+          </tr>
+          <tr>
+            <td>L4</td>
+            <td>Task</td>
+            <td>Atomic unit of work</td>
+            <td>Verify customer address</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>BPMN 2.0 Essentials</h3>
+
+      <p>BPMN (Business Process Model and Notation) is the industry standard for visually representing business processes. The core elements are:</p>
+
+      <ul>
+        <li><strong>Events:</strong> Start (circle), Intermediate (double circle), End (thick circle) &mdash; represent triggers and outcomes.</li>
+        <li><strong>Activities:</strong> Tasks (rounded rectangles) and Sub-Processes (rounded rectangles with a "+" marker).</li>
+        <li><strong>Gateways:</strong> Exclusive (X), Parallel (+), Inclusive (O) &mdash; control flow branching and merging.</li>
+        <li><strong>Flows:</strong> Sequence flows (solid arrows), Message flows (dashed arrows), Associations (dotted lines).</li>
+        <li><strong>Swimlanes:</strong> Pools and Lanes that represent participants and departments.</li>
+      </ul>
+
+      <div class="callout callout-info">
+        <strong>Why BPMN Matters:</strong> BPMN is not just documentation. Modern BPM engines (Camunda, jBPM, Flowable) can directly execute BPMN XML definitions. An LLM that generates valid BPMN produces artifacts that are both human-readable and machine-executable.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>7.2 Process Discovery from Documents</h2>
+
+      <p>Process discovery is the act of understanding how work actually gets done. Traditional approaches involve interviews, workshops, and process mining from system logs. LLMs add a new capability: extracting process descriptions from the text-heavy documents that already exist in every organisation &mdash; SOPs, training manuals, email threads, and audit reports.</p>
+
+      <h3>Process Extraction Prompt</h3>
+
+      <pre><code class="language-python">
+import openai, json, textwrap
+
+PROCESS_DISCOVERY_PROMPT = textwrap.dedent("""\
+    You are a business process analyst. Read the following document
+    and extract all business processes described or implied.
+
+    For each process, provide:
+      - process_id: PROC-001, PROC-002, ...
+      - name: descriptive process name
+      - trigger: what initiates the process
+      - actors: list of roles/departments involved
+      - steps: ordered list of activities, each with:
+          - step_number: sequential integer
+          - actor: who performs this step
+          - action: what is done
+          - inputs: what is needed
+          - outputs: what is produced
+          - decision_point: true/false (is this a gateway?)
+          - conditions: if decision_point is true, the branching conditions
+      - end_state: what constitutes process completion
+      - exceptions: known exception paths
+      - estimated_duration: if mentioned or inferable
+
+    DOCUMENT:
+    {document_text}
+
+    Return a JSON array of process objects.
+""")
+
+
+def discover_processes(document_text: str) -> list[dict]:
+    """Extract business process descriptions from unstructured text."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.1,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": "You are a business process analyst."},
+            {"role": "user", "content": PROCESS_DISCOVERY_PROMPT.format(
+                document_text=document_text
+            )},
+        ],
+    )
+    result = json.loads(response.choices[0].message.content)
+    if isinstance(result, dict):
+        result = next(iter(result.values()))
+    return result
+      </code></pre>
+
+      <h3>Validating Discovered Processes</h3>
+
+      <p>Extracted processes should be validated against these quality checks:</p>
+
+      <ul>
+        <li><strong>Completeness:</strong> Does every process have a clear start trigger and end state?</li>
+        <li><strong>Consistency:</strong> Are actor names consistent across processes? (e.g., "Finance Dept" vs. "Accounting Team")</li>
+        <li><strong>Granularity:</strong> Are all processes at roughly the same level of detail?</li>
+        <li><strong>Coverage:</strong> Do the extracted processes cover the entire scope of the source document?</li>
+      </ul>
+
+      <pre><code class="language-python">
+def validate_processes(processes: list[dict]) -> dict:
+    """Run quality checks on discovered processes."""
+    issues = []
+    all_actors = set()
+
+    for proc in processes:
+        # Check completeness
+        if not proc.get("trigger"):
+            issues.append({"process": proc["process_id"], "issue": "Missing trigger"})
+        if not proc.get("end_state"):
+            issues.append({"process": proc["process_id"], "issue": "Missing end state"})
+        if len(proc.get("steps", [])) < 2:
+            issues.append({"process": proc["process_id"], "issue": "Too few steps (< 2)"})
+
+        # Collect actors for consistency check
+        for step in proc.get("steps", []):
+            all_actors.add(step.get("actor", "Unknown"))
+
+    # Check for actor name inconsistencies (simple similarity check)
+    actor_list = sorted(all_actors)
+    for i, a1 in enumerate(actor_list):
+        for a2 in actor_list[i+1:]:
+            if a1.lower().replace(" ", "") == a2.lower().replace(" ", "") and a1 != a2:
+                issues.append({
+                    "process": "ALL",
+                    "issue": f"Inconsistent actor names: '{a1}' vs '{a2}'"
+                })
+
+    return {
+        "total_processes": len(processes),
+        "total_steps": sum(len(p.get("steps", [])) for p in processes),
+        "unique_actors": len(all_actors),
+        "issues": issues,
+        "quality_score": max(0, 100 - len(issues) * 10),
+    }
+      </code></pre>
+
+      <div class="callout callout-tip">
+        <strong>Tip:</strong> Run process discovery on multiple documents from the same department, then ask the LLM to reconcile the results. Different documents often describe the same process at different levels of detail or with different terminology. The reconciliation step produces a more complete picture than any single source.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>7.3 BPMN Generation with LLMs</h2>
+
+      <p>Once a process is described in structured JSON, the next step is generating a formal BPMN 2.0 XML definition that can be imported into modelling tools (Camunda Modeler, Signavio, Bizagi) or executed by a BPM engine.</p>
+
+      <h3>BPMN XML Generation</h3>
+
+      <pre><code class="language-python">
+BPMN_PROMPT = textwrap.dedent("""\
+    Convert the following process description into valid BPMN 2.0 XML.
+
+    RULES:
+    1. Use proper BPMN 2.0 namespace declarations.
+    2. Include start event, end event, and all intermediate steps.
+    3. Use exclusive gateways for decision points.
+    4. Use parallel gateways where steps can occur simultaneously.
+    5. Assign each task to the correct lane within a pool.
+    6. Include sequence flows connecting all elements.
+    7. The XML must be valid and importable into Camunda Modeler.
+
+    PROCESS:
+    {process_json}
+
+    Return only the XML. No markdown code fences.
+""")
+
+
+def generate_bpmn_xml(process: dict) -> str:
+    """Generate BPMN 2.0 XML from a structured process description."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.0,
+        messages=[
+            {"role": "system", "content": "You generate valid BPMN 2.0 XML."},
+            {"role": "user", "content": BPMN_PROMPT.format(
+                process_json=json.dumps(process, indent=2)
+            )},
+        ],
+    )
+    xml_content = response.choices[0].message.content
+    # Strip any accidental markdown fences
+    if xml_content.startswith("```"):
+        xml_content = "\n".join(xml_content.split("\n")[1:-1])
+    return xml_content
+      </code></pre>
+
+      <h3>Validating the Generated BPMN</h3>
+
+      <pre><code class="language-python">
+from lxml import etree
+
+BPMN_SCHEMA_URL = "https://www.omg.org/spec/BPMN/20100501/BPMN20.xsd"
+
+def validate_bpmn(xml_string: str) -> dict:
+    """Validate BPMN XML against the BPMN 2.0 schema."""
+    try:
+        doc = etree.fromstring(xml_string.encode("utf-8"))
+
+        # Basic structural checks (schema validation requires the XSD file)
+        namespaces = {"bpmn": "http://www.omg.org/spec/BPMN/20100524/MODEL"}
+        start_events = doc.findall(".//bpmn:startEvent", namespaces)
+        end_events = doc.findall(".//bpmn:endEvent", namespaces)
+        tasks = doc.findall(".//bpmn:task", namespaces) + doc.findall(".//bpmn:userTask", namespaces)
+        gateways = (
+            doc.findall(".//bpmn:exclusiveGateway", namespaces)
+            + doc.findall(".//bpmn:parallelGateway", namespaces)
+        )
+        sequence_flows = doc.findall(".//bpmn:sequenceFlow", namespaces)
+
+        return {
+            "valid_xml": True,
+            "start_events": len(start_events),
+            "end_events": len(end_events),
+            "tasks": len(tasks),
+            "gateways": len(gateways),
+            "sequence_flows": len(sequence_flows),
+            "errors": [],
+        }
+    except etree.XMLSyntaxError as e:
+        return {"valid_xml": False, "errors": [str(e)]}
+      </code></pre>
+
+      <div class="callout callout-warning">
+        <strong>Warning:</strong> LLM-generated BPMN XML often has minor issues: missing sequence flow connections, incorrect namespace prefixes, or overlapping diagram coordinates. Always validate the XML programmatically and visually inspect it in a modelling tool before sharing with stakeholders.
+      </div>
+
+      <h3>A Simpler Alternative: Mermaid Diagrams</h3>
+
+      <p>If full BPMN XML is overkill for your needs, you can ask the LLM to generate Mermaid flowchart syntax instead. Mermaid diagrams render in GitHub, Notion, Confluence, and many other tools:</p>
+
+      <pre><code class="language-python">
+MERMAID_PROMPT = textwrap.dedent("""\
+    Convert the following process into a Mermaid flowchart diagram.
+    Use proper Mermaid syntax with:
+    - Rounded rectangles for tasks: (Task Name)
+    - Diamonds for decisions: {{Decision?}}
+    - Stadium shapes for start/end: ([Start]) / ([End])
+    - Arrows with labels for conditions
+
+    PROCESS:
+    {process_json}
+""")
+
+
+def generate_mermaid(process: dict) -> str:
+    """Generate a Mermaid flowchart from a process description."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.1,
+        messages=[
+            {"role": "system", "content": "You generate Mermaid diagram syntax."},
+            {"role": "user", "content": MERMAID_PROMPT.format(
+                process_json=json.dumps(process, indent=2)
+            )},
+        ],
+    )
+    return response.choices[0].message.content
+      </code></pre>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>7.4 Bottleneck Identification</h2>
+
+      <p>A bottleneck is any step in a process that limits the throughput of the entire system. Traditional bottleneck analysis uses process mining on event logs. LLMs complement this by analysing qualitative data &mdash; interview transcripts, complaint tickets, and delay reports &mdash; to identify bottlenecks that may not appear in structured logs.</p>
+
+      <h3>Quantitative Bottleneck Analysis</h3>
+
+      <pre><code class="language-python">
+import pandas as pd
+
+def analyse_process_metrics(event_log: pd.DataFrame) -> pd.DataFrame:
+    """Identify bottlenecks from process event log data.
+
+    Expected columns: case_id, activity, start_time, end_time, resource
+    """
+    # Calculate duration for each activity instance
+    event_log["duration_hours"] = (
+        (event_log["end_time"] - event_log["start_time"]).dt.total_seconds() / 3600
+    )
+
+    # Aggregate metrics per activity
+    metrics = event_log.groupby("activity").agg(
+        avg_duration=("duration_hours", "mean"),
+        median_duration=("duration_hours", "median"),
+        p95_duration=("duration_hours", lambda x: x.quantile(0.95)),
+        case_count=("case_id", "nunique"),
+        resource_count=("resource", "nunique"),
+    ).reset_index()
+
+    # Calculate utilisation and wait ratios
+    metrics["throughput_per_resource"] = metrics["case_count"] / metrics["resource_count"]
+    metrics["variability"] = metrics["p95_duration"] / metrics["median_duration"]
+
+    # Flag bottlenecks: high duration + high variability + low resource count
+    metrics["bottleneck_score"] = (
+        metrics["avg_duration"].rank(pct=True) * 0.4
+        + metrics["variability"].rank(pct=True) * 0.3
+        + (1 - metrics["resource_count"].rank(pct=True)) * 0.3
+    )
+
+    return metrics.sort_values("bottleneck_score", ascending=False)
+      </code></pre>
+
+      <h3>Qualitative Bottleneck Analysis with LLMs</h3>
+
+      <pre><code class="language-python">
+BOTTLENECK_PROMPT = textwrap.dedent("""\
+    Analyse the following process description and metrics to identify
+    bottlenecks. For each bottleneck, provide:
+
+      - activity: the bottleneck step
+      - evidence: what data or text supports this finding
+      - root_cause: likely root cause(s)
+      - impact: how this bottleneck affects downstream steps
+      - severity: CRITICAL | HIGH | MEDIUM | LOW
+
+    PROCESS DESCRIPTION:
+    {process_json}
+
+    PERFORMANCE METRICS:
+    {metrics_json}
+
+    QUALITATIVE FEEDBACK (from interviews/tickets):
+    {feedback_text}
+
+    Return a JSON array of bottleneck objects.
+""")
+
+
+def identify_bottlenecks(
+    process: dict,
+    metrics: list[dict],
+    feedback: str = "",
+) -> list[dict]:
+    """Combine quantitative metrics and qualitative feedback for bottleneck analysis."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.1,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": "You are a process improvement specialist."},
+            {"role": "user", "content": BOTTLENECK_PROMPT.format(
+                process_json=json.dumps(process, indent=2),
+                metrics_json=json.dumps(metrics, indent=2),
+                feedback_text=feedback or "No qualitative feedback available.",
+            )},
+        ],
+    )
+    result = json.loads(response.choices[0].message.content)
+    if isinstance(result, dict):
+        result = next(iter(result.values()))
+    return result
+      </code></pre>
+
+      <div class="callout callout-info">
+        <strong>Key Insight:</strong> The most valuable bottleneck insights often come from combining quantitative and qualitative data. A step with average metrics might still be a bottleneck if interview data reveals it causes frustration, errors, or workarounds that are not captured in the event log.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>7.5 Process Optimization Suggestions</h2>
+
+      <p>Once bottlenecks are identified, the next step is generating improvement recommendations. LLMs can propose optimisations based on established process improvement methodologies: Lean (eliminate waste), Six Sigma (reduce variation), and automation-first strategies.</p>
+
+      <h3>Optimization Recommendation Engine</h3>
+
+      <pre><code class="language-python">
+OPTIMIZATION_PROMPT = textwrap.dedent("""\
+    You are a process improvement consultant. Given the process
+    description and identified bottlenecks, propose specific,
+    actionable optimisations.
+
+    For each recommendation, provide:
+      - opt_id: OPT-001, OPT-002, ...
+      - target_activity: the step being improved
+      - category: ELIMINATE | AUTOMATE | SIMPLIFY | PARALLELIZE | OUTSOURCE | STANDARDIZE
+      - description: detailed description of the change
+      - expected_impact: quantified improvement estimate
+      - implementation_effort: LOW | MEDIUM | HIGH
+      - risk: what could go wrong
+      - prerequisites: what must be in place first
+      - roi_estimate: qualitative ROI assessment
+
+    PROCESS:
+    {process_json}
+
+    BOTTLENECKS:
+    {bottlenecks_json}
+
+    Prioritise recommendations by impact-to-effort ratio.
+    Return a JSON array.
+""")
+
+
+def generate_optimizations(process: dict, bottlenecks: list[dict]) -> list[dict]:
+    """Generate prioritised process optimization recommendations."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.3,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": "You are a Lean Six Sigma Black Belt consultant."},
+            {"role": "user", "content": OPTIMIZATION_PROMPT.format(
+                process_json=json.dumps(process, indent=2),
+                bottlenecks_json=json.dumps(bottlenecks, indent=2),
+            )},
+        ],
+    )
+    result = json.loads(response.choices[0].message.content)
+    if isinstance(result, dict):
+        result = next(iter(result.values()))
+    return result
+      </code></pre>
+
+      <h3>Optimization Categories Explained</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Description</th>
+            <th>When to Apply</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Eliminate</td>
+            <td>Remove the step entirely</td>
+            <td>Step adds no value (pure waste)</td>
+            <td>Remove redundant approval for orders under $100</td>
+          </tr>
+          <tr>
+            <td>Automate</td>
+            <td>Replace manual work with software</td>
+            <td>Step is rule-based and repetitive</td>
+            <td>Auto-generate invoices from order data</td>
+          </tr>
+          <tr>
+            <td>Simplify</td>
+            <td>Reduce complexity of the step</td>
+            <td>Step has unnecessary sub-steps or forms</td>
+            <td>Replace 12-field form with 4-field smart form</td>
+          </tr>
+          <tr>
+            <td>Parallelise</td>
+            <td>Run steps concurrently</td>
+            <td>Steps are independent</td>
+            <td>Run credit check and inventory check simultaneously</td>
+          </tr>
+          <tr>
+            <td>Outsource</td>
+            <td>Delegate to a specialist team or service</td>
+            <td>Step requires expertise not core to the business</td>
+            <td>Use a third-party identity verification service</td>
+          </tr>
+          <tr>
+            <td>Standardise</td>
+            <td>Create a consistent procedure</td>
+            <td>Step is done differently by different people</td>
+            <td>Create a standard checklist for quality review</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-tip">
+        <strong>Tip:</strong> Present optimisations on a 2x2 impact-effort matrix. High-impact, low-effort items are "quick wins" that build momentum. Schedule them first to demonstrate value before tackling larger changes.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>7.6 As-Is to To-Be Mapping</h2>
+
+      <p>As-Is/To-Be mapping is the standard BA technique for visualising the current state of a process alongside the proposed future state. LLMs can generate the To-Be model by applying the optimisation recommendations to the As-Is process.</p>
+
+      <h3>Generating the To-Be Process</h3>
+
+      <pre><code class="language-python">
+TO_BE_PROMPT = textwrap.dedent("""\
+    You are redesigning a business process. Given the current (As-Is)
+    process and a set of approved optimisations, produce the future
+    (To-Be) process.
+
+    OUTPUT FORMAT:
+    Return a JSON object with:
+      - to_be_process: same structure as the As-Is process but reflecting
+        all applied optimisations
+      - changes_applied: list of changes, each with:
+          - opt_id: the optimisation that drove this change
+          - as_is_step: the original step(s) affected
+          - to_be_step: the new step(s) (or "REMOVED" if eliminated)
+          - change_type: ADDED | MODIFIED | REMOVED | REORDERED
+      - metrics_comparison: estimated before/after for:
+          - total_steps
+          - estimated_cycle_time
+          - manual_steps_count
+          - decision_points
+
+    AS-IS PROCESS:
+    {as_is_json}
+
+    APPROVED OPTIMISATIONS:
+    {optimizations_json}
+""")
+
+
+def generate_to_be_process(as_is: dict, optimizations: list[dict]) -> dict:
+    """Generate a To-Be process by applying optimisations to the As-Is model."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.2,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": "You are a process redesign specialist."},
+            {"role": "user", "content": TO_BE_PROMPT.format(
+                as_is_json=json.dumps(as_is, indent=2),
+                optimizations_json=json.dumps(optimizations, indent=2),
+            )},
+        ],
+    )
+    return json.loads(response.choices[0].message.content)
+      </code></pre>
+
+      <h3>Comparison Report</h3>
+
+      <pre><code class="language-python">
+def format_comparison_report(mapping_result: dict) -> str:
+    """Format an As-Is vs To-Be comparison report."""
+    metrics = mapping_result.get("metrics_comparison", {})
+    changes = mapping_result.get("changes_applied", [])
+
+    lines = [
+        "# As-Is vs To-Be Process Comparison",
+        "",
+        "## Metrics Summary",
+        f"| Metric | As-Is | To-Be | Change |",
+        f"|--------|-------|-------|--------|",
+    ]
+
+    for key, label in [
+        ("total_steps", "Total Steps"),
+        ("estimated_cycle_time", "Cycle Time"),
+        ("manual_steps_count", "Manual Steps"),
+        ("decision_points", "Decision Points"),
+    ]:
+        before = metrics.get(f"{key}_before", metrics.get(key, {}).get("before", "N/A"))
+        after = metrics.get(f"{key}_after", metrics.get(key, {}).get("after", "N/A"))
+        lines.append(f"| {label} | {before} | {after} | -- |")
+
+    lines.extend(["", "## Changes Applied", ""])
+    for change in changes:
+        lines.append(f"- **{change['change_type']}**: {change.get('as_is_step', 'N/A')} -> {change.get('to_be_step', 'N/A')} (from {change.get('opt_id', 'N/A')})")
+
+    return "\n".join(lines)
+      </code></pre>
+
+      <div class="callout callout-info">
+        <strong>Presentation Tip:</strong> When presenting As-Is/To-Be to executives, use a side-by-side visual with the As-Is on the left and To-Be on the right. Highlight removed steps in red, new steps in green, and modified steps in amber. The metrics comparison table at the bottom provides the business case.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section>
+      <h2>7.7 Change Impact Analysis</h2>
+
+      <p>Before implementing process changes, you must understand the ripple effects. A change impact analysis identifies which systems, roles, policies, and training materials are affected by a process modification.</p>
+
+      <h3>Impact Analysis Framework</h3>
+
+      <pre><code class="language-python">
+IMPACT_PROMPT = textwrap.dedent("""\
+    Perform a change impact analysis for the following process changes.
+
+    For each change, assess impact across these dimensions:
+      - people: roles affected, training needs, headcount implications
+      - process: upstream/downstream processes affected
+      - technology: systems, integrations, and data flows impacted
+      - policy: regulations, SOPs, or governance documents that need updating
+      - risk: new risks introduced by the change
+
+    For each impacted item, provide:
+      - dimension: PEOPLE | PROCESS | TECHNOLOGY | POLICY | RISK
+      - item: what is affected
+      - impact_level: HIGH | MEDIUM | LOW
+      - description: how it is affected
+      - action_required: what must be done to address the impact
+
+    CURRENT PROCESS:
+    {as_is_json}
+
+    PROPOSED CHANGES:
+    {changes_json}
+
+    ORGANISATIONAL CONTEXT:
+    {org_context}
+
+    Return a JSON object with: total_impacts (int), high_impacts (int),
+    impacts (array), readiness_score (0-100), go_no_go_recommendation (string).
+""")
+
+
+def change_impact_analysis(
+    as_is: dict,
+    changes: list[dict],
+    org_context: str = "",
+) -> dict:
+    """Perform change impact analysis across people, process, technology, policy, and risk."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.2,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": "You are an organisational change management specialist."},
+            {"role": "user", "content": IMPACT_PROMPT.format(
+                as_is_json=json.dumps(as_is, indent=2),
+                changes_json=json.dumps(changes, indent=2),
+                org_context=org_context or "No additional context provided.",
+            )},
+        ],
+    )
+    return json.loads(response.choices[0].message.content)
+      </code></pre>
+
+      <h3>Impact Heatmap</h3>
+
+      <p>Visualise impact levels across dimensions and changes using a heatmap:</p>
+
+      <pre><code class="language-python">
+def print_impact_heatmap(impacts: list[dict]) -> None:
+    """Print a text-based impact heatmap."""
+    dimensions = ["PEOPLE", "PROCESS", "TECHNOLOGY", "POLICY", "RISK"]
+    level_symbol = {"HIGH": "!!!", "MEDIUM": " ! ", "LOW": " . "}
+
+    # Group by dimension
+    by_dimension = {d: [] for d in dimensions}
+    for impact in impacts:
+        dim = impact.get("dimension", "UNKNOWN")
+        if dim in by_dimension:
+            by_dimension[dim].append(impact)
+
+    print(f"\n{'Dimension':<14} {'Count':>5}  {'High':>4}  {'Med':>4}  {'Low':>4}")
+    print("-" * 45)
+    for dim in dimensions:
+        items = by_dimension[dim]
+        high = sum(1 for i in items if i["impact_level"] == "HIGH")
+        med  = sum(1 for i in items if i["impact_level"] == "MEDIUM")
+        low  = sum(1 for i in items if i["impact_level"] == "LOW")
+        print(f"{dim:<14} {len(items):>5}  {high:>4}  {med:>4}  {low:>4}")
+      </code></pre>
+
+      <div class="callout callout-warning">
+        <strong>Warning:</strong> Change impact analysis is where LLMs are most likely to miss organisation-specific factors &mdash; union agreements, legacy system constraints, cultural resistance patterns. Always supplement LLM output with input from change management practitioners who know the organisation.
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section class="project">
+      <h2>Project: Process Discovery Engine</h2>
+
+      <p>Build an end-to-end tool that takes operational documents as input and produces a complete process analysis package: discovered processes, BPMN diagrams, bottleneck analysis, optimisation recommendations, and a To-Be process model with change impact assessment.</p>
+
+      <h3>Pipeline Architecture</h3>
+
+      <pre><code>
+┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│  SOPs, Manuals,  │────▶│  Process         │────▶│  BPMN / Mermaid  │
+│  Transcripts     │     │  Discovery       │     │  Generator       │
+└──────────────────┘     └──────┬───────────┘     └──────────────────┘
+                                │
+                         ┌──────▼───────────┐     ┌──────────────────┐
+                         │  Bottleneck      │────▶│  Optimization    │
+                         │  Identifier      │     │  Engine          │
+                         └──────────────────┘     └──────┬───────────┘
+                                                         │
+                         ┌──────────────────┐     ┌──────▼───────────┐
+                         │  Change Impact   │◀────│  As-Is / To-Be   │
+                         │  Analyser        │     │  Mapper          │
+                         └──────────────────┘     └──────────────────┘
+      </code></pre>
+
+      <h3>Main Pipeline</h3>
+
+      <pre><code class="language-python">
+# process_engine/main.py
+import json, pathlib, argparse
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Process Discovery Engine")
+    parser.add_argument("input_dir", type=pathlib.Path, help="Directory of source documents")
+    parser.add_argument("--output", type=pathlib.Path, default=pathlib.Path("output"))
+    parser.add_argument("--metrics", type=pathlib.Path, help="Optional event log CSV")
+    args = parser.parse_args()
+
+    args.output.mkdir(exist_ok=True)
+
+    # Step 1: Discover processes from all documents
+    all_processes = []
+    for doc_file in sorted(args.input_dir.glob("*.txt")):
+        text = doc_file.read_text(encoding="utf-8")
+        print(f"[Discovery] Processing {doc_file.name}...")
+        processes = discover_processes(text)
+        all_processes.extend(processes)
+
+    print(f"[Discovery] Found {len(all_processes)} processes across all documents")
+
+    # Step 2: Validate
+    validation = validate_processes(all_processes)
+    print(f"[Validation] Quality score: {validation['quality_score']}/100")
+
+    # Step 3: Generate diagrams for each process
+    for proc in all_processes:
+        mermaid = generate_mermaid(proc)
+        filename = proc["process_id"].lower().replace("-", "_")
+        (args.output / f"{filename}_diagram.md").write_text(mermaid, encoding="utf-8")
+
+    # Step 4: Bottleneck analysis
+    for proc in all_processes:
+        bottlenecks = identify_bottlenecks(proc, [], "")
+        proc["bottlenecks"] = bottlenecks
+
+        # Step 5: Optimisations
+        if bottlenecks:
+            optimizations = generate_optimizations(proc, bottlenecks)
+            proc["optimizations"] = optimizations
+
+            # Step 6: To-Be mapping
+            to_be = generate_to_be_process(proc, optimizations)
+            proc["to_be"] = to_be
+
+            # Step 7: Change impact
+            changes = to_be.get("changes_applied", [])
+            impact = change_impact_analysis(proc, changes)
+            proc["change_impact"] = impact
+
+    # Write final output
+    (args.output / "full_analysis.json").write_text(
+        json.dumps(all_processes, indent=2), encoding="utf-8"
+    )
+    print(f"[Complete] Full analysis written to {args.output}/full_analysis.json")
+
+
+if __name__ == "__main__":
+    main()
+      </code></pre>
+
+      <h3>Extension Ideas</h3>
+
+      <ul>
+        <li>Add process mining integration by reading event logs from CSV and correlating them with discovered processes.</li>
+        <li>Generate an executive presentation deck (Markdown or HTML slides) summarising the top three bottlenecks and recommended optimisations.</li>
+        <li>Build a web interface using Streamlit that allows stakeholders to upload documents and interact with the results.</li>
+      </ul>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <section class="summary">
+      <h2>Summary</h2>
+
+      <ul class="key-takeaways">
+        <li><strong>Process discovery from documents</strong> allows LLMs to extract structured process descriptions from SOPs, manuals, and transcripts &mdash; providing a starting point that would take days to produce manually.</li>
+        <li><strong>BPMN generation</strong> produces machine-readable process models, though validation and visual inspection are essential before use.</li>
+        <li><strong>Bottleneck identification</strong> benefits most from combining quantitative metrics with qualitative LLM analysis of interviews and complaints.</li>
+        <li><strong>Six optimisation categories</strong> (Eliminate, Automate, Simplify, Parallelise, Outsource, Standardise) provide a systematic framework for improvement recommendations.</li>
+        <li><strong>As-Is/To-Be mapping</strong> with LLMs produces a clear before-and-after comparison with estimated metrics improvements.</li>
+        <li><strong>Change impact analysis</strong> across people, process, technology, policy, and risk dimensions ensures that process changes are implemented with full awareness of their ripple effects.</li>
+      </ul>
+
+      <div class="exercises">
+        <h3>Exercises</h3>
+
+        <h4>Conceptual</h4>
+        <ol>
+          <li>Explain why an LLM might discover a process step that does not appear in any single document but is implied by the combination of multiple documents. Give an example.</li>
+          <li>Compare the strengths of process mining (from event logs) versus LLM-based process discovery (from documents). When would you use each, and when would you combine them?</li>
+          <li>A stakeholder objects to the To-Be process because it eliminates their role as an approver. How would you handle this using the change impact analysis framework?</li>
+        </ol>
+
+        <h4>Coding</h4>
+        <ol>
+          <li>Write a function that detects circular dependencies in a set of processes (Process A feeds into Process B, which feeds into Process A).</li>
+          <li>Extend the <code>validate_bpmn</code> function to check that every task has at least one incoming and one outgoing sequence flow (no orphaned tasks).</li>
+          <li>Build a function that generates a process simulation &mdash; given a To-Be process and assumed step durations, calculate the expected end-to-end cycle time for 100 simulated cases.</li>
+        </ol>
+
+        <h4>Design</h4>
+        <ol>
+          <li>Design a "Process Health Dashboard" that monitors live processes and uses LLM analysis to flag emerging bottlenecks before they become critical. Sketch the architecture and data flows.</li>
+          <li>Propose an integration between the Process Discovery Engine and a BPM execution platform (e.g., Camunda). How would you ensure the generated BPMN is deployment-ready?</li>
+        </ol>
+      </div>
+    </section>
+
+    <nav class="chapter-footer">
+      <a href="ch06-user-story-generation.html">&larr; User Story Generation</a>
+      <span>Part 2 of 5</span>
+      <a href="ch08-stakeholder-communication.html">Stakeholder Communication &rarr;</a>
+    </nav>
+  </main>
+
+  <script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

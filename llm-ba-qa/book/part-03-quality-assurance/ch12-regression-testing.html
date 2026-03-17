@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 12 — Regression Testing and Automation | LLMs for Business &amp; Quality Analysts</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="ch11-defect-analysis.html" class="nav-prev">Defect Analysis</a>
+    <span class="nav-title">Part 3 — Quality Assurance with LLMs</span>
+    <a href="../part-04-advanced-patterns/ch13-rag-enterprise.html" class="nav-next">RAG for Enterprise</a>
+  </nav>
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 3 — Quality Assurance with LLMs</span>
+      <h1>Regression Testing and Automation</h1>
+      <p class="chapter-intro">Regression testing is the safety net that catches unintended side effects of every code change. But maintaining that net is expensive — brittle selectors break, test scripts drift from the application, and visual changes slip through pixel-comparison tools. In this chapter, you will use LLMs to generate test scripts, build self-healing selectors, detect visual regressions intelligently, and keep your regression suite healthy as your application evolves.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~25 min</span>
+        <span>Project: Smart Regression Suite</span>
+      </div>
+    </header>
+
+    <!-- Objectives -->
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>How to generate Selenium, Playwright, and pytest test scripts from natural-language test cases using LLMs</li>
+        <li>Building self-healing CSS and XPath selectors that adapt when the UI changes</li>
+        <li>Using LLMs for intelligent visual regression detection that distinguishes intentional redesigns from bugs</li>
+        <li>Automating API regression tests with LLM-generated request/response validation</li>
+        <li>Generating performance test scenarios from production traffic patterns</li>
+        <li>Strategies for maintaining test suites as the application evolves</li>
+      </ul>
+    </section>
+
+    <!-- Section 1 -->
+    <section>
+      <h2>1. The Regression Burden</h2>
+
+      <p>Regression testing consumes a disproportionate share of the QA budget. As applications grow, the regression suite grows with them — but the time available per release stays the same. The math is unforgiving:</p>
+
+      <table>
+        <thead>
+          <tr><th>Release Cycle</th><th>Regression Suite Size</th><th>Execution Time</th><th>Maintenance Effort</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Year 1</td><td>200 tests</td><td>2 hours</td><td>5% of QA time</td></tr>
+          <tr><td>Year 2</td><td>600 tests</td><td>6 hours</td><td>15% of QA time</td></tr>
+          <tr><td>Year 3</td><td>1,500 tests</td><td>14 hours</td><td>30% of QA time</td></tr>
+          <tr><td>Year 5</td><td>4,000+ tests</td><td>36+ hours</td><td>50%+ of QA time</td></tr>
+        </tbody>
+      </table>
+
+      <p>By year five, half the QA team's time goes to <em>maintaining</em> the regression suite — fixing broken selectors, updating test data, adjusting for UI changes — rather than finding new bugs. This is the regression maintenance trap.</p>
+
+      <p>LLMs offer a way out by automating the three most time-consuming parts of regression testing:</p>
+
+      <ol>
+        <li><strong>Test creation:</strong> Generating executable test scripts from natural-language descriptions</li>
+        <li><strong>Test maintenance:</strong> Self-healing selectors that adapt to UI changes without manual updates</li>
+        <li><strong>Test analysis:</strong> Intelligent failure analysis that distinguishes real bugs from test flakiness</li>
+      </ol>
+
+      <div class="callout callout-insight">
+        <strong>The 80/20 rule of regression testing.</strong> Typically, 20% of your regression tests catch 80% of regression bugs. The other 80% of tests exist "just in case" and rarely fail. LLM-based test prioritization (covered in Chapter 9) can identify which tests matter most, letting you run a targeted 30-minute suite instead of the full 14-hour suite for fast feedback.
+      </div>
+    </section>
+
+    <!-- Section 2 -->
+    <section>
+      <h2>2. Test Script Generation</h2>
+
+      <p>The most direct application of LLMs to regression testing is generating executable test scripts from natural-language test cases. Instead of manually translating "verify that clicking the Submit button on the checkout page creates an order" into Selenium code, you let the LLM do the translation.</p>
+
+      <pre><code class="language-python">from openai import OpenAI
+import json
+
+client = OpenAI()
+
+SCRIPT_GEN_PROMPT = """You are an expert test automation engineer.
+Convert the given test case into an executable test script.
+
+Requirements:
+1. Use the specified framework (Playwright, Selenium, or pytest)
+2. Include proper setup and teardown
+3. Use explicit waits, not sleep()
+4. Add meaningful assertions with descriptive error messages
+5. Follow Page Object Model (POM) pattern for UI tests
+6. Include docstrings explaining what each test verifies
+7. Handle common failure modes gracefully (element not found, timeout)
+8. Use data-testid attributes as primary selectors when available,
+   falling back to CSS selectors, then XPath as last resort
+
+Return the complete, runnable test script as a code block."""
+
+def generate_test_script(test_case: dict, framework: str = "playwright",
+                         page_context: str = "") -> str:
+    """Generate an executable test script from a test case description."""
+    prompt = f"""Test case:
+Title: {test_case['title']}
+Preconditions: {test_case.get('preconditions', 'User is logged in')}
+Steps:
+{chr(10).join(f"  {i+1}. {step}" for i, step in enumerate(test_case['steps']))}
+Expected Result: {test_case['expected_result']}
+
+Framework: {framework}
+Page context (HTML structure hints): {page_context if page_context else 'Not provided'}
+
+Generate a complete, runnable test script."""
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": SCRIPT_GEN_PROMPT},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.3
+    )
+    return response.choices[0].message.content
+
+
+# Example: generate a Playwright test
+test_case = {
+    "title": "Successful checkout with credit card",
+    "preconditions": "User is logged in with items in cart",
+    "steps": [
+        "Navigate to the shopping cart page",
+        "Click the 'Proceed to Checkout' button",
+        "Fill in shipping address: 123 Test St, Springfield, IL 62701",
+        "Select 'Credit Card' as payment method",
+        "Enter card number 4111111111111111, expiry 12/28, CVV 123",
+        "Click 'Place Order' button",
+        "Wait for order confirmation page to load"
+    ],
+    "expected_result": "Order confirmation page displays with order number, "
+                       "order total matches cart total, confirmation email "
+                       "is sent within 2 minutes"
+}
+
+script = generate_test_script(test_case, framework="playwright")
+print(script)
+</code></pre>
+
+      <p>The LLM generates a complete Playwright test:</p>
+
+      <pre><code class="language-python">import pytest
+from playwright.sync_api import Page, expect
+
+
+class CheckoutPage:
+    """Page Object for the checkout flow."""
+
+    def __init__(self, page: Page):
+        self.page = page
+        self.checkout_button = page.locator('[data-testid="proceed-checkout"]')
+        self.shipping_street = page.locator('[data-testid="shipping-street"]')
+        self.shipping_city = page.locator('[data-testid="shipping-city"]')
+        self.shipping_state = page.locator('[data-testid="shipping-state"]')
+        self.shipping_zip = page.locator('[data-testid="shipping-zip"]')
+        self.payment_credit_card = page.locator('[data-testid="payment-credit-card"]')
+        self.card_number = page.locator('[data-testid="card-number"]')
+        self.card_expiry = page.locator('[data-testid="card-expiry"]')
+        self.card_cvv = page.locator('[data-testid="card-cvv"]')
+        self.place_order_button = page.locator('[data-testid="place-order"]')
+        self.order_number = page.locator('[data-testid="order-number"]')
+        self.order_total = page.locator('[data-testid="order-total"]')
+
+    def fill_shipping(self, street: str, city: str, state: str, zip_code: str):
+        """Fill in the shipping address form."""
+        self.shipping_street.fill(street)
+        self.shipping_city.fill(city)
+        self.shipping_state.select_option(state)
+        self.shipping_zip.fill(zip_code)
+
+    def fill_payment(self, card: str, expiry: str, cvv: str):
+        """Fill in credit card payment details."""
+        self.payment_credit_card.click()
+        self.card_number.fill(card)
+        self.card_expiry.fill(expiry)
+        self.card_cvv.fill(cvv)
+
+
+class TestCheckout:
+    """Regression tests for the checkout flow."""
+
+    def test_successful_checkout_with_credit_card(self, page: Page):
+        """Verify that a logged-in user with items in cart can complete
+        checkout with a credit card and receive an order confirmation."""
+
+        # Arrange: navigate to cart
+        page.goto("/cart")
+        checkout = CheckoutPage(page)
+
+        # Act: proceed through checkout flow
+        checkout.checkout_button.click()
+        page.wait_for_url("**/checkout/shipping")
+
+        checkout.fill_shipping("123 Test St", "Springfield", "IL", "62701")
+        page.locator('[data-testid="continue-to-payment"]').click()
+        page.wait_for_url("**/checkout/payment")
+
+        checkout.fill_payment("4111111111111111", "12/28", "123")
+        checkout.place_order_button.click()
+
+        # Assert: order confirmation
+        page.wait_for_url("**/order/confirmation", timeout=15000)
+        expect(checkout.order_number).to_be_visible()
+        expect(checkout.order_number).not_to_be_empty()
+        expect(checkout.order_total).to_be_visible()
+</code></pre>
+
+      <div class="callout callout-tip">
+        <strong>Provide HTML context for better selectors.</strong> If you include a snippet of the page's HTML structure in the <code>page_context</code> parameter, the LLM generates selectors that actually match your application rather than guessing at <code>data-testid</code> names. Extract the relevant HTML using browser DevTools and paste it in.
+      </div>
+
+      <h3>Batch Test Generation</h3>
+
+      <p>For generating an entire test suite, process multiple test cases and organize them into test files by feature area:</p>
+
+      <pre><code class="language-python">def generate_test_suite(test_cases: list[dict],
+                        framework: str = "playwright",
+                        output_dir: str = "tests/") -> dict:
+    """Generate a complete test suite from multiple test cases."""
+    from pathlib import Path
+    import re
+
+    suite = {}
+    for tc in test_cases:
+        # Group by feature area
+        feature = tc.get("feature", "general")
+        if feature not in suite:
+            suite[feature] = []
+
+        script = generate_test_script(tc, framework)
+        suite[feature].append({
+            "test_case": tc,
+            "script": script
+        })
+
+    # Write test files
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    for feature, tests in suite.items():
+        filename = f"test_{re.sub(r'[^a-z0-9]+', '_', feature.lower())}.py"
+        filepath = output_path / filename
+
+        # Combine all test scripts for this feature into one file
+        combined = "\n\n".join(t["script"] for t in tests)
+        filepath.write_text(combined)
+        print(f"Generated {filepath} with {len(tests)} tests")
+
+    return suite
+</code></pre>
+    </section>
+
+    <!-- Section 3 -->
+    <section>
+      <h2>3. Self-Healing Test Selectors</h2>
+
+      <p>The number one cause of test maintenance is broken selectors. A developer renames a CSS class, changes an element's ID, or restructures the DOM, and suddenly dozens of tests fail — not because of a real bug, but because the test cannot find the element it is looking for.</p>
+
+      <p>Self-healing selectors use LLMs to analyze the page's current DOM and find the intended element even when the original selector breaks. The approach works in three steps: try the original selector, if it fails then capture the current page structure, and ask the LLM to locate the intended element.</p>
+
+      <pre><code class="language-python">SELECTOR_HEAL_PROMPT = """You are a DOM analysis expert. A test automation
+selector has broken because the page structure changed.
+
+Given:
+1. The ORIGINAL SELECTOR that no longer works
+2. The ELEMENT DESCRIPTION (what the test is trying to interact with)
+3. The CURRENT PAGE HTML (the page as it exists now)
+
+Find the element in the current HTML and provide:
+- primary_selector: the best CSS selector for this element
+- backup_selectors: 2-3 alternative selectors (different strategies)
+- confidence: how confident you are this is the right element (0-1)
+- change_detected: what changed in the DOM that broke the original selector
+- recommendation: should the test use data-testid? suggest one if so
+
+Prefer selectors in this order:
+1. data-testid (most stable)
+2. aria-label or role (accessibility-based)
+3. CSS with structural context (e.g., form.checkout button[type="submit"])
+4. XPath (last resort)
+
+Return JSON."""
+
+class SelfHealingLocator:
+    """A locator that automatically heals when selectors break."""
+
+    def __init__(self, page, model: str = "gpt-4o"):
+        self.page = page
+        self.model = model
+        self.healing_log = []
+
+    def find(self, selector: str, description: str,
+             timeout: int = 5000) -> object:
+        """Find an element, healing the selector if it breaks."""
+        # Try the original selector first
+        try:
+            element = self.page.locator(selector)
+            element.wait_for(timeout=timeout)
+            return element
+        except Exception:
+            pass  # Selector failed, attempt healing
+
+        # Capture current page HTML for analysis
+        html = self.page.content()
+
+        # Truncate HTML to fit in context window (keep structure, trim content)
+        if len(html) > 30000:
+            html = self._truncate_html(html)
+
+        # Ask LLM to find the element
+        healed = self._heal_selector(selector, description, html)
+
+        if healed["confidence"] < 0.5:
+            raise Exception(
+                f"Self-healing failed for '{description}'. "
+                f"Confidence too low: {healed['confidence']}"
+            )
+
+        # Log the healing event
+        self.healing_log.append({
+            "original_selector": selector,
+            "healed_selector": healed["primary_selector"],
+            "description": description,
+            "change_detected": healed["change_detected"],
+            "confidence": healed["confidence"]
+        })
+
+        # Try the healed selector
+        new_selector = healed["primary_selector"]
+        element = self.page.locator(new_selector)
+        element.wait_for(timeout=timeout)
+
+        print(f"  HEALED: '{selector}' -> '{new_selector}' "
+              f"(confidence: {healed['confidence']:.0%})")
+        print(f"  Change: {healed['change_detected']}")
+
+        return element
+
+    def _heal_selector(self, original: str, description: str,
+                       html: str) -> dict:
+        """Ask LLM to find the element in the current DOM."""
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": SELECTOR_HEAL_PROMPT},
+                {"role": "user", "content": f"""Original selector: {original}
+Element description: {description}
+
+Current page HTML:
+{html}"""}
+            ],
+            response_format={"type": "json_object"},
+            temperature=0.1
+        )
+        return json.loads(response.choices[0].message.content)
+
+    def _truncate_html(self, html: str, max_length: int = 30000) -> str:
+        """Truncate HTML while preserving structure."""
+        # Remove script and style contents but keep tags
+        import re
+        html = re.sub(r'<script[^>]*>.*?</script>', '<script></script>',
+                       html, flags=re.DOTALL)
+        html = re.sub(r'<style[^>]*>.*?</style>', '<style></style>',
+                       html, flags=re.DOTALL)
+        # Truncate long text content
+        html = re.sub(r'>([^<]{100})[^<]*<', r'>\1...<', html)
+        return html[:max_length]
+
+    def get_healing_report(self) -> str:
+        """Generate a report of all healed selectors for developer review."""
+        if not self.healing_log:
+            return "No selectors needed healing in this run."
+
+        lines = [f"SELECTOR HEALING REPORT ({len(self.healing_log)} healed)"]
+        for h in self.healing_log:
+            lines.append(f"\n  Element: {h['description']}")
+            lines.append(f"  Old: {h['original_selector']}")
+            lines.append(f"  New: {h['healed_selector']}")
+            lines.append(f"  Change: {h['change_detected']}")
+            lines.append(f"  Confidence: {h['confidence']:.0%}")
+        return "\n".join(lines)
+</code></pre>
+
+      <div class="callout callout-warning">
+        <strong>Self-healing is a bandage, not a cure.</strong> Self-healing selectors keep tests running when the DOM changes, but they should trigger a maintenance task to permanently update the selector. If a test heals itself every run, it is adding LLM API call latency and cost. Use the healing report to batch-update broken selectors on a regular cadence.
+      </div>
+
+      <h3>Usage in Tests</h3>
+
+      <pre><code class="language-python">def test_checkout_with_healing(page):
+    """Checkout test using self-healing locators."""
+    healer = SelfHealingLocator(page)
+
+    page.goto("/cart")
+
+    # These selectors will self-heal if the DOM changes
+    checkout_btn = healer.find(
+        "#checkout-btn",  # might break if ID changes
+        "The 'Proceed to Checkout' button on the cart page"
+    )
+    checkout_btn.click()
+
+    card_input = healer.find(
+        "input.credit-card-number",  # might break if class changes
+        "The credit card number input field on the payment form"
+    )
+    card_input.fill("4111111111111111")
+
+    # After test run, output healing report
+    print(healer.get_healing_report())
+</code></pre>
+    </section>
+
+    <!-- Section 4 -->
+    <section>
+      <h2>4. Visual Regression with LLMs</h2>
+
+      <p>Traditional visual regression tools compare screenshots pixel-by-pixel or use perceptual hashing. They generate false positives for intentional UI changes (a new button color) and miss subtle bugs (text overlapping an image on specific viewport widths). LLMs can look at two screenshots and make a <em>semantic</em> judgment: "This is an intentional layout change" versus "This text is cut off, which is a bug."</p>
+
+      <pre><code class="language-python">import base64
+from pathlib import Path
+
+VISUAL_PROMPT = """You are a visual QA analyst comparing two screenshots of
+a web application: a BASELINE (expected) and a CURRENT (actual) version.
+
+Analyze the differences and classify each one as:
+1. INTENTIONAL CHANGE: A deliberate design update (new color, new layout,
+   new component). These should be accepted and the baseline updated.
+2. VISUAL BUG: An unintended rendering issue (text overflow, misalignment,
+   broken layout, missing images, z-index problems, responsive issues).
+3. NO CHANGE: The screenshots are visually identical.
+
+For each difference found, provide:
+- location: where on the page (e.g., "top navigation bar", "product card grid")
+- classification: intentional_change | visual_bug | content_change
+- description: what changed
+- severity: if it's a bug, how severe (critical/major/minor/cosmetic)
+- confidence: how confident you are in this classification (0-1)
+
+Return JSON with key "differences" and an overall "verdict":
+pass (no bugs), fail (bugs found), or review (needs human review)."""
+
+def compare_screenshots(baseline_path: str, current_path: str,
+                        page_description: str = "") -> dict:
+    """Compare two screenshots using LLM-based visual analysis."""
+    baseline_b64 = base64.b64encode(
+        Path(baseline_path).read_bytes()
+    ).decode()
+    current_b64 = base64.b64encode(
+        Path(current_path).read_bytes()
+    ).decode()
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": VISUAL_PROMPT},
+            {"role": "user", "content": [
+                {"type": "text", "text": f"""Compare these two screenshots.
+Page: {page_description if page_description else 'Web application page'}
+
+The first image is the BASELINE (expected).
+The second image is the CURRENT (actual)."""},
+                {"type": "image_url", "image_url": {
+                    "url": f"data:image/png;base64,{baseline_b64}"}},
+                {"type": "image_url", "image_url": {
+                    "url": f"data:image/png;base64,{current_b64}"}}
+            ]}
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.2
+    )
+    return json.loads(response.choices[0].message.content)
+
+
+# Usage in a visual regression test
+def test_homepage_visual(page):
+    """Visual regression test for the homepage."""
+    page.goto("/")
+    page.wait_for_load_state("networkidle")
+
+    # Capture current screenshot
+    current_path = "screenshots/homepage_current.png"
+    page.screenshot(path=current_path, full_page=True)
+
+    # Compare against baseline
+    baseline_path = "screenshots/homepage_baseline.png"
+    result = compare_screenshots(baseline_path, current_path,
+                                  "Application homepage with hero banner, "
+                                  "product grid, and footer")
+
+    print(f"Visual regression verdict: {result['verdict']}")
+    for diff in result.get("differences", []):
+        print(f"  [{diff['classification']}] {diff['location']}: "
+              f"{diff['description']}")
+        if diff["classification"] == "visual_bug":
+            print(f"    Severity: {diff['severity']}")
+
+    # Fail the test only for actual visual bugs
+    bugs = [d for d in result.get("differences", [])
+            if d["classification"] == "visual_bug"]
+    assert len(bugs) == 0, (
+        f"Found {len(bugs)} visual bugs: "
+        + "; ".join(b["description"] for b in bugs)
+    )
+</code></pre>
+
+      <p>The LLM-based visual comparison produces results like:</p>
+
+      <table>
+        <thead>
+          <tr><th>Location</th><th>Classification</th><th>Description</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Header navigation</td><td>Intentional change</td><td>New "Deals" menu item added between "Products" and "Support"</td><td>Update baseline</td></tr>
+          <tr><td>Product card grid</td><td>Visual bug</td><td>Third product card overflows its container on mobile viewport — price text truncated</td><td>File bug</td></tr>
+          <tr><td>Footer</td><td>Content change</td><td>Copyright year updated from 2025 to 2026</td><td>Update baseline</td></tr>
+          <tr><td>Hero banner</td><td>No change</td><td>Identical</td><td>None</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-insight">
+        <strong>Combine pixel-diff with LLM analysis.</strong> Use a fast pixel-diff tool (like pixelmatch or BackstopJS) as a first pass to identify screenshots that changed. Then send only the changed screenshots to the LLM for semantic analysis. This reduces LLM API costs — you are only paying for analysis of screenshots that actually differ, not re-analyzing hundreds of unchanged pages.
+      </div>
+    </section>
+
+    <!-- Section 5 -->
+    <section>
+      <h2>5. API Test Automation</h2>
+
+      <p>API regression tests are often simpler to automate than UI tests, but writing them is still tedious: you need to construct request payloads, set up authentication, define expected responses, and handle edge cases. LLMs can generate comprehensive API tests from endpoint documentation.</p>
+
+      <pre><code class="language-python">API_TEST_PROMPT = """You are an API test automation expert. Generate
+comprehensive regression tests for the given API endpoint.
+
+For each test, include:
+1. Test name and description
+2. HTTP method and URL
+3. Request headers (including auth)
+4. Request body (for POST/PUT/PATCH)
+5. Expected status code
+6. Response body assertions (specific fields and values)
+7. Response time threshold
+8. Error handling for network failures
+
+Cover these test categories:
+- Happy path (valid request, expected response)
+- Validation errors (missing/invalid fields)
+- Authentication failures (no token, expired token, wrong permissions)
+- Edge cases (empty arrays, large payloads, special characters)
+- Idempotency (same request twice should produce consistent results)
+
+Use pytest with the requests library. Include parametrize decorators
+for data-driven tests where appropriate."""
+
+def generate_api_tests(endpoint_spec: dict) -> str:
+    """Generate API regression tests from an endpoint specification."""
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": API_TEST_PROMPT},
+            {"role": "user", "content": f"""Endpoint specification:
+{json.dumps(endpoint_spec, indent=2)}"""}
+        ],
+        temperature=0.3
+    )
+    return response.choices[0].message.content
+
+
+# Example: generate tests for a REST API endpoint
+endpoint = {
+    "method": "POST",
+    "path": "/api/v2/orders",
+    "description": "Create a new order",
+    "authentication": "Bearer token (JWT)",
+    "request_body": {
+        "customer_id": {"type": "integer", "required": True},
+        "items": {
+            "type": "array",
+            "required": True,
+            "min_items": 1,
+            "items": {
+                "product_id": {"type": "integer", "required": True},
+                "quantity": {"type": "integer", "required": True, "min": 1, "max": 100},
+                "unit_price": {"type": "decimal", "required": True}
+            }
+        },
+        "shipping_address": {"type": "object", "required": True},
+        "discount_code": {"type": "string", "required": False}
+    },
+    "responses": {
+        "201": {"description": "Order created", "body": {"order_id": "integer", "status": "string", "total": "decimal"}},
+        "400": {"description": "Validation error"},
+        "401": {"description": "Unauthorized"},
+        "422": {"description": "Business rule violation (e.g., out of stock)"}
+    }
+}
+
+api_tests = generate_api_tests(endpoint)
+print(api_tests)
+</code></pre>
+
+      <p>The LLM generates tests like:</p>
+
+      <pre><code class="language-python">import pytest
+import requests
+
+BASE_URL = "https://api.example.com"
+VALID_TOKEN = "Bearer test_jwt_token_here"
+
+@pytest.fixture
+def auth_headers():
+    return {"Authorization": VALID_TOKEN, "Content-Type": "application/json"}
+
+@pytest.fixture
+def valid_order_payload():
+    return {
+        "customer_id": 10001,
+        "items": [
+            {"product_id": 501, "quantity": 2, "unit_price": 29.99},
+            {"product_id": 502, "quantity": 1, "unit_price": 49.99}
+        ],
+        "shipping_address": {
+            "street": "123 Test Ave",
+            "city": "Springfield",
+            "state": "IL",
+            "zip": "62701"
+        }
+    }
+
+class TestCreateOrder:
+    """Regression tests for POST /api/v2/orders."""
+
+    def test_create_order_success(self, auth_headers, valid_order_payload):
+        """Happy path: valid order returns 201 with order details."""
+        resp = requests.post(
+            f"{BASE_URL}/api/v2/orders",
+            json=valid_order_payload,
+            headers=auth_headers,
+            timeout=10
+        )
+        assert resp.status_code == 201, f"Expected 201, got {resp.status_code}: {resp.text}"
+        data = resp.json()
+        assert "order_id" in data, "Response missing order_id"
+        assert data["status"] == "confirmed"
+        assert data["total"] == pytest.approx(109.97, abs=0.01)
+
+    def test_create_order_no_auth(self, valid_order_payload):
+        """Request without auth token returns 401."""
+        resp = requests.post(
+            f"{BASE_URL}/api/v2/orders",
+            json=valid_order_payload,
+            timeout=10
+        )
+        assert resp.status_code == 401
+
+    @pytest.mark.parametrize("missing_field", ["customer_id", "items", "shipping_address"])
+    def test_create_order_missing_required_field(self, auth_headers,
+                                                  valid_order_payload,
+                                                  missing_field):
+        """Missing required fields return 400."""
+        payload = {**valid_order_payload}
+        del payload[missing_field]
+        resp = requests.post(
+            f"{BASE_URL}/api/v2/orders",
+            json=payload,
+            headers=auth_headers,
+            timeout=10
+        )
+        assert resp.status_code == 400, (
+            f"Missing '{missing_field}' should return 400, got {resp.status_code}"
+        )
+
+    def test_create_order_empty_items(self, auth_headers, valid_order_payload):
+        """Empty items array returns 400."""
+        payload = {**valid_order_payload, "items": []}
+        resp = requests.post(
+            f"{BASE_URL}/api/v2/orders",
+            json=payload,
+            headers=auth_headers,
+            timeout=10
+        )
+        assert resp.status_code == 400
+
+    def test_create_order_quantity_exceeds_max(self, auth_headers,
+                                                valid_order_payload):
+        """Quantity > 100 returns 400."""
+        payload = {**valid_order_payload}
+        payload["items"][0]["quantity"] = 101
+        resp = requests.post(
+            f"{BASE_URL}/api/v2/orders",
+            json=payload,
+            headers=auth_headers,
+            timeout=10
+        )
+        assert resp.status_code == 400
+
+    def test_create_order_idempotency(self, auth_headers, valid_order_payload):
+        """Submitting the same order twice should not create duplicates
+        (if idempotency key is used)."""
+        headers = {**auth_headers, "Idempotency-Key": "test-key-001"}
+        resp1 = requests.post(
+            f"{BASE_URL}/api/v2/orders",
+            json=valid_order_payload,
+            headers=headers,
+            timeout=10
+        )
+        resp2 = requests.post(
+            f"{BASE_URL}/api/v2/orders",
+            json=valid_order_payload,
+            headers=headers,
+            timeout=10
+        )
+        assert resp1.json()["order_id"] == resp2.json()["order_id"], \
+            "Duplicate request with same idempotency key created a new order"
+
+    def test_create_order_response_time(self, auth_headers,
+                                         valid_order_payload):
+        """Order creation should complete within 2 seconds."""
+        resp = requests.post(
+            f"{BASE_URL}/api/v2/orders",
+            json=valid_order_payload,
+            headers=auth_headers,
+            timeout=10
+        )
+        assert resp.elapsed.total_seconds() < 2.0, (
+            f"Response took {resp.elapsed.total_seconds():.1f}s, exceeds 2s threshold"
+        )
+</code></pre>
+
+      <div class="callout callout-tip">
+        <strong>Generate contract tests from OpenAPI specs.</strong> If your API has an OpenAPI (Swagger) specification, feed it directly to the LLM to generate contract tests. The LLM can validate that every endpoint defined in the spec has corresponding tests and that request/response schemas match. This catches spec drift — when the API implementation diverges from its documentation.
+      </div>
+    </section>
+
+    <!-- Section 6 -->
+    <section>
+      <h2>6. Performance Test Scenarios</h2>
+
+      <p>Performance regressions are among the hardest bugs to catch because they require realistic load patterns. LLMs can analyze production traffic logs (anonymized) and generate load test scenarios that mimic real user behavior, including traffic spikes, concurrent operations, and usage pattern variations.</p>
+
+      <pre><code class="language-python">PERF_TEST_PROMPT = """You are a performance test engineer. Generate
+realistic load test scenarios based on the given traffic pattern
+and system description.
+
+For each scenario, provide:
+1. scenario_name: descriptive name
+2. user_profile: what the virtual user does (think-time, click patterns)
+3. load_pattern: ramp-up, steady-state, spike, or soak
+4. virtual_users: number of concurrent users
+5. duration: how long the test runs
+6. key_transactions: the API calls or pages in the scenario
+7. success_criteria: response time thresholds, error rate limits
+8. monitoring_points: what metrics to watch during the test
+
+Return JSON with key "scenarios"."""
+
+def generate_perf_scenarios(system_description: str,
+                            traffic_patterns: dict = None) -> list[dict]:
+    """Generate performance test scenarios from system description."""
+    context = f"System: {system_description}"
+    if traffic_patterns:
+        context += f"\n\nTraffic patterns: {json.dumps(traffic_patterns, indent=2)}"
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": PERF_TEST_PROMPT},
+            {"role": "user", "content": context}
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.5
+    )
+    return json.loads(response.choices[0].message.content)["scenarios"]
+
+
+def generate_locust_script(scenario: dict) -> str:
+    """Generate a Locust load test script from a scenario."""
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{
+            "role": "user",
+            "content": f"""Convert this performance test scenario into a
+Locust load test script (Python):
+
+{json.dumps(scenario, indent=2)}
+
+Include:
+- Proper task weights matching realistic usage
+- Think time between actions (using between() for random delays)
+- Response time assertions
+- Custom event tracking for key transactions
+- Proper setup (on_start) for authentication"""
+        }],
+        temperature=0.3
+    )
+    return response.choices[0].message.content
+
+
+# Generate scenarios
+traffic = {
+    "peak_hours": "9 AM - 5 PM EST",
+    "avg_concurrent_users": 500,
+    "peak_concurrent_users": 2000,
+    "top_endpoints": [
+        {"path": "/api/v2/orders", "method": "POST", "rpm": 120},
+        {"path": "/api/v2/products", "method": "GET", "rpm": 800},
+        {"path": "/api/v2/inventory", "method": "GET", "rpm": 400},
+    ],
+    "avg_response_time_ms": 200,
+    "p95_response_time_ms": 800,
+    "error_rate": "0.1%"
+}
+
+scenarios = generate_perf_scenarios(
+    "E-commerce order management API serving 500 concurrent users",
+    traffic
+)
+
+for s in scenarios:
+    print(f"\nScenario: {s['scenario_name']}")
+    print(f"  Load: {s['virtual_users']} users, {s['load_pattern']}")
+    print(f"  Duration: {s['duration']}")
+    print(f"  Criteria: {s['success_criteria']}")
+</code></pre>
+
+      <p>The LLM generates scenarios covering different performance risk areas:</p>
+
+      <table>
+        <thead>
+          <tr><th>Scenario</th><th>Users</th><th>Pattern</th><th>Duration</th><th>What It Tests</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Normal load baseline</td><td>500</td><td>Steady state</td><td>30 min</td><td>Performance under typical conditions</td></tr>
+          <tr><td>Peak hour simulation</td><td>2,000</td><td>Ramp up over 10 min</td><td>60 min</td><td>Behavior at peak capacity</td></tr>
+          <tr><td>Flash sale spike</td><td>5,000</td><td>Sudden spike</td><td>15 min</td><td>System response to unexpected traffic surge</td></tr>
+          <tr><td>Endurance soak test</td><td>300</td><td>Steady state</td><td>8 hours</td><td>Memory leaks, connection pool exhaustion</td></tr>
+          <tr><td>Database stress</td><td>1,000</td><td>Read-heavy mix</td><td>30 min</td><td>Query performance, connection pooling</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-warning">
+        <strong>Performance tests must run against production-like infrastructure.</strong> Running a 2,000-user load test against a development server proves nothing. Ensure your performance test environment mirrors production in terms of server specs, database size, network topology, and third-party service behavior (use service virtualization for external dependencies).
+      </div>
+    </section>
+
+    <!-- Section 7 -->
+    <section>
+      <h2>7. Test Maintenance Strategies</h2>
+
+      <p>Generating tests is the easy part. Keeping them healthy over months and years is where most teams fail. LLMs can help with test maintenance by analyzing test failures, identifying flaky tests, and suggesting when tests should be retired or refactored.</p>
+
+      <pre><code class="language-python">MAINTENANCE_PROMPT = """You are a test maintenance specialist. Analyze
+the test execution history and provide maintenance recommendations.
+
+For each test, analyze:
+1. FAILURE PATTERN: Does it fail consistently, intermittently, or in clusters?
+2. FLAKINESS SCORE: Percentage of runs that produce inconsistent results
+3. VALUE ASSESSMENT: Does this test catch real bugs or just generate noise?
+4. MAINTENANCE COST: How often does this test need updates?
+5. RECOMMENDATION: keep | refactor | merge | retire
+
+For retired tests, explain why and confirm no coverage gap results.
+For refactored tests, explain what should change.
+For merged tests, identify which tests overlap and can be combined.
+
+Return JSON with key "test_analysis"."""
+
+def analyze_test_health(test_results: list[dict]) -> list[dict]:
+    """Analyze test execution history for maintenance recommendations."""
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": MAINTENANCE_PROMPT},
+            {"role": "user", "content": f"""Test execution history
+(last 30 runs):
+
+{json.dumps(test_results, indent=2)}"""}
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.3
+    )
+    return json.loads(response.choices[0].message.content)["test_analysis"]
+
+
+# Example test execution data
+test_history = [
+    {
+        "test_id": "test_login_valid_credentials",
+        "results_last_30_runs": {"pass": 30, "fail": 0},
+        "avg_duration_ms": 1200,
+        "last_real_bug_caught": "2025-03-15",
+        "last_modified": "2024-06-01",
+        "maintenance_events": 0
+    },
+    {
+        "test_id": "test_search_results_count",
+        "results_last_30_runs": {"pass": 18, "fail": 12},
+        "avg_duration_ms": 8500,
+        "last_real_bug_caught": "never",
+        "last_modified": "2025-09-20",
+        "maintenance_events": 7
+    },
+    {
+        "test_id": "test_checkout_with_coupon",
+        "results_last_30_runs": {"pass": 28, "fail": 2},
+        "avg_duration_ms": 3200,
+        "last_real_bug_caught": "2025-10-01",
+        "last_modified": "2025-08-15",
+        "maintenance_events": 2
+    },
+    {
+        "test_id": "test_product_image_loads",
+        "results_last_30_runs": {"pass": 25, "fail": 5},
+        "avg_duration_ms": 12000,
+        "last_real_bug_caught": "2024-12-01",
+        "last_modified": "2025-01-10",
+        "maintenance_events": 4
+    }
+]
+
+analysis = analyze_test_health(test_history)
+for t in analysis:
+    print(f"[{t['recommendation'].upper():8s}] {t['test_id']}")
+    print(f"  Flakiness: {t['flakiness_score']}")
+    print(f"  Value: {t['value_assessment']}")
+    print(f"  Reason: {t.get('rationale', '')}")
+    print()
+</code></pre>
+
+      <p>The maintenance analysis produces actionable recommendations:</p>
+
+      <table>
+        <thead>
+          <tr><th>Test</th><th>Recommendation</th><th>Rationale</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>test_login_valid_credentials</td><td>KEEP</td><td>Stable, fast, covers critical flow. No changes needed.</td></tr>
+          <tr><td>test_search_results_count</td><td>RETIRE</td><td>40% failure rate, never caught a real bug, 7 maintenance events. The test is validating a dynamic count that changes with data, not actual search functionality. Replace with test_search_returns_relevant_results.</td></tr>
+          <tr><td>test_checkout_with_coupon</td><td>KEEP</td><td>Stable, recently caught a real bug, reasonable maintenance cost.</td></tr>
+          <tr><td>test_product_image_loads</td><td>REFACTOR</td><td>Flaky due to network-dependent image loading. Replace direct image load check with a check for the img element's src attribute and a HEAD request to the CDN, removing the visual rendering dependency.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Automated Test Suite Health Dashboard</h3>
+
+      <pre><code class="language-python">def generate_suite_health_report(analysis: list[dict]) -> str:
+    """Generate an overall test suite health report."""
+    total = len(analysis)
+    keep = sum(1 for t in analysis if t["recommendation"] == "keep")
+    refactor = sum(1 for t in analysis if t["recommendation"] == "refactor")
+    retire = sum(1 for t in analysis if t["recommendation"] == "retire")
+    merge = sum(1 for t in analysis if t["recommendation"] == "merge")
+
+    health_score = (keep / total * 100) if total > 0 else 0
+
+    report = f"""
+TEST SUITE HEALTH REPORT
+========================
+Total tests analyzed: {total}
+Suite health score: {health_score:.0f}%
+
+Recommendations:
+  Keep as-is:  {keep} ({keep/total*100:.0f}%)
+  Refactor:    {refactor} ({refactor/total*100:.0f}%)
+  Retire:      {retire} ({retire/total*100:.0f}%)
+  Merge:       {merge} ({merge/total*100:.0f}%)
+
+Estimated maintenance savings if recommendations applied:
+  Tests removed: {retire + merge}
+  Execution time saved: (calculate from avg_duration_ms)
+  Maintenance events prevented: (estimate from history)
+"""
+    return report
+</code></pre>
+
+      <div class="callout callout-tip">
+        <strong>Schedule health analysis monthly.</strong> Run the test health analysis once per month (or per release cycle) as part of your CI/CD pipeline. Track the health score over time. A declining health score means tests are accumulating faster than they are being maintained — it is time to invest in test refactoring before the maintenance burden becomes unmanageable.
+      </div>
+    </section>
+
+    <!-- Project -->
+    <section class="project">
+      <h2>Project: Smart Regression Suite</h2>
+
+      <p>Build a smart regression testing pipeline that uses LLMs at every stage — from test generation through execution analysis — to create a self-maintaining regression suite.</p>
+
+      <h3>Project Requirements</h3>
+      <ol>
+        <li>Accept test cases in natural language and generate executable Playwright or pytest scripts</li>
+        <li>Implement self-healing selectors that log healing events for later review</li>
+        <li>Add visual regression checks using LLM screenshot comparison</li>
+        <li>Generate API regression tests from endpoint specifications</li>
+        <li>Analyze test results to identify flaky tests and suggest maintenance actions</li>
+        <li>Produce a comprehensive regression report after each run</li>
+      </ol>
+
+      <h3>Starter Code</h3>
+
+      <pre><code class="language-python">import json
+from pathlib import Path
+from datetime import datetime
+from openai import OpenAI
+
+client = OpenAI()
+
+class SmartRegressionSuite:
+    """LLM-powered smart regression testing pipeline."""
+
+    def __init__(self, config_path: str = "regression_config.json",
+                 model: str = "gpt-4o"):
+        self.model = model
+        self.config = self._load_config(config_path)
+        self.generated_tests = []
+        self.execution_results = []
+        self.healing_events = []
+
+    def _load_config(self, path: str) -> dict:
+        """Load suite configuration."""
+        if Path(path).exists():
+            return json.loads(Path(path).read_text())
+        return {
+            "framework": "playwright",
+            "base_url": "http://localhost:3000",
+            "screenshot_dir": "screenshots/",
+            "report_dir": "reports/"
+        }
+
+    def generate_tests(self, test_cases: list[dict],
+                       page_context: dict = None) -> list[str]:
+        """Generate test scripts for all test cases."""
+        scripts = []
+        for tc in test_cases:
+            print(f"Generating test: {tc['title']}...")
+            script = generate_test_script(
+                tc,
+                framework=self.config["framework"],
+                page_context=json.dumps(page_context) if page_context else ""
+            )
+            scripts.append(script)
+            self.generated_tests.append({
+                "test_case": tc,
+                "script": script,
+                "generated_at": datetime.now().isoformat()
+            })
+        return scripts
+
+    def run_visual_regression(self, pages: list[dict]) -> list[dict]:
+        """Run visual regression checks on specified pages."""
+        results = []
+        for page_info in pages:
+            baseline = Path(self.config["screenshot_dir"]) / page_info["baseline"]
+            current = Path(self.config["screenshot_dir"]) / page_info["current"]
+
+            if not baseline.exists():
+                print(f"  No baseline for {page_info['name']} — creating one")
+                # In real implementation, capture and save as baseline
+                continue
+
+            result = compare_screenshots(
+                str(baseline), str(current), page_info["name"]
+            )
+            result["page"] = page_info["name"]
+            results.append(result)
+
+            status = "PASS" if result["verdict"] == "pass" else "FAIL"
+            print(f"  Visual check [{status}]: {page_info['name']}")
+        return results
+
+    def analyze_run(self, results: list[dict]) -> dict:
+        """Analyze test run results for patterns and recommendations."""
+        analysis = analyze_test_health(results)
+
+        # Compile healing events
+        healing_summary = {
+            "total_healed": len(self.healing_events),
+            "selectors_to_update": [
+                {"old": h["original_selector"], "new": h["healed_selector"]}
+                for h in self.healing_events
+            ]
+        }
+
+        return {
+            "test_analysis": analysis,
+            "healing_summary": healing_summary,
+            "run_timestamp": datetime.now().isoformat()
+        }
+
+    def generate_report(self, run_analysis: dict,
+                        visual_results: list[dict] = None) -> str:
+        """Generate a comprehensive regression report."""
+        report = {
+            "title": "Smart Regression Suite Report",
+            "timestamp": datetime.now().isoformat(),
+            "test_analysis": run_analysis["test_analysis"],
+            "self_healing": run_analysis["healing_summary"],
+            "visual_regression": visual_results or []
+        }
+
+        # Save JSON report
+        report_path = Path(self.config["report_dir"])
+        report_path.mkdir(parents=True, exist_ok=True)
+        json_path = report_path / f"regression_{datetime.now():%Y%m%d_%H%M}.json"
+        json_path.write_text(json.dumps(report, indent=2))
+        print(f"\nReport saved to {json_path}")
+
+        # Generate human-readable summary
+        summary = f"""
+SMART REGRESSION REPORT — {datetime.now():%Y-%m-%d %H:%M}
+{'='*55}
+Tests generated: {len(self.generated_tests)}
+Selectors healed: {run_analysis['healing_summary']['total_healed']}
+Visual checks: {len(visual_results or [])}
+
+RECOMMENDATIONS:
+"""
+        for t in run_analysis["test_analysis"]:
+            summary += f"  [{t['recommendation'].upper():8s}] {t['test_id']}\n"
+
+        return summary
+
+
+# Usage
+if __name__ == "__main__":
+    suite = SmartRegressionSuite()
+
+    # Define test cases in natural language
+    test_cases = [
+        {
+            "title": "User login with valid credentials",
+            "steps": ["Navigate to login page", "Enter valid email",
+                      "Enter valid password", "Click Login"],
+            "expected_result": "User is redirected to dashboard"
+        },
+        {
+            "title": "Add item to cart",
+            "steps": ["Navigate to product page", "Click Add to Cart",
+                      "Verify cart count updates"],
+            "expected_result": "Cart icon shows count of 1"
+        }
+    ]
+
+    # Generate tests
+    scripts = suite.generate_tests(test_cases)
+
+    # After running tests, analyze results
+    # analysis = suite.analyze_run(test_execution_results)
+    # report = suite.generate_report(analysis, visual_results)
+    # print(report)
+</code></pre>
+
+      <h3>Extension Ideas</h3>
+      <ul>
+        <li>Add CI/CD integration with GitHub Actions or Jenkins to run the suite on every PR</li>
+        <li>Build a Slack bot that posts the regression report summary and alerts on P1 failures</li>
+        <li>Implement test impact analysis: given a code diff, predict which tests are most likely to be affected and run only those</li>
+        <li>Add cross-browser testing by parameterizing the Playwright browser engine (Chromium, Firefox, WebKit)</li>
+        <li>Create a historical trends dashboard showing test stability, execution time, and defect detection rate over time</li>
+      </ul>
+    </section>
+
+    <!-- Summary -->
+    <section class="summary">
+      <h2>Summary</h2>
+      <ul class="key-takeaways">
+        <li><strong>LLMs generate executable test scripts</strong> from natural-language test cases, producing Playwright, Selenium, or pytest code complete with Page Object Models, assertions, and error handling.</li>
+        <li><strong>Self-healing selectors</strong> use LLM DOM analysis to find elements when original selectors break, keeping tests running while flagging selectors that need permanent updates.</li>
+        <li><strong>Visual regression</strong> moves from brittle pixel comparison to semantic analysis — LLMs distinguish intentional UI changes from rendering bugs, dramatically reducing false positives.</li>
+        <li><strong>API test generation</strong> from endpoint specifications produces comprehensive test suites covering happy paths, validation errors, authentication, edge cases, and idempotency.</li>
+        <li><strong>Performance test scenarios</strong> generated from traffic patterns create realistic load tests that match actual user behavior rather than artificial uniform load.</li>
+        <li><strong>Test maintenance analysis</strong> identifies flaky tests, low-value tests, and tests that should be retired or refactored — preventing the maintenance burden from growing unchecked.</li>
+        <li><strong>The goal is a self-maintaining suite</strong> where LLMs handle generation, healing, and analysis, while human QAs focus on strategy, edge cases, and exploratory testing.</li>
+      </ul>
+
+      <div class="exercises">
+        <h3>Exercises</h3>
+        <ol>
+          <li><strong>Generate and run.</strong> Write three test cases for a web application you work with. Use the script generator to create Playwright tests. Run them. How many pass on the first try? What needed manual adjustment?</li>
+          <li><strong>Break and heal.</strong> Take a working test, manually change a selector to something incorrect, and run the self-healing locator. Does it find the right element? What confidence score does it report?</li>
+          <li><strong>Visual regression pilot.</strong> Capture baseline screenshots for five pages of your application. Make one intentional UI change and one bug (e.g., hide an element with CSS). Run the visual comparison. Does the LLM correctly classify which is intentional and which is a bug?</li>
+          <li><strong>API test coverage.</strong> Generate API tests for your most-used endpoint. Compare them against your existing tests. What cases did the LLM generate that you were missing?</li>
+          <li><strong>Suite health audit.</strong> Export execution results from your last 30 test runs. Run the health analysis. Which tests does it recommend retiring, and do you agree?</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Footer Nav -->
+    <nav class="chapter-footer">
+      <a href="ch11-defect-analysis.html">&larr; Defect Analysis</a>
+      <span>Part 3 of 5</span>
+      <a href="../part-04-advanced-patterns/ch13-rag-enterprise.html">RAG for Enterprise &rarr;</a>
+    </nav>
+  </main>
+  <script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>
