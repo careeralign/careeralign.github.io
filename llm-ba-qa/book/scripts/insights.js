@@ -1418,7 +1418,6 @@
     if (chapterInsights && chapterInsights.length > 0) {
       var sectionIndex = 0;
       document.querySelectorAll('h2').forEach(function (h2) {
-        if (h2.id) return;
         var text = h2.textContent.trim();
         // Skip Project and Summary headings — they don't have insight entries
         if (text.match(/^Project:|^Summary$/)) return;

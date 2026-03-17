@@ -386,7 +386,9 @@
   function addHeadingIds() {
     document.querySelectorAll('h2').forEach(function (h2) {
       if (!h2.id) {
-        var text = h2.textContent.replace(/^\d+\.\d+\s*/, ''); // strip "1.1 " prefix
+        var text = h2.textContent
+          .replace(/^\d+\.\d+\s*/, '')  // strip "1.1 " prefix
+          .replace(/^\d+\.\s*/, '');     // strip "1. " prefix
         h2.id = slugify(text);
       }
     });
