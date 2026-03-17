@@ -1643,12 +1643,30 @@
       cardMap[card.dataset.section] = card;
     });
 
-    // Auto-assign IDs to h2 elements from their text content
-    document.querySelectorAll('h2').forEach(function (h2) {
-      if (!h2.id) {
-        h2.id = slugify(h2.textContent.trim().replace(/^\d+\.\d+\s*/, ''));
-      }
-    });
+    // Auto-assign IDs to h2 elements using insight section keys (matched by order)
+    // This ensures IDs match the insight data even when headings have subtitles
+    var chapter = getCurrentChapter();
+    var chapterInsights = INSIGHTS[chapter];
+    if (chapterInsights && chapterInsights.length > 0) {
+      var sectionIndex = 0;
+      document.querySelectorAll('h2').forEach(function (h2) {
+        if (h2.id) return;
+        var text = h2.textContent.trim();
+        // Skip Project and Summary headings — they don't have insight entries
+        if (text.match(/^Project:|^Summary$/)) return;
+        if (sectionIndex < chapterInsights.length) {
+          h2.id = chapterInsights[sectionIndex].section;
+          sectionIndex++;
+        }
+      });
+    } else {
+      // Fallback: generate IDs from heading text
+      document.querySelectorAll('h2').forEach(function (h2) {
+        if (!h2.id) {
+          h2.id = slugify(h2.textContent.trim().replace(/^\d+\.\d+\s*/, ''));
+        }
+      });
+    }
 
     // Collect all h2 elements with IDs
     var headings = [];
