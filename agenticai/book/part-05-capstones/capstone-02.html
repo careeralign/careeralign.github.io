@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capstone 2 &mdash; Code Review Agent | Agentic AI: Build, Ship, Portfolio</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="capstone-01.html" class="nav-prev">Research Assistant</a>
+    <span class="nav-title">Part 5 &mdash; Capstones</span>
+    <a href="capstone-03.html" class="nav-next">Customer Support</a>
+  </nav>
+
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 5 &mdash; Capstones</span>
+      <h1>Code Review Agent</h1>
+      <p class="chapter-intro">Every engineering team has felt it: a pull request sits in the queue for two days because the only person who knows that subsystem is on vacation. When it finally gets reviewed, the reviewer catches a style violation and a missing null check but misses the SQL injection hiding behind a string interpolation on line 247. Code reviews are simultaneously the most important quality gate in software development and the most inconsistent. This capstone builds an automated PR reviewer that combines static analysis, security scanning, style enforcement, and LLM-generated natural-language feedback into a single agent pipeline &mdash; the kind of system that ships in your portfolio and demonstrates every pattern from Parts 1 through 4.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~25 min</span>
+        <span>Project: Automated PR Reviewer</span>
+        <span>Variants: DevOps, FinTech, Healthcare, Open Source, Mobile, Data Engineering</span>
+      </div>
+    </header>
+
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>Design an orchestrator agent that delegates code analysis to specialist worker agents</li>
+        <li>Integrate Git operations and webhook-driven triggers into an agentic pipeline</li>
+        <li>Build AST-parsing and pattern-matching tools for syntax, style, and security analysis</li>
+        <li>Implement confidence scoring so the agent distinguishes hard errors from soft suggestions</li>
+        <li>Generate natural-language review comments that cite specific lines and explain reasoning</li>
+        <li>Deploy the complete system behind a webhook endpoint with observability and cost controls</li>
+      </ul>
+    </section>
+
+    <!-- C2.1 -->
+    <h2>C2.1 The Problem: Reviews Are Bottlenecks</h2>
+
+    <p>Software teams treat code review as a prerequisite for merging, and rightly so. Reviews catch bugs, enforce architectural standards, and transfer knowledge across the team. But the process has three structural weaknesses that no amount of process documentation fixes. First, reviews are <strong>inconsistent</strong>: the same diff reviewed by two engineers produces different findings because each reviewer carries different mental models. Second, reviews are <strong>slow</strong>: the median time-to-first-response for a PR in a large organization is four hours, and complex changes often wait more than a day. Third, reviews are <strong>shallow on security</strong>: spotting injection vulnerabilities or insecure deserialization requires specialized knowledge that generalist engineers do not exercise daily.</p>
+
+    <p>An automated code review agent does not replace human reviewers. It handles the mechanical work &mdash; style enforcement, known vulnerability patterns, documentation gaps &mdash; so that humans can focus on architecture, intent, and edge cases requiring domain judgment.</p>
+
+    <div class="callout info">
+      <span class="callout-label">Scope Check</span>
+      <p>This capstone builds a <em>review assistant</em>, not a replacement for human judgment. The agent posts comments and flags issues; a human approves or requests changes. This human-in-the-loop pattern (Chapter 11) is essential for trust. Teams that ship fully autonomous merge bots discover quickly that LLMs hallucinate false positives, and nothing erodes developer trust faster than a bot blocking a correct PR.</p>
+    </div>
+
+    <!-- C2.2 -->
+    <h2>C2.2 System Overview</h2>
+
+    <p>The code review agent receives a webhook when a pull request is opened or updated. It extracts the diff, routes it through parallel analysis workers, merges findings into a unified report with confidence scores, generates human-readable comments with line-level citations, and posts them back to the pull request. The entire pipeline runs in under ninety seconds for a typical 300-line diff.</p>
+
+    <ol>
+      <li><strong>Trigger &amp; Extraction.</strong> A webhook endpoint receives the PR event, clones the repository at the target commit, and computes a structured diff with file paths, hunks, and line numbers.</li>
+      <li><strong>Parallel Analysis.</strong> Three specialist workers run concurrently: a security scanner, a style checker, and an LLM-powered logic analyzer.</li>
+      <li><strong>Finding Merge.</strong> The orchestrator collects results, deduplicates overlapping findings, and assigns confidence scores (0.0&ndash;1.0) based on corroboration across workers.</li>
+      <li><strong>Comment Generation.</strong> An LLM generates natural-language review comments for each finding, citing the exact file, line range, and code snippet.</li>
+      <li><strong>Posting.</strong> The agent posts inline comments on the PR via the platform API, batching low-confidence findings into a single summary.</li>
+    </ol>
+
+    <!-- SVG Diagram -->
+    <figure class="diagram">
+      <svg viewBox="0 0 680 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Code review pipeline flowchart showing PR webhook through diff extraction, parallel analysis, merge findings, generate review, and post comments">
+        <defs>
+          <marker id="arrow-1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#666"/>
+          </marker>
+          <style>
+            text { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+          </style>
+        </defs>
+        <rect width="680" height="520" rx="8" fill="#1a1a2e"/>
+        <!-- Stage 1: PR Webhook (Blue) -->
+        <rect x="260" y="20" width="160" height="44" rx="6" fill="#2563eb" opacity="0.9"/>
+        <text x="340" y="47" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="600">PR Webhook</text>
+        <line x1="340" y1="64" x2="340" y2="90" stroke="#666" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <!-- Stage 2: Diff Extraction (Blue) -->
+        <rect x="230" y="90" width="220" height="44" rx="6" fill="#2563eb" opacity="0.85"/>
+        <text x="340" y="117" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="600">Diff Extraction &amp; Parsing</text>
+        <line x1="340" y1="134" x2="340" y2="165" stroke="#666" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <!-- Fan-out (Gray) -->
+        <polygon points="340,165 358,180 340,195 322,180" fill="#6b7280" opacity="0.9"/>
+        <line x1="322" y1="180" x2="115" y2="225" stroke="#666" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <line x1="340" y1="195" x2="340" y2="225" stroke="#666" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <line x1="358" y1="180" x2="565" y2="225" stroke="#666" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <!-- Worker 1: Security Scanner (Teal) -->
+        <rect x="30" y="225" width="170" height="56" rx="6" fill="#0d9488" opacity="0.9"/>
+        <text x="115" y="249" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="600">Security Scanner</text>
+        <text x="115" y="268" text-anchor="middle" fill="#e0f2f1" font-size="10">CVEs, injections, secrets</text>
+        <!-- Worker 2: Logic Analyzer (Purple) -->
+        <rect x="240" y="225" width="200" height="56" rx="6" fill="#7c3aed" opacity="0.9"/>
+        <text x="340" y="249" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="600">Logic Analyzer (LLM)</text>
+        <text x="340" y="268" text-anchor="middle" fill="#ede9fe" font-size="10">Bugs, edge cases, complexity</text>
+        <!-- Worker 3: Style Checker (Teal) -->
+        <rect x="480" y="225" width="170" height="56" rx="6" fill="#0d9488" opacity="0.9"/>
+        <text x="565" y="249" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="600">Style Checker</text>
+        <text x="565" y="268" text-anchor="middle" fill="#e0f2f1" font-size="10">Lint rules, naming, format</text>
+        <!-- Converge arrows -->
+        <line x1="115" y1="281" x2="322" y2="320" stroke="#666" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <line x1="340" y1="281" x2="340" y2="315" stroke="#666" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <line x1="565" y1="281" x2="358" y2="320" stroke="#666" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <!-- Merge diamond (Gray) -->
+        <polygon points="340,315 358,330 340,345 322,330" fill="#6b7280" opacity="0.9"/>
+        <line x1="340" y1="345" x2="340" y2="370" stroke="#666" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <!-- Stage 4: Merge Findings (Purple) -->
+        <rect x="210" y="370" width="260" height="44" rx="6" fill="#7c3aed" opacity="0.85"/>
+        <text x="340" y="397" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="600">Merge Findings &amp; Score Confidence</text>
+        <line x1="340" y1="414" x2="340" y2="440" stroke="#666" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <!-- Stage 5: Generate Review (Purple) -->
+        <rect x="225" y="440" width="230" height="44" rx="6" fill="#7c3aed" opacity="0.8"/>
+        <text x="340" y="467" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="600">Generate Review Comments</text>
+        <line x1="455" y1="462" x2="495" y2="462" stroke="#666" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <!-- Stage 6: Post to PR (Coral) -->
+        <rect x="495" y="440" width="155" height="44" rx="6" fill="#e05533" opacity="0.9"/>
+        <text x="572" y="467" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="600">Post to PR</text>
+        <!-- Legend -->
+        <rect x="20" y="470" width="12" height="12" rx="2" fill="#2563eb" opacity="0.9"/>
+        <text x="38" y="481" fill="#94a3b8" font-size="10">Data / Input</text>
+        <rect x="110" y="470" width="12" height="12" rx="2" fill="#7c3aed" opacity="0.9"/>
+        <text x="128" y="481" fill="#94a3b8" font-size="10">LLM Analysis</text>
+        <rect x="205" y="470" width="12" height="12" rx="2" fill="#0d9488" opacity="0.9"/>
+        <text x="223" y="481" fill="#94a3b8" font-size="10">Tool Execution</text>
+        <rect x="310" y="470" width="12" height="12" rx="2" fill="#e05533" opacity="0.9"/>
+        <text x="328" y="481" fill="#94a3b8" font-size="10">Output / Posting</text>
+        <rect x="420" y="470" width="12" height="12" rx="2" fill="#6b7280" opacity="0.9"/>
+        <text x="438" y="481" fill="#94a3b8" font-size="10">Structural</text>
+      </svg>
+      <figcaption>Figure C2-1. Code review pipeline: from PR webhook through parallel analysis to posted review comments.</figcaption>
+    </figure>
+
+    <!-- C2.3 -->
+    <h2>C2.3 Architecture: Orchestrator and Specialist Workers</h2>
+
+    <p>The system follows the supervisor-worker pattern from Chapter 10. An orchestrator agent receives the structured diff and delegates to three workers, each with its own tools, system prompt, and output schema.</p>
+
+    <table>
+      <thead>
+        <tr><th>Worker</th><th>Tools</th><th>Output</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Security Scanner</strong></td>
+          <td>Regex matcher, CVE lookup, entropy-based secret detector</td>
+          <td>Findings with CWE identifiers, severity, and affected lines</td>
+        </tr>
+        <tr>
+          <td><strong>Style Checker</strong></td>
+          <td>AST parser, lint rule engine, naming validator</td>
+          <td>Style violations with rule references and auto-fix suggestions</td>
+        </tr>
+        <tr>
+          <td><strong>Logic Analyzer</strong></td>
+          <td>LLM chain-of-thought (no external tools)</td>
+          <td>Bugs, edge cases, complexity warnings with reasoning traces</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The security scanner and style checker are <strong>deterministic tools</strong> that the agent wraps, while the logic analyzer is a <strong>pure LLM reasoning task</strong>. Two of three workers produce reproducible results independent of model temperature; the third contributes creative reasoning that static tools cannot provide.</p>
+
+    <div class="callout tip">
+      <span class="callout-label">Why Not One Big Prompt?</span>
+      <p>A single prompt that says &ldquo;review this code for security, style, and logic&rdquo; produces scattered, low-confidence output. By splitting into specialist workers, each has a narrower scope and structured output schema. The orchestrator can compare and merge results, catching cases where the security scanner flags a line that the logic analyzer considers safe.</p>
+    </div>
+
+    <!-- C2.4 -->
+    <h2>C2.4 Git Integration and Diff Extraction</h2>
+
+    <p>The pipeline begins when a webhook delivers a PR event. The handler validates the signature, extracts base and head SHAs, and computes a structured diff. We parse raw diffs into dataclasses so every downstream worker receives clean, typed data.</p>
+
+<pre><code>@dataclass
+class DiffHunk:
+    start_line: int
+    end_line: int
+    content: str
+    added_lines: list[int] = field(default_factory=list)
+
+@dataclass
+class FileDiff:
+    path: str
+    language: str
+    hunks: list[DiffHunk] = field(default_factory=list)
+    is_new: bool = False
+
+def extract_structured_diff(repo_path: str, base: str, head: str) -> list[FileDiff]:
+    raw = subprocess.run(
+        ["git", "diff", "--unified=5", f"{base}...{head}"],
+        cwd=repo_path, capture_output=True, text=True, check=True,
+    ).stdout
+    files, current_file, current_hunk = [], None, None
+    for line in raw.splitlines():
+        if line.startswith("diff --git"):
+            path = line.split(" b/")[-1]
+            current_file = FileDiff(path=path, language=_detect_language(path))
+            files.append(current_file)
+        elif line.startswith("@@") and current_file:
+            start = int(line.split(" ")[2].split(",")[0].lstrip("+"))
+            current_hunk = DiffHunk(start_line=start, end_line=start, content="")
+            current_file.hunks.append(current_hunk)
+        elif current_hunk is not None:
+            current_hunk.content += line + "\n"
+            if line.startswith("+") and not line.startswith("+++"):
+                current_hunk.added_lines.append(current_hunk.end_line)
+            current_hunk.end_line += 1
+    return files</code></pre>
+
+    <!-- C2.5 -->
+    <h2>C2.5 Building the Security Scanner</h2>
+
+    <p>The security scanner applies pattern-matching rules to added lines. It uses regex patterns, entropy calculations, and a curated rule database &mdash; no LLM calls. This makes it fast, reproducible, and auditable.</p>
+
+<pre><code>@dataclass
+class SecurityFinding:
+    rule_id: str
+    severity: str       # "critical", "high", "medium", "low"
+    cwe: str
+    file: str
+    line: int
+    snippet: str
+    message: str
+    confidence: float   # 0.0 to 1.0
+
+SECURITY_RULES = [
+    {"id": "SEC-001", "cwe": "CWE-89", "severity": "critical",
+     "pattern": re.compile(r"""f['\"].*(?:SELECT|INSERT|UPDATE|DELETE)\s.*\{""", re.I),
+     "message": "SQL injection via f-string. Use parameterized queries.",
+     "confidence": 0.92},
+    {"id": "SEC-002", "cwe": "CWE-798", "severity": "high",
+     "pattern": re.compile(r"""(?:password|secret|api_key)\s*=\s*['\"][^'\"]{8,}['\"]"""),
+     "message": "Hardcoded credential. Move to environment variables.",
+     "confidence": 0.85},
+    {"id": "SEC-003", "cwe": "CWE-79", "severity": "high",
+     "pattern": re.compile(r"""\.innerHTML\s*=\s*[^;]*(?:user|input|query)""", re.I),
+     "message": "XSS via innerHTML with user data. Use textContent or sanitize.",
+     "confidence": 0.80},
+    {"id": "SEC-004", "cwe": "CWE-502", "severity": "critical",
+     "pattern": re.compile(r"""pickle\.loads?\s*\("""),
+     "message": "Unsafe deserialization. Use json or a safe serializer.",
+     "confidence": 0.95},
+]
+
+def scan_security(files: list[FileDiff]) -> list[SecurityFinding]:
+    findings = []
+    for f in files:
+        for hunk in f.hunks:
+            for i, line in enumerate(hunk.content.splitlines()):
+                if not line.startswith("+"):
+                    continue
+                code = line[1:]
+                for rule in SECURITY_RULES:
+                    if rule["pattern"].search(code):
+                        findings.append(SecurityFinding(
+                            rule_id=rule["id"], severity=rule["severity"],
+                            cwe=rule["cwe"], file=f.path,
+                            line=hunk.start_line + i, snippet=code.strip(),
+                            message=rule["message"], confidence=rule["confidence"],
+                        ))
+                # Entropy-based secret detection
+                for token in re.findall(r"""['\"]([^'\"]{20,})['\"]""", code):
+                    if _entropy(token) > 4.5:
+                        findings.append(SecurityFinding(
+                            rule_id="SEC-ENT", severity="high", cwe="CWE-798",
+                            file=f.path, line=hunk.start_line + i,
+                            snippet=code.strip(), confidence=0.70,
+                            message=f"High-entropy string ({_entropy(token):.1f}) "
+                                    f"may be a hardcoded secret.",
+                        ))
+    return findings</code></pre>
+
+    <div class="callout warning">
+      <span class="callout-label">False Positive Management</span>
+      <p>Every static analysis tool generates false positives. This system uses three strategies: (1) confidence scores let the orchestrator suppress low-confidence findings, (2) a <code>.reviewignore</code> file lets developers mark intentional patterns like test fixtures, and (3) the LLM-generated comment explains <em>why</em> the pattern was flagged, giving developers enough context to dismiss false positives quickly.</p>
+    </div>
+
+    <!-- C2.6 -->
+    <h2>C2.6 AST Parsing and Style Checking</h2>
+
+    <p>The style checker uses Abstract Syntax Tree parsing for structural awareness beyond regex. It understands scope, type annotations, and function signatures. Analysis is scoped to lines modified in the diff &mdash; developers rightly object when a bot comments on code they did not touch.</p>
+
+<pre><code>class PythonStyleAnalyzer(ast.NodeVisitor):
+    def __init__(self, path: str, changed_lines: set[int]):
+        self.path = path
+        self.changed = changed_lines
+        self.findings: list[StyleFinding] = []
+
+    def visit_FunctionDef(self, node):
+        if node.lineno not in self.changed:
+            return self.generic_visit(node)
+        length = (node.end_lineno or node.lineno) - node.lineno
+        if length > 40:
+            self._add("STY-001", node.lineno,
+                f"Function '{node.name}' is {length} lines. Extract helpers.",
+                "Break into smaller single-responsibility functions.", 0.80)
+        if node.returns is None and not node.name.startswith("_"):
+            self._add("STY-002", node.lineno,
+                f"Public function '{node.name}' lacks return type annotation.",
+                "Add -> ReturnType after parameters.", 0.85)
+        if len(node.args.args) > 5:
+            self._add("STY-003", node.lineno,
+                f"Function '{node.name}' has {len(node.args.args)} params.",
+                "Group related parameters into a dataclass.", 0.75)
+        self.generic_visit(node)
+
+    def visit_ExceptHandler(self, node):
+        if node.lineno in self.changed and node.type is None:
+            self._add("STY-004", node.lineno,
+                "Bare except catches KeyboardInterrupt and SystemExit.",
+                "Catch a specific exception type.", 0.95)
+        self.generic_visit(node)
+
+    def _add(self, rule_id, line, message, suggestion, confidence):
+        self.findings.append(StyleFinding(
+            rule_id=rule_id, file=self.path, line=line,
+            message=message, suggestion=suggestion, confidence=confidence))</code></pre>
+
+    <!-- C2.7 -->
+    <h2>C2.7 The Logic Analyzer: LLM-Powered Reasoning</h2>
+
+    <p>The logic analyzer is the only worker that uses the LLM for its core analysis. It applies chain-of-thought reasoning (Chapter 5) to identify bugs, edge cases, and design problems that no static rule can catch.</p>
+
+<pre><code>class LogicFinding(BaseModel):
+    file: str
+    start_line: int
+    end_line: int
+    category: str       # "bug", "edge_case", "complexity", "performance"
+    severity: str       # "error", "warning", "suggestion"
+    description: str
+    reasoning: str      # Chain-of-thought explanation
+    suggestion: str
+    confidence: float
+
+LOGIC_SYSTEM_PROMPT = """You are an expert code reviewer. Analyze the diff
+for bugs, edge cases, and design issues. Rules:
+1. Focus ONLY on added/changed lines (starting with +).
+2. Explain reasoning step by step for each finding.
+3. Confidence: 0.9+ = certain bug, 0.7-0.9 = likely issue, 0.5-0.7 = suggestion.
+4. Do NOT flag style or security issues (other workers handle those).
+5. Cite specific line numbers and code snippets."""
+
+def analyze_logic(files, client, model="gpt-4o"):
+    context = "\n\n".join(
+        f"### {f.path} (lines {h.start_line}-{h.end_line})\n```{f.language}\n{h.content}```"
+        for f in files if not f.is_new for h in f.hunks
+    )[:30_000]
+    response = client.beta.chat.completions.parse(
+        model=model, temperature=0.2,
+        messages=[
+            {"role": "system", "content": LOGIC_SYSTEM_PROMPT},
+            {"role": "user", "content": f"Review this diff:\n\n{context}"},
+        ],
+        response_format=LogicAnalysisResult,
+    )
+    return response.choices[0].message.parsed</code></pre>
+
+    <p>The temperature is 0.2 for analytical consistency. The system prompt explicitly excludes style and security concerns, preventing overlap with the deterministic workers. Pydantic structured output (Chapter 6) ensures the orchestrator can process findings programmatically.</p>
+
+    <!-- C2.8 -->
+    <h2>C2.8 The Orchestrator: Merging and Confidence Scoring</h2>
+
+    <p>The orchestrator runs all three workers concurrently, normalizes their outputs into a unified schema, and deduplicates overlapping findings. When multiple independent workers flag the same line, confidence is boosted &mdash; a SQL injection found by both regex and LLM reasoning is more credible than either alone.</p>
+
+<pre><code>async def run_review_pipeline(files, client, config):
+    security_task = asyncio.to_thread(scan_security, files)
+    style_task = asyncio.to_thread(analyze_style, files)
+    logic_task = asyncio.to_thread(analyze_logic, files, client, config["model"])
+
+    security, style, logic = await asyncio.gather(
+        security_task, style_task, logic_task)
+
+    # Normalize into UnifiedFinding, then deduplicate
+    unified = _normalize(security, style, logic.findings)
+    merged = _deduplicate(unified)
+
+    threshold = config.get("confidence_threshold", 0.6)
+    return [f for f in merged if f.confidence >= threshold]
+
+def _deduplicate(findings):
+    by_loc = {}
+    for f in findings:
+        by_loc.setdefault((f.file, f.line), []).append(f)
+    merged = []
+    for group in by_loc.values():
+        primary = max(group, key=lambda f: f.confidence)
+        all_sources = list({s for f in group for s in f.sources})
+        # Each corroborating source adds 0.1, capped at 1.0
+        primary.confidence = min(1.0, primary.confidence + 0.1 * (len(all_sources) - 1))
+        primary.sources = all_sources
+        merged.append(primary)
+    return merged</code></pre>
+
+    <!-- C2.9 -->
+    <h2>C2.9 Generating Natural-Language Comments</h2>
+
+    <p>Raw findings need transformation into readable, actionable PR comments. The comment generator uses a structured prompt to produce comments that start with a severity indicator, state the issue in one sentence, show the problematic snippet, explain the risk, and suggest a fix &mdash; all within 150 words.</p>
+
+<pre><code>COMMENT_PROMPT = """Write a code review comment for this finding.
+Format: severity indicator, one-sentence issue, code snippet, why it matters,
+specific fix suggestion. Keep under 150 words.
+
+Finding: {file}:{line} [{severity}] {message}
+Reasoning: {reasoning}
+Snippet: {snippet}"""
+
+async def generate_comments(findings, file_contents, client, model="gpt-4o"):
+    comments = []
+    for f in findings:
+        snippet = _extract_snippet(file_contents.get(f.file, ""), f.line)
+        resp = await asyncio.to_thread(lambda: client.chat.completions.create(
+            model=model, temperature=0.3, max_tokens=300,
+            messages=[{"role": "user", "content": COMMENT_PROMPT.format(
+                file=f.file, line=f.line, severity=f.severity,
+                message=f.message, reasoning=f.reasoning, snippet=snippet)}],
+        ))
+        comments.append(ReviewComment(
+            file=f.file, line=f.line,
+            body=resp.choices[0].message.content, severity=f.severity))
+    return comments</code></pre>
+
+    <!-- C2.10 -->
+    <h2>C2.10 Posting Comments and the Webhook Endpoint</h2>
+
+    <p>The final stage posts review comments atomically as a single GitHub review. The <code>event</code> is always <code>"COMMENT"</code> &mdash; the agent surfaces information but never approves or blocks a PR.</p>
+
+<pre><code>async def post_review(comments, repo, pr_number, commit_sha, token):
+    review_body = {
+        "commit_id": commit_sha,
+        "event": "COMMENT",  # Never auto-approve or request changes
+        "body": f"**Code Review Agent** found **{len(comments)}** item(s).",
+        "comments": [
+            {"path": c.file, "line": c.line, "body": c.body}
+            for c in comments
+        ],
+    }
+    async with httpx.AsyncClient() as http:
+        resp = await http.post(
+            f"https://api.github.com/repos/{repo}/pulls/{pr_number}/reviews",
+            json=review_body,
+            headers={"Authorization": f"Bearer {token}",
+                     "Accept": "application/vnd.github.v3+json"},
+        )
+        resp.raise_for_status()
+
+@app.post("/webhook")
+async def handle_webhook(request: Request):
+    # Validate signature, extract PR data, run pipeline, post review
+    payload = await request.json()
+    if payload.get("action") not in ("opened", "synchronize"):
+        return {"status": "skipped"}
+    pr = payload["pull_request"]
+    files = extract_structured_diff(repo_path, pr["base"]["sha"], pr["head"]["sha"])
+    findings = await run_review_pipeline(files, client, config)
+    comments = await generate_comments(findings, get_contents(files), client)
+    await post_review(comments, payload["repository"]["full_name"],
+                      pr["number"], pr["head"]["sha"], GITHUB_TOKEN)
+    return {"findings": len(findings), "comments": len(comments)}</code></pre>
+
+    <div class="callout info">
+      <span class="callout-label">Never Auto-Approve</span>
+      <p>The <code>event</code> field is always <code>"COMMENT"</code>, never <code>"APPROVE"</code> or <code>"REQUEST_CHANGES"</code>. An automated agent should surface information, not make merge decisions. Teams that trust the agent after weeks of calibration can upgrade to <code>"REQUEST_CHANGES"</code> for critical-severity findings only.</p>
+    </div>
+
+    <!-- C2.11 -->
+    <h2>C2.11 Observability and Cost Control</h2>
+
+    <p>A production review agent needs monitoring across three dimensions: <strong>correctness</strong> (are findings useful?), <strong>latency</strong> (does the review post before the developer context-switches?), and <strong>cost</strong> (how many tokens per review?). Track three key metrics: the <em>dismissal rate</em> (how often developers dismiss findings), the <em>catch rate</em> (how often the agent flags real issues), and the <em>cost per review</em>.</p>
+
+<pre><code>async def run_pipeline_instrumented(files, client, config):
+    start = time.monotonic()
+    total_lines = sum(len(h.added_lines) for f in files for h in f.hunks)
+    logger.info("review.started", files=len(files), lines=total_lines)
+
+    findings = await run_review_pipeline(files, client, config)
+    elapsed = time.monotonic() - start
+
+    # Cost estimation: ~15 tokens/line, GPT-4o pricing
+    est_tokens = total_lines * 15
+    logger.info("review.completed", findings=len(findings),
+                seconds=round(elapsed, 2),
+                est_cost_usd=round(est_tokens * 0.000005, 4))
+    return findings</code></pre>
+
+    <div class="callout tip">
+      <span class="callout-label">Feedback Loop</span>
+      <p>Store every finding and its resolution (accepted, dismissed, modified) in a database. Periodically review dismissed findings: if <code>SEC-002</code> is dismissed 40% of the time in test files, add a suppression rule for <code>**/test_*.py</code>. This feedback loop turns a noisy tool into a trusted teammate.</p>
+    </div>
+
+    <!-- Project Section -->
+    <section class="project">
+      <h2>Portfolio Project: Build Your Code Review Agent</h2>
+      <p>Build and deploy a complete automated PR review agent. Your agent must receive webhook events, run at least two analysis workers in parallel, merge findings with confidence scores, and post inline review comments. Include a <code>.reviewignore</code> file for false positive suppression and structured logging for observability.</p>
+
+      <h3>Choose Your Domain Variant</h3>
+      <div class="variant-grid">
+        <div class="variant-card">
+          <strong>DevOps Pipeline Reviewer</strong>
+          <span class="variant-domain">Dockerfile, CI/CD YAML, IaC. Flag insecure base images, exposed ports, missing health checks, overly permissive IAM.</span>
+        </div>
+        <div class="variant-card">
+          <strong>FinTech Compliance Checker</strong>
+          <span class="variant-domain">PCI-DSS violations: logged card numbers, unencrypted PII, missing audit trails, transaction validation gaps.</span>
+        </div>
+        <div class="variant-card">
+          <strong>Healthcare HIPAA Scanner</strong>
+          <span class="variant-domain">PHI exposure in logs, unencrypted data at rest, missing access controls, HIPAA-relevant data flows.</span>
+        </div>
+        <div class="variant-card">
+          <strong>Open Source Maintainer Bot</strong>
+          <span class="variant-domain">License compatibility, API breaking changes, documentation coverage, test completeness. Contributor-friendly tone.</span>
+        </div>
+        <div class="variant-card">
+          <strong>Mobile App Reviewer</strong>
+          <span class="variant-domain">Permission escalation, insecure local storage, certificate pinning, background data leaks, platform anti-patterns.</span>
+        </div>
+        <div class="variant-card">
+          <strong>Data Pipeline Auditor</strong>
+          <span class="variant-domain">Schema drift, missing validation, null propagation, partition skew, cost-explosive query patterns in ETL code.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Summary -->
+    <section class="summary">
+      <h2>Summary</h2>
+      <p>This capstone assembled a complete automated PR review agent combining deterministic static analysis with LLM-powered reasoning. The supervisor-worker pattern runs three specialist agents in parallel &mdash; security scanning, style checking, and logic analysis &mdash; then merges findings with confidence scoring and posts natural-language review comments.</p>
+
+      <h3>Key Takeaways</h3>
+      <ul class="key-takeaways">
+        <li><strong>Separate deterministic tools from LLM reasoning.</strong> Static rules for security and style are reproducible and auditable; reserve the LLM for judgment calls requiring contextual reasoning about logic, edge cases, and design.</li>
+        <li><strong>Confidence scoring turns noise into signal.</strong> Every finding carries a 0.0&ndash;1.0 score. Corroborating sources boost confidence. A configurable threshold lets teams tune thoroughness versus noise.</li>
+        <li><strong>Scope analysis to the diff.</strong> Developers lose trust in tools that comment on lines they did not change. Restrict analysis to added and modified lines only.</li>
+        <li><strong>Post comments, never approvals.</strong> Use <code>COMMENT</code> not <code>APPROVE</code> or <code>REQUEST_CHANGES</code>. Surface information for human decision-makers; prevent false positives from blocking merges.</li>
+        <li><strong>Build the feedback loop from day one.</strong> Track dismissal rates, catch rates, and cost per review. Store every finding and resolution to tune rules and thresholds over time.</li>
+      </ul>
+
+      <div class="exercises">
+        <h3>Exercises</h3>
+        <div class="exercise-item">
+          <span class="exercise-type conceptual">Conceptual</span>
+          <p><strong>Confidence Calibration.</strong> The security scanner assigns <code>pickle.loads</code> a confidence of 0.95 and high-entropy strings 0.70. A team finds 30% of entropy findings are false positives (UUID constants) while pickle findings are 100% correct. How would you adjust scores, and what data would you collect to automate calibration?</p>
+        </div>
+        <div class="exercise-item">
+          <span class="exercise-type coding">Coding</span>
+          <p><strong>Multi-Language Support.</strong> The style checker handles only Python via <code>ast</code>. Extend it to JavaScript/TypeScript using tree-sitter. Implement three rules: arrow function consistency, unused imports, and missing error handling in async/await chains. Match the existing <code>StyleFinding</code> schema.</p>
+        </div>
+        <div class="exercise-item">
+          <span class="exercise-type design">Design</span>
+          <p><strong>Rate Limiting and Cost Budgets.</strong> A monorepo with 50 developers generates 200 PRs/day. Each review uses ~15k input and ~3k output tokens. Design a system to stay within $500/month: consider per-PR token caps, priority queues for security paths, caching for unchanged files, and graceful degradation when budget is exhausted.</p>
+        </div>
+      </div>
+    </section>
+
+    <nav class="chapter-footer">
+      <a href="capstone-01.html">&larr; Research Assistant</a>
+      <span>Capstone 2 of 5</span>
+      <a href="capstone-03.html">Customer Support &rarr;</a>
+    </nav>
+  </main>
+
+  <script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

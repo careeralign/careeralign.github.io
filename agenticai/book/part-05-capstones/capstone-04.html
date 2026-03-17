@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capstone 4 &mdash; Data Pipeline Orchestrator | Agentic AI: Build, Ship, Portfolio</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="capstone-03.html" class="nav-prev">Customer Support</a>
+    <span class="nav-title">Part 5 &mdash; Capstones</span>
+    <a href="../index.html" class="nav-next">Table of Contents</a>
+  </nav>
+
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 5 &mdash; Capstones</span>
+      <h1>Capstone 4: Data Pipeline Orchestrator</h1>
+      <p class="chapter-intro">Data pipelines break silently. A column renamed upstream, a vendor switching date formats, a nullable field that was never null until today &mdash; each failure looks trivial in hindsight, yet it propagates through warehouses for hours before anyone notices. This capstone builds an agentic ETL system that detects schema drift, validates quality, transforms data, and heals its own failures &mdash; replacing the manual triage loop with a supervisor-worker architecture that keeps pipelines healthy around the clock.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~25 min</span>
+        <span>Project: Self-Healing ETL Agent</span>
+        <span>Variants: Healthcare, Finance, E-commerce, IoT, Government, Media</span>
+      </div>
+    </header>
+
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>Design a supervisor-worker agent architecture for multi-stage data pipeline orchestration</li>
+        <li>Build schema inference and drift detection agents that adapt to upstream changes automatically</li>
+        <li>Implement quality-check agents with configurable validation rules and anomaly detection</li>
+        <li>Create self-healing workflows with retry logic, auto-fix strategies, and graceful degradation</li>
+        <li>Wire full observability &mdash; structured logs, distributed traces, and pipeline state dashboards</li>
+        <li>Deploy the system with health checks, dead-letter queues, and cost-aware scaling</li>
+      </ul>
+    </section>
+
+    <!-- C4.1 -->
+    <h2>C4.1 The Problem: Silent Pipeline Failures</h2>
+
+    <p>Every data team has a war story. The marketing dashboard showed zero conversions for six hours because a third-party API changed its JSON envelope. The ML model retrained on corrupted features because a CSV upstream switched to semicolons. The compliance report went out with last week&rsquo;s numbers because a cron job silently failed. These are not edge cases; they are Tuesday.</p>
+
+    <p>Traditional ETL pipelines are brittle because they encode assumptions statically. You hardcode column names, set row-count thresholds, and hope nothing changes. When something does &mdash; the pipeline either crashes loudly (best case) or passes corrupted data downstream (worst case). The manual repair loop takes hours on a good day.</p>
+
+    <p>An agentic pipeline inverts this. Agents <em>inspect</em> incoming data, <em>reason</em> about what changed, and <em>act</em> to fix it &mdash; or escalate when the change is too large for automated repair. The goal is not to eliminate human oversight; it is to shrink the gap between &ldquo;something broke&rdquo; and &ldquo;here is what changed, what we did, and what needs your approval.&rdquo;</p>
+
+    <div class="callout warning">
+      <span class="callout-label">When Not to Auto-Heal</span>
+      <p>Self-healing is powerful but not universally appropriate. If a financial data source changes its schema in a way that affects regulatory reporting, the correct action is to halt and escalate &mdash; not silently remap columns. Design your healer with an explicit escalation threshold: small fixes happen automatically, large structural changes require human approval.</p>
+    </div>
+
+    <!-- C4.2 -->
+    <h2>C4.2 System Architecture</h2>
+
+    <p>The system follows a supervisor-worker pattern. A <strong>Pipeline Supervisor</strong> orchestrates the end-to-end flow, delegating each stage to a specialized worker agent. Each worker is stateless and focused on one responsibility.</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 680 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Data pipeline flowchart: ingest, schema inference, validate, transform, quality check, load, and heal stages">
+        <defs>
+          <marker id="arrow-1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto" fill="none">
+            <path d="M0,0 L8,3 L0,6" stroke="#4A90D9" stroke-width="1.2" fill="none"/>
+          </marker>
+          <marker id="arrow-1-purple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto" fill="none">
+            <path d="M0,0 L8,3 L0,6" stroke="#7B68AE" stroke-width="1.2" fill="none"/>
+          </marker>
+          <marker id="arrow-1-teal" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto" fill="none">
+            <path d="M0,0 L8,3 L0,6" stroke="#2D9B83" stroke-width="1.2" fill="none"/>
+          </marker>
+          <marker id="arrow-1-coral" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto" fill="none">
+            <path d="M0,0 L8,3 L0,6" stroke="#D9654A" stroke-width="1.2" fill="none"/>
+          </marker>
+        </defs>
+        <rect width="680" height="520" rx="8" fill="#1a1a2e"/>
+        <text x="340" y="32" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="700" fill="#E0E0E0">Data Pipeline Orchestrator &mdash; Agent Flow</text>
+        <!-- Supervisor -->
+        <rect x="50" y="56" width="150" height="44" rx="6" fill="#333340" stroke="#888" stroke-width="1"/>
+        <text x="125" y="75" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="700" fill="#CCCCCC">Pipeline Supervisor</text>
+        <text x="125" y="91" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="9" fill="#999999">Orchestrates all stages</text>
+        <line x1="200" y1="78" x2="258" y2="70" stroke="#888" stroke-width="1" stroke-dasharray="3,3" fill="none"/>
+        <line x1="125" y1="100" x2="125" y2="140" stroke="#888" stroke-width="1" stroke-dasharray="3,3" fill="none"/>
+        <line x1="125" y1="140" x2="238" y2="140" stroke="#888" stroke-width="1" stroke-dasharray="3,3" fill="none"/>
+        <!-- Ingest -->
+        <rect x="260" y="50" width="160" height="40" rx="6" fill="#2A3A5C" stroke="#4A90D9" stroke-width="1.5"/>
+        <text x="340" y="75" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="12" font-weight="600" fill="#A8C8F0">Ingest Data Sources</text>
+        <line x1="340" y1="90" x2="340" y2="120" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#arrow-1)"/>
+        <!-- Schema Agent -->
+        <rect x="240" y="122" width="200" height="44" rx="6" fill="#2E2650" stroke="#7B68AE" stroke-width="1.5"/>
+        <text x="340" y="141" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="700" fill="#C4B5E3">Schema Analyzer Agent</text>
+        <text x="340" y="157" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="9" fill="#9B8DC4">Infer types &bull; Detect drift &bull; Map columns</text>
+        <line x1="340" y1="166" x2="340" y2="196" stroke="#7B68AE" stroke-width="1.5" fill="none" marker-end="url(#arrow-1-purple)"/>
+        <!-- Validate -->
+        <rect x="240" y="198" width="200" height="44" rx="6" fill="#1A3A36" stroke="#2D9B83" stroke-width="1.5"/>
+        <text x="340" y="217" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="700" fill="#7DD4BF">Quality Checker Agent</text>
+        <text x="340" y="233" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="9" fill="#5DBFA5">Rules engine &bull; Anomaly detection &bull; Stats</text>
+        <line x1="340" y1="242" x2="340" y2="272" stroke="#2D9B83" stroke-width="1.5" fill="none" marker-end="url(#arrow-1-teal)"/>
+        <!-- Transform -->
+        <rect x="240" y="274" width="200" height="44" rx="6" fill="#2E2650" stroke="#7B68AE" stroke-width="1.5"/>
+        <text x="340" y="293" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="700" fill="#C4B5E3">Transformer Agent</text>
+        <text x="340" y="309" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="9" fill="#9B8DC4">Normalize &bull; Enrich &bull; Deduplicate</text>
+        <line x1="340" y1="318" x2="340" y2="348" stroke="#7B68AE" stroke-width="1.5" fill="none" marker-end="url(#arrow-1-purple)"/>
+        <!-- Quality Gate diamond -->
+        <polygon points="340,350 405,382 340,414 275,382" fill="#1A3A36" stroke="#2D9B83" stroke-width="1.5"/>
+        <text x="340" y="379" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="10" font-weight="700" fill="#7DD4BF">Quality</text>
+        <text x="340" y="392" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="10" font-weight="700" fill="#7DD4BF">Gate</text>
+        <!-- Pass -> Load -->
+        <line x1="405" y1="382" x2="530" y2="382" stroke="#2D9B83" stroke-width="1.5" fill="none" marker-end="url(#arrow-1-teal)"/>
+        <text x="460" y="374" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="10" font-weight="600" fill="#7DD4BF">PASS</text>
+        <rect x="532" y="362" width="120" height="40" rx="6" fill="#2A3A5C" stroke="#4A90D9" stroke-width="1.5"/>
+        <text x="592" y="387" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="12" font-weight="600" fill="#A8C8F0">Load to Target</text>
+        <!-- Fail -> Heal -->
+        <line x1="275" y1="382" x2="148" y2="382" stroke="#D9654A" stroke-width="1.5" fill="none" marker-end="url(#arrow-1-coral)"/>
+        <text x="218" y="374" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="10" font-weight="600" fill="#D9654A">FAIL</text>
+        <rect x="28" y="358" width="120" height="48" rx="6" fill="#3A2020" stroke="#D9654A" stroke-width="1.5"/>
+        <text x="88" y="379" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="700" fill="#E8A090">Healer Agent</text>
+        <text x="88" y="395" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="9" fill="#D9654A">Diagnose &bull; Fix &bull; Retry</text>
+        <!-- Retry loop -->
+        <line x1="88" y1="358" x2="88" y2="296" stroke="#D9654A" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+        <line x1="88" y1="296" x2="238" y2="296" stroke="#D9654A" stroke-width="1.5" stroke-dasharray="5,3" fill="none" marker-end="url(#arrow-1-coral)"/>
+        <text x="155" y="288" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="9" font-weight="600" fill="#D9654A">RETRY</text>
+        <!-- Legend -->
+        <rect x="30" y="440" width="620" height="55" rx="6" fill="#222233" stroke="#444" stroke-width="1"/>
+        <rect x="50" y="460" width="24" height="8" rx="2" fill="#2A3A5C" stroke="#4A90D9" stroke-width="1"/>
+        <text x="82" y="468" font-family="Helvetica Neue, Arial, sans-serif" font-size="9" fill="#A8C8F0">Data Flow</text>
+        <rect x="155" y="460" width="24" height="8" rx="2" fill="#2E2650" stroke="#7B68AE" stroke-width="1"/>
+        <text x="187" y="468" font-family="Helvetica Neue, Arial, sans-serif" font-size="9" fill="#C4B5E3">Agent Processing</text>
+        <rect x="300" y="460" width="24" height="8" rx="2" fill="#1A3A36" stroke="#2D9B83" stroke-width="1"/>
+        <text x="332" y="468" font-family="Helvetica Neue, Arial, sans-serif" font-size="9" fill="#7DD4BF">Validation</text>
+        <rect x="410" y="460" width="24" height="8" rx="2" fill="#3A2020" stroke="#D9654A" stroke-width="1"/>
+        <text x="442" y="468" font-family="Helvetica Neue, Arial, sans-serif" font-size="9" fill="#E8A090">Error / Healing</text>
+        <rect x="545" y="460" width="24" height="8" rx="2" fill="#333340" stroke="#888" stroke-width="1"/>
+        <text x="577" y="468" font-family="Helvetica Neue, Arial, sans-serif" font-size="9" fill="#CCCCCC">Structural</text>
+      </svg>
+      <figcaption>Figure C4.1 &mdash; Agentic ETL pipeline: data flows top-to-bottom through specialized agents, with a healing loop on quality failures.</figcaption>
+    </figure>
+
+    <table>
+      <thead><tr><th>Agent</th><th>Responsibility</th><th>Tools</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Pipeline Supervisor</strong></td><td>Stage sequencing, state tracking, escalation</td><td>State store, notification API</td></tr>
+        <tr><td><strong>Schema Analyzer</strong></td><td>Infer types, detect drift, propose column mappings</td><td>Schema registry, LLM for semantic matching</td></tr>
+        <tr><td><strong>Quality Checker</strong></td><td>Validation rules, statistical checks, anomaly detection</td><td>Rules engine, stats library</td></tr>
+        <tr><td><strong>Transformer</strong></td><td>Normalize formats, enrich records, deduplicate</td><td>Pandas/Polars, enrichment APIs</td></tr>
+        <tr><td><strong>Healer</strong></td><td>Diagnose failures, apply auto-fix, retry or escalate</td><td>Error taxonomy, fix templates, LLM</td></tr>
+      </tbody>
+    </table>
+
+    <!-- C4.3 -->
+    <h2>C4.3 Data Source Connectors</h2>
+
+    <p>Before agents can reason about data, the system needs to ingest it. A connector interface abstracts the differences between APIs, databases, and file stores behind a uniform contract.</p>
+
+<pre><code>"""Data source connectors — uniform interface for heterogeneous sources."""
+from __future__ import annotations
+import csv, httpx
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+@dataclass
+class SourceMetadata:
+    source_name: str
+    fetched_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    record_count: int = 0
+
+@dataclass
+class DataBatch:
+    records: list[dict[str, Any]]; metadata: SourceMetadata
+
+class BaseConnector(ABC):
+    @abstractmethod
+    async def fetch(self) -&gt; DataBatch: ...
+
+class APIConnector(BaseConnector):
+    def __init__(self, url: str, headers: dict | None = None, records_path: str = "data"):
+        self.url, self.headers, self.records_path = url, headers or {}, records_path
+    async def fetch(self) -&gt; DataBatch:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(self.url, headers=self.headers)
+            resp.raise_for_status(); payload = resp.json()
+        records = payload
+        for key in self.records_path.split("."): records = records[key]
+        return DataBatch(records, SourceMetadata(self.url, record_count=len(records)))
+
+class CSVConnector(BaseConnector):
+    def __init__(self, path: str, delimiter: str = ","):
+        self.path, self.delimiter = path, delimiter
+    async def fetch(self) -&gt; DataBatch:
+        rows: list[dict[str, Any]] = []
+        with Path(self.path).open(newline="") as fh:
+            for row in csv.DictReader(fh, delimiter=self.delimiter): rows.append(dict(row))
+        return DataBatch(rows, SourceMetadata(self.path, record_count=len(rows)))</code></pre>
+
+    <div class="callout tip">
+      <span class="callout-label">Production Tip</span>
+      <p>Real deployments should support incremental fetching (cursors, watermarks, change-data-capture) to avoid re-ingesting entire tables on every run. <code>SourceMetadata</code> is a natural place to track watermarks across runs.</p>
+    </div>
+
+    <!-- C4.4 -->
+    <h2>C4.4 Schema Analyzer Agent</h2>
+
+    <p>The schema analyzer infers types, compares against the expected schema, and produces a drift report. For simple changes it proposes automatic mappings; for structural breaks it flags for human review.</p>
+
+<pre><code>"""Schema Analyzer Agent — infer, compare, report drift."""
+from __future__ import annotations
+import json
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any
+from openai import AsyncOpenAI
+
+class DriftSeverity(str, Enum):
+    NONE = "none"; LOW = "low"; MEDIUM = "medium"; HIGH = "high"
+
+@dataclass
+class ColumnInfo:
+    name: str; inferred_type: str; nullable: bool; sample_values: list[Any]
+
+@dataclass
+class SchemaReport:
+    columns: list[ColumnInfo]
+    drift_severity: DriftSeverity
+    drift_details: list[str]
+    suggested_mappings: dict[str, str]   # old_col -&gt; new_col
+
+class SchemaAnalyzerAgent:
+    SYSTEM_PROMPT = (
+        "You are a schema analysis agent. Given sample records and an expected "
+        "schema, detect changes and propose column mappings. Respond JSON only.")
+
+    def __init__(self, client: AsyncOpenAI, model: str = "gpt-4o-mini"):
+        self.client, self.model = client, model
+
+    def _infer_type(self, values: list[Any]) -&gt; tuple[str, bool]:
+        non_null = [v for v in values if v is not None and v != ""]
+        nullable = len(non_null) &lt; len(values)
+        if not non_null: return "unknown", True
+        # numeric?
+        try:
+            [float(v) for v in non_null]; return "float", nullable
+        except (ValueError, TypeError): pass
+        # date?
+        from dateutil import parser as dp
+        try:
+            [dp.parse(str(v)) for v in non_null[:10]]; return "datetime", nullable
+        except (ValueError, TypeError): pass
+        return "string", nullable
+
+    def infer_schema(self, records: list[dict]) -&gt; list[ColumnInfo]:
+        if not records: return []
+        cols: dict[str, list] = {}
+        for rec in records[:200]:
+            for k, v in rec.items(): cols.setdefault(k, []).append(v)
+        return [ColumnInfo(n, *self._infer_type(v), v[:3]) for n, v in cols.items()]
+
+    async def detect_drift(self, inferred: list[ColumnInfo],
+                           expected: dict[str, str]) -&gt; SchemaReport:
+        inf_names = {c.name for c in inferred}; exp_names = set(expected)
+        missing, added = exp_names - inf_names, inf_names - exp_names
+        details, sev = [], DriftSeverity.NONE
+        if missing: details.append(f"Missing: {missing}"); sev = DriftSeverity.HIGH
+        if added:   details.append(f"New: {added}"); sev = max(sev, DriftSeverity.LOW, key=lambda s: list(DriftSeverity).index(s))
+        for c in inferred:
+            if c.name in expected and c.inferred_type != expected[c.name]:
+                details.append(f"Type change {c.name}: {expected[c.name]}-&gt;{c.inferred_type}")
+                if sev.value &lt; DriftSeverity.MEDIUM.value: sev = DriftSeverity.MEDIUM
+        suggested = {}
+        if missing and added:
+            suggested = await self._suggest_mappings(list(missing), list(added), inferred)
+        return SchemaReport(inferred, sev, details, suggested)
+
+    async def _suggest_mappings(self, missing, added, inferred):
+        info = {c.name: {"type": c.inferred_type, "samples": c.sample_values[:2]}
+                for c in inferred if c.name in added}
+        resp = await self.client.chat.completions.create(model=self.model,
+            messages=[{"role":"system","content":self.SYSTEM_PROMPT},
+                      {"role":"user","content":f"Missing:{missing}\nNew:{json.dumps(info,default=str)}\nMap old-&gt;new JSON."}],
+            response_format={"type":"json_object"}, temperature=0)
+        return json.loads(resp.choices[0].message.content)</code></pre>
+
+    <!-- C4.5 -->
+    <h2>C4.5 Quality Checker Agent</h2>
+
+    <p>Two layers of validation: a deterministic rules engine for known constraints and a statistical anomaly detector for distribution shifts.</p>
+
+<pre><code>"""Quality Checker Agent — rules + anomaly detection."""
+from __future__ import annotations
+import re, statistics
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Callable
+
+class CheckResult(str, Enum):
+    PASS = "pass"; WARN = "warn"; FAIL = "fail"
+
+@dataclass
+class ValidationFinding:
+    check_name: str; column: str; result: CheckResult; message: str; affected_rows: int = 0
+
+@dataclass
+class QualityReport:
+    overall: CheckResult; findings: list[ValidationFinding] = field(default_factory=list)
+    row_count: int = 0
+
+@dataclass
+class ValidationRule:
+    name: str; column: str; check_fn: Callable[[Any], bool]; severity: CheckResult = CheckResult.FAIL
+
+class QualityCheckerAgent:
+    def __init__(self, rules: list[ValidationRule] | None = None):
+        self.rules = rules or []
+
+    def add_not_null(self, col): self.rules.append(ValidationRule(
+        f"not_null_{col}", col, lambda v: v is not None and v != ""))
+
+    def add_range_check(self, col, lo, hi): self.rules.append(ValidationRule(
+        f"range_{col}", col, lambda v, lo=lo, hi=hi: lo &lt;= float(v) &lt;= hi if v else True))
+
+    def add_pattern_check(self, col, pattern):
+        rx = re.compile(pattern)
+        self.rules.append(ValidationRule(f"pattern_{col}", col,
+            lambda v, rx=rx: bool(rx.match(str(v))) if v else True))
+
+    def validate(self, records: list[dict[str, Any]]) -&gt; QualityReport:
+        findings, overall = [], CheckResult.PASS
+        for rule in self.rules:
+            fails = sum(1 for r in records if not self._safe_check(rule, r))
+            if fails:
+                findings.append(ValidationFinding(rule.name, rule.column, rule.severity,
+                    f"{fails}/{len(records)} rows failed ({fails/len(records)*100:.1f}%)", fails))
+                if rule.severity == CheckResult.FAIL: overall = CheckResult.FAIL
+        # Statistical anomaly detection on numeric columns
+        findings.extend(self._detect_anomalies(records))
+        if any(f.result == CheckResult.FAIL for f in findings): overall = CheckResult.FAIL
+        return QualityReport(overall, findings, len(records))
+
+    def _safe_check(self, rule, rec):
+        try: return rule.check_fn(rec.get(rule.column))
+        except Exception: return False
+
+    def _detect_anomalies(self, records) -&gt; list[ValidationFinding]:
+        if len(records) &lt; 10: return []
+        findings = []
+        nums: dict[str, list[float]] = {}
+        for r in records:
+            for k, v in r.items():
+                try: nums.setdefault(k, []).append(float(v))
+                except (ValueError, TypeError): pass
+        for col, vals in nums.items():
+            if len(vals) &lt; 10: continue
+            mu, sd = statistics.mean(vals), statistics.stdev(vals)
+            if sd == 0: continue
+            outliers = sum(1 for v in vals if abs(v - mu) &gt; 3 * sd)
+            if outliers / len(vals) &gt; 0.05:
+                findings.append(ValidationFinding(f"anomaly_{col}", col, CheckResult.WARN,
+                    f"{outliers} outliers beyond 3\u03c3 (mean={mu:.2f}, sd={sd:.2f})", outliers))
+        return findings</code></pre>
+
+    <!-- C4.6 -->
+    <h2>C4.6 Transformer Agent</h2>
+
+    <p>The transformer normalizes data into the target schema: type coercion, date standardization, whitespace cleanup, and deduplication. Column renames from schema analysis are applied first.</p>
+
+<pre><code>"""Transformer Agent — normalize, enrich, deduplicate."""
+from __future__ import annotations
+import json
+from dataclasses import dataclass
+from typing import Any
+from dateutil import parser as dp
+
+@dataclass
+class TransformResult:
+    records: list[dict[str, Any]]; applied: list[str]; rows_dropped: int; rows_modified: int
+
+class TransformerAgent:
+    def __init__(self, target_schema: dict[str, str], mappings: dict[str, str] | None = None):
+        self.target_schema, self.mappings = target_schema, mappings or {}
+
+    def transform(self, records: list[dict[str, Any]]) -&gt; TransformResult:
+        applied, modified, out = [], 0, []
+        for rec in records:
+            row, changed = dict(rec), False
+            for old, new in self.mappings.items():
+                if old in row: row[new]=row.pop(old); changed=True
+            for col, ttype in self.target_schema.items():
+                if col not in row: continue
+                try:
+                    coerced = self._coerce(row[col], ttype)
+                    if coerced != row[col]: changed=True
+                    row[col] = coerced
+                except (ValueError, TypeError): row[col]=None; changed=True
+            for k, v in row.items():
+                if isinstance(v,str) and v!=v.strip(): row[k]=v.strip(); changed=True
+            out.append(row); modified += int(changed)
+        before = len(out); out = self._dedup(out)
+        if self.mappings: applied.append(f"Renamed: {self.mappings}")
+        applied += ["Type coercion","Whitespace normalization"]
+        if before-len(out): applied.append(f"Deduped: removed {before-len(out)}")
+        return TransformResult(out, applied, before-len(out), modified)
+
+    def _coerce(self, val, ttype):
+        if val is None or val == "": return None
+        if ttype == "integer": return int(float(val))
+        if ttype == "float":   return float(val)
+        if ttype == "boolean": return str(val).lower() in ("true", "1", "yes")
+        if ttype == "datetime":
+            dt = dp.parse(str(val)); return dt.isoformat() if dt else None
+        return str(val)
+
+    def _dedup(self, records):
+        seen, unique = set(), []
+        for r in records:
+            key = json.dumps(r, sort_keys=True, default=str)
+            if key not in seen: seen.add(key); unique.append(r)
+        return unique</code></pre>
+
+    <!-- C4.7 -->
+    <h2>C4.7 Healer Agent and Retry Logic</h2>
+
+    <p>When the quality gate fails, the healer follows three steps: <strong>diagnose</strong> from the quality report, <strong>select a fix strategy</strong> from a known taxonomy, and <strong>apply</strong> deterministically. Unresolved issues within the retry limit trigger escalation.</p>
+
+<pre><code>"""Healer Agent — diagnose, fix, retry, or escalate."""
+from __future__ import annotations
+import json
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any
+from openai import AsyncOpenAI
+
+class FixStrategy(str, Enum):
+    IMPUTE_NULLS = "impute_nulls"; COERCE_TYPES = "coerce_types"
+    DROP_INVALID = "drop_invalid"; REMAP_COLUMNS = "remap_columns"
+    CLAMP_OUTLIERS = "clamp_outliers"; ESCALATE = "escalate"
+
+@dataclass
+class HealResult:
+    strategy: FixStrategy; records: list[dict]; rows_fixed: int
+    rows_dropped: int; explanation: str; needs_escalation: bool = False
+
+class HealerAgent:
+    SYSTEM_PROMPT = ("You are a data pipeline healer. Given a quality report, choose a fix "
+        "strategy: impute_nulls, coerce_types, drop_invalid, remap_columns, "
+        "clamp_outliers, escalate. Return JSON: {\"strategy\":\"...\",\"params\":{...},\"explanation\":\"...\"}.")
+
+    def __init__(self, client: AsyncOpenAI, model="gpt-4o-mini", max_retries=3):
+        self.client, self.model, self.max_retries = client, model, max_retries
+
+    async def diagnose_and_fix(self, records, quality_report, attempt=1) -&gt; HealResult:
+        if attempt &gt; self.max_retries:
+            return HealResult(FixStrategy.ESCALATE, records, 0, 0,
+                f"Exceeded {self.max_retries} retries. Escalating.", True)
+        resp = await self.client.chat.completions.create(model=self.model,
+            messages=[{"role":"system","content":self.SYSTEM_PROMPT},
+                      {"role":"user","content":json.dumps(quality_report, indent=2)}],
+            response_format={"type":"json_object"}, temperature=0)
+        dx = json.loads(resp.choices[0].message.content)
+        strat = FixStrategy(dx.get("strategy","escalate"))
+        if strat == FixStrategy.ESCALATE:
+            return HealResult(strat, records, 0, 0, dx.get("explanation",""), True)
+        fixed, n_fix, n_drop = self._apply(records, strat, dx.get("params",{}))
+        return HealResult(strat, fixed, n_fix, n_drop, dx.get("explanation",""))
+
+    def _apply(self, recs, strat, params):
+        col, fixed, dropped, out = params.get("column",""), 0, 0, []
+        if strat == FixStrategy.IMPUTE_NULLS:
+            fill = params.get("fill_value","")
+            for r in recs:
+                row = dict(r)
+                if not row.get(col): row[col]=fill; fixed+=1
+                out.append(row)
+        elif strat == FixStrategy.DROP_INVALID:
+            for r in recs:
+                if r.get(col) in (None,""): dropped+=1
+                else: out.append(dict(r))
+        elif strat == FixStrategy.CLAMP_OUTLIERS:
+            lo, hi = float(params.get("min","-inf")), float(params.get("max","inf"))
+            for r in recs:
+                row = dict(r)
+                try:
+                    v = float(row.get(col,0))
+                    if v&lt;lo: row[col]=lo; fixed+=1
+                    elif v&gt;hi: row[col]=hi; fixed+=1
+                except (ValueError,TypeError): pass
+                out.append(row)
+        else: out = [dict(r) for r in recs]
+        return out, fixed, dropped</code></pre>
+
+    <div class="callout info">
+      <span class="callout-label">Design Decision: Deterministic Fixes, LLM Diagnosis</span>
+      <p>The LLM only performs <em>diagnosis and strategy selection</em>; actual data transformations are deterministic functions. The model never touches your data directly &mdash; it decides which well-tested function to call. This keeps the system auditable and prevents hallucinated data values.</p>
+    </div>
+
+    <!-- C4.8 -->
+    <h2>C4.8 Pipeline Supervisor</h2>
+
+    <p>The supervisor orchestrates the full workflow and logs every state transition for observability.</p>
+
+<pre><code>"""Pipeline Supervisor — orchestrates the full ETL workflow."""
+from __future__ import annotations
+import logging, time, json
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any
+from openai import AsyncOpenAI
+
+logger = logging.getLogger("pipeline")
+
+class Stage(str, Enum):
+    INIT="init"; INGEST="ingest"; SCHEMA="schema"; VALIDATE="validate"
+    TRANSFORM="transform"; GATE="gate"; HEAL="heal"; LOAD="load"
+    COMPLETE="complete"; FAILED="failed"
+
+@dataclass
+class PipelineState:
+    run_id: str; stage: Stage = Stage.INIT; started_at: float = field(default_factory=time.time)
+    events: list[dict] = field(default_factory=list); heals: int = 0
+    record_count: int = 0; error: str | None = None
+    def log(self, etype, data): self.events.append(
+        {"ts": time.time(), "stage": self.stage.value, "type": etype, "data": data})
+
+class PipelineSupervisor:
+    def __init__(self, connector, expected_schema, client: AsyncOpenAI,
+                 model="gpt-4o-mini", max_heals=3, load_fn=None):
+        self.connector, self.expected = connector, expected_schema
+        self.schema_agent = SchemaAnalyzerAgent(client, model)
+        self.quality_agent = QualityCheckerAgent()
+        self.transformer = TransformerAgent(expected_schema)
+        self.healer = HealerAgent(client, model, max_heals)
+        self.max_heals, self.load_fn = max_heals, load_fn
+
+    async def run(self, run_id: str) -&gt; PipelineState:
+        st = PipelineState(run_id=run_id)
+        try:
+            # 1. Ingest
+            st.stage = Stage.INGEST; batch = await self.connector.fetch()
+            recs = batch.records; st.record_count = len(recs)
+            st.log("ingested", {"source": batch.metadata.source_name, "rows": len(recs)})
+            # 2. Schema analysis
+            st.stage = Stage.SCHEMA; inferred = self.schema_agent.infer_schema(recs)
+            report = await self.schema_agent.detect_drift(inferred, self.expected)
+            st.log("schema", {"severity": report.drift_severity.value})
+            if report.drift_severity == DriftSeverity.HIGH:
+                st.stage, st.error = Stage.FAILED, f"High drift: {report.drift_details}"; return st
+            if report.suggested_mappings: self.transformer.mappings = report.suggested_mappings
+            # 3. Validate raw
+            st.stage = Stage.VALIDATE; q = self.quality_agent.validate(recs)
+            st.log("validated", {"overall": q.overall.value})
+            # 4. Transform
+            st.stage = Stage.TRANSFORM; tr = self.transformer.transform(recs); recs = tr.records
+            st.log("transformed", {"applied": tr.applied, "dropped": tr.rows_dropped})
+            # 5. Quality gate + heal loop
+            st.stage = Stage.GATE; fq = self.quality_agent.validate(recs)
+            while fq.overall == CheckResult.FAIL and st.heals &lt; self.max_heals:
+                st.stage, st.heals = Stage.HEAL, st.heals + 1
+                qr = {"overall": fq.overall.value, "findings": [
+                    {"check":f.check_name,"col":f.column,"msg":f.message} for f in fq.findings]}
+                hr = await self.healer.diagnose_and_fix(recs, qr, st.heals)
+                st.log("healed", {"strategy": hr.strategy.value, "fixed": hr.rows_fixed})
+                if hr.needs_escalation: st.stage,st.error=Stage.FAILED,hr.explanation; return st
+                recs = hr.records; st.stage = Stage.GATE; fq = self.quality_agent.validate(recs)
+            if fq.overall == CheckResult.FAIL:
+                st.stage, st.error = Stage.FAILED, "Quality gate failed after all heals"; return st
+            # 6. Load
+            st.stage = Stage.LOAD
+            if self.load_fn: await self.load_fn(recs)
+            st.log("loaded", {"rows": len(recs)}); st.stage = Stage.COMPLETE
+        except Exception as e:
+            st.stage, st.error = Stage.FAILED, str(e); logger.exception(e)
+        return st</code></pre>
+
+    <!-- C4.9 -->
+    <h2>C4.9 Observability and Pipeline State</h2>
+
+    <p>For production, add structured JSON logging, OpenTelemetry spans per stage, and a dashboard endpoint.</p>
+
+<pre><code>"""Observability — structured logging, tracing, dashboard."""
+import json, logging
+from functools import wraps
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+
+provider = TracerProvider()
+provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter()))
+trace.set_tracer_provider(provider)
+tracer = trace.get_tracer("pipeline-orchestrator")
+
+class StructuredLogger:
+    def __init__(self, name="pipeline"):
+        self.logger = logging.getLogger(name)
+        h = logging.StreamHandler(); h.setFormatter(logging.Formatter("%(message)s"))
+        self.logger.addHandler(h); self.logger.setLevel(logging.INFO)
+    def log(self, level, event, **kw):
+        self.logger.info(json.dumps({"event": event, "level": level, **kw}, default=str))
+
+def traced_stage(name):
+    def deco(fn):
+        @wraps(fn)
+        async def wrapper(*a, **kw):
+            with tracer.start_as_current_span(name) as span:
+                span.set_attribute("pipeline.stage", name)
+                try: result = await fn(*a, **kw); span.set_attribute("pipeline.status","ok"); return result
+                except Exception as e: span.record_exception(e); raise
+        return wrapper
+    return deco
+
+def state_to_dashboard(st) -&gt; dict:
+    dur = (st.events[-1]["ts"] - st.started_at) if st.events else 0
+    return {"run_id": st.run_id, "stage": st.stage.value, "duration_s": round(dur, 2),
+            "records": st.record_count, "heals": st.heals, "error": st.error,
+            "events": st.events[-10:]}</code></pre>
+
+    <div class="callout tip">
+      <span class="callout-label">Dead-Letter Queue</span>
+      <p>Records that cannot be fixed after all retries should be routed to a dead-letter queue &mdash; a database table, S3 prefix, or message topic &mdash; with full error context. This gives operators a clean list to investigate without blocking the rest of the pipeline.</p>
+    </div>
+
+    <!-- C4.10 -->
+    <h2>C4.10 Running the Pipeline</h2>
+
+    <p>The caller configures connectors, defines the schema and rules, and launches the supervisor.</p>
+
+<pre><code>"""Entry point — configure and run."""
+import asyncio, uuid, json
+from openai import AsyncOpenAI
+
+async def main():
+    client = AsyncOpenAI()
+    schema = {"user_id": "integer", "email": "string", "signup_date": "datetime",
+              "purchase_amount": "float", "country": "string"}
+    connector = CSVConnector(path="data/daily_signups.csv")
+    qa = QualityCheckerAgent()
+    qa.add_not_null("user_id"); qa.add_not_null("email")
+    qa.add_pattern_check("email", r"^[^@]+@[^@]+\.[^@]+$")
+    qa.add_range_check("purchase_amount", 0, 100_000)
+    async def load(recs): print(f"Loaded {len(recs)} records to warehouse")
+    sup = PipelineSupervisor(connector, schema, client, max_heals=3, load_fn=load)
+    sup.quality_agent = qa
+    state = await sup.run(str(uuid.uuid4())[:8])
+    print(json.dumps(state_to_dashboard(state), indent=2, default=str))
+
+if __name__ == "__main__":
+    asyncio.run(main())</code></pre>
+
+    <div class="callout warning">
+      <span class="callout-label">Cost Awareness</span>
+      <p>Each run may invoke the LLM multiple times: once for schema drift mapping, once per heal attempt. For a pipeline running hourly across ten sources, this adds up. Track token usage per run in your observability layer and set budget alerts. Use smaller models for routine diagnosis and reserve larger models for complex escalations.</p>
+    </div>
+
+    <!-- Project -->
+    <section class="project">
+      <h2>Portfolio Project: Self-Healing Data Pipeline</h2>
+      <p>Build and deploy a complete pipeline orchestrator with schema inference, quality validation, and self-healing. Include a working supervisor, at least three worker agents, structured observability, and a demo showing the system recovering from an injected failure (a renamed column, corrupt batch, or schema drift).</p>
+      <p><strong>Pick one domain variant:</strong></p>
+      <div class="variant-grid">
+        <div class="variant-card">
+          Healthcare Claims
+          <span class="variant-domain">CPT code validation, billing anomaly detection, heal rejected claims with missing diagnosis codes</span>
+        </div>
+        <div class="variant-card">
+          Financial Transactions
+          <span class="variant-domain">Trading data feeds, market-hours and price-bound validation, currency format drift correction</span>
+        </div>
+        <div class="variant-card">
+          E-commerce Orders
+          <span class="variant-domain">Multi-vendor order aggregation, SKU normalization, duplicate shipment resolution</span>
+        </div>
+        <div class="variant-card">
+          IoT Sensor Data
+          <span class="variant-domain">Factory telemetry, calibration drift detection, missing-reading imputation</span>
+        </div>
+        <div class="variant-card">
+          Government Records
+          <span class="variant-domain">Cross-agency reconciliation, SSN/TIN format validation, PII anomaly quarantine</span>
+        </div>
+        <div class="variant-card">
+          Media Analytics
+          <span class="variant-domain">Ad-impression logs, timestamp-zone normalization, campaign ID schema healing</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Summary -->
+    <section class="summary">
+      <h2>Summary</h2>
+      <p>We built a supervisor-worker ETL architecture where each stage &mdash; schema inference, quality checking, transformation, and healing &mdash; is handled by a focused agent. The system detects schema drift, validates against rules and statistical baselines, repairs common failures autonomously, and escalates cleanly when confidence is insufficient.</p>
+
+      <h3>Key Takeaways</h3>
+      <ul class="key-takeaways">
+        <li><strong>Separate diagnosis from action.</strong> Let the LLM choose strategies but keep actual transforms deterministic. This makes the system auditable and prevents hallucinated data values.</li>
+        <li><strong>Schema drift is the norm.</strong> Build agents that detect and adapt to changes automatically, with clear severity thresholds for auto-fix versus escalation.</li>
+        <li><strong>Quality gates are non-negotiable.</strong> Validate both before and after transformation. A pipeline that loads without a final quality check will eventually corrupt your warehouse.</li>
+        <li><strong>Observability is not optional.</strong> Every agent decision, retry, and fix must be logged with full context. Without this, debugging a multi-agent pipeline is impossible.</li>
+        <li><strong>Design for escalation.</strong> The healer&rsquo;s most important feature is knowing when to stop. Bounded retries with clear escalation paths prevent the system from amplifying damage.</li>
+      </ul>
+
+      <div class="exercises">
+        <h3>Exercises</h3>
+        <div class="exercise-item">
+          <span class="exercise-type conceptual">Conceptual</span>
+          <p>A source changes its date column from <code>YYYY-MM-DD</code> to Unix epoch timestamps. Walk through how each agent responds. At what severity level should this drift be classified, and why?</p>
+        </div>
+        <div class="exercise-item">
+          <span class="exercise-type coding">Coding</span>
+          <p>Extend <code>QualityCheckerAgent</code> with a referential integrity check: given a set of valid foreign-key values (e.g., country codes), validate that every record&rsquo;s field appears in the allowed set. Write the rule, integrate it, and test with invalid values.</p>
+        </div>
+        <div class="exercise-item">
+          <span class="exercise-type design">Design</span>
+          <p>Your pipeline processes data from eight sources on different schedules. Design a scheduling layer on top of the supervisor that handles concurrent runs, prevents duplicate processing, and provides a unified health dashboard. Sketch the architecture and key data structures.</p>
+        </div>
+      </div>
+    </section>
+
+    <nav class="chapter-footer">
+      <a href="capstone-03.html" class="nav-prev">Customer Support</a>
+      <span>Capstone 4 of 4</span>
+      <a href="../index.html" class="nav-next">Table of Contents</a>
+    </nav>
+  </main>
+
+  <script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

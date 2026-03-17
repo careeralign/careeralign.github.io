@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capstone 3 &mdash; Customer Support System | Agentic AI: Build, Ship, Portfolio</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="capstone-02.html" class="nav-prev">Code Review Agent</a>
+    <span class="nav-title">Part 5 &mdash; Capstones</span>
+    <a href="capstone-04.html" class="nav-next">Data Pipeline</a>
+  </nav>
+
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 5 &mdash; Capstones</span>
+      <h1>Customer Support System</h1>
+      <p class="chapter-intro">Every support team faces the same spiral: ticket volume grows, response times stretch, quality drops, customers churn, and the remaining agents burn out faster. You hire more people, but onboarding takes months and institutional knowledge stays locked in senior agents&rsquo; heads. Meanwhile, your knowledge base &mdash; hundreds of articles, runbooks, and policy documents &mdash; sits in a wiki that nobody searches correctly. This capstone builds the system that breaks that spiral: a RAG-powered support agent that retrieves the right documentation, drafts accurate responses, detects frustration before it escalates, and hands off to humans when the situation demands judgment that software should not fake.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~25 min</span>
+        <span>Project: Support Agent Pipeline</span>
+        <span>Variants: SaaS, Healthcare, Finance, E-commerce, Telecom, Education</span>
+      </div>
+    </header>
+
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>How to architect a multi-stage support pipeline combining RAG, memory, sentiment analysis, and human escalation</li>
+        <li>How to ingest and chunk knowledge base articles for semantic search with metadata filtering</li>
+        <li>How to maintain per-customer conversation memory across sessions for context continuity</li>
+        <li>How to classify sentiment in real time and trigger escalation rules based on frustration signals</li>
+        <li>How to implement human-in-the-loop handoff with full conversation context transfer</li>
+        <li>How to instrument the entire pipeline with traces, metrics, and CSAT tracking for production observability</li>
+      </ul>
+    </section>
+
+    <!-- C3.1 -->
+    <h2>C3.1 The Support Automation Problem</h2>
+
+    <p>Support teams operate under contradictory pressures. Customers expect instant, personalized responses. Managers expect consistency and compliance with company policies. Engineers expect the support tool to stop pinging them with questions that the documentation already answers. And the support agents themselves expect a workload that does not require memorizing a thousand-page knowledge base.</p>
+
+    <p>Chatbots from the previous generation failed because they operated on intent classification and decision trees. If the customer&rsquo;s question did not match a predefined intent, the bot either looped (&ldquo;I didn&rsquo;t understand that, could you rephrase?&rdquo;) or dumped the user into a queue. There was no retrieval, no reasoning, and no graceful degradation.</p>
+
+    <p>An agentic support system is different in three fundamental ways. First, it <strong>retrieves</strong> &mdash; it searches your actual documentation and returns grounded answers instead of templated responses. Second, it <strong>remembers</strong> &mdash; it carries context across turns and even across sessions, so the customer never has to repeat themselves. Third, it <strong>escalates intelligently</strong> &mdash; it recognizes when it is out of its depth and routes to a human with full context, not a cold transfer.</p>
+
+    <div class="callout info">
+      <span class="callout-label">Scope of This Capstone</span>
+      <p>This project integrates patterns from four earlier chapters: RAG pipelines (Chapter 8), memory systems (Chapter 7), human-in-the-loop workflows (Chapter 11), and observability (Chapter 13). If you skipped any of those, you can still follow along, but you will benefit from reviewing the relevant sections when a concept appears unfamiliar.</p>
+    </div>
+
+    <!-- C3.2 -->
+    <h2>C3.2 System Architecture</h2>
+
+    <p>The support system is a pipeline of six cooperating components. A ticket arrives at the <strong>intake agent</strong>, which classifies priority and extracts structured metadata. The query then hits the <strong>RAG knowledge base</strong>, which performs semantic search over your documentation. The <strong>response generator</strong> synthesizes a draft answer grounded in retrieved documents. Meanwhile, the <strong>sentiment analyzer</strong> scores the customer&rsquo;s emotional state on every message. The <strong>escalation router</strong> evaluates a rule set combining sentiment, topic complexity, and confidence scores to decide whether the response ships or the conversation routes to a human. Finally, the <strong>human handoff</strong> module transfers the full conversation context &mdash; including retrieved documents, sentiment history, and prior attempts &mdash; to a live agent.</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 680 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Customer support system architecture showing the agent pipeline with RAG, memory, sentiment analysis, and escalation routing">
+        <defs>
+          <marker id="arrow-1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#888"/>
+          </marker>
+        </defs>
+        <style>
+          text { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+          .title-text { font-size: 14px; font-weight: 700; fill: #e0e0e0; }
+          .box-label { font-size: 11px; font-weight: 600; fill: #fff; }
+          .box-sub { font-size: 9px; fill: #ccc; }
+          .group-label { font-size: 10px; font-weight: 600; fill: #aaa; text-transform: uppercase; letter-spacing: 0.08em; }
+        </style>
+        <rect width="680" height="520" rx="8" fill="#1a1a2e"/>
+        <text x="340" y="32" text-anchor="middle" class="title-text">Customer Support Agent Pipeline</text>
+
+        <!-- Customer input -->
+        <rect x="30" y="60" width="130" height="50" rx="6" fill="#555" stroke="#777" stroke-width="1"/>
+        <text x="95" y="82" text-anchor="middle" class="box-label">Customer</text>
+        <text x="95" y="96" text-anchor="middle" class="box-sub">Message / Ticket</text>
+
+        <!-- Intake Agent (purple) -->
+        <rect x="30" y="140" width="130" height="56" rx="6" fill="#6C3FA0" stroke="#8B5FC7" stroke-width="1"/>
+        <text x="95" y="163" text-anchor="middle" class="box-label">Intake Agent</text>
+        <text x="95" y="178" text-anchor="middle" class="box-sub">Classify &amp; Extract</text>
+
+        <!-- Arrow: Customer -> Intake -->
+        <line x1="95" y1="110" x2="95" y2="140" stroke="#888" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+
+        <!-- RAG Knowledge Base (blue) -->
+        <rect x="210" y="60" width="150" height="56" rx="6" fill="#185FA5" stroke="#3B82C4" stroke-width="1"/>
+        <text x="285" y="83" text-anchor="middle" class="box-label">RAG Knowledge Base</text>
+        <text x="285" y="98" text-anchor="middle" class="box-sub">Embed &amp; Retrieve Docs</text>
+
+        <!-- Vector Store (blue) -->
+        <rect x="210" y="136" width="150" height="44" rx="6" fill="#0E4A7A" stroke="#2B6EA0" stroke-width="1"/>
+        <text x="285" y="158" text-anchor="middle" class="box-label">Vector Store</text>
+        <text x="285" y="172" text-anchor="middle" class="box-sub">ChromaDB / Pinecone</text>
+
+        <!-- Arrow: RAG -> Vector -->
+        <line x1="285" y1="116" x2="285" y2="136" stroke="#3B82C4" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+
+        <!-- Arrow: Intake -> RAG -->
+        <line x1="160" y1="158" x2="195" y2="100" stroke="#888" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+
+        <!-- Response Generator (purple) -->
+        <rect x="30" y="230" width="150" height="56" rx="6" fill="#6C3FA0" stroke="#8B5FC7" stroke-width="1"/>
+        <text x="105" y="253" text-anchor="middle" class="box-label">Response Generator</text>
+        <text x="105" y="268" text-anchor="middle" class="box-sub">Draft Grounded Reply</text>
+
+        <!-- Arrow: Intake -> Response Generator -->
+        <line x1="95" y1="196" x2="95" y2="230" stroke="#888" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+
+        <!-- Arrow: RAG -> Response Generator -->
+        <path d="M210,155 Q190,200 170,240" stroke="#3B82C4" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+
+        <!-- Conversation Memory (blue) -->
+        <rect x="210" y="210" width="150" height="56" rx="6" fill="#185FA5" stroke="#3B82C4" stroke-width="1"/>
+        <text x="285" y="233" text-anchor="middle" class="box-label">Conversation Memory</text>
+        <text x="285" y="248" text-anchor="middle" class="box-sub">Per-Customer Context</text>
+
+        <!-- Arrow: Memory <-> Response (bidirectional) -->
+        <line x1="180" y1="252" x2="210" y2="242" stroke="#3B82C4" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+
+        <!-- Sentiment Analyzer (teal) -->
+        <rect x="410" y="60" width="150" height="56" rx="6" fill="#0F6E56" stroke="#22A07A" stroke-width="1"/>
+        <text x="485" y="83" text-anchor="middle" class="box-label">Sentiment Analyzer</text>
+        <text x="485" y="98" text-anchor="middle" class="box-sub">Score &amp; Classify Tone</text>
+
+        <!-- Arrow: Customer -> Sentiment -->
+        <path d="M160,85 L410,85" stroke="#888" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+
+        <!-- Escalation Router (teal) -->
+        <rect x="410" y="150" width="150" height="56" rx="6" fill="#0F6E56" stroke="#22A07A" stroke-width="1"/>
+        <text x="485" y="173" text-anchor="middle" class="box-label">Escalation Router</text>
+        <text x="485" y="188" text-anchor="middle" class="box-sub">Rules &amp; Confidence Check</text>
+
+        <!-- Arrow: Sentiment -> Router -->
+        <line x1="485" y1="116" x2="485" y2="150" stroke="#22A07A" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+
+        <!-- Arrow: Response Generator -> Router -->
+        <path d="M180,260 Q300,280 420,185" stroke="#888" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+
+        <!-- Auto-reply path -->
+        <rect x="410" y="240" width="150" height="50" rx="6" fill="#555" stroke="#777" stroke-width="1"/>
+        <text x="485" y="262" text-anchor="middle" class="box-label">Auto-Reply</text>
+        <text x="485" y="276" text-anchor="middle" class="box-sub">Send to Customer</text>
+
+        <!-- Arrow: Router -> Auto-reply -->
+        <line x1="485" y1="206" x2="485" y2="240" stroke="#22A07A" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <text x="500" y="225" class="box-sub" fill="#22A07A">confident</text>
+
+        <!-- Human Handoff (coral) -->
+        <rect x="250" y="330" width="180" height="56" rx="6" fill="#993C1D" stroke="#C45A32" stroke-width="1"/>
+        <text x="340" y="353" text-anchor="middle" class="box-label">Human Handoff</text>
+        <text x="340" y="368" text-anchor="middle" class="box-sub">Context Transfer &amp; Queue</text>
+
+        <!-- Arrow: Router -> Human -->
+        <path d="M435,206 Q400,280 410,340" stroke="#C45A32" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <text x="395" y="280" class="box-sub" fill="#C45A32">escalate</text>
+
+        <!-- Human Agent -->
+        <rect x="250" y="410" width="180" height="50" rx="6" fill="#7A2E14" stroke="#993C1D" stroke-width="1"/>
+        <text x="340" y="432" text-anchor="middle" class="box-label">Human Agent</text>
+        <text x="340" y="446" text-anchor="middle" class="box-sub">Full Context Dashboard</text>
+
+        <!-- Arrow: Handoff -> Human Agent -->
+        <line x1="340" y1="386" x2="340" y2="410" stroke="#C45A32" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+
+        <!-- Observability (gray bar at bottom) -->
+        <rect x="30" y="480" width="620" height="30" rx="4" fill="#333" stroke="#555" stroke-width="1"/>
+        <text x="340" y="500" text-anchor="middle" class="box-sub" fill="#aaa">Observability Layer &mdash; Traces &bull; Metrics &bull; CSAT Tracking &bull; Dashboards</text>
+
+        <!-- Legend -->
+        <rect x="560" y="330" width="10" height="10" rx="2" fill="#6C3FA0"/>
+        <text x="576" y="340" class="box-sub">Core Agents</text>
+        <rect x="560" y="348" width="10" height="10" rx="2" fill="#185FA5"/>
+        <text x="576" y="358" class="box-sub">Knowledge / RAG</text>
+        <rect x="560" y="366" width="10" height="10" rx="2" fill="#0F6E56"/>
+        <text x="576" y="376" class="box-sub">Sentiment / Routing</text>
+        <rect x="560" y="384" width="10" height="10" rx="2" fill="#993C1D"/>
+        <text x="576" y="394" class="box-sub">Escalation / Human</text>
+        <rect x="560" y="402" width="10" height="10" rx="2" fill="#555"/>
+        <text x="576" y="412" class="box-sub">Structural</text>
+      </svg>
+      <figcaption>Figure C3.1 &mdash; Support system architecture: intake, RAG retrieval, response generation, sentiment analysis, escalation routing, and human handoff with observability instrumentation across all stages.</figcaption>
+    </figure>
+
+    <p>Every component communicates through a shared <code>Ticket</code> object that accumulates metadata as it flows through the pipeline. This design means any component can inspect the full history &mdash; the sentiment analyzer can see previous retrieval results, the escalation router can see both the draft response and the sentiment trajectory, and the human agent receives everything.</p>
+
+    <!-- C3.3 -->
+    <h2>C3.3 Knowledge Base Ingestion</h2>
+
+    <p>The foundation of any support agent is the quality of its retrieval. If the knowledge base is poorly chunked, the agent retrieves noise and hallucinates confidently. We start by building a robust ingestion pipeline that converts raw documentation into semantically meaningful chunks with rich metadata.</p>
+
+<pre><code>import hashlib
+from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
+
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_openai import OpenAIEmbeddings
+from chromadb import PersistentClient
+
+
+@dataclass
+class Article:
+    """A knowledge base article with metadata for filtered retrieval."""
+    title: str
+    content: str
+    category: str          # billing, technical, account, shipping, etc.
+    product: str           # which product line this covers
+    last_updated: str      # ISO date string
+    source_url: str = ""
+    article_id: str = field(default="")
+
+    def __post_init__(self):
+        if not self.article_id:
+            self.article_id = hashlib.sha256(
+                f"{self.title}:{self.source_url}".encode()
+            ).hexdigest()[:12]
+
+
+class KnowledgeBaseIngestor:
+    """Chunks articles and upserts them into a vector store."""
+
+    def __init__(self, collection_name: str = "support_kb"):
+        self.splitter = RecursiveCharacterTextSplitter(
+            chunk_size=800,
+            chunk_overlap=120,
+            separators=["\n## ", "\n### ", "\n\n", "\n", ". ", " "],
+        )
+        self.embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+        self.client = PersistentClient(path="./chroma_support_db")
+        self.collection = self.client.get_or_create_collection(
+            name=collection_name,
+            metadata={"hnsw:space": "cosine"},
+        )
+
+    def ingest(self, articles: list[Article]) -&gt; int:
+        """Chunk, embed, and store articles. Returns chunk count."""
+        all_chunks, all_ids, all_metas = [], [], []
+
+        for article in articles:
+            chunks = self.splitter.split_text(article.content)
+            for i, chunk in enumerate(chunks):
+                chunk_id = f"{article.article_id}_chunk_{i}"
+                all_chunks.append(chunk)
+                all_ids.append(chunk_id)
+                all_metas.append({
+                    "article_id": article.article_id,
+                    "title": article.title,
+                    "category": article.category,
+                    "product": article.product,
+                    "last_updated": article.last_updated,
+                    "chunk_index": i,
+                    "source_url": article.source_url,
+                })
+
+        # Embed in batches of 100
+        for start in range(0, len(all_chunks), 100):
+            batch_chunks = all_chunks[start:start + 100]
+            batch_ids = all_ids[start:start + 100]
+            batch_metas = all_metas[start:start + 100]
+            batch_embeds = self.embeddings.embed_documents(batch_chunks)
+
+            self.collection.upsert(
+                ids=batch_ids,
+                embeddings=batch_embeds,
+                documents=batch_chunks,
+                metadatas=batch_metas,
+            )
+
+        return len(all_chunks)
+
+    def search(
+        self,
+        query: str,
+        category: str | None = None,
+        product: str | None = None,
+        top_k: int = 5,
+    ) -&gt; list[dict]:
+        """Semantic search with optional metadata filters."""
+        query_embedding = self.embeddings.embed_query(query)
+
+        where_filter = {}
+        if category:
+            where_filter["category"] = category
+        if product:
+            where_filter["product"] = product
+
+        results = self.collection.query(
+            query_embeddings=[query_embedding],
+            n_results=top_k,
+            where=where_filter if where_filter else None,
+            include=["documents", "metadatas", "distances"],
+        )
+
+        return [
+            {
+                "content": doc,
+                "metadata": meta,
+                "score": 1 - dist,  # cosine similarity
+            }
+            for doc, meta, dist in zip(
+                results["documents"][0],
+                results["metadatas"][0],
+                results["distances"][0],
+            )
+        ]</code></pre>
+
+    <p>Three design choices matter here. First, the <code>RecursiveCharacterTextSplitter</code> uses heading-aware separators so chunks align with document structure rather than splitting mid-paragraph. Second, every chunk carries its parent article&rsquo;s metadata &mdash; category, product, and recency &mdash; enabling filtered retrieval that narrows results before semantic ranking. Third, the <code>upsert</code> operation means re-ingesting updated articles replaces stale chunks rather than duplicating them.</p>
+
+    <div class="callout tip">
+      <span class="callout-label">Chunking Strategy</span>
+      <p>The 800-token chunk size with 120-token overlap is a starting point, not a rule. For highly structured documentation (step-by-step guides), smaller chunks of 400&ndash;500 tokens preserve procedural coherence. For conceptual articles (policy explanations), larger chunks of 1000&ndash;1200 tokens keep reasoning intact. Measure retrieval precision on a test set before committing to a chunk size.</p>
+    </div>
+
+    <!-- C3.4 -->
+    <h2>C3.4 Conversation Memory</h2>
+
+    <p>A support agent without memory forces customers to repeat their problem every time they return. This is the single most frustrating experience in customer support, and it is entirely avoidable. We implement a memory system that tracks both the current conversation and cross-session customer history.</p>
+
+<pre><code>import json
+from datetime import datetime, timezone
+from typing import Optional
+
+import redis
+
+
+class ConversationMemory:
+    """Per-customer conversation memory with session and history tracking."""
+
+    def __init__(self, redis_url: str = "redis://localhost:6379"):
+        self.redis = redis.from_url(redis_url, decode_responses=True)
+        self.session_ttl = 3600 * 2    # 2 hours for active sessions
+        self.history_ttl = 3600 * 24 * 90  # 90 days for customer history
+
+    def _session_key(self, customer_id: str, session_id: str) -&gt; str:
+        return f"support:session:{customer_id}:{session_id}"
+
+    def _history_key(self, customer_id: str) -&gt; str:
+        return f"support:history:{customer_id}"
+
+    def add_message(
+        self,
+        customer_id: str,
+        session_id: str,
+        role: str,
+        content: str,
+        metadata: Optional[dict] = None,
+    ) -&gt; None:
+        """Append a message to the current session and customer history."""
+        message = {
+            "role": role,
+            "content": content,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "metadata": metadata or {},
+        }
+        serialized = json.dumps(message)
+
+        # Current session (ordered list)
+        session_key = self._session_key(customer_id, session_id)
+        self.redis.rpush(session_key, serialized)
+        self.redis.expire(session_key, self.session_ttl)
+
+        # Customer history (capped sorted set by timestamp)
+        history_key = self._history_key(customer_id)
+        score = datetime.now(timezone.utc).timestamp()
+        self.redis.zadd(history_key, {serialized: score})
+        self.redis.expire(history_key, self.history_ttl)
+
+        # Trim history to last 500 messages
+        self.redis.zremrangebyrank(history_key, 0, -501)
+
+    def get_session(self, customer_id: str, session_id: str) -&gt; list[dict]:
+        """Retrieve all messages in the current session."""
+        session_key = self._session_key(customer_id, session_id)
+        raw = self.redis.lrange(session_key, 0, -1)
+        return [json.loads(m) for m in raw]
+
+    def get_recent_history(
+        self, customer_id: str, limit: int = 20
+    ) -&gt; list[dict]:
+        """Retrieve recent cross-session history for context."""
+        history_key = self._history_key(customer_id)
+        raw = self.redis.zrevrange(history_key, 0, limit - 1)
+        return [json.loads(m) for m in reversed(raw)]
+
+    def get_summary(self, customer_id: str) -&gt; dict:
+        """Build a customer context summary for the agent."""
+        history_key = self._history_key(customer_id)
+        total = self.redis.zcard(history_key)
+        recent = self.get_recent_history(customer_id, limit=5)
+
+        topics = set()
+        for msg in recent:
+            if msg.get("metadata", {}).get("category"):
+                topics.add(msg["metadata"]["category"])
+
+        return {
+            "customer_id": customer_id,
+            "total_interactions": total,
+            "recent_topics": list(topics),
+            "last_contact": recent[-1]["timestamp"] if recent else None,
+        }</code></pre>
+
+    <p>The memory system operates at two time scales. The <strong>session</strong> captures the current conversation as an ordered list with a two-hour TTL &mdash; long enough for a support interaction, short enough to avoid stale state. The <strong>history</strong> stores the last 500 messages in a sorted set keyed by timestamp, giving the agent access to prior interactions spanning 90 days. When a returning customer opens a new ticket, the agent can reference previous issues without the customer repeating anything.</p>
+
+    <!-- C3.5 -->
+    <h2>C3.5 Sentiment Analysis and Escalation</h2>
+
+    <p>The difference between a resolved ticket and a churned customer often comes down to detecting frustration early. A customer who writes &ldquo;this is the third time I&rsquo;ve contacted you about this&rdquo; is not asking a question &mdash; they are warning you. The sentiment analyzer catches these signals and feeds them into the escalation router.</p>
+
+<pre><code>from enum import Enum
+from openai import OpenAI
+from pydantic import BaseModel
+
+
+class SentimentLevel(str, Enum):
+    POSITIVE = "positive"
+    NEUTRAL = "neutral"
+    FRUSTRATED = "frustrated"
+    ANGRY = "angry"
+    URGENT = "urgent"
+
+
+class SentimentResult(BaseModel):
+    level: SentimentLevel
+    confidence: float        # 0.0 to 1.0
+    frustration_score: float # 0.0 to 1.0, tracks escalation risk
+    signals: list[str]       # e.g., ["repeated_issue", "threatening_churn"]
+
+
+class SentimentAnalyzer:
+    """Classifies customer sentiment using structured LLM output."""
+
+    SYSTEM_PROMPT = """You are a sentiment classifier for customer support messages.
+Analyze the customer message and return a JSON object with:
+- level: one of positive, neutral, frustrated, angry, urgent
+- confidence: 0.0 to 1.0
+- frustration_score: 0.0 to 1.0 based on cumulative frustration signals
+- signals: list of detected signals from this set:
+  repeated_issue, long_wait, threatening_churn, profanity,
+  all_caps, multiple_exclamations, legal_threat, billing_dispute,
+  time_pressure, previous_escalation
+
+Consider the conversation history for context. A polite message from
+someone who has contacted three times about the same issue should have
+a higher frustration_score than the words alone suggest."""
+
+    def __init__(self):
+        self.client = OpenAI()
+
+    def analyze(
+        self, message: str, conversation_history: list[dict]
+    ) -&gt; SentimentResult:
+        """Analyze sentiment with conversation context."""
+        history_text = "\n".join(
+            f"[{m['role']}]: {m['content']}"
+            for m in conversation_history[-6:]  # last 6 messages for context
+        )
+
+        response = self.client.beta.chat.completions.parse(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": self.SYSTEM_PROMPT},
+                {"role": "user", "content": (
+                    f"Conversation history:\n{history_text}\n\n"
+                    f"Latest customer message:\n{message}"
+                )},
+            ],
+            response_format=SentimentResult,
+            temperature=0.1,
+        )
+        return response.choices[0].message.parsed</code></pre>
+
+    <p>The analyzer uses structured output to guarantee a parseable result. The <code>frustration_score</code> is the key signal &mdash; it accounts for cumulative frustration, not just the tone of the current message. A customer who calmly writes &ldquo;I understand you&rsquo;re busy, but this is my fourth contact about this issue&rdquo; should score higher than someone who writes &ldquo;THIS IS ANNOYING!!!&rdquo; for the first time, because repeated failure is a stronger churn predictor than momentary irritation.</p>
+
+    <p>The escalation router combines sentiment with other signals to make routing decisions:</p>
+
+<pre><code>from dataclasses import dataclass
+
+
+@dataclass
+class EscalationDecision:
+    should_escalate: bool
+    reason: str
+    priority: str  # low, medium, high, critical
+    assigned_queue: str  # auto, tier1, tier2, manager
+
+
+class EscalationRouter:
+    """Rule-based escalation with sentiment and confidence inputs."""
+
+    def __init__(self, confidence_threshold: float = 0.75):
+        self.confidence_threshold = confidence_threshold
+
+    def evaluate(
+        self,
+        sentiment: SentimentResult,
+        response_confidence: float,
+        ticket_metadata: dict,
+    ) -&gt; EscalationDecision:
+        """Decide whether to auto-reply or escalate to a human."""
+
+        # Rule 1: Angry or urgent sentiment always escalates
+        if sentiment.level in (SentimentLevel.ANGRY, SentimentLevel.URGENT):
+            return EscalationDecision(
+                should_escalate=True,
+                reason=f"Sentiment: {sentiment.level.value}",
+                priority="critical" if sentiment.level == SentimentLevel.URGENT else "high",
+                assigned_queue="tier2" if sentiment.level == SentimentLevel.URGENT else "tier1",
+            )
+
+        # Rule 2: Legal threats go to manager queue
+        if "legal_threat" in sentiment.signals:
+            return EscalationDecision(
+                should_escalate=True,
+                reason="Legal threat detected",
+                priority="critical",
+                assigned_queue="manager",
+            )
+
+        # Rule 3: High frustration with low confidence = escalate
+        if (
+            sentiment.frustration_score &gt; 0.7
+            and response_confidence &lt; self.confidence_threshold
+        ):
+            return EscalationDecision(
+                should_escalate=True,
+                reason="High frustration + low retrieval confidence",
+                priority="high",
+                assigned_queue="tier1",
+            )
+
+        # Rule 4: Low retrieval confidence alone = cautious auto-reply
+        if response_confidence &lt; 0.5:
+            return EscalationDecision(
+                should_escalate=True,
+                reason="Retrieval confidence below threshold",
+                priority="medium",
+                assigned_queue="tier1",
+            )
+
+        # Rule 5: Repeated contact about same issue
+        contact_count = ticket_metadata.get("contact_count", 1)
+        if contact_count &gt;= 3:
+            return EscalationDecision(
+                should_escalate=True,
+                reason=f"Customer contacted {contact_count} times for same issue",
+                priority="high",
+                assigned_queue="tier2",
+            )
+
+        # Default: auto-reply
+        return EscalationDecision(
+            should_escalate=False,
+            reason="Within confidence and sentiment thresholds",
+            priority="low",
+            assigned_queue="auto",
+        )</code></pre>
+
+    <div class="callout warning">
+      <span class="callout-label">Escalation Rules Are a Starting Point</span>
+      <p>Hard-coded rules get you to production fast, but they do not learn. After collecting a few thousand tickets with resolution outcomes, train a lightweight classifier (logistic regression is often sufficient) to predict which tickets need human intervention. Use the rule-based router as a fallback for the first month, then gradually shift to the learned model while keeping the rules as safety overrides for critical signals like legal threats.</p>
+    </div>
+
+    <!-- C3.6 -->
+    <h2>C3.6 The Response Generator</h2>
+
+    <p>The response generator is the core agent: it takes the customer message, retrieved documents, conversation history, and customer summary, then produces a grounded response with a confidence score.</p>
+
+<pre><code>class SupportResponseGenerator:
+    """Generates grounded support responses with confidence scoring."""
+
+    SYSTEM_PROMPT = """You are a customer support agent. Generate helpful,
+accurate responses based ONLY on the provided documentation.
+
+Rules:
+1. Only use information from the retrieved documents. If the documents
+   do not contain the answer, say so honestly.
+2. Be empathetic but concise. Acknowledge the customer's situation
+   before providing the solution.
+3. Include specific steps when applicable.
+4. If the customer has contacted before about the same issue,
+   acknowledge that and express understanding of their frustration.
+5. End with a clear next step or confirmation question.
+
+After your response, rate your confidence from 0.0 to 1.0 based on:
+- How well the retrieved documents match the question
+- Whether the documents contain a complete answer
+- Whether the answer requires interpretation beyond what is written"""
+
+    def __init__(self):
+        self.client = OpenAI()
+
+    def generate(
+        self,
+        customer_message: str,
+        retrieved_docs: list[dict],
+        conversation: list[dict],
+        customer_summary: dict,
+    ) -&gt; dict:
+        """Generate a response grounded in retrieved documentation."""
+        docs_text = "\n\n---\n\n".join(
+            f"[Source: {d['metadata']['title']}]\n{d['content']}"
+            for d in retrieved_docs
+        )
+
+        history_text = "\n".join(
+            f"[{m['role']}]: {m['content']}"
+            for m in conversation[-8:]
+        )
+
+        summary_text = (
+            f"Customer has contacted {customer_summary['total_interactions']} times. "
+            f"Recent topics: {', '.join(customer_summary['recent_topics']) or 'none'}. "
+            f"Last contact: {customer_summary['last_contact'] or 'first contact'}."
+        )
+
+        response = self.client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": self.SYSTEM_PROMPT},
+                {"role": "user", "content": (
+                    f"Customer context: {summary_text}\n\n"
+                    f"Conversation so far:\n{history_text}\n\n"
+                    f"Retrieved documentation:\n{docs_text}\n\n"
+                    f"Customer message: {customer_message}\n\n"
+                    "Provide your response, then on a new line write "
+                    "CONFIDENCE: followed by your confidence score."
+                )},
+            ],
+            temperature=0.3,
+            max_tokens=1024,
+        )
+
+        raw = response.choices[0].message.content
+        # Parse confidence from the tail of the response
+        if "CONFIDENCE:" in raw:
+            parts = raw.rsplit("CONFIDENCE:", 1)
+            reply_text = parts[0].strip()
+            try:
+                confidence = float(parts[1].strip())
+            except ValueError:
+                confidence = 0.5
+        else:
+            reply_text = raw.strip()
+            confidence = 0.5
+
+        return {
+            "response": reply_text,
+            "confidence": min(max(confidence, 0.0), 1.0),
+            "sources": [d["metadata"]["title"] for d in retrieved_docs],
+            "model": "gpt-4o",
+            "tokens_used": response.usage.total_tokens,
+        }</code></pre>
+
+    <p>The confidence score is self-reported by the model, which makes it imperfect but surprisingly useful. Models are well-calibrated when the retrieved context clearly answers the question (high confidence) or clearly does not (low confidence). The unreliable zone is the middle &mdash; when the documents are tangentially related. That is exactly the zone where the escalation router applies its frustration-weighted threshold to decide.</p>
+
+    <!-- C3.7 -->
+    <h2>C3.7 Human Handoff</h2>
+
+    <p>When the escalation router decides a ticket needs human attention, the handoff module packages the full context and queues it for a live agent. The goal is zero-repetition transfer: the human agent should be able to read the handoff package and immediately understand the customer&rsquo;s problem, what the system already tried, and why it escalated.</p>
+
+<pre><code>from datetime import datetime, timezone
+
+
+class HumanHandoff:
+    """Packages conversation context and queues for human agents."""
+
+    def __init__(self, memory: ConversationMemory):
+        self.memory = memory
+
+    def create_handoff_package(
+        self,
+        customer_id: str,
+        session_id: str,
+        escalation: EscalationDecision,
+        sentiment: SentimentResult,
+        draft_response: dict,
+        retrieved_docs: list[dict],
+    ) -&gt; dict:
+        """Build a complete context package for the human agent."""
+        session = self.memory.get_session(customer_id, session_id)
+        summary = self.memory.get_summary(customer_id)
+
+        return {
+            "handoff_id": f"hoff_{customer_id}_{session_id}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "priority": escalation.priority,
+            "assigned_queue": escalation.assigned_queue,
+            "escalation_reason": escalation.reason,
+            "customer": {
+                "id": customer_id,
+                "total_interactions": summary["total_interactions"],
+                "recent_topics": summary["recent_topics"],
+                "last_contact": summary["last_contact"],
+            },
+            "sentiment": {
+                "level": sentiment.level.value,
+                "frustration_score": sentiment.frustration_score,
+                "signals": sentiment.signals,
+            },
+            "conversation": session,
+            "agent_draft": {
+                "response": draft_response["response"],
+                "confidence": draft_response["confidence"],
+                "sources": draft_response["sources"],
+            },
+            "retrieved_docs": [
+                {
+                    "title": d["metadata"]["title"],
+                    "content": d["content"][:500],
+                    "score": d["score"],
+                }
+                for d in retrieved_docs
+            ],
+            "suggested_action": self._suggest_action(escalation, sentiment),
+        }
+
+    def _suggest_action(
+        self, escalation: EscalationDecision, sentiment: SentimentResult
+    ) -&gt; str:
+        """Suggest a starting action for the human agent."""
+        if "legal_threat" in sentiment.signals:
+            return "Review with legal team before responding. Do not acknowledge liability."
+        if sentiment.frustration_score &gt; 0.8:
+            return "Lead with empathy and a concrete resolution timeline. Consider a goodwill gesture."
+        if escalation.reason.startswith("Retrieval confidence"):
+            return "The AI could not find a matching article. This may require a custom solution or a knowledge base update."
+        return "Review the AI draft response and edit as needed before sending."</code></pre>
+
+    <p>The handoff package includes a <code>suggested_action</code> field that gives the human agent an immediate starting point. This is not a directive &mdash; it is a nudge that reduces the time a human spends reading context from minutes to seconds. The draft response is included so the human can edit and send it rather than writing from scratch, turning the AI from an autonomous agent into an intelligent assistant.</p>
+
+    <!-- C3.8 -->
+    <h2>C3.8 Putting It All Together</h2>
+
+    <p>The orchestrator ties every component into a single pipeline. Each customer message flows through intake, retrieval, generation, sentiment analysis, and routing in a deterministic sequence with full observability.</p>
+
+<pre><code>import uuid
+from opentelemetry import trace
+
+tracer = trace.get_tracer("support-agent")
+
+
+class SupportPipeline:
+    """Orchestrates the full support agent pipeline."""
+
+    def __init__(self):
+        self.kb = KnowledgeBaseIngestor()
+        self.memory = ConversationMemory()
+        self.sentiment = SentimentAnalyzer()
+        self.generator = SupportResponseGenerator()
+        self.router = EscalationRouter()
+        self.handoff = HumanHandoff(self.memory)
+
+    @tracer.start_as_current_span("process_message")
+    def process_message(
+        self,
+        customer_id: str,
+        session_id: str,
+        message: str,
+        category: str | None = None,
+    ) -&gt; dict:
+        """Process a single customer message through the full pipeline."""
+        span = trace.get_current_span()
+        span.set_attribute("customer.id", customer_id)
+        span.set_attribute("session.id", session_id)
+
+        # Step 1: Store customer message
+        self.memory.add_message(
+            customer_id, session_id, "customer", message,
+            metadata={"category": category},
+        )
+
+        # Step 2: Retrieve relevant documentation
+        with tracer.start_as_current_span("retrieve_docs") as retrieval_span:
+            docs = self.kb.search(query=message, category=category, top_k=5)
+            retrieval_span.set_attribute("docs.count", len(docs))
+            retrieval_span.set_attribute(
+                "docs.top_score", docs[0]["score"] if docs else 0.0
+            )
+
+        # Step 3: Get conversation context
+        conversation = self.memory.get_session(customer_id, session_id)
+        summary = self.memory.get_summary(customer_id)
+
+        # Step 4: Analyze sentiment
+        with tracer.start_as_current_span("analyze_sentiment") as sent_span:
+            sentiment_result = self.sentiment.analyze(message, conversation)
+            sent_span.set_attribute("sentiment.level", sentiment_result.level.value)
+            sent_span.set_attribute(
+                "sentiment.frustration", sentiment_result.frustration_score
+            )
+
+        # Step 5: Generate response
+        with tracer.start_as_current_span("generate_response") as gen_span:
+            response = self.generator.generate(
+                message, docs, conversation, summary
+            )
+            gen_span.set_attribute("response.confidence", response["confidence"])
+            gen_span.set_attribute("response.tokens", response["tokens_used"])
+
+        # Step 6: Escalation decision
+        with tracer.start_as_current_span("escalation_check") as esc_span:
+            ticket_meta = {
+                "contact_count": summary["total_interactions"],
+                "category": category,
+            }
+            decision = self.router.evaluate(
+                sentiment_result, response["confidence"], ticket_meta
+            )
+            esc_span.set_attribute("escalation.result", decision.should_escalate)
+            esc_span.set_attribute("escalation.reason", decision.reason)
+
+        # Step 7: Route based on decision
+        if decision.should_escalate:
+            handoff_pkg = self.handoff.create_handoff_package(
+                customer_id, session_id, decision,
+                sentiment_result, response, docs,
+            )
+            span.set_attribute("outcome", "escalated")
+            return {
+                "action": "escalated",
+                "message": "I am connecting you with a support specialist who can help further. They will have the full context of our conversation.",
+                "handoff": handoff_pkg,
+            }
+
+        # Auto-reply path
+        self.memory.add_message(
+            customer_id, session_id, "agent", response["response"],
+            metadata={
+                "confidence": response["confidence"],
+                "sources": response["sources"],
+            },
+        )
+        span.set_attribute("outcome", "auto_reply")
+        return {
+            "action": "auto_reply",
+            "message": response["response"],
+            "confidence": response["confidence"],
+            "sources": response["sources"],
+            "sentiment": sentiment_result.level.value,
+        }</code></pre>
+
+    <p>Every step is wrapped in an OpenTelemetry span with attributes that capture the operational data you need for debugging: retrieval scores, sentiment levels, confidence values, token counts, and escalation decisions. When a customer complains that the agent gave them wrong information, you trace the run, inspect which documents were retrieved, check the confidence score, and determine whether the failure was a retrieval problem (wrong documents) or a generation problem (right documents, wrong interpretation).</p>
+
+    <!-- C3.9 -->
+    <h2>C3.9 CSAT Tracking and Feedback Loop</h2>
+
+    <p>A support system without outcome measurement is flying blind. Customer Satisfaction (CSAT) tracking closes the loop between agent behavior and customer experience, providing the ground truth you need to improve the system over time.</p>
+
+<pre><code>from dataclasses import dataclass
+from datetime import datetime, timezone
+from enum import IntEnum
+
+
+class CSATScore(IntEnum):
+    VERY_DISSATISFIED = 1
+    DISSATISFIED = 2
+    NEUTRAL = 3
+    SATISFIED = 4
+    VERY_SATISFIED = 5
+
+
+@dataclass
+class TicketOutcome:
+    ticket_id: str
+    customer_id: str
+    session_id: str
+    resolved: bool
+    csat_score: CSATScore | None
+    resolution_time_seconds: float
+    was_escalated: bool
+    escalation_reason: str | None
+    auto_reply_count: int
+    human_reply_count: int
+
+
+class CSATTracker:
+    """Tracks resolution outcomes and identifies improvement areas."""
+
+    def __init__(self):
+        self.outcomes: list[TicketOutcome] = []
+
+    def record_outcome(self, outcome: TicketOutcome) -&gt; None:
+        self.outcomes.append(outcome)
+
+    def compute_metrics(self, window_days: int = 30) -&gt; dict:
+        """Compute key support metrics over a time window."""
+        cutoff = datetime.now(timezone.utc).timestamp() - (window_days * 86400)
+        recent = self.outcomes  # In production, filter by timestamp
+
+        if not recent:
+            return {"error": "No data available"}
+
+        total = len(recent)
+        resolved = sum(1 for o in recent if o.resolved)
+        escalated = sum(1 for o in recent if o.was_escalated)
+        with_csat = [o for o in recent if o.csat_score is not None]
+        avg_csat = (
+            sum(o.csat_score for o in with_csat) / len(with_csat)
+            if with_csat else None
+        )
+        avg_resolution = (
+            sum(o.resolution_time_seconds for o in recent) / total
+        )
+        auto_resolved = sum(
+            1 for o in recent if o.resolved and not o.was_escalated
+        )
+
+        return {
+            "total_tickets": total,
+            "resolution_rate": resolved / total,
+            "escalation_rate": escalated / total,
+            "auto_resolution_rate": auto_resolved / total if total else 0,
+            "avg_csat": avg_csat,
+            "avg_resolution_time_seconds": avg_resolution,
+            "top_escalation_reasons": self._top_reasons(recent),
+        }
+
+    def _top_reasons(self, outcomes: list[TicketOutcome]) -&gt; list[dict]:
+        reasons: dict[str, int] = {}
+        for o in outcomes:
+            if o.escalation_reason:
+                reasons[o.escalation_reason] = reasons.get(
+                    o.escalation_reason, 0
+                ) + 1
+        sorted_reasons = sorted(reasons.items(), key=lambda x: -x[1])
+        return [
+            {"reason": r, "count": c} for r, c in sorted_reasons[:5]
+        ]</code></pre>
+
+    <p>The metrics that matter for a support agent are different from a generic chatbot. <strong>Auto-resolution rate</strong> measures the percentage of tickets the agent resolves without human intervention &mdash; this is your primary efficiency metric. <strong>Escalation rate</strong> should be monitored for drift; a sudden spike means either the knowledge base is stale or the model degraded. <strong>Average CSAT</strong> segmented by auto-reply versus human-handled tickets tells you whether the agent&rsquo;s quality matches human quality. If auto-reply CSAT is within 0.5 points of human CSAT, the agent is performing well.</p>
+
+    <div class="callout tip">
+      <span class="callout-label">The Feedback Flywheel</span>
+      <p>Every escalated ticket is a training signal. When a human agent resolves a ticket that the AI could not, capture the human&rsquo;s response and the documents they referenced. Use these to update the knowledge base (fill gaps the AI could not answer) and fine-tune retrieval (the human found the right document that the semantic search missed). Over time, this feedback loop reduces escalation rate without sacrificing quality.</p>
+    </div>
+
+    <!-- C3.10 -->
+    <h2>C3.10 Ticket Lifecycle Management</h2>
+
+    <p>Each ticket progresses through a defined lifecycle: <strong>created</strong> when the customer sends a message, <strong>processing</strong> while the pipeline runs, <strong>awaiting_customer</strong> after an auto-reply, <strong>escalated</strong> when routed to a human, <strong>resolved</strong> when closed, and <strong>reopened</strong> if the customer returns within a window. Tracking these state transitions gives you operational visibility into where tickets stall and how long each stage takes.</p>
+
+<pre><code>from enum import Enum
+from datetime import datetime, timezone
+
+
+class TicketStatus(str, Enum):
+    CREATED = "created"
+    PROCESSING = "processing"
+    AWAITING_CUSTOMER = "awaiting_customer"
+    ESCALATED = "escalated"
+    RESOLVED = "resolved"
+    REOPENED = "reopened"
+
+
+class Ticket:
+    """Tracks state transitions for a support ticket."""
+
+    def __init__(self, ticket_id: str, customer_id: str, subject: str):
+        self.ticket_id = ticket_id
+        self.customer_id = customer_id
+        self.subject = subject
+        self.status = TicketStatus.CREATED
+        self.priority = "medium"
+        self.history: list[dict] = []
+        self.created_at = datetime.now(timezone.utc)
+        self._record_transition(TicketStatus.CREATED)
+
+    def transition(self, new_status: TicketStatus, reason: str = "") -&gt; None:
+        """Move ticket to a new status with audit trail."""
+        old_status = self.status
+        valid_transitions = {
+            TicketStatus.CREATED: {TicketStatus.PROCESSING},
+            TicketStatus.PROCESSING: {
+                TicketStatus.AWAITING_CUSTOMER,
+                TicketStatus.ESCALATED,
+            },
+            TicketStatus.AWAITING_CUSTOMER: {
+                TicketStatus.PROCESSING,
+                TicketStatus.RESOLVED,
+                TicketStatus.REOPENED,
+            },
+            TicketStatus.ESCALATED: {
+                TicketStatus.RESOLVED,
+                TicketStatus.AWAITING_CUSTOMER,
+            },
+            TicketStatus.RESOLVED: {TicketStatus.REOPENED},
+            TicketStatus.REOPENED: {TicketStatus.PROCESSING},
+        }
+
+        if new_status not in valid_transitions.get(self.status, set()):
+            raise ValueError(
+                f"Invalid transition: {self.status} -> {new_status}"
+            )
+
+        self.status = new_status
+        self._record_transition(new_status, reason)
+
+    def _record_transition(
+        self, status: TicketStatus, reason: str = ""
+    ) -&gt; None:
+        self.history.append({
+            "status": status.value,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "reason": reason,
+        })
+
+    def time_in_status(self, status: TicketStatus) -&gt; float:
+        """Calculate total seconds spent in a given status."""
+        total = 0.0
+        enter_time = None
+        for entry in self.history:
+            if entry["status"] == status.value:
+                enter_time = datetime.fromisoformat(entry["timestamp"])
+            elif enter_time is not None:
+                exit_time = datetime.fromisoformat(entry["timestamp"])
+                total += (exit_time - enter_time).total_seconds()
+                enter_time = None
+        # If still in this status, count up to now
+        if enter_time and self.status == status:
+            total += (
+                datetime.now(timezone.utc) - enter_time
+            ).total_seconds()
+        return total</code></pre>
+
+    <p>The state machine enforces valid transitions &mdash; a resolved ticket can only become reopened, not escalated directly. Every transition is recorded with a timestamp and reason, creating a complete audit trail. The <code>time_in_status</code> method lets you measure how long tickets sit in each stage, which is essential for identifying bottlenecks: if tickets spend an average of 45 minutes in the escalated state, you need more human agents in that queue.</p>
+
+    <!-- Project -->
+    <section class="project">
+      <h2>Project: Build a Domain-Specific Support Agent</h2>
+      <p>Implement the full support pipeline for one of the domains below. Ingest at least 20 knowledge base articles, implement conversation memory, wire up sentiment analysis with escalation routing, and add CSAT tracking. Your system should handle at least three end-to-end scenarios: a simple question answered by auto-reply, a frustrated customer escalated to a human, and a returning customer whose history informs the response.</p>
+
+      <div class="variant-grid">
+        <div class="variant-card">
+          SaaS Platform Support
+          <span class="variant-domain">Subscription billing, API errors, feature requests, account recovery</span>
+        </div>
+        <div class="variant-card">
+          Healthcare Patient Portal
+          <span class="variant-domain">Appointment scheduling, insurance queries, prescription refills, lab results</span>
+        </div>
+        <div class="variant-card">
+          Financial Services Help Desk
+          <span class="variant-domain">Transaction disputes, account security, loan inquiries, regulatory compliance</span>
+        </div>
+        <div class="variant-card">
+          E-commerce Customer Service
+          <span class="variant-domain">Order tracking, returns, product questions, shipping issues, promotions</span>
+        </div>
+        <div class="variant-card">
+          Telecom Support Center
+          <span class="variant-domain">Service outages, plan changes, device troubleshooting, coverage inquiries</span>
+        </div>
+        <div class="variant-card">
+          EdTech Student Support
+          <span class="variant-domain">Course enrollment, technical issues, grade disputes, certification queries</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Summary -->
+    <section class="summary">
+      <h2>Summary</h2>
+
+      <ul class="key-takeaways">
+        <li><strong>Retrieval quality determines agent quality.</strong> A support agent is only as good as its knowledge base ingestion. Heading-aware chunking, rich metadata, and filtered retrieval prevent the agent from returning plausible but wrong answers grounded in irrelevant documents.</li>
+        <li><strong>Memory eliminates the most hated customer experience.</strong> Per-session state keeps the current conversation coherent, and cross-session history ensures returning customers never have to repeat their problem. Redis sorted sets with TTL give you both time scales without unbounded storage growth.</li>
+        <li><strong>Sentiment analysis catches what keywords miss.</strong> A polite message from a three-time repeat caller is more dangerous than an all-caps message from a first-time user. Context-aware frustration scoring, not just tone classification, drives the escalation decisions that prevent churn.</li>
+        <li><strong>Escalation is a feature, not a failure.</strong> The system&rsquo;s value is not in replacing human agents but in handling the 60&ndash;80% of tickets that are routine, so human agents can focus on the cases that require judgment, empathy, and creative problem-solving.</li>
+        <li><strong>CSAT closes the loop.</strong> Without outcome tracking, you cannot distinguish a system that resolves tickets from one that frustrates customers into giving up. Auto-resolution rate, escalation rate, and segmented CSAT scores are the metrics that tell you whether the agent is actually helping.</li>
+      </ul>
+
+      <div class="exercises">
+        <h3>Exercises</h3>
+
+        <div class="exercise-item">
+          <span class="exercise-type conceptual">Conceptual</span>
+          <p>A customer writes: &ldquo;I have been waiting two weeks for a refund that your agent promised me last month. I am considering filing a complaint with the consumer protection bureau.&rdquo; Walk through how the sentiment analyzer should score this message (level, frustration_score, signals) and what escalation decision the router should make. What information should the handoff package include for the human agent?</p>
+        </div>
+
+        <div class="exercise-item">
+          <span class="exercise-type coding">Coding</span>
+          <p>The current chunking strategy uses a fixed 800-token size. Implement an adaptive chunker that detects document structure (headings, numbered lists, FAQ pairs) and creates chunks that respect semantic boundaries. Compare retrieval precision against the fixed-size chunker on a test set of 10 questions with known correct source articles.</p>
+        </div>
+
+        <div class="exercise-item">
+          <span class="exercise-type design">Design</span>
+          <p>Design a feedback pipeline where every escalated ticket that a human agent resolves generates a training signal. Specify: what data you capture from the human resolution, how you use it to update the knowledge base, and how you retrain or adjust the retrieval and generation components. Include a diagram of the data flow and describe how you prevent feedback loops where the model reinforces its own mistakes.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom nav -->
+    <nav class="chapter-footer">
+      <a href="capstone-02.html">&larr; Code Review Agent</a>
+      <span>Capstone 3 of 5</span>
+      <a href="capstone-04.html">Data Pipeline &rarr;</a>
+    </nav>
+  </main>
+
+  <script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

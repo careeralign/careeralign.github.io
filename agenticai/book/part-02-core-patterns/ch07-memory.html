@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 7 &mdash; Memory | Agentic AI: Build, Ship, Portfolio</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="ch06-tool-use.html" class="nav-prev">Tool Use</a>
+    <span class="nav-title">Part 2 &mdash; Core Patterns</span>
+    <a href="ch08-rag-pipelines.html" class="nav-next">RAG Pipelines</a>
+  </nav>
+
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 2 &mdash; Core Patterns</span>
+      <h1>Memory</h1>
+      <p class="chapter-intro">An agent that forgets what you said three messages ago is not an assistant &mdash; it is a stranger you keep re-introducing yourself to. This chapter gives your agents the ability to remember.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~25 min</span>
+        <span>Project: Memory Manager</span>
+        <span>Variants: Tech / Software, Healthcare, Finance, Education, E-commerce, Legal</span>
+      </div>
+    </header>
+
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>Why stateless LLM calls create agents that forget &mdash; and how memory solves this</li>
+        <li>Short-term memory: conversation buffers, sliding windows, and their token-cost tradeoffs</li>
+        <li>Summary memory: compressing long conversations without losing critical facts</li>
+        <li>Long-term vector stores: embedding past interactions for semantic retrieval</li>
+        <li>Episodic and semantic memory: modeling experiences vs. facts</li>
+        <li>Memory retrieval strategies: recency, relevance, importance scoring, and hybrid approaches</li>
+        <li>When to use which memory type &mdash; a decision framework for production systems</li>
+        <li>Building a multi-tier memory manager that combines all layers</li>
+      </ul>
+    </section>
+
+    <!-- 7.1 -->
+    <h2>7.1 The Forgetting Problem</h2>
+
+    <p>Imagine you are building a personal finance assistant. A user begins a conversation:</p>
+
+<pre><code>User: I just got a raise to $95,000. Help me redo my budget.
+Agent: Congratulations! Let's restructure your budget for $95,000...
+       [provides detailed breakdown]
+
+User: Actually, also factor in that my rent went up to $2,200.
+Agent: Sure, here's the updated budget with $2,200 rent...
+
+User: Now show me how much I can save if I cut dining out.
+Agent: I'd be happy to help! What is your current salary and rent?</code></pre>
+
+    <p>The agent has forgotten everything. The salary, the rent, the entire budget discussion &mdash; all gone. The user is now talking to a blank slate that confidently asks for information it was given two messages ago.</p>
+
+    <p>This is not a bug in the model. It is the default architecture. Every call to an LLM API is <strong>stateless</strong>. The model receives a list of messages, generates a completion, and discards everything. There is no persistent memory between calls. If you do not include previous messages in the next request, they never happened.</p>
+
+    <p>The naive solution is obvious: include every previous message in every request. This is the conversation buffer, and for short exchanges it works perfectly. But tokens cost money and context windows have limits. A 50-turn conversation about tax planning might consume 40,000 tokens per request. At GPT-4o pricing, that is roughly $0.10 per message &mdash; and that is <em>before</em> the model generates a response. A thousand users with fifty-turn conversations means $5,000 in memory costs alone.</p>
+
+    <p>The real problem is deeper than cost. Even if context windows were infinite and free, raw conversation history is the wrong data structure for memory. Human memory is not a transcript. It is layered: you remember the gist of last week&rsquo;s meeting (summary), the exact deadline your boss mentioned (fact), and the pattern that this client always changes requirements on Fridays (episodic). Effective agent memory needs the same layered architecture.</p>
+
+    <!-- 7.2 -->
+    <h2>7.2 Short-Term Memory: Conversation Buffers</h2>
+
+    <p>The simplest form of memory is the <strong>conversation buffer</strong> &mdash; a list that stores every message in the current session and sends all of them with each API call. Every chatbot tutorial starts here:</p>
+
+<pre><code>class ConversationBuffer:
+    def __init__(self, system_prompt: str):
+        self.messages = [{"role": "system", "content": system_prompt}]
+
+    def add_user_message(self, content: str):
+        self.messages.append({"role": "user", "content": content})
+
+    def add_assistant_message(self, content: str):
+        self.messages.append({"role": "assistant", "content": content})
+
+    def get_messages(self) -> list[dict]:
+        return self.messages.copy()</code></pre>
+
+    <p>This works for short conversations. The problem is that it grows without bound. After 30 exchanges, you might have 15,000 tokens of history, most of which is irrelevant to the current question. You are paying to send a discussion about Monday&rsquo;s weather every time the user asks about Friday&rsquo;s dinner reservation.</p>
+
+    <h3>Sliding Window Memory</h3>
+
+    <p>The sliding window keeps only the last <em>k</em> messages, discarding older ones. This caps token usage at a predictable ceiling:</p>
+
+<pre><code>class SlidingWindowMemory:
+    def __init__(self, system_prompt: str, window_size: int = 20):
+        self.system = {"role": "system", "content": system_prompt}
+        self.messages: list[dict] = []
+        self.window_size = window_size
+
+    def add(self, role: str, content: str):
+        self.messages.append({"role": role, "content": content})
+        if len(self.messages) > self.window_size:
+            self.messages = self.messages[-self.window_size:]
+
+    def get_messages(self) -> list[dict]:
+        return [self.system] + self.messages</code></pre>
+
+    <p>The tradeoff is brutal and predictable. If the user mentioned their budget constraints in message 3 and you are now on message 25 with a window of 20, that constraint is gone. The agent will cheerfully recommend expenses the user explicitly ruled out. Sliding windows trade accuracy for cost, and the user never knows which facts have been silently discarded.</p>
+
+    <div class="callout warning">
+      <span class="callout-label">Common Mistake</span>
+      <p>Setting a sliding window based on message count rather than token count. Twenty messages of &ldquo;yes&rdquo; and &ldquo;no&rdquo; consume 100 tokens. Twenty messages containing code reviews consume 20,000. Always measure in tokens, not messages, when setting window boundaries.</p>
+    </div>
+
+    <h3>Token-Aware Windowing</h3>
+
+    <p>A better sliding window measures tokens, not messages, ensuring you stay within both budget and context limits:</p>
+
+<pre><code>import tiktoken
+
+class TokenWindowMemory:
+    def __init__(self, system_prompt: str, max_tokens: int = 4000):
+        self.system = {"role": "system", "content": system_prompt}
+        self.messages: list[dict] = []
+        self.max_tokens = max_tokens
+        self.encoder = tiktoken.encoding_for_model("gpt-4o")
+
+    def _count_tokens(self, messages: list[dict]) -> int:
+        return sum(len(self.encoder.encode(m["content"])) for m in messages)
+
+    def add(self, role: str, content: str):
+        self.messages.append({"role": role, "content": content})
+        while (self._count_tokens(self.messages) > self.max_tokens
+               and len(self.messages) > 1):
+            self.messages.pop(0)
+
+    def get_messages(self) -> list[dict]:
+        return [self.system] + self.messages</code></pre>
+
+    <!-- 7.3 -->
+    <h2>7.3 Summary Memory</h2>
+
+    <p>Summary memory solves the sliding window&rsquo;s amnesia problem. Instead of discarding old messages, you compress them into a running summary. The summary is prepended to the context window, giving the agent a &ldquo;gist&rdquo; of everything that came before, while recent messages remain in full detail.</p>
+
+<pre><code>class SummaryMemory:
+    def __init__(self, client, system_prompt: str,
+                 max_recent: int = 10, summary: str = ""):
+        self.client = client
+        self.system = system_prompt
+        self.recent: list[dict] = []
+        self.max_recent = max_recent
+        self.summary = summary
+
+    def add(self, role: str, content: str):
+        self.recent.append({"role": role, "content": content})
+        if len(self.recent) > self.max_recent:
+            self._compress()
+
+    def _compress(self):
+        """Summarize oldest messages and fold into running summary."""
+        to_compress = self.recent[:len(self.recent) - self.max_recent // 2]
+        self.recent = self.recent[len(to_compress):]
+
+        transcript = "\n".join(
+            f"{m['role']}: {m['content']}" for m in to_compress
+        )
+        response = self.client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{
+                "role": "system",
+                "content": (
+                    "Summarize this conversation segment. Preserve all "
+                    "specific facts, numbers, names, and decisions. "
+                    "Be concise but never drop a concrete detail."
+                )
+            }, {
+                "role": "user",
+                "content": f"Previous summary:\n{self.summary}\n\n"
+                           f"New messages:\n{transcript}"
+            }]
+        )
+        self.summary = response.choices[0].message.content
+
+    def get_messages(self) -> list[dict]:
+        messages = [{"role": "system", "content": self.system}]
+        if self.summary:
+            messages.append({
+                "role": "system",
+                "content": f"Conversation summary so far:\n{self.summary}"
+            })
+        messages.extend(self.recent)
+        return messages</code></pre>
+
+    <div class="callout tip">
+      <span class="callout-label">Under the Hood</span>
+      <p>Summary memory uses a cheaper, faster model (like <code>gpt-4o-mini</code>) for compression. The summarization call adds latency and cost, but both are small compared to the savings from sending 500 tokens of summary instead of 5,000 tokens of raw history. The key instruction is &ldquo;never drop a concrete detail&rdquo; &mdash; without this, the summarizer will produce vague abstractions that destroy the agent&rsquo;s ability to reference specific facts.</p>
+    </div>
+
+    <p>Summary memory has a fundamental limitation: it is lossy. Every compression step risks dropping something the user considers important but the summarizer considers minor. If the user mentioned a shellfish allergy in passing during a restaurant recommendation conversation, a summarizer focused on &ldquo;key decisions&rdquo; might discard it. Three turns later, the agent recommends a seafood restaurant. For safety-critical facts, you need a memory layer that never compresses.</p>
+
+    <!-- Diagram 1: Memory Architecture -->
+    <figure class="diagram">
+      <svg viewBox="0 0 680 520" xmlns="http://www.w3.org/2000/svg">
+        <style>
+          @media (prefers-color-scheme: dark) {
+            .bg-layer { fill: #1a1a2e; }
+            .label-dark { fill: #e0e0e0; }
+            .sublabel-dark { fill: #b0b0b0; }
+            .arrow-dark { stroke: #888; }
+            .connector-dark { fill: #888; }
+          }
+        </style>
+        <defs>
+          <marker id="arrow-1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#555"/>
+          </marker>
+        </defs>
+
+        <!-- Title -->
+        <text x="340" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#003366" text-anchor="middle" dominant-baseline="central">Multi-Tier Memory Architecture</text>
+
+        <!-- Agent box at top -->
+        <rect x="250" y="55" width="180" height="44" rx="6" fill="#F0F4F8" stroke="#003366" stroke-width="2"/>
+        <text x="340" y="77" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="#003366" text-anchor="middle" dominant-baseline="central">LLM Agent</text>
+
+        <!-- Arrow from agent to buffer -->
+        <line x1="340" y1="99" x2="340" y2="135" stroke="#555" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+
+        <!-- Layer 1: Conversation Buffer (Purple) -->
+        <rect x="90" y="135" width="500" height="72" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+        <text x="340" y="157" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#534AB7" text-anchor="middle" dominant-baseline="central">Conversation Buffer (Short-Term)</text>
+        <text x="340" y="178" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="400" fill="#534AB7" text-anchor="middle" dominant-baseline="central">Last k messages in full detail &bull; Sliding window or token-capped</text>
+        <text x="340" y="195" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#6B62C0" text-anchor="middle" dominant-baseline="central">Latency: ~0ms &bull; Cost: included in prompt &bull; Retention: session only</text>
+
+        <!-- Arrow -->
+        <line x1="340" y1="207" x2="340" y2="237" stroke="#555" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <text x="355" y="222" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="400" fill="#888" dominant-baseline="central">overflow</text>
+
+        <!-- Layer 2: Summary Memory (Teal) -->
+        <rect x="90" y="237" width="500" height="72" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+        <text x="340" y="259" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#0F6E56" text-anchor="middle" dominant-baseline="central">Summary Memory (Compressed)</text>
+        <text x="340" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="400" fill="#0F6E56" text-anchor="middle" dominant-baseline="central">Running summary of past conversation &bull; Preserves key facts and decisions</text>
+        <text x="340" y="297" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#2A8A6E" text-anchor="middle" dominant-baseline="central">Latency: ~200ms (LLM call) &bull; Cost: low &bull; Retention: session / persistent</text>
+
+        <!-- Arrow -->
+        <line x1="340" y1="309" x2="340" y2="339" stroke="#555" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <text x="355" y="324" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="400" fill="#888" dominant-baseline="central">embed</text>
+
+        <!-- Layer 3: Vector Store (Blue) -->
+        <rect x="90" y="339" width="500" height="72" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="1.5"/>
+        <text x="340" y="361" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#185FA5" text-anchor="middle" dominant-baseline="central">Vector Store (Long-Term Semantic)</text>
+        <text x="340" y="382" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="400" fill="#185FA5" text-anchor="middle" dominant-baseline="central">Embedded conversation chunks &bull; Semantic similarity retrieval</text>
+        <text x="340" y="399" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#3A7CC6" text-anchor="middle" dominant-baseline="central">Latency: ~50ms (vector search) &bull; Cost: storage + embedding &bull; Retention: permanent</text>
+
+        <!-- Arrow -->
+        <line x1="340" y1="411" x2="340" y2="441" stroke="#555" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <text x="355" y="426" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="400" fill="#888" dominant-baseline="central">classify</text>
+
+        <!-- Layer 4: Episodic Memory (Coral) -->
+        <rect x="90" y="441" width="500" height="72" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="1.5"/>
+        <text x="340" y="463" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#993C1D" text-anchor="middle" dominant-baseline="central">Episodic Memory (Experiences)</text>
+        <text x="340" y="484" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="400" fill="#993C1D" text-anchor="middle" dominant-baseline="central">Structured event records &bull; &ldquo;What happened when...&rdquo; queries</text>
+        <text x="340" y="501" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#B5572F" text-anchor="middle" dominant-baseline="central">Latency: ~100ms (DB query) &bull; Cost: storage &bull; Retention: permanent</text>
+      </svg>
+      <figcaption>Figure 7-1. Multi-tier memory architecture &mdash; each layer trades off speed, cost, and fidelity differently.</figcaption>
+    </figure>
+
+    <!-- 7.4 -->
+    <h2>7.4 Long-Term Memory with Vector Stores</h2>
+
+    <p>Summary memory compresses the current session. But what about yesterday&rsquo;s conversation? Or the conversation from last month where the user explained their entire project architecture? For cross-session memory, you need a <strong>vector store</strong>.</p>
+
+    <p>The idea is straightforward: take chunks of conversation (or extracted facts), convert them into embedding vectors, and store them in a vector database. When the agent needs context, embed the current query and retrieve the most semantically similar memories.</p>
+
+<pre><code>from openai import OpenAI
+import chromadb
+
+client = OpenAI()
+chroma = chromadb.PersistentClient(path="./memory_store")
+collection = chroma.get_or_create_collection(
+    name="agent_memory",
+    metadata={"hnsw:space": "cosine"}
+)
+
+def store_memory(user_id: str, content: str, metadata: dict):
+    """Embed and store a memory chunk."""
+    response = client.embeddings.create(
+        model="text-embedding-3-small",
+        input=content
+    )
+    embedding = response.data[0].embedding
+    collection.add(
+        ids=[f"{user_id}_{metadata['timestamp']}"],
+        embeddings=[embedding],
+        documents=[content],
+        metadatas=[{**metadata, "user_id": user_id}]
+    )
+
+def retrieve_memories(user_id: str, query: str, k: int = 5) -> list[str]:
+    """Retrieve the k most relevant memories for a query."""
+    response = client.embeddings.create(
+        model="text-embedding-3-small",
+        input=query
+    )
+    query_embedding = response.data[0].embedding
+    results = collection.query(
+        query_embeddings=[query_embedding],
+        n_results=k,
+        where={"user_id": user_id}
+    )
+    return results["documents"][0]</code></pre>
+
+    <p>Vector retrieval is powerful but imprecise. The embedding model might consider &ldquo;I hate spicy food&rdquo; and &ldquo;I love spicy food&rdquo; as highly similar because both are about spicy food preferences. Negation, quantification, and temporal context are all poorly captured by embedding similarity alone. This is why production systems never rely on vector search as the sole retrieval strategy.</p>
+
+    <div class="callout info">
+      <span class="callout-label">Under the Hood</span>
+      <p>Embedding models map text into high-dimensional vector space where semantic similarity corresponds to geometric proximity. The <code>text-embedding-3-small</code> model produces 1536-dimensional vectors. &ldquo;Cosine similarity&rdquo; measures the angle between two vectors &mdash; identical meaning yields a score of 1.0, completely unrelated text approaches 0. In practice, most memory retrieval scores cluster between 0.7 and 0.9, making threshold-based filtering unreliable. Rank-based retrieval (top-k) is more robust.</p>
+    </div>
+
+    <!-- Diagram 2: Vector Space -->
+    <figure class="diagram">
+      <svg viewBox="0 0 680 400" xmlns="http://www.w3.org/2000/svg">
+        <style>
+          @media (prefers-color-scheme: dark) {
+            .vs-bg { fill: #1a1a2e; }
+            .vs-label { fill: #e0e0e0; }
+          }
+        </style>
+        <defs>
+          <marker id="arrow-2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#534AB7"/>
+          </marker>
+        </defs>
+
+        <!-- Title -->
+        <text x="340" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#003366" text-anchor="middle" dominant-baseline="central">Semantic Similarity in Vector Space</text>
+
+        <!-- Axis labels -->
+        <text x="340" y="390" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#888" text-anchor="middle" dominant-baseline="central">Dimension 1 (projected)</text>
+        <text x="18" y="210" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#888" text-anchor="middle" dominant-baseline="central" transform="rotate(-90,18,210)">Dimension 2 (projected)</text>
+
+        <!-- Irrelevant cluster (gray) -->
+        <circle cx="520" cy="100" r="8" fill="#D5D5D5" stroke="#888" stroke-width="1"/>
+        <circle cx="555" cy="85" r="7" fill="#D5D5D5" stroke="#888" stroke-width="1"/>
+        <circle cx="540" cy="125" r="6" fill="#D5D5D5" stroke="#888" stroke-width="1"/>
+        <circle cx="575" cy="110" r="7" fill="#D5D5D5" stroke="#888" stroke-width="1"/>
+        <circle cx="500" cy="115" r="5" fill="#D5D5D5" stroke="#888" stroke-width="1"/>
+        <circle cx="560" cy="140" r="6" fill="#D5D5D5" stroke="#888" stroke-width="1"/>
+        <text x="545" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#888" text-anchor="middle" dominant-baseline="central">&ldquo;weather topics&rdquo;</text>
+
+        <!-- Irrelevant cluster 2 (gray) -->
+        <circle cx="150" cy="320" r="7" fill="#D5D5D5" stroke="#888" stroke-width="1"/>
+        <circle cx="175" cy="340" r="6" fill="#D5D5D5" stroke="#888" stroke-width="1"/>
+        <circle cx="130" cy="345" r="5" fill="#D5D5D5" stroke="#888" stroke-width="1"/>
+        <circle cx="165" cy="360" r="7" fill="#D5D5D5" stroke="#888" stroke-width="1"/>
+        <text x="155" y="378" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#888" text-anchor="middle" dominant-baseline="central">&ldquo;sports topics&rdquo;</text>
+
+        <!-- Relevant cluster (teal) -->
+        <circle cx="200" cy="150" r="9" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+        <text x="200" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="600" fill="#0F6E56" text-anchor="middle" dominant-baseline="central">M1</text>
+
+        <circle cx="250" cy="120" r="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+        <text x="250" y="120" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="600" fill="#0F6E56" text-anchor="middle" dominant-baseline="central">M2</text>
+
+        <circle cx="230" cy="180" r="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+        <text x="230" y="180" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="600" fill="#0F6E56" text-anchor="middle" dominant-baseline="central">M3</text>
+
+        <circle cx="280" cy="155" r="7" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+        <text x="280" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="600" fill="#0F6E56" text-anchor="middle" dominant-baseline="central">M4</text>
+
+        <circle cx="185" cy="195" r="7" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+        <text x="185" y="195" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="600" fill="#0F6E56" text-anchor="middle" dominant-baseline="central">M5</text>
+
+        <text x="235" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#0F6E56" text-anchor="middle" dominant-baseline="central">&ldquo;budget topics&rdquo;</text>
+
+        <!-- Relevant cluster 2 (teal) -->
+        <circle cx="380" cy="250" r="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+        <text x="380" y="250" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="600" fill="#0F6E56" text-anchor="middle" dominant-baseline="central">M6</text>
+
+        <circle cx="410" cy="270" r="7" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+        <text x="410" y="270" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="600" fill="#0F6E56" text-anchor="middle" dominant-baseline="central">M7</text>
+
+        <circle cx="365" cy="280" r="6" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+        <text x="365" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="600" fill="#0F6E56" text-anchor="middle" dominant-baseline="central">M8</text>
+
+        <text x="385" y="305" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#0F6E56" text-anchor="middle" dominant-baseline="central">&ldquo;savings topics&rdquo;</text>
+
+        <!-- Query vector (purple) -->
+        <circle cx="310" cy="190" r="12" fill="#EEEDFE" stroke="#534AB7" stroke-width="2.5"/>
+        <text x="310" y="190" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="700" fill="#534AB7" text-anchor="middle" dominant-baseline="central">Q</text>
+
+        <!-- Nearest-neighbor connections (dashed lines to relevant) -->
+        <line x1="300" y1="185" x2="283" y2="158" stroke="#534AB7" stroke-width="1.5" stroke-dasharray="4,3" fill="none" marker-end="url(#arrow-2)"/>
+        <line x1="302" y1="182" x2="254" y2="125" stroke="#534AB7" stroke-width="1.2" stroke-dasharray="4,3" fill="none" marker-end="url(#arrow-2)"/>
+        <line x1="305" y1="196" x2="235" y2="182" stroke="#534AB7" stroke-width="1.2" stroke-dasharray="4,3" fill="none" marker-end="url(#arrow-2)"/>
+        <line x1="320" y1="198" x2="378" y2="245" stroke="#534AB7" stroke-width="1" stroke-dasharray="4,3" fill="none" marker-end="url(#arrow-2)"/>
+
+        <!-- Legend -->
+        <rect x="440" y="210" width="12" height="12" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+        <text x="458" y="217" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#534AB7" dominant-baseline="central">Query vector</text>
+
+        <rect x="440" y="232" width="12" height="12" rx="6" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+        <text x="458" y="239" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#0F6E56" dominant-baseline="central">Relevant memories</text>
+
+        <rect x="440" y="254" width="12" height="12" rx="6" fill="#D5D5D5" stroke="#888" stroke-width="1"/>
+        <text x="458" y="261" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#888" dominant-baseline="central">Irrelevant memories</text>
+
+        <line x1="440" y1="278" x2="470" y2="278" stroke="#534AB7" stroke-width="1.5" stroke-dasharray="4,3" fill="none"/>
+        <text x="478" y="279" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#534AB7" dominant-baseline="central">top-k retrieval</text>
+      </svg>
+      <figcaption>Figure 7-2. Semantic similarity retrieval &mdash; the query vector Q finds nearest neighbors in embedding space, pulling relevant memories from topically related clusters.</figcaption>
+    </figure>
+
+    <!-- 7.5 -->
+    <h2>7.5 Episodic Memory</h2>
+
+    <p>Episodic memory stores <strong>structured records of specific events</strong>. Where vector memory answers &ldquo;what do I know about budgets?&rdquo;, episodic memory answers &ldquo;what happened the last time the user asked me to create a budget?&rdquo; The distinction matters: the user does not just want relevant facts &mdash; they want the agent to learn from past interactions.</p>
+
+<pre><code>from dataclasses import dataclass, field
+from datetime import datetime
+
+@dataclass
+class Episode:
+    timestamp: datetime
+    event_type: str            # "task_completed", "error", "preference"
+    summary: str               # What happened
+    outcome: str               # "success", "failure", "partial"
+    details: dict = field(default_factory=dict)
+    importance: float = 0.5    # 0.0 to 1.0
+
+class EpisodicMemory:
+    def __init__(self):
+        self.episodes: list[Episode] = []
+
+    def record(self, event_type: str, summary: str,
+               outcome: str, details: dict = None,
+               importance: float = 0.5):
+        self.episodes.append(Episode(
+            timestamp=datetime.now(),
+            event_type=event_type,
+            summary=summary,
+            outcome=outcome,
+            details=details or {},
+            importance=importance
+        ))
+
+    def recall(self, event_type: str = None,
+               min_importance: float = 0.0,
+               limit: int = 10) -> list[Episode]:
+        filtered = self.episodes
+        if event_type:
+            filtered = [e for e in filtered if e.event_type == event_type]
+        filtered = [e for e in filtered if e.importance >= min_importance]
+        return sorted(filtered, key=lambda e: e.timestamp,
+                     reverse=True)[:limit]</code></pre>
+
+    <p>Episodic memory enables a pattern that is impossible with buffer or vector memory alone: <strong>learning from mistakes</strong>. If the agent tried a SQL query that failed last Tuesday, episodic memory can surface that failure when the agent considers the same approach again. The agent can then choose a different strategy without repeating the error.</p>
+
+    <!-- 7.6 -->
+    <h2>7.6 Semantic Memory: Facts vs. Experiences</h2>
+
+    <p>Semantic memory stores <strong>decontextualized facts</strong> extracted from conversations. Where episodic memory records &ldquo;on March 3rd the user said they are allergic to shellfish during a restaurant conversation,&rdquo; semantic memory simply stores: <code>user.allergies = ["shellfish"]</code>.</p>
+
+<pre><code>class SemanticMemory:
+    """Key-value store of extracted user facts."""
+
+    def __init__(self, client):
+        self.client = client
+        self.facts: dict[str, dict] = {}  # user_id -> {key: value}
+
+    def extract_and_store(self, user_id: str, conversation: list[dict]):
+        """Use LLM to extract facts from a conversation."""
+        response = self.client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{
+                "role": "system",
+                "content": (
+                    "Extract user facts from this conversation. Return JSON "
+                    "with keys like 'name', 'preferences', 'constraints', "
+                    "'goals'. Only include explicitly stated facts."
+                )
+            }, {
+                "role": "user",
+                "content": str(conversation)
+            }],
+            response_format={"type": "json_object"}
+        )
+        new_facts = json.loads(response.choices[0].message.content)
+        if user_id not in self.facts:
+            self.facts[user_id] = {}
+        self.facts[user_id].update(new_facts)
+
+    def get_facts(self, user_id: str) -> dict:
+        return self.facts.get(user_id, {})</code></pre>
+
+    <p>The power of semantic memory is in its permanence and precision. A conversation buffer forgets after the window slides. A summary might compress away a detail. A vector store might not retrieve a fact if the current query is not semantically similar enough. But a semantic fact store will always know the user&rsquo;s name, preferences, and constraints &mdash; because those are stored as structured data, not buried in conversation text.</p>
+
+    <div class="callout tip">
+      <span class="callout-label">Production Consideration</span>
+      <p>Semantic memory extraction should run asynchronously after each conversation, not synchronously during it. Users should not wait an extra 500ms per message so the system can extract facts they just stated. Extract in the background, and the facts will be available for the <em>next</em> conversation.</p>
+    </div>
+
+    <!-- 7.7 -->
+    <h2>7.7 Memory Retrieval Strategies</h2>
+
+    <p>Having multiple memory stores is useless if you cannot decide what to retrieve and when. Production memory systems use hybrid retrieval strategies that combine multiple signals:</p>
+
+    <h3>Recency</h3>
+    <p>Recent memories get priority. A conversation from five minutes ago is almost always more relevant than one from five months ago. Recency scoring applies an exponential decay to memory timestamps:</p>
+
+<pre><code>import math
+from datetime import datetime, timezone
+
+def recency_score(memory_time: datetime, half_life_hours: float = 24.0) -> float:
+    """Score from 1.0 (now) decaying with half-life."""
+    age_hours = (datetime.now(timezone.utc) - memory_time).total_seconds() / 3600
+    return math.pow(0.5, age_hours / half_life_hours)</code></pre>
+
+    <h3>Relevance (Semantic Similarity)</h3>
+    <p>The cosine similarity score from vector search. Highly relevant memories surface even if they are old. This is why the user&rsquo;s shellfish allergy, mentioned months ago, can still appear when they ask for restaurant recommendations.</p>
+
+    <h3>Importance</h3>
+    <p>Not all memories are equal. &ldquo;The user prefers dark mode&rdquo; is less important than &ldquo;the user is allergic to penicillin.&rdquo; Importance scoring requires either explicit tagging (the agent marks high-importance facts) or LLM-based scoring at storage time:</p>
+
+<pre><code>def score_importance(client, memory_text: str) -> float:
+    """Use LLM to rate memory importance from 0 to 1."""
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{
+            "role": "system",
+            "content": (
+                "Rate the importance of this memory on a scale of 0 to 1. "
+                "Safety-critical info (allergies, medical) = 0.9-1.0. "
+                "Key preferences/constraints = 0.6-0.8. "
+                "Casual observations = 0.1-0.4. "
+                "Return only a number."
+            )
+        }, {
+            "role": "user",
+            "content": memory_text
+        }]
+    )
+    return float(response.choices[0].message.content.strip())</code></pre>
+
+    <h3>Hybrid Scoring</h3>
+    <p>Production systems combine all three signals with tunable weights:</p>
+
+<pre><code>def hybrid_score(recency: float, relevance: float,
+                 importance: float,
+                 w_recency: float = 0.3,
+                 w_relevance: float = 0.5,
+                 w_importance: float = 0.2) -> float:
+    return (w_recency * recency +
+            w_relevance * relevance +
+            w_importance * importance)</code></pre>
+
+    <div class="callout warning">
+      <span class="callout-label">Common Mistake</span>
+      <p>Weighting relevance too heavily without recency correction. If a user discussed Python extensively three months ago but has since switched to Rust, pure relevance-based retrieval will keep surfacing Python memories for every coding question. Recency decay ensures the system gradually forgets outdated context.</p>
+    </div>
+
+    <!-- 7.8 -->
+    <h2>7.8 Choosing the Right Memory Type</h2>
+
+    <p>Every memory type has a sweet spot. Using the wrong one wastes resources or creates blind spots. Here is the decision framework:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Memory Type</th>
+          <th>Best For</th>
+          <th>Retention</th>
+          <th>Cost</th>
+          <th>Failure Mode</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Buffer</strong></td>
+          <td>Short conversations (&lt;20 turns)</td>
+          <td>Session only</td>
+          <td>Linear with length</td>
+          <td>Token limit exceeded</td>
+        </tr>
+        <tr>
+          <td><strong>Sliding Window</strong></td>
+          <td>Long sessions, recent context matters most</td>
+          <td>Last k messages</td>
+          <td>Fixed ceiling</td>
+          <td>Early context lost</td>
+        </tr>
+        <tr>
+          <td><strong>Summary</strong></td>
+          <td>Long sessions, gist is sufficient</td>
+          <td>Compressed indefinitely</td>
+          <td>Extra LLM call</td>
+          <td>Lossy compression</td>
+        </tr>
+        <tr>
+          <td><strong>Vector Store</strong></td>
+          <td>Cross-session recall, large knowledge</td>
+          <td>Permanent</td>
+          <td>Embedding + storage</td>
+          <td>Semantic mismatch</td>
+        </tr>
+        <tr>
+          <td><strong>Episodic</strong></td>
+          <td>Learning from past interactions</td>
+          <td>Permanent</td>
+          <td>DB storage</td>
+          <td>Over-indexing on past</td>
+        </tr>
+        <tr>
+          <td><strong>Semantic</strong></td>
+          <td>User facts, preferences, constraints</td>
+          <td>Permanent</td>
+          <td>Extraction LLM call</td>
+          <td>Stale facts</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Most production agents need at least two layers: a buffer or sliding window for the current session, plus one long-term store (vector or semantic) for cross-session continuity. The project at the end of this chapter combines all four.</p>
+
+    <!-- 7.9 -->
+    <h2>7.9 Memory in Practice: Integration Patterns</h2>
+
+    <p>The final architectural question is how memory integrates with the agent loop. There are two patterns:</p>
+
+    <p><strong>Pre-prompt injection</strong> retrieves relevant memories before the LLM call and injects them into the system prompt or a dedicated memory message. This is the simplest and most common approach:</p>
+
+<pre><code>def build_prompt(user_msg: str, memory_manager) -> list[dict]:
+    # Retrieve relevant long-term memories
+    memories = memory_manager.retrieve(user_msg, k=5)
+    memory_block = "\n".join(f"- {m}" for m in memories)
+
+    # Get user facts
+    facts = memory_manager.get_user_facts()
+    facts_block = json.dumps(facts, indent=2) if facts else "None"
+
+    return [
+        {"role": "system", "content": f"""You are a personal assistant.
+
+Known user facts:
+{facts_block}
+
+Relevant memories from past conversations:
+{memory_block}
+"""},
+        *memory_manager.get_recent_messages(),
+        {"role": "user", "content": user_msg}
+    ]</code></pre>
+
+    <p><strong>Tool-based retrieval</strong> gives the agent a <code>search_memory</code> tool. Instead of automatically retrieving memories, the agent decides when it needs past context and explicitly searches for it. This reduces unnecessary retrieval but requires the agent to know when it is missing information &mdash; a meta-cognitive skill that smaller models handle poorly.</p>
+
+<pre><code>memory_tool = {
+    "type": "function",
+    "function": {
+        "name": "search_memory",
+        "description": "Search past conversations and stored facts.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "What to search for in memory"
+                },
+                "memory_type": {
+                    "type": "string",
+                    "enum": ["all", "facts", "episodes", "conversations"],
+                    "description": "Which memory store to search"
+                }
+            },
+            "required": ["query"]
+        }
+    }
+}</code></pre>
+
+    <div class="callout info">
+      <span class="callout-label">Production Consideration</span>
+      <p>Pre-prompt injection is safer for most applications. Tool-based retrieval sounds elegant but introduces a failure mode where the agent <em>does not realize</em> it needs to search. A user says &ldquo;same budget as last time&rdquo; and the agent &mdash; not finding &ldquo;last time&rdquo; in the current context &mdash; might guess instead of searching. Pre-prompt injection with a relevance threshold is simpler and more reliable.</p>
+    </div>
+
+    <hr>
+
+    <!-- Project Section -->
+    <section class="project">
+      <h2>Project: Memory Manager</h2>
+      <p>Build a multi-tier memory system that combines conversation buffer, summary compression, vector-based long-term storage, and semantic fact extraction. The system should maintain context across sessions and retrieve the right memories based on hybrid scoring.</p>
+      <p><strong>Core requirements:</strong></p>
+      <ul>
+        <li>Token-aware sliding window for current session</li>
+        <li>Automatic summary compression when window overflows</li>
+        <li>Vector store (ChromaDB) for cross-session memory</li>
+        <li>Semantic fact extraction and structured storage</li>
+        <li>Hybrid retrieval with recency, relevance, and importance scoring</li>
+        <li>Pre-prompt injection that assembles context from all layers</li>
+      </ul>
+      <div class="variant-grid">
+        <div class="variant-card">
+          Tech / Software
+          <span class="variant-domain">Code context memory &mdash; remembers project architecture, past debugging sessions, coding preferences</span>
+        </div>
+        <div class="variant-card">
+          Healthcare
+          <span class="variant-domain">Patient interaction memory &mdash; tracks symptoms, allergies, medication history across visits</span>
+        </div>
+        <div class="variant-card">
+          Finance
+          <span class="variant-domain">Client portfolio memory &mdash; remembers risk tolerance, investment goals, past advice</span>
+        </div>
+        <div class="variant-card">
+          Education
+          <span class="variant-domain">Student learning memory &mdash; tracks mastery levels, misconceptions, learning pace</span>
+        </div>
+        <div class="variant-card">
+          E-commerce
+          <span class="variant-domain">Shopper preference memory &mdash; stores size, style, budget, past purchases</span>
+        </div>
+        <div class="variant-card">
+          Legal
+          <span class="variant-domain">Case research memory &mdash; remembers cited precedents, argument history, client details</span>
+        </div>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- Summary -->
+    <section class="summary">
+      <h2>Summary</h2>
+      <ol class="key-takeaways">
+        <li><strong>LLM calls are stateless by default.</strong> Every API call is a blank slate. Memory is not built in &mdash; it must be engineered as an explicit system layer that persists, compresses, and retrieves conversation context.</li>
+        <li><strong>Buffer memory is simple but does not scale.</strong> Conversation buffers work for short exchanges but grow linearly in cost and eventually hit context limits. Token-aware sliding windows cap costs but silently discard early context.</li>
+        <li><strong>Summary memory preserves the gist, not the details.</strong> Compressing old messages into running summaries saves tokens but introduces lossy compression. Always instruct the summarizer to preserve specific facts, numbers, and decisions.</li>
+        <li><strong>Vector stores enable cross-session memory through semantic retrieval.</strong> Embedding past interactions and querying by similarity lets agents recall relevant context from days or months ago, but negation and temporal nuance are poorly captured by embeddings alone.</li>
+        <li><strong>Production systems combine multiple memory layers with hybrid scoring.</strong> Recency, relevance, and importance each capture different aspects of what the agent should remember. The right weights depend on your domain &mdash; a medical agent needs high importance weighting; a chat companion needs high recency weighting.</li>
+      </ol>
+
+      <section class="exercises">
+        <h3>Exercises</h3>
+
+        <div class="exercise-item">
+          <span class="exercise-type conceptual">Conceptual</span>
+          <p>A customer support agent uses a 10-message sliding window. A user reports a bug in message 2, discusses workarounds in messages 3&ndash;8, then asks &ldquo;Can you summarize the bug I reported?&rdquo; in message 14. Explain why the agent fails. Design a memory architecture that handles this scenario using no more than 4,000 tokens of context per call.</p>
+        </div>
+
+        <div class="exercise-item">
+          <span class="exercise-type coding">Coding</span>
+          <p>Implement a <code>MemoryManager</code> class that combines <code>TokenWindowMemory</code> and <code>SummaryMemory</code>. When the token window overflows, the oldest messages should be summarized (not discarded). Write tests that verify: (a) the summary contains specific numbers mentioned in compressed messages, and (b) total token count stays below the configured limit.</p>
+        </div>
+
+        <div class="exercise-item">
+          <span class="exercise-type design">Design</span>
+          <p>You are building a tutoring agent that works with students over an entire semester. Students revisit topics, forget material, and gradually improve. Design a memory system that tracks: what the student knows, what they struggle with, what has been taught, and which explanations worked. Specify which memory type (buffer, summary, vector, episodic, semantic) handles each requirement and justify your choices.</p>
+        </div>
+      </section>
+    </section>
+
+    <!-- Bottom navigation -->
+    <nav class="chapter-footer">
+      <a href="ch06-tool-use.html">&larr; Tool Use</a>
+      <span>Chapter 7 of 20</span>
+      <a href="ch08-rag-pipelines.html">RAG Pipelines &rarr;</a>
+    </nav>
+  </main>
+<script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

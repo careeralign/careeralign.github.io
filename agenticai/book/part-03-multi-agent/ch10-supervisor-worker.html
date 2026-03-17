@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 10 &mdash; Supervisor-Worker Pattern | Agentic AI: Build, Ship, Portfolio</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="ch09-orchestration.html" class="nav-prev">Orchestration</a>
+    <span class="nav-title">Part 3 &mdash; Multi-Agent Systems</span>
+    <a href="ch11-human-in-the-loop.html" class="nav-next">Human-in-the-Loop</a>
+  </nav>
+
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 3 &mdash; Multi-Agent Systems</span>
+      <h1>Supervisor-Worker Pattern</h1>
+      <p class="chapter-intro">The demo looked flawless. A single agent that researched competitors, drafted a market analysis, pulled financial data, and produced a polished report&thinsp;&mdash;&thinsp;all in one long chain-of-thought. Then the team deployed it on real queries. The agent would start researching, get distracted by a tangent in the financial data, forget it was supposed to draft a report, and eventually time out after burning forty dollars in API calls. The problem was not intelligence. The problem was asking one agent to hold an entire workflow in its head at once. The supervisor-worker pattern exists because the same principle that makes human organizations effective applies to agents: a coordinator who plans and delegates will outperform a single genius who tries to do everything alone.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~25 min</span>
+        <span>Project: Task Delegation System</span>
+        <span>Variants: Tech / Software, Healthcare, Finance, Education, E-commerce, Legal</span>
+      </div>
+    </header>
+
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>How the supervisor-worker pattern separates planning from execution to manage complex multi-step workflows</li>
+        <li>How to design a supervisor agent that decomposes tasks, delegates to specialists, and aggregates results</li>
+        <li>How to build worker agents with focused tool sets and clear responsibility boundaries</li>
+        <li>Strategies for parallel execution that reduce latency without sacrificing correctness</li>
+        <li>How to implement robust error handling and retry logic across a multi-agent system</li>
+        <li>When to choose supervisor-worker over flat orchestration or peer-to-peer agent topologies</li>
+      </ul>
+    </section>
+
+    <!-- 10.1 -->
+    <h2>10.1 The Case for Hierarchy</h2>
+
+    <p>Single-agent architectures hit a ceiling. As the number of tools grows beyond a dozen, the model struggles to select the right one. As the workflow lengthens beyond five or six steps, earlier context gets compressed or forgotten. As the task requires different reasoning styles&thinsp;&mdash;&thinsp;analytical for data extraction, creative for writing, precise for code generation&thinsp;&mdash;&thinsp;a single system prompt cannot optimize for all of them.</p>
+
+    <p>The supervisor-worker pattern addresses this by splitting the work into two distinct roles. The <strong>supervisor</strong> is responsible for understanding the overall goal, breaking it into subtasks, deciding which worker handles each subtask, and assembling the final result. <strong>Workers</strong> are specialists: each has a narrow system prompt, a focused set of tools, and no knowledge of the broader workflow. A research worker does not know that its output will be used in a report. A code-generation worker does not know that its output will be reviewed by a quality worker. This isolation is a feature, not a limitation&thinsp;&mdash;&thinsp;it keeps each agent&rsquo;s context window focused on a single, well-defined task.</p>
+
+    <p>The analogy to human organizations is deliberate. A project manager does not write the code, design the UI, or draft the legal review. They decompose the project into work items, assign each to the right specialist, track progress, handle blockers, and synthesize deliverables. The supervisor agent does precisely the same thing, except its &ldquo;team&rdquo; is a set of LLM-powered workers with distinct capabilities.</p>
+
+    <div class="callout info">
+      <span class="callout-label">Supervisor vs. Orchestrator</span>
+      <p>Chapter 9 covered orchestration: the general problem of coordinating agent actions. The supervisor-worker pattern is a specific orchestration topology where one agent has explicit authority over others. In a flat orchestration, agents negotiate or follow a fixed pipeline. In supervisor-worker, the supervisor makes all routing and sequencing decisions. This centralized control makes the system easier to debug and reason about, at the cost of creating a single point of failure.</p>
+    </div>
+
+    <!-- 10.2 -->
+    <h2>10.2 Architecture Overview</h2>
+
+    <p>A supervisor-worker system has three layers. The supervisor layer receives the user&rsquo;s request, plans the workflow, and returns the final answer. The worker layer contains specialized agents, each with its own system prompt and tool set. The tool layer provides the actual capabilities&thinsp;&mdash;&thinsp;API calls, database queries, file operations, web searches&thinsp;&mdash;&thinsp;that workers use to accomplish their tasks.</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 680 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Supervisor-worker topology diagram showing the supervisor node delegating to worker agents, each connected to specialized tools">
+        <defs>
+          <marker id="arrow-1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#9B59B6"/>
+          </marker>
+        </defs>
+        <style>
+          .sv-bg { fill: #1a1a2e; }
+          .sv-title { fill: #e0e0e0; font-family: Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 700; }
+          .sv-label { fill: #cccccc; font-family: Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 400; }
+          .sv-small { fill: #999999; font-family: Helvetica, Arial, sans-serif; font-size: 9px; font-weight: 400; }
+          .sv-supervisor { fill: #2d1b4e; stroke: #9B59B6; stroke-width: 2; rx: 10; }
+          .sv-worker { fill: #0d3b3b; stroke: #1ABC9C; stroke-width: 2; rx: 8; }
+          .sv-tool { fill: #102a43; stroke: #3498DB; stroke-width: 1.5; rx: 6; }
+          .sv-user { fill: #2a2a3e; stroke: #7f8c8d; stroke-width: 1.5; rx: 8; }
+          .sv-line { stroke: #9B59B6; stroke-width: 1.5; }
+          .sv-line-teal { stroke: #1ABC9C; stroke-width: 1.2; }
+          .sv-layer-label { fill: #555555; font-family: Helvetica, Arial, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; }
+        </style>
+
+        <!-- Background -->
+        <rect class="sv-bg" width="680" height="520" rx="8"/>
+
+        <!-- Layer labels -->
+        <text class="sv-layer-label" x="20" y="62" text-anchor="start">USER</text>
+        <text class="sv-layer-label" x="20" y="172" text-anchor="start">SUPERVISOR</text>
+        <text class="sv-layer-label" x="20" y="312" text-anchor="start">WORKERS</text>
+        <text class="sv-layer-label" x="20" y="452" text-anchor="start">TOOLS</text>
+
+        <!-- Layer divider lines -->
+        <line x1="15" y1="100" x2="665" y2="100" stroke="#333" stroke-width="0.5" stroke-dasharray="4,4"/>
+        <line x1="15" y1="250" x2="665" y2="250" stroke="#333" stroke-width="0.5" stroke-dasharray="4,4"/>
+        <line x1="15" y1="400" x2="665" y2="400" stroke="#333" stroke-width="0.5" stroke-dasharray="4,4"/>
+
+        <!-- User node -->
+        <rect class="sv-user" x="280" y="35" width="120" height="42"/>
+        <text class="sv-title" x="340" y="61" text-anchor="middle" fill="#cccccc">User Request</text>
+
+        <!-- Supervisor node -->
+        <rect class="sv-supervisor" x="220" y="135" width="240" height="80"/>
+        <text class="sv-title" x="340" y="165" text-anchor="middle" fill="#D2B4F4">Supervisor Agent</text>
+        <text class="sv-small" x="340" y="182" text-anchor="middle" fill="#bb99dd">Plan &bull; Delegate &bull; Aggregate</text>
+        <text class="sv-small" x="340" y="198" text-anchor="middle" fill="#888888">Task queue &bull; State tracker</text>
+
+        <!-- Arrow user to supervisor -->
+        <line x1="340" y1="77" x2="340" y2="135" class="sv-line" marker-end="url(#arrow-1)" fill="none"/>
+
+        <!-- Worker nodes -->
+        <rect class="sv-worker" x="55" y="280" width="130" height="55"/>
+        <text class="sv-title" x="120" y="303" text-anchor="middle" fill="#A3E4D7">Research Worker</text>
+        <text class="sv-small" x="120" y="320" text-anchor="middle" fill="#1ABC9C">Search &amp; extract</text>
+
+        <rect class="sv-worker" x="215" y="280" width="130" height="55"/>
+        <text class="sv-title" x="280" y="303" text-anchor="middle" fill="#A3E4D7">Analysis Worker</text>
+        <text class="sv-small" x="280" y="320" text-anchor="middle" fill="#1ABC9C">Data &amp; reasoning</text>
+
+        <rect class="sv-worker" x="375" y="280" width="130" height="55"/>
+        <text class="sv-title" x="440" y="303" text-anchor="middle" fill="#A3E4D7">Writing Worker</text>
+        <text class="sv-small" x="440" y="320" text-anchor="middle" fill="#1ABC9C">Draft &amp; format</text>
+
+        <rect class="sv-worker" x="535" y="280" width="130" height="55"/>
+        <text class="sv-title" x="600" y="303" text-anchor="middle" fill="#A3E4D7">QA Worker</text>
+        <text class="sv-small" x="600" y="320" text-anchor="middle" fill="#1ABC9C">Review &amp; validate</text>
+
+        <!-- Arrows supervisor to workers -->
+        <line x1="280" y1="215" x2="120" y2="280" class="sv-line" marker-end="url(#arrow-1)" fill="none"/>
+        <line x1="310" y1="215" x2="280" y2="280" class="sv-line" marker-end="url(#arrow-1)" fill="none"/>
+        <line x1="370" y1="215" x2="440" y2="280" class="sv-line" marker-end="url(#arrow-1)" fill="none"/>
+        <line x1="400" y1="215" x2="600" y2="280" class="sv-line" marker-end="url(#arrow-1)" fill="none"/>
+
+        <!-- Tool nodes -->
+        <rect class="sv-tool" x="30" y="425" width="95" height="38"/>
+        <text class="sv-label" x="78" y="449" text-anchor="middle" fill="#85C1E9">Web Search</text>
+
+        <rect class="sv-tool" x="140" y="425" width="95" height="38"/>
+        <text class="sv-label" x="188" y="449" text-anchor="middle" fill="#85C1E9">Scraper</text>
+
+        <rect class="sv-tool" x="250" y="425" width="95" height="38"/>
+        <text class="sv-label" x="298" y="449" text-anchor="middle" fill="#85C1E9">Calculator</text>
+
+        <rect class="sv-tool" x="360" y="425" width="95" height="38"/>
+        <text class="sv-label" x="408" y="449" text-anchor="middle" fill="#85C1E9">Database</text>
+
+        <rect class="sv-tool" x="470" y="425" width="95" height="38"/>
+        <text class="sv-label" x="518" y="449" text-anchor="middle" fill="#85C1E9">Formatter</text>
+
+        <rect class="sv-tool" x="580" y="425" width="85" height="38"/>
+        <text class="sv-label" x="622" y="449" text-anchor="middle" fill="#85C1E9">Linter</text>
+
+        <!-- Arrows workers to tools -->
+        <line x1="90" y1="335" x2="78" y2="425" class="sv-line-teal" marker-end="url(#arrow-1)" fill="none"/>
+        <line x1="150" y1="335" x2="188" y2="425" class="sv-line-teal" marker-end="url(#arrow-1)" fill="none"/>
+        <line x1="260" y1="335" x2="298" y2="425" class="sv-line-teal" marker-end="url(#arrow-1)" fill="none"/>
+        <line x1="300" y1="335" x2="408" y2="425" class="sv-line-teal" marker-end="url(#arrow-1)" fill="none"/>
+        <line x1="440" y1="335" x2="518" y2="425" class="sv-line-teal" marker-end="url(#arrow-1)" fill="none"/>
+        <line x1="600" y1="335" x2="622" y2="425" class="sv-line-teal" marker-end="url(#arrow-1)" fill="none"/>
+
+        <!-- Return arrows (dashed) workers back to supervisor -->
+        <line x1="120" y1="280" x2="260" y2="215" stroke="#555" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-1)" fill="none"/>
+        <line x1="280" y1="280" x2="300" y2="215" stroke="#555" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-1)" fill="none"/>
+        <line x1="440" y1="280" x2="380" y2="215" stroke="#555" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-1)" fill="none"/>
+        <line x1="600" y1="280" x2="420" y2="215" stroke="#555" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-1)" fill="none"/>
+
+        <!-- Legend -->
+        <rect x="490" y="120" width="12" height="12" rx="2" fill="#2d1b4e" stroke="#9B59B6" stroke-width="1.5"/>
+        <text class="sv-small" x="508" y="131" fill="#bbbbbb">Supervisor</text>
+        <rect x="490" y="140" width="12" height="12" rx="2" fill="#0d3b3b" stroke="#1ABC9C" stroke-width="1.5"/>
+        <text class="sv-small" x="508" y="151" fill="#bbbbbb">Worker Agent</text>
+        <rect x="490" y="160" width="12" height="12" rx="2" fill="#102a43" stroke="#3498DB" stroke-width="1.5"/>
+        <text class="sv-small" x="508" y="171" fill="#bbbbbb">Tool</text>
+        <line x1="490" y1="186" x2="502" y2="186" stroke="#555" stroke-width="1" stroke-dasharray="4,3"/>
+        <text class="sv-small" x="508" y="190" fill="#bbbbbb">Result return</text>
+      </svg>
+      <figcaption>Figure 10.1 &mdash; Supervisor-worker topology. The supervisor plans and delegates; workers execute with focused tool sets; results flow back for aggregation.</figcaption>
+    </figure>
+
+    <p>The key insight is that each layer operates at a different level of abstraction. The supervisor thinks in terms of tasks: &ldquo;research competitor pricing,&rdquo; &ldquo;analyze trends in the data,&rdquo; &ldquo;draft the executive summary.&rdquo; Workers think in terms of tool calls: &ldquo;search the web for X,&rdquo; &ldquo;query the database for Y,&rdquo; &ldquo;format the output as a table.&rdquo; This separation of concerns means the supervisor&rsquo;s prompt stays clean and strategic, while each worker&rsquo;s prompt stays tactical and focused.</p>
+
+    <!-- 10.3 -->
+    <h2>10.3 Designing the Supervisor</h2>
+
+    <p>The supervisor is the brain of the system. It receives the user&rsquo;s request, decomposes it into a plan, dispatches tasks to workers, monitors results, and decides when the overall job is done. A well-designed supervisor has three core capabilities: <strong>task decomposition</strong>, <strong>delegation</strong>, and <strong>result aggregation</strong>.</p>
+
+<pre><code>from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any
+import json
+import openai
+
+class TaskStatus(Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+@dataclass
+class Task:
+    """A unit of work to be delegated to a worker."""
+    id: str
+    description: str
+    worker_type: str
+    dependencies: list[str] = field(default_factory=list)
+    status: TaskStatus = TaskStatus.PENDING
+    result: Any = None
+    error: str = ""
+    retries: int = 0
+
+@dataclass
+class Plan:
+    """An execution plan produced by the supervisor."""
+    goal: str
+    tasks: list[Task] = field(default_factory=list)
+    final_instruction: str = ""
+
+class Supervisor:
+    """Supervisor agent that plans, delegates, and aggregates."""
+
+    def __init__(self, workers: dict, model: str = "gpt-4o"):
+        self.workers = workers  # name -&gt; Worker instance
+        self.model = model
+        self.client = openai.OpenAI()
+        self.max_retries = 2
+
+    def run(self, user_request: str) -&gt; str:
+        """Execute a full supervisor-worker workflow."""
+        # Step 1: Decompose the request into a plan
+        plan = self._decompose(user_request)
+        print(f"Plan: {len(plan.tasks)} tasks for goal: {plan.goal}")
+
+        # Step 2: Execute tasks respecting dependencies
+        self._execute_plan(plan)
+
+        # Step 3: Aggregate results into a final answer
+        return self._aggregate(plan)
+
+    def _decompose(self, request: str) -&gt; Plan:
+        """Use the LLM to break a request into delegatable tasks."""
+        worker_descriptions = "\n".join(
+            f"- {name}: {w.description}"
+            for name, w in self.workers.items()
+        )
+
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=[{
+                "role": "system",
+                "content": (
+                    "You are a project planning agent. Given a user request "
+                    "and available workers, decompose the request into tasks.\n\n"
+                    f"Available workers:\n{worker_descriptions}\n\n"
+                    "Return JSON with this structure:\n"
+                    '{"goal": "...", "tasks": [{"id": "t1", '
+                    '"description": "...", "worker_type": "worker_name", '
+                    '"dependencies": []}], '
+                    '"final_instruction": "How to combine results"}'
+                )
+            }, {
+                "role": "user",
+                "content": request,
+            }],
+            response_format={"type": "json_object"},
+            temperature=0.2,
+        )
+
+        data = json.loads(response.choices[0].message.content)
+        tasks = [
+            Task(
+                id=t["id"],
+                description=t["description"],
+                worker_type=t["worker_type"],
+                dependencies=t.get("dependencies", []),
+            )
+            for t in data["tasks"]
+        ]
+        return Plan(
+            goal=data["goal"],
+            tasks=tasks,
+            final_instruction=data.get("final_instruction", ""),
+        )</code></pre>
+
+    <p>The decomposition step is where the supervisor earns its keep. A good decomposition produces tasks that are <strong>independent where possible</strong> (enabling parallelism), <strong>correctly sequenced where necessary</strong> (using dependency declarations), and <strong>scoped to a single worker&rsquo;s capabilities</strong> (preventing confusion).</p>
+
+    <div class="callout warning">
+      <span class="callout-label">Decomposition Failures</span>
+      <p>The most common supervisor bug is producing tasks that are too vague for workers to execute. &ldquo;Analyze the data&rdquo; is not a task; &ldquo;Calculate the year-over-year revenue growth rate from the quarterly earnings data&rdquo; is. If your workers consistently return poor results, the problem is usually in the supervisor&rsquo;s decomposition, not in the workers themselves. Add examples of good task descriptions to the supervisor&rsquo;s system prompt.</p>
+    </div>
+
+    <!-- 10.4 -->
+    <h2>10.4 Building Worker Agents</h2>
+
+    <p>Each worker agent is a focused specialist. It receives a task description from the supervisor, uses its tools to accomplish the task, and returns a structured result. Workers should not know about each other, should not try to do work outside their specialty, and should fail explicitly when they cannot complete a task.</p>
+
+<pre><code>class Worker:
+    """A specialized worker agent with focused tools."""
+
+    def __init__(self, name: str, description: str,
+                 system_prompt: str, tools: list[dict],
+                 tool_handlers: dict, model: str = "gpt-4o"):
+        self.name = name
+        self.description = description
+        self.system_prompt = system_prompt
+        self.tools = tools              # OpenAI function schemas
+        self.tool_handlers = tool_handlers  # name -&gt; callable
+        self.model = model
+        self.client = openai.OpenAI()
+
+    def execute(self, task_description: str,
+                context: dict = None) -&gt; dict:
+        """Execute a task and return structured results."""
+        messages = [
+            {"role": "system", "content": self.system_prompt},
+            {"role": "user", "content": self._build_prompt(
+                task_description, context
+            )},
+        ]
+
+        # Agentic loop: let the worker call tools until done
+        for _ in range(10):  # safety limit on iterations
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                tools=self.tools if self.tools else None,
+            )
+
+            choice = response.choices[0]
+
+            # If no tool calls, the worker is done
+            if not choice.message.tool_calls:
+                return {
+                    "status": "completed",
+                    "result": choice.message.content,
+                    "worker": self.name,
+                }
+
+            # Process each tool call
+            messages.append(choice.message)
+            for tool_call in choice.message.tool_calls:
+                fn_name = tool_call.function.name
+                fn_args = json.loads(tool_call.function.arguments)
+
+                handler = self.tool_handlers.get(fn_name)
+                if not handler:
+                    tool_result = f"Error: unknown tool {fn_name}"
+                else:
+                    try:
+                        tool_result = handler(**fn_args)
+                    except Exception as e:
+                        tool_result = f"Error: {type(e).__name__}: {e}"
+
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": str(tool_result),
+                })
+
+        return {
+            "status": "failed",
+            "result": "Worker exceeded maximum iterations",
+            "worker": self.name,
+        }
+
+    def _build_prompt(self, task: str, context: dict) -&gt; str:
+        """Build the task prompt, optionally with context from
+        upstream tasks."""
+        parts = [f"Task: {task}"]
+        if context:
+            parts.append("\nContext from previous tasks:")
+            for key, value in context.items():
+                parts.append(f"\n[{key}]:\n{value}")
+        return "\n".join(parts)</code></pre>
+
+    <p>The worker design has several deliberate constraints. The tool loop is capped at ten iterations to prevent runaway execution. Each tool call is wrapped in a try/except so that a single tool failure does not crash the worker&thinsp;&mdash;&thinsp;the error message is passed back to the LLM, which can decide to retry or work around the failure. And the worker returns a structured dictionary, not free-form text, so the supervisor can programmatically check status and extract results.</p>
+
+    <h3>Specialization Through System Prompts</h3>
+
+    <p>The power of worker agents comes from their focused system prompts. Here is how three workers might be configured for a market analysis workflow:</p>
+
+<pre><code>research_worker = Worker(
+    name="researcher",
+    description="Searches the web and extracts structured data",
+    system_prompt=(
+        "You are a research specialist. Given a research task, "
+        "use your search and scraping tools to find relevant "
+        "information. Return your findings as structured bullet "
+        "points with source URLs. If you cannot find reliable "
+        "information, say so explicitly. Do not speculate."
+    ),
+    tools=[search_tool_schema, scrape_tool_schema],
+    tool_handlers={
+        "web_search": search_function,
+        "scrape_page": scrape_function,
+    },
+)
+
+analysis_worker = Worker(
+    name="analyst",
+    description="Analyzes data and produces quantitative insights",
+    system_prompt=(
+        "You are a data analyst. Given data and an analysis task, "
+        "perform calculations, identify trends, and produce "
+        "quantitative insights. Show your work. Use the calculator "
+        "for all arithmetic. Flag any data quality issues you "
+        "encounter. Do not fabricate numbers."
+    ),
+    tools=[calculator_schema, db_query_schema],
+    tool_handlers={
+        "calculate": calculator_function,
+        "query_database": db_query_function,
+    },
+)
+
+writing_worker = Worker(
+    name="writer",
+    description="Drafts polished prose from structured inputs",
+    system_prompt=(
+        "You are a professional writer. Given research findings "
+        "and analysis, draft clear, concise prose. Follow any "
+        "formatting instructions precisely. Do not add information "
+        "beyond what is provided in your input context. Cite "
+        "sources inline where applicable."
+    ),
+    tools=[formatter_schema],
+    tool_handlers={"format_document": formatter_function},
+)</code></pre>
+
+    <div class="callout tip">
+      <span class="callout-label">Tool Isolation Principle</span>
+      <p>Give each worker only the tools it needs. A research worker does not need the database query tool. An analysis worker does not need the web search tool. Tool isolation reduces the chance of a worker going off-task and makes it easier to audit what each worker did. If you find a worker needs tools from another worker&rsquo;s domain, that is a signal to split the task differently at the supervisor level.</p>
+    </div>
+
+    <!-- 10.5 -->
+    <h2>10.5 Task Decomposition</h2>
+
+    <p>Task decomposition is the critical planning step where the supervisor converts a vague user request into a directed acyclic graph of concrete, assignable tasks. The quality of decomposition determines the quality of the entire system&rsquo;s output.</p>
+
+    <p>There are three common decomposition strategies:</p>
+
+    <p><strong>Sequential decomposition.</strong> Tasks form a chain: each depends on the output of the previous one. This is the simplest pattern and appropriate when later tasks genuinely need the results of earlier ones. The downside is that total latency equals the sum of all task durations.</p>
+
+    <p><strong>Parallel decomposition.</strong> Independent tasks are identified and marked as having no dependencies. They can execute simultaneously, reducing total latency to the duration of the longest single task. The supervisor must identify which tasks are truly independent&thinsp;&mdash;&thinsp;falsely declaring a dependency as independent leads to missing context, while falsely declaring independence as dependent wastes time.</p>
+
+    <p><strong>Hybrid decomposition.</strong> A mix of parallel and sequential phases. This is the most common pattern in real workflows: gather data in parallel, then analyze the combined data sequentially, then produce outputs in parallel from the shared analysis.</p>
+
+<pre><code>def _execute_plan(self, plan: Plan) -&gt; None:
+    """Execute tasks respecting dependency ordering."""
+    completed = {}  # task_id -&gt; result
+
+    while True:
+        # Find tasks ready to execute (all deps completed)
+        ready = [
+            t for t in plan.tasks
+            if t.status == TaskStatus.PENDING
+            and all(d in completed for d in t.dependencies)
+        ]
+
+        if not ready:
+            # Check if we are done or stuck
+            pending = [
+                t for t in plan.tasks
+                if t.status == TaskStatus.PENDING
+            ]
+            if not pending:
+                break
+            # Stuck: remaining tasks have unmet dependencies
+            failed_deps = [
+                t for t in plan.tasks
+                if t.status == TaskStatus.FAILED
+            ]
+            if failed_deps:
+                raise RuntimeError(
+                    f"Plan stuck: {len(pending)} tasks pending, "
+                    f"{len(failed_deps)} tasks failed"
+                )
+            break
+
+        # Execute ready tasks in parallel
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = {}
+            for task in ready:
+                task.status = TaskStatus.RUNNING
+                # Gather context from completed dependencies
+                context = {
+                    dep_id: completed[dep_id]
+                    for dep_id in task.dependencies
+                }
+                worker = self.workers.get(task.worker_type)
+                if not worker:
+                    task.status = TaskStatus.FAILED
+                    task.error = f"No worker: {task.worker_type}"
+                    continue
+                futures[executor.submit(
+                    worker.execute, task.description, context
+                )] = task
+
+            for future in concurrent.futures.as_completed(futures):
+                task = futures[future]
+                try:
+                    result = future.result(timeout=120)
+                    if result["status"] == "completed":
+                        task.status = TaskStatus.COMPLETED
+                        task.result = result["result"]
+                        completed[task.id] = result["result"]
+                    else:
+                        task.status = TaskStatus.FAILED
+                        task.error = result.get("result", "Unknown")
+                except Exception as e:
+                    task.status = TaskStatus.FAILED
+                    task.error = str(e)</code></pre>
+
+    <p>The execution engine is a simple loop: find tasks whose dependencies are satisfied, execute them in parallel, collect results, repeat until all tasks are done or the plan is stuck. The use of <code>ThreadPoolExecutor</code> for parallel execution is appropriate here because the bottleneck is I/O (API calls), not CPU computation.</p>
+
+    <!-- 10.6 -->
+    <h2>10.6 Parallel Execution</h2>
+
+    <p>Parallel execution is where the supervisor-worker pattern delivers its biggest latency improvement. Instead of running five tasks sequentially&thinsp;&mdash;&thinsp;each taking 10&ndash;30 seconds of API call time&thinsp;&mdash;&thinsp;you run independent tasks simultaneously.</p>
+
+    <p>But parallelism introduces three challenges that sequential execution does not have:</p>
+
+    <p><strong>Resource contention.</strong> If all workers share the same API key, parallel requests can hit rate limits. Use a semaphore or token bucket to throttle concurrent requests:</p>
+
+<pre><code>import asyncio
+
+class RateLimitedExecutor:
+    """Execute worker tasks with concurrency and rate limiting."""
+
+    def __init__(self, max_concurrent: int = 5,
+                 requests_per_minute: int = 60):
+        self.semaphore = asyncio.Semaphore(max_concurrent)
+        self.rate_limiter = asyncio.Semaphore(requests_per_minute)
+        self._refill_task = None
+
+    async def execute_tasks(self, tasks: list[tuple]) -&gt; list:
+        """Execute (worker, task_desc, context) tuples in parallel."""
+        self._refill_task = asyncio.create_task(self._refill_tokens())
+        try:
+            results = await asyncio.gather(*[
+                self._run_one(worker, desc, ctx)
+                for worker, desc, ctx in tasks
+            ], return_exceptions=True)
+            return results
+        finally:
+            self._refill_task.cancel()
+
+    async def _run_one(self, worker, description, context):
+        async with self.semaphore:
+            await self.rate_limiter.acquire()
+            loop = asyncio.get_event_loop()
+            return await loop.run_in_executor(
+                None, worker.execute, description, context
+            )
+
+    async def _refill_tokens(self):
+        """Refill rate limiter tokens every second."""
+        while True:
+            await asyncio.sleep(1.0)
+            # Release one token per second (60 per minute)
+            try:
+                self.rate_limiter.release()
+            except ValueError:
+                pass  # already at max</code></pre>
+
+    <p><strong>Result ordering.</strong> Tasks complete in arbitrary order. The supervisor must match results back to the correct task IDs, not assume the order of completion matches the order of submission.</p>
+
+    <p><strong>Partial failure.</strong> In sequential execution, a failure stops the chain. In parallel execution, some tasks may succeed while others fail. The supervisor must decide: is the overall goal still achievable with partial results? Can the failed tasks be retried? Should the entire plan be re-evaluated?</p>
+
+    <!-- 10.7 -->
+    <h2>10.7 Result Aggregation</h2>
+
+    <p>Once all workers have completed their tasks, the supervisor must combine their outputs into a coherent final response. This aggregation step is often where the quality is won or lost.</p>
+
+<pre><code>def _aggregate(self, plan: Plan) -&gt; str:
+    """Combine worker results into a final response."""
+    # Collect all completed results
+    results_summary = []
+    for task in plan.tasks:
+        if task.status == TaskStatus.COMPLETED:
+            results_summary.append(
+                f"[Task: {task.description}]\n"
+                f"Worker: {task.worker_type}\n"
+                f"Result:\n{task.result}\n"
+            )
+        elif task.status == TaskStatus.FAILED:
+            results_summary.append(
+                f"[Task: {task.description}]\n"
+                f"Worker: {task.worker_type}\n"
+                f"FAILED: {task.error}\n"
+            )
+
+    results_block = "\n---\n".join(results_summary)
+
+    response = self.client.chat.completions.create(
+        model=self.model,
+        messages=[{
+            "role": "system",
+            "content": (
+                "You are a supervisor agent assembling a final "
+                "response from your workers' outputs. Synthesize "
+                "the results into a coherent, well-structured "
+                "answer. If any tasks failed, acknowledge what "
+                "is missing and provide the best answer possible "
+                "with the available results. Do not invent "
+                "information beyond what the workers provided."
+            )
+        }, {
+            "role": "user",
+            "content": (
+                f"Original goal: {plan.goal}\n\n"
+                f"Aggregation instruction: "
+                f"{plan.final_instruction}\n\n"
+                f"Worker results:\n{results_block}"
+            ),
+        }],
+        temperature=0.3,
+    )
+
+    return response.choices[0].message.content</code></pre>
+
+    <p>The aggregation prompt is critical. It must tell the supervisor to synthesize, not merely concatenate. Simply pasting worker outputs together produces a disjointed document. The supervisor should identify themes across worker outputs, resolve minor inconsistencies, apply the formatting requested by the user, and flag any gaps caused by failed tasks.</p>
+
+    <div class="callout info">
+      <span class="callout-label">Aggregation Strategies</span>
+      <p>Three common patterns: <strong>Merge</strong> combines complementary outputs (research from worker A plus analysis from worker B into a single report). <strong>Select</strong> picks the best output when multiple workers attempt the same task (useful for quality competition). <strong>Reduce</strong> iteratively summarizes outputs when the combined volume exceeds context window limits. Choose the strategy in the planning step and encode it in the <code>final_instruction</code> field of the plan.</p>
+    </div>
+
+    <!-- 10.8 -->
+    <h2>10.8 Error Handling in Multi-Agent Systems</h2>
+
+    <p>Error handling in a multi-agent system is fundamentally different from error handling in a single agent. A single agent either succeeds or fails. A multi-agent system can partially succeed, and the supervisor must decide what to do with partial results.</p>
+
+    <p>There are four categories of errors in supervisor-worker systems:</p>
+
+    <p><strong>Worker execution errors.</strong> A worker&rsquo;s tool call fails (API timeout, rate limit, malformed response). The worker should catch these internally and either retry or return a structured error. The supervisor sees a failed task and decides whether to retry with the same worker, reassign to a different worker, or proceed without that result.</p>
+
+    <p><strong>Decomposition errors.</strong> The supervisor creates tasks that are impossible, circular, or assigned to nonexistent workers. Validate the plan before execution: check for missing worker types, detect dependency cycles, and verify that task descriptions are concrete enough.</p>
+
+    <p><strong>Aggregation errors.</strong> Worker results are contradictory or insufficient for the supervisor to produce a coherent answer. The supervisor should explicitly flag contradictions rather than silently resolving them, and should indicate confidence levels when results are incomplete.</p>
+
+    <p><strong>Timeout errors.</strong> The entire workflow takes too long. Implement a global timeout that triggers graceful degradation: return the best available partial result rather than nothing.</p>
+
+<pre><code>def _execute_with_retry(self, plan: Plan) -&gt; None:
+    """Execute plan with retry logic for failed tasks."""
+    self._execute_plan(plan)
+
+    # Retry failed tasks up to max_retries
+    for attempt in range(self.max_retries):
+        failed = [
+            t for t in plan.tasks
+            if t.status == TaskStatus.FAILED
+        ]
+        if not failed:
+            break
+
+        print(f"Retry attempt {attempt + 1}: "
+              f"{len(failed)} failed tasks")
+
+        for task in failed:
+            task.retries += 1
+            task.status = TaskStatus.PENDING
+            task.error = ""
+
+            # Optionally refine the task description
+            if task.retries > 1:
+                task.description = self._refine_task(
+                    task.description, task.error
+                )
+
+        self._execute_plan(plan)
+
+def _refine_task(self, description: str, error: str) -&gt; str:
+    """Ask the LLM to refine a task that previously failed."""
+    response = self.client.chat.completions.create(
+        model=self.model,
+        messages=[{
+            "role": "system",
+            "content": (
+                "A task failed with the error below. Rewrite the "
+                "task description to avoid the same failure. Be "
+                "more specific and suggest a different approach."
+            )
+        }, {
+            "role": "user",
+            "content": (
+                f"Original task: {description}\n"
+                f"Error: {error}"
+            ),
+        }],
+        temperature=0.4,
+    )
+    return response.choices[0].message.content</code></pre>
+
+    <p>The retry logic has a subtle but important detail: after the first failed attempt, the supervisor <em>refines</em> the task description. This is not a dumb retry&thinsp;&mdash;&thinsp;it uses the LLM to understand why the task failed and produce a better formulation. If a research task failed because the search query was too broad, the refined task might include more specific keywords.</p>
+
+    <div class="callout warning">
+      <span class="callout-label">Circuit Breakers</span>
+      <p>Without a retry limit, a flawed task can loop indefinitely: fail, retry, fail, retry. Always cap retries and implement a circuit breaker. If a worker fails three times on the same task, mark it as permanently failed and let the supervisor aggregate without that result. A partial answer delivered in thirty seconds beats a complete answer that never arrives.</p>
+    </div>
+
+    <!-- 10.9 -->
+    <h2>10.9 Task Delegation Flow</h2>
+
+    <p>The full delegation lifecycle follows a clear sequence: the user submits a request, the supervisor decomposes it, tasks are dispatched in dependency order, workers execute in parallel where possible, results flow back to the supervisor, and the supervisor produces the final output.</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 680 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flowchart showing task delegation and result aggregation, from initial request through task splitting, parallel execution, and merge into final output">
+        <defs>
+          <marker id="arrow-2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#3498DB"/>
+          </marker>
+        </defs>
+        <style>
+          .fl-bg { fill: #1a1a2e; }
+          .fl-title { fill: #e0e0e0; font-family: Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 700; }
+          .fl-label { fill: #cccccc; font-family: Helvetica, Arial, sans-serif; font-size: 10px; font-weight: 400; }
+          .fl-small { fill: #999999; font-family: Helvetica, Arial, sans-serif; font-size: 9px; font-weight: 400; }
+          .fl-phase { fill: #555555; font-family: Helvetica, Arial, sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; }
+          .fl-supervisor { fill: #2d1b4e; stroke: #9B59B6; stroke-width: 2; rx: 8; }
+          .fl-worker { fill: #0d3b3b; stroke: #1ABC9C; stroke-width: 1.5; rx: 8; }
+          .fl-decision { fill: #2a2a3e; stroke: #E67E22; stroke-width: 1.5; }
+          .fl-io { fill: #1e2d3d; stroke: #3498DB; stroke-width: 1.5; rx: 8; }
+          .fl-merge { fill: #2d1b4e; stroke: #9B59B6; stroke-width: 2; rx: 8; }
+          .fl-line { stroke: #3498DB; stroke-width: 1.5; }
+          .fl-line-dim { stroke: #555555; stroke-width: 1; stroke-dasharray: 4,3; }
+        </style>
+
+        <!-- Background -->
+        <rect class="fl-bg" width="680" height="620" rx="8"/>
+
+        <!-- Phase labels on left -->
+        <text class="fl-phase" x="16" y="52" text-anchor="start">RECEIVE</text>
+        <text class="fl-phase" x="16" y="142" text-anchor="start">PLAN</text>
+        <text class="fl-phase" x="16" y="232" text-anchor="start">SPLIT</text>
+        <text class="fl-phase" x="16" y="342" text-anchor="start">EXECUTE</text>
+        <text class="fl-phase" x="16" y="452" text-anchor="start">COLLECT</text>
+        <text class="fl-phase" x="16" y="542" text-anchor="start">DELIVER</text>
+
+        <!-- Step 1: User request -->
+        <rect class="fl-io" x="250" y="30" width="180" height="40"/>
+        <text class="fl-title" x="340" y="55" text-anchor="middle" fill="#85C1E9">User Request</text>
+
+        <!-- Arrow down -->
+        <line x1="340" y1="70" x2="340" y2="110" class="fl-line" marker-end="url(#arrow-2)" fill="none"/>
+
+        <!-- Step 2: Supervisor decomposes -->
+        <rect class="fl-supervisor" x="220" y="110" width="240" height="48"/>
+        <text class="fl-title" x="340" y="133" text-anchor="middle" fill="#D2B4F4">Supervisor: Decompose</text>
+        <text class="fl-small" x="340" y="148" text-anchor="middle" fill="#bb99dd">Analyze &rarr; Plan &rarr; Task graph</text>
+
+        <!-- Arrow down to split -->
+        <line x1="340" y1="158" x2="340" y2="195" class="fl-line" marker-end="url(#arrow-2)" fill="none"/>
+
+        <!-- Step 3: Task split (fan-out) -->
+        <rect class="fl-supervisor" x="250" y="195" width="180" height="40"/>
+        <text class="fl-title" x="340" y="220" text-anchor="middle" fill="#D2B4F4">Task Split</text>
+
+        <!-- Fan-out arrows to parallel workers -->
+        <line x1="270" y1="235" x2="130" y2="305" class="fl-line" marker-end="url(#arrow-2)" fill="none"/>
+        <line x1="340" y1="235" x2="340" y2="305" class="fl-line" marker-end="url(#arrow-2)" fill="none"/>
+        <line x1="410" y1="235" x2="550" y2="305" class="fl-line" marker-end="url(#arrow-2)" fill="none"/>
+
+        <!-- Parallel workers -->
+        <rect class="fl-worker" x="65" y="305" width="130" height="55"/>
+        <text class="fl-title" x="130" y="327" text-anchor="middle" fill="#A3E4D7">Worker A</text>
+        <text class="fl-small" x="130" y="345" text-anchor="middle" fill="#1ABC9C">Task 1: Research</text>
+
+        <rect class="fl-worker" x="275" y="305" width="130" height="55"/>
+        <text class="fl-title" x="340" y="327" text-anchor="middle" fill="#A3E4D7">Worker B</text>
+        <text class="fl-small" x="340" y="345" text-anchor="middle" fill="#1ABC9C">Task 2: Analyze</text>
+
+        <rect class="fl-worker" x="485" y="305" width="130" height="55"/>
+        <text class="fl-title" x="550" y="327" text-anchor="middle" fill="#A3E4D7">Worker C</text>
+        <text class="fl-small" x="550" y="345" text-anchor="middle" fill="#1ABC9C">Task 3: Draft</text>
+
+        <!-- Parallel indicator -->
+        <line x1="85" y1="295" x2="600" y2="295" stroke="#E67E22" stroke-width="0.8" stroke-dasharray="3,3"/>
+        <text class="fl-small" x="630" y="298" text-anchor="start" fill="#E67E22">parallel</text>
+        <line x1="85" y1="370" x2="600" y2="370" stroke="#E67E22" stroke-width="0.8" stroke-dasharray="3,3"/>
+
+        <!-- Fan-in arrows to collect -->
+        <line x1="130" y1="360" x2="270" y2="420" class="fl-line" marker-end="url(#arrow-2)" fill="none"/>
+        <line x1="340" y1="360" x2="340" y2="420" class="fl-line" marker-end="url(#arrow-2)" fill="none"/>
+        <line x1="550" y1="360" x2="410" y2="420" class="fl-line" marker-end="url(#arrow-2)" fill="none"/>
+
+        <!-- Error check diamond -->
+        <polygon class="fl-decision" points="340,420 400,448 340,476 280,448"/>
+        <text class="fl-title" x="340" y="451" text-anchor="middle" fill="#F0B27A">All OK?</text>
+
+        <!-- Yes path down -->
+        <line x1="340" y1="476" x2="340" y2="510" class="fl-line" marker-end="url(#arrow-2)" fill="none"/>
+        <text class="fl-small" x="350" y="497" text-anchor="start" fill="#2ECC71">yes</text>
+
+        <!-- No path right to retry -->
+        <line x1="400" y1="448" x2="530" y2="448" class="fl-line" marker-end="url(#arrow-2)" fill="none"/>
+        <text class="fl-small" x="460" y="442" text-anchor="middle" fill="#E74C3C">no</text>
+
+        <rect x="530" y="430" width="100" height="36" rx="6" fill="#2a1a1a" stroke="#E74C3C" stroke-width="1.5"/>
+        <text class="fl-title" x="580" y="453" text-anchor="middle" fill="#E8A0A0">Retry / Skip</text>
+
+        <!-- Retry loops back up -->
+        <path d="M580,430 L580,280 L410,240" class="fl-line-dim" marker-end="url(#arrow-2)" fill="none"/>
+
+        <!-- Step 5: Aggregate -->
+        <rect class="fl-merge" x="235" y="510" width="210" height="48"/>
+        <text class="fl-title" x="340" y="533" text-anchor="middle" fill="#D2B4F4">Supervisor: Aggregate</text>
+        <text class="fl-small" x="340" y="548" text-anchor="middle" fill="#bb99dd">Synthesize &bull; Format &bull; Validate</text>
+
+        <!-- Arrow to output -->
+        <line x1="340" y1="558" x2="340" y2="580" class="fl-line" marker-end="url(#arrow-2)" fill="none"/>
+
+        <!-- Final output -->
+        <rect class="fl-io" x="260" y="580" width="160" height="30"/>
+        <text class="fl-title" x="340" y="600" text-anchor="middle" fill="#85C1E9">Final Response</text>
+      </svg>
+      <figcaption>Figure 10.2 &mdash; Task delegation and result aggregation flow. The supervisor splits work into parallel tasks, collects results, checks for errors, and merges outputs into a single response.</figcaption>
+    </figure>
+
+    <p>The decision diamond is the error-handling checkpoint. If all workers succeeded, the supervisor proceeds to aggregation. If any failed, the supervisor decides whether to retry (loop back to task split with a refined task) or skip (proceed to aggregation with partial results and flag the gaps). This retry loop is bounded by the circuit breaker from section 10.8.</p>
+
+    <!-- 10.10 -->
+    <h2>10.10 Putting It All Together</h2>
+
+    <p>Here is a complete, runnable example that creates a supervisor with three workers and executes a multi-step research and analysis workflow:</p>
+
+<pre><code>import json
+
+# Define tool schemas for workers
+search_tool_schema = {
+    "type": "function",
+    "function": {
+        "name": "web_search",
+        "description": "Search the web for information",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "The search query",
+                }
+            },
+            "required": ["query"],
+        },
+    },
+}
+
+calculator_schema = {
+    "type": "function",
+    "function": {
+        "name": "calculate",
+        "description": "Evaluate a mathematical expression",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "expression": {
+                    "type": "string",
+                    "description": "Math expression to evaluate",
+                }
+            },
+            "required": ["expression"],
+        },
+    },
+}
+
+# Stub tool implementations (replace with real ones)
+def search_function(query: str) -&gt; str:
+    """Stub: replace with actual search API call."""
+    return f"Search results for: {query}\n- Result 1\n- Result 2"
+
+def calculator_function(expression: str) -&gt; str:
+    """Safe math evaluation."""
+    allowed = set("0123456789+-*/.() ")
+    if not all(c in allowed for c in expression):
+        return "Error: invalid characters in expression"
+    try:
+        return str(eval(expression))  # safe for numeric-only
+    except Exception as e:
+        return f"Error: {e}"
+
+# Assemble the system
+workers = {
+    "researcher": Worker(
+        name="researcher",
+        description="Searches the web for information",
+        system_prompt=(
+            "You are a research agent. Use web_search to find "
+            "information. Return structured findings."
+        ),
+        tools=[search_tool_schema],
+        tool_handlers={"web_search": search_function},
+    ),
+    "analyst": Worker(
+        name="analyst",
+        description="Analyzes data and performs calculations",
+        system_prompt=(
+            "You are a data analyst. Use the calculator for math. "
+            "Return quantitative insights."
+        ),
+        tools=[calculator_schema],
+        tool_handlers={"calculate": calculator_function},
+    ),
+    "writer": Worker(
+        name="writer",
+        description="Produces polished written content",
+        system_prompt=(
+            "You are a writer. Synthesize the provided context "
+            "into clear, professional prose."
+        ),
+        tools=[],
+        tool_handlers={},
+    ),
+}
+
+supervisor = Supervisor(workers=workers)
+
+# Run a workflow
+result = supervisor.run(
+    "Compare the market capitalization of the top 3 cloud "
+    "providers. Include year-over-year growth rates and a "
+    "brief analysis of competitive positioning."
+)
+print(result)</code></pre>
+
+    <p>This example is deliberately minimal to show the pattern clearly. A production system would add logging at every step, persist task state to a database for recovery, implement streaming so the user sees progress, and include evaluation harnesses to measure the quality of decomposition, worker outputs, and final aggregation.</p>
+
+    <!-- 10.11 -->
+    <h2>10.11 When to Use Supervisor-Worker</h2>
+
+    <p>The supervisor-worker pattern is not always the right choice. It adds complexity: more agents means more API calls, more latency for the planning step, and more surface area for failures. Use it when the benefits outweigh these costs.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Use Supervisor-Worker When</th>
+          <th>Use a Single Agent When</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>The task requires 3+ distinct skill sets (research, analysis, writing)</td>
+          <td>One skill set handles the entire task</td>
+        </tr>
+        <tr>
+          <td>Subtasks can run in parallel for latency savings</td>
+          <td>Tasks are inherently sequential with no parallelism opportunity</td>
+        </tr>
+        <tr>
+          <td>The tool count exceeds 10&ndash;15, causing selection confusion</td>
+          <td>Fewer than 8 tools, all in the same domain</td>
+        </tr>
+        <tr>
+          <td>Different subtasks need different model configurations (temperature, model size)</td>
+          <td>A single model configuration works for everything</td>
+        </tr>
+        <tr>
+          <td>You need auditability: which agent did what and why</td>
+          <td>The workflow is simple enough that a trace log suffices</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <span class="callout-label">Start Simple, Scale Up</span>
+      <p>Do not begin with a supervisor-worker architecture. Start with a single agent. When you hit the ceiling&thinsp;&mdash;&thinsp;tool confusion, context window overflow, inconsistent quality across different parts of the output&thinsp;&mdash;&thinsp;extract the problematic functionality into a worker. The supervisor-worker pattern should emerge from observed limitations, not from an architect&rsquo;s whiteboard.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Project -->
+    <!-- ============================================================ -->
+    <section class="project">
+      <h2>Project: Task Delegation System</h2>
+
+      <p>Build a supervisor-worker system where a supervisor agent decomposes user requests into subtasks, delegates them to at least three specialized worker agents, executes tasks in parallel where dependencies allow, and aggregates results into a final response. The system must include error handling with retry logic and produce a trace log showing the full execution path.</p>
+
+      <h3>Requirements</h3>
+      <ol>
+        <li><strong>Supervisor agent.</strong> Implement a supervisor that accepts natural language requests, decomposes them into a task graph with explicit dependencies, and produces a plan before execution begins. The plan should be inspectable as JSON.</li>
+        <li><strong>Worker agents (3+).</strong> Create at least three specialized workers with distinct system prompts and tool sets. Each worker should handle one domain: research, analysis, content generation, quality review, or similar. Workers must not share tools.</li>
+        <li><strong>Parallel execution.</strong> Tasks without dependencies must execute concurrently. Measure and report the latency improvement over sequential execution for your test cases.</li>
+        <li><strong>Error handling.</strong> Implement retry with task refinement (the supervisor rewrites failed task descriptions). Include a circuit breaker that caps retries at 3 and falls back to partial results.</li>
+        <li><strong>Result aggregation.</strong> The supervisor must synthesize worker outputs into a coherent final response, not merely concatenate them. Handle cases where one or more workers failed.</li>
+        <li><strong>Execution trace.</strong> Log every step: plan creation, task dispatch, tool calls within each worker, results, retries, and final aggregation. Export the trace as JSON for debugging.</li>
+      </ol>
+
+      <h3>Domain Variants</h3>
+      <div class="variant-grid">
+        <div class="variant-card">
+          Competitive Intelligence Report
+          <span class="variant-domain">Tech / Software &mdash; Research competitors, analyze features, draft comparison report</span>
+        </div>
+        <div class="variant-card">
+          Patient Case Summarizer
+          <span class="variant-domain">Healthcare &mdash; Gather records, analyze trends, produce clinical summary</span>
+        </div>
+        <div class="variant-card">
+          Portfolio Rebalancing Advisor
+          <span class="variant-domain">Finance &mdash; Pull market data, run allocation analysis, draft recommendations</span>
+        </div>
+        <div class="variant-card">
+          Curriculum Builder
+          <span class="variant-domain">Education &mdash; Research topics, structure learning objectives, generate materials</span>
+        </div>
+        <div class="variant-card">
+          Product Launch Planner
+          <span class="variant-domain">E-commerce &mdash; Market research, pricing analysis, launch copy generation</span>
+        </div>
+        <div class="variant-card">
+          Contract Review Pipeline
+          <span class="variant-domain">Legal &mdash; Extract clauses, check compliance, produce risk assessment report</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Summary -->
+    <!-- ============================================================ -->
+    <section class="summary">
+      <h2>Summary</h2>
+
+      <p>The supervisor-worker pattern brings organizational structure to multi-agent systems. A supervisor agent takes responsibility for understanding the user&rsquo;s goal, decomposing it into concrete subtasks, delegating each to a specialized worker with focused tools, and synthesizing the results into a coherent output. This separation of planning from execution solves the problems that sink single-agent architectures: tool overload, context window exhaustion, and the impossibility of optimizing one system prompt for multiple reasoning styles. The pattern introduces its own costs&thinsp;&mdash;&thinsp;planning latency, inter-agent communication overhead, and a single point of failure at the supervisor&thinsp;&mdash;&thinsp;but for workflows that require diverse skills and benefit from parallel execution, the trade-off is overwhelmingly positive.</p>
+
+      <ul class="key-takeaways">
+        <li>The supervisor-worker pattern separates planning from execution. The supervisor decomposes tasks, delegates to specialists, and aggregates results. Workers execute with focused tool sets and no knowledge of the broader workflow. This mirrors how effective human teams operate.</li>
+        <li>Task decomposition quality determines system quality. Vague tasks produce vague results. The supervisor must produce tasks that are concrete, scoped to a single worker, and correctly ordered by dependencies. Add few-shot examples of good decompositions to the supervisor prompt.</li>
+        <li>Parallel execution of independent tasks is where the pattern delivers its biggest latency win. Use dependency analysis to identify independent tasks, a thread or async executor for concurrency, and rate limiters to avoid hitting API ceilings.</li>
+        <li>Error handling must be first-class. Implement retry with task refinement (not dumb retry), circuit breakers to prevent infinite loops, and graceful degradation that returns partial results rather than nothing when a worker fails permanently.</li>
+        <li>Start with a single agent and extract workers only when you observe specific pain points: tool confusion, context overflow, or quality inconsistency. The supervisor-worker pattern should emerge from real limitations, not speculative architecture.</li>
+      </ul>
+
+      <div class="exercises">
+        <h3>Exercises</h3>
+
+        <div class="exercise-item">
+          <span class="exercise-type conceptual">Conceptual</span>
+          <p><strong>Failure cascades.</strong> Your supervisor decomposes a request into five tasks: T1 and T2 run in parallel with no dependencies; T3 depends on T1; T4 depends on T2; T5 depends on both T3 and T4. If T1 fails permanently after retries, what happens to T3 and T5? What is the best outcome the supervisor can deliver? Design an aggregation strategy that maximizes the value of partial results in this scenario.</p>
+        </div>
+
+        <div class="exercise-item">
+          <span class="exercise-type coding">Coding</span>
+          <p><strong>Dynamic worker scaling.</strong> Extend the supervisor to dynamically spawn workers based on the plan. Instead of a fixed worker registry, the supervisor should analyze each task, determine the required tools and system prompt, and instantiate a worker on the fly. Implement a worker factory that takes a task description and returns a configured Worker instance. Benchmark the overhead of dynamic instantiation vs. a static registry on a plan with 10 tasks.</p>
+        </div>
+
+        <div class="exercise-item">
+          <span class="exercise-type design">Design</span>
+          <p><strong>Nested supervisors.</strong> Some workflows are too complex for a single level of supervision. Design a two-level supervisor hierarchy where a top-level supervisor delegates to mid-level supervisors, each managing their own workers. Define the interface between supervisor levels, how errors propagate upward, and how the top-level supervisor aggregates results from multiple sub-supervisors. Sketch the message flow for a request that requires research, data analysis, and report generation, where each of these is its own supervised sub-workflow.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="chapter-footer">
+    <a href="ch09-orchestration.html">&larr; Orchestration</a>
+    <span>Agentic AI: Build, Ship, Portfolio</span>
+    <a href="ch11-human-in-the-loop.html">Next: Human-in-the-Loop &rarr;</a>
+  </footer>
+<script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

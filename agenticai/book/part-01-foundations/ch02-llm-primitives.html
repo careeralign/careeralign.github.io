@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 2 — LLM Primitives | Agentic AI: Build, Ship, Portfolio</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="ch01-what-is-agentic-ai.html" class="nav-prev">What Is Agentic AI?</a>
+    <span class="nav-title">Part 1 — Foundations</span>
+    <a href="ch03-agent-anatomy.html" class="nav-next">Agent Anatomy</a>
+  </nav>
+
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 1 — Foundations</span>
+      <h1>LLM Primitives</h1>
+      <p class="chapter-intro">A production order-fulfillment agent silently doubled its cloud bill in seventy-two hours. Nobody changed the prompt. Nobody deployed new code. A single upstream schema change added four extra fields to every tool-call response, ballooning each completion from 800 tokens to 3,200. The team had never instrumented token counts because they did not understand the request lifecycle well enough to know where costs accumulate. This chapter makes sure you do.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~25 min</span>
+        <span>Project: LLM Explorer</span>
+        <span>Variants: Tech / Software, Healthcare, Finance, Education, E-commerce, Legal</span>
+      </div>
+    </header>
+
+    <section class="objectives">
+      <h3>Learning Objectives</h3>
+      <ul>
+        <li>Explain how text becomes tokens and why tokenization choices affect cost, latency, and context limits</li>
+        <li>Trace a full request/response lifecycle through the Completion API, including streaming and tool-call branches</li>
+        <li>Use temperature, top-p, and other sampling parameters to control output determinism and creativity</li>
+        <li>Structure conversations with system, user, and assistant messages for reliable agent behavior</li>
+        <li>Implement tool/function calls and structured outputs to bridge LLMs with external systems</li>
+        <li>Apply rate-limit handling and cost-optimization strategies suitable for production workloads</li>
+      </ul>
+    </section>
+
+    <!-- ============================================================
+         SECTION 1: TOKENS AND TOKENIZATION
+         ============================================================ -->
+    <h2>Tokens and Tokenization</h2>
+
+    <p>Every interaction with a large language model begins and ends with tokens. Not characters, not words, not sentences — tokens. A token is the atomic unit of text that the model reads and produces. Understanding tokenization is not optional background knowledge; it is the single most important concept for predicting cost, managing context windows, and debugging the bizarre edge cases that plague production systems.</p>
+
+    <p>Modern LLMs use subword tokenization, most commonly a variant of Byte Pair Encoding (BPE). The algorithm starts with individual bytes and iteratively merges the most frequent adjacent pairs into new tokens. The result is a fixed vocabulary — typically 32,000 to 200,000 entries — where common words like "the" or "function" are single tokens, while rare words get split into subword fragments. The word "tokenization" itself might become <code>["token", "ization"]</code> in one model's vocabulary and <code>["tok", "en", "iz", "ation"]</code> in another's.</p>
+
+    <p>This has immediate practical consequences. First, token counts do not map intuitively to word counts. English prose averages roughly 1.3 tokens per word, but code can hit 2.5 tokens per word because variable names, operators, and whitespace each consume tokens. JSON is notoriously token-hungry: a simple key-value pair like <code>"patient_id": "P-12345"</code> costs around 12 tokens, while the semantic content — one identifier — could be expressed in 3. Second, every model has a context window measured in tokens, not characters. GPT-4o's 128,000-token context holds roughly 96,000 words of English prose but only about 50,000 words' worth of verbose JSON. Third, you are billed per token — both input tokens (your prompt) and output tokens (the model's response). A system that passes raw database rows into the context window instead of summaries can easily burn ten times the token budget for the same semantic content.</p>
+
+    <h3>The Tokenizer as a Separate Artifact</h3>
+
+    <p>A critical detail that catches many engineers off guard: the tokenizer is not the model. It is a separate artifact, trained independently before model training begins. The model never sees raw text — it sees sequences of integer IDs that the tokenizer produced. This separation means you can count tokens locally, before making any API call, using the same tokenizer the model uses. OpenAI's <code>tiktoken</code> library and Hugging Face's <code>tokenizers</code> package both let you do this. You should do this. If you are not counting tokens before sending requests, you are guessing at costs and hoping your messages fit within the context window.</p>
+
+    <div class="callout">
+      <span class="callout-label">Under the Hood</span>
+      <p>BPE tokenizers handle unseen words gracefully because they can always fall back to byte-level tokens. The string "Pneumonoultramicroscopicsilicovolcanoconiosis" has never appeared in any training corpus frequently enough to earn its own token, but BPE will split it into recognizable subwords. This fallback property is why LLMs can process any UTF-8 text — including emoji, code in any programming language, and text in non-Latin scripts — without an "unknown token" error. However, languages with complex scripts (Thai, Japanese, Arabic) tend to produce more tokens per semantic unit than English, making them more expensive to process.</p>
+    </div>
+
+    <h3>Special Tokens and Their Role</h3>
+
+    <p>Beyond the vocabulary of text fragments, every tokenizer includes special tokens that the model uses as structural markers. These include beginning-of-sequence (<code>&lt;|bos|&gt;</code>), end-of-sequence (<code>&lt;|eos|&gt;</code>), and various role delimiters that mark where system instructions end and user input begins. You rarely interact with these directly through the API, but they consume tokens from your context window. The chat formatting overhead — the invisible tokens that separate your messages from the model's responses — typically costs 10 to 50 tokens per message depending on the provider. In a multi-turn conversation with dozens of exchanges, this overhead becomes significant.</p>
+
+    <pre><code># Count tokens before sending — never guess
+import tiktoken
+
+encoding = tiktoken.encoding_for_model("gpt-4o")
+
+prompt = "Explain the mechanism of action for metformin in Type 2 diabetes."
+tokens = encoding.encode(prompt)
+print(f"Token count: {len(tokens)}")   # 14 tokens
+print(f"Tokens: {tokens}")              # [Explain, the, mechanism, ...]
+print(f"Decoded: {[encoding.decode([t]) for t in tokens]}")</code></pre>
+
+    <!-- ============================================================
+         SECTION 2: THE COMPLETION API
+         ============================================================ -->
+    <h2>The Completion API</h2>
+
+    <p>The Completion API is the single interface through which all LLM-powered applications communicate with the model. Despite the variety of things LLMs appear to do — answer questions, write code, analyze documents, call tools — every capability routes through the same endpoint: you send a list of messages, the model returns a completion. Understanding this interface at the protocol level is essential because every agent framework, every RAG pipeline, and every chat application is ultimately a wrapper around this one API call.</p>
+
+    <p>A completion request consists of three main components: a model identifier, an array of messages, and a set of optional parameters that control the model's behavior. The messages array is an ordered conversation history where each message has a <code>role</code> (system, user, or assistant) and <code>content</code>. The model does not remember previous requests — it is stateless. Every call must include the full conversation context you want the model to consider. This statelessness is not a limitation but a design choice that gives you complete control over what the model sees.</p>
+
+    <pre><code>from openai import OpenAI
+
+client = OpenAI()
+
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "You are a concise medical terminology assistant."},
+        {"role": "user", "content": "Define 'angioplasty' in one sentence."},
+    ],
+    temperature=0.2,
+    max_tokens=100,
+)
+
+print(response.choices[0].message.content)
+# "Angioplasty is a minimally invasive procedure that uses a balloon
+#  catheter to widen narrowed or blocked blood vessels."</code></pre>
+
+    <p>The response object contains more than just text. It includes a <code>usage</code> field reporting exact token counts (prompt tokens, completion tokens, total tokens), a <code>finish_reason</code> indicating why the model stopped generating (length limit, natural stop, or tool call), and metadata about the model version used. Production systems should log all of these fields for every request. The <code>finish_reason</code> is particularly important: if it says <code>"length"</code> instead of <code>"stop"</code>, your response was truncated and the output is incomplete. An agent that does not check this field will silently operate on partial data.</p>
+
+    <div class="callout warning">
+      <span class="callout-label">Common Mistake</span>
+      <p>Treating the LLM as stateful. New developers often send follow-up messages without including the conversation history, expecting the model to "remember" the previous exchange. It does not. Each API call is independent. If you want the model to consider previous turns, you must include them in the messages array. This also means you are paying for the full conversation history on every call — another reason to keep messages concise and to prune older turns when they are no longer relevant.</p>
+    </div>
+
+    <!-- ============================================================
+         SECTION 3: SYSTEM, USER, AND ASSISTANT MESSAGES
+         ============================================================ -->
+    <h2>System, User, and Assistant Messages</h2>
+
+    <p>The three message roles form the control surface of every LLM application. They are not cosmetic labels — the model weights treat them differently during inference, and using them correctly is the difference between a reliable agent and an unpredictable one.</p>
+
+    <p>The <strong>system message</strong> sets the behavioral frame. It appears first in the messages array and instructs the model on its persona, constraints, output format, and boundaries. Think of it as the agent's constitution — the rules it should follow regardless of what the user asks. A well-crafted system message for a financial compliance agent might specify: never provide investment advice, always cite the relevant regulation, respond in structured JSON, and refuse requests that ask for personally identifiable information. The model gives system messages elevated attention during inference, making them the most reliable place to encode hard constraints.</p>
+
+    <p>The <strong>user message</strong> represents the current input — the task, question, or instruction from the end user or from the orchestration layer. In an agent system, user messages are not always from a human. An orchestrator might inject a user message that says "Analyze the following tool output and decide the next action." The model does not distinguish between messages from a human and messages from code; it only sees the role label and content.</p>
+
+    <p>The <strong>assistant message</strong> contains the model's prior responses. When you include assistant messages in the conversation history, you are showing the model what it "already said." This is how you maintain conversational coherence across turns. But assistant messages serve a subtler purpose in agent systems: you can inject synthetic assistant messages to steer the model's behavior. For example, prefilling an assistant message with <code>{"action":</code> biases the model toward continuing with valid JSON, because it perceives itself as already having started a JSON response.</p>
+
+    <h3>Message Ordering and Attention</h3>
+
+    <p>The order of messages matters more than most documentation suggests. The model applies self-attention across the entire message sequence, but in practice, recent messages receive more effective attention than distant ones — a consequence of how positional embeddings work. This means that instructions buried deep in a long system message are more likely to be ignored than instructions placed near the end. For production agents, the most critical constraints should appear both at the beginning of the system message (for primacy) and restated at the end of the most recent user message (for recency).</p>
+
+    <pre><code>messages = [
+    # System: sets the behavioral frame
+    {
+        "role": "system",
+        "content": (
+            "You are a contract analysis assistant for a corporate legal team. "
+            "Rules:\n"
+            "1. Never provide legal advice — only factual analysis.\n"
+            "2. Always cite the specific clause number.\n"
+            "3. If a clause is ambiguous, flag it explicitly.\n"
+            "4. Respond in JSON: {\"clauses\": [...], \"risks\": [...], \"ambiguities\": [...]}"
+        ),
+    },
+    # User: the task
+    {
+        "role": "user",
+        "content": "Analyze Section 4.2 of the attached vendor agreement for termination risks.",
+    },
+    # Assistant: prior model response (for multi-turn context)
+    {
+        "role": "assistant",
+        "content": '{"clauses": [{"id": "4.2.1", "summary": "30-day termination for convenience"}], ...}',
+    },
+    # User: follow-up
+    {
+        "role": "user",
+        "content": "Now compare that with Section 7.1 on liability caps. Respond in the same JSON format.",
+    },
+]</code></pre>
+
+    <!-- ============================================================
+         SECTION 4: TEMPERATURE, TOP-P, AND SAMPLING
+         ============================================================ -->
+    <h2>Temperature, Top-p, and Sampling Parameters</h2>
+
+    <p>When a language model generates text, it does not deterministically select the "best" next word. Instead, it produces a probability distribution over its entire vocabulary at each step — a vector of 100,000+ floating-point numbers that sum to 1.0. The token it ultimately emits depends on how you sample from this distribution, and the sampling parameters are your primary control over the model's output characteristics.</p>
+
+    <p><strong>Temperature</strong> is a scaling factor applied to the logits (raw model outputs) before they are converted to probabilities via the softmax function. Mathematically, each probability becomes <code>p_i = exp(logit_i / T) / sum(exp(logit_j / T))</code> where T is the temperature. At <code>temperature=0</code>, the distribution collapses to a spike on the highest-probability token — greedy decoding, fully deterministic. At <code>temperature=1.0</code>, you get the model's native distribution. At <code>temperature=2.0</code>, the distribution flattens, giving low-probability tokens a better chance. The effect is intuitive: lower temperatures produce more predictable, repetitive text; higher temperatures produce more varied, creative, and occasionally incoherent text.</p>
+
+    <p><strong>Top-p</strong> (nucleus sampling) takes a different approach. Instead of scaling probabilities, it truncates the distribution: sort all tokens by probability, then keep only the smallest set whose cumulative probability exceeds the threshold p. If <code>top_p=0.9</code>, the model considers only the tokens that collectively account for 90% of the probability mass, discarding the long tail of unlikely tokens. This dynamically adjusts the number of candidate tokens at each step — some positions might have 5 viable continuations, others might have 500.</p>
+
+    <p>In practice, you should use one or the other, not both simultaneously. For agent systems where reliability matters, <code>temperature=0</code> (or near-zero, like 0.1) is the default choice. You want your agent to select the same tool, produce the same JSON structure, and reach the same conclusion every time it sees the same input. Save higher temperatures for creative tasks: generating marketing copy, brainstorming product names, or producing diverse synthetic training data.</p>
+
+    <!-- Diagram 2: Token Prediction Probability Distribution -->
+    <figure class="diagram">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 420" role="img" aria-label="Token prediction probability distribution showing how temperature affects sampling">
+        <title>Token Prediction as Probability Distribution</title>
+        <style>
+          @media (prefers-color-scheme: dark) {
+            .svg2-bg { fill: #222120; }
+            .svg2-axis { stroke: #9c9a92; }
+            .svg2-axis-label { fill: #9c9a92 !important; }
+            .svg2-grid { stroke: #3a3936; }
+          }
+        </style>
+        <defs>
+          <marker id="arrow-2" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 3.5 L 0 7 Z" fill="#5F5E5A" />
+          </marker>
+        </defs>
+
+        <!-- Background -->
+        <rect class="svg2-bg" x="0" y="0" width="680" height="420" rx="4" fill="#F8F7F4" />
+
+        <!-- Title -->
+        <text x="340" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#1a1a1a" dominant-baseline="central" text-anchor="middle">Next-Token Probability Distribution</text>
+
+        <!-- Subtitle: Temperature = 0.2 (left) -->
+        <text x="185" y="56" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#534AB7" dominant-baseline="central" text-anchor="middle">Temperature = 0.2 (Focused)</text>
+
+        <!-- Subtitle: Temperature = 1.2 (right) -->
+        <text x="510" y="56" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#854F0B" dominant-baseline="central" text-anchor="middle">Temperature = 1.2 (Creative)</text>
+
+        <!-- LEFT CHART: Low temperature -->
+        <!-- Y-axis -->
+        <line class="svg2-axis" x1="60" y1="75" x2="60" y2="275" stroke="#5F5E5A" stroke-width="1.5" />
+        <!-- X-axis -->
+        <line class="svg2-axis" x1="60" y1="275" x2="310" y2="275" stroke="#5F5E5A" stroke-width="1.5" />
+
+        <!-- Y-axis label -->
+        <text class="svg2-axis-label" x="18" y="175" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle" transform="rotate(-90 18 175)">Probability</text>
+
+        <!-- Y-axis ticks -->
+        <line class="svg2-grid" x1="56" y1="95" x2="310" y2="95" stroke="#E8E6DE" stroke-width="0.5" stroke-dasharray="3,3" />
+        <text class="svg2-axis-label" x="50" y="95" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#5F5E5A" dominant-baseline="central" text-anchor="end">0.8</text>
+
+        <line class="svg2-grid" x1="56" y1="140" x2="310" y2="140" stroke="#E8E6DE" stroke-width="0.5" stroke-dasharray="3,3" />
+        <text class="svg2-axis-label" x="50" y="140" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#5F5E5A" dominant-baseline="central" text-anchor="end">0.6</text>
+
+        <line class="svg2-grid" x1="56" y1="185" x2="310" y2="185" stroke="#E8E6DE" stroke-width="0.5" stroke-dasharray="3,3" />
+        <text class="svg2-axis-label" x="50" y="185" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#5F5E5A" dominant-baseline="central" text-anchor="end">0.4</text>
+
+        <line class="svg2-grid" x1="56" y1="230" x2="310" y2="230" stroke="#E8E6DE" stroke-width="0.5" stroke-dasharray="3,3" />
+        <text class="svg2-axis-label" x="50" y="230" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#5F5E5A" dominant-baseline="central" text-anchor="end">0.2</text>
+
+        <!-- Low-temp bars: "the" very high, rest minimal -->
+        <!-- Bar: "the" p=0.82 -->
+        <rect x="75" y="89.5" width="36" height="185.5" rx="3" fill="#534AB7" opacity="0.9" />
+        <text x="93" y="82" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#534AB7" dominant-baseline="central" text-anchor="middle">0.82</text>
+        <text x="93" y="290" font-family="'SF Mono', 'Cascadia Code', monospace" font-size="10" font-weight="500" fill="#1a1a1a" dominant-baseline="central" text-anchor="middle">the</text>
+
+        <!-- Bar: "a" p=0.09 -->
+        <rect x="121" y="254.7" width="36" height="20.3" rx="3" fill="#534AB7" opacity="0.55" />
+        <text x="139" y="248" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#534AB7" dominant-baseline="central" text-anchor="middle">0.09</text>
+        <text x="139" y="290" font-family="'SF Mono', 'Cascadia Code', monospace" font-size="10" font-weight="500" fill="#1a1a1a" dominant-baseline="central" text-anchor="middle">a</text>
+
+        <!-- Bar: "this" p=0.04 -->
+        <rect x="167" y="265.9" width="36" height="9.1" rx="3" fill="#9c9a92" opacity="0.5" />
+        <text x="185" y="259" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#9c9a92" dominant-baseline="central" text-anchor="middle">.04</text>
+        <text x="185" y="290" font-family="'SF Mono', 'Cascadia Code', monospace" font-size="10" font-weight="500" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle">this</text>
+
+        <!-- Bar: "an" p=0.02 -->
+        <rect x="213" y="270.5" width="36" height="4.5" rx="2" fill="#9c9a92" opacity="0.4" />
+        <text x="231" y="264" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#9c9a92" dominant-baseline="central" text-anchor="middle">.02</text>
+        <text x="231" y="290" font-family="'SF Mono', 'Cascadia Code', monospace" font-size="10" font-weight="500" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle">an</text>
+
+        <!-- Bar: "my" p=0.01 -->
+        <rect x="259" y="272.7" width="36" height="2.3" rx="1" fill="#9c9a92" opacity="0.35" />
+        <text x="277" y="266" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#9c9a92" dominant-baseline="central" text-anchor="middle">.01</text>
+        <text x="277" y="290" font-family="'SF Mono', 'Cascadia Code', monospace" font-size="10" font-weight="500" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle">my</text>
+
+        <!-- RIGHT CHART: High temperature -->
+        <!-- Y-axis -->
+        <line class="svg2-axis" x1="385" y1="75" x2="385" y2="275" stroke="#5F5E5A" stroke-width="1.5" />
+        <!-- X-axis -->
+        <line class="svg2-axis" x1="385" y1="275" x2="635" y2="275" stroke="#5F5E5A" stroke-width="1.5" />
+
+        <!-- Y-axis ticks (right chart) -->
+        <line class="svg2-grid" x1="381" y1="95" x2="635" y2="95" stroke="#E8E6DE" stroke-width="0.5" stroke-dasharray="3,3" />
+        <text class="svg2-axis-label" x="375" y="95" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#5F5E5A" dominant-baseline="central" text-anchor="end">0.8</text>
+
+        <line class="svg2-grid" x1="381" y1="140" x2="635" y2="140" stroke="#E8E6DE" stroke-width="0.5" stroke-dasharray="3,3" />
+        <text class="svg2-axis-label" x="375" y="140" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#5F5E5A" dominant-baseline="central" text-anchor="end">0.6</text>
+
+        <line class="svg2-grid" x1="381" y1="185" x2="635" y2="185" stroke="#E8E6DE" stroke-width="0.5" stroke-dasharray="3,3" />
+        <text class="svg2-axis-label" x="375" y="185" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#5F5E5A" dominant-baseline="central" text-anchor="end">0.4</text>
+
+        <line class="svg2-grid" x1="381" y1="230" x2="635" y2="230" stroke="#E8E6DE" stroke-width="0.5" stroke-dasharray="3,3" />
+        <text class="svg2-axis-label" x="375" y="230" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#5F5E5A" dominant-baseline="central" text-anchor="end">0.2</text>
+
+        <!-- High-temp bars: flattened distribution -->
+        <!-- Bar: "the" p=0.31 -->
+        <rect x="400" y="205" width="36" height="70" rx="3" fill="#854F0B" opacity="0.85" />
+        <text x="418" y="198" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#854F0B" dominant-baseline="central" text-anchor="middle">0.31</text>
+        <text x="418" y="290" font-family="'SF Mono', 'Cascadia Code', monospace" font-size="10" font-weight="500" fill="#1a1a1a" dominant-baseline="central" text-anchor="middle">the</text>
+
+        <!-- Bar: "a" p=0.22 -->
+        <rect x="446" y="225.3" width="36" height="49.7" rx="3" fill="#854F0B" opacity="0.7" />
+        <text x="464" y="218" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#854F0B" dominant-baseline="central" text-anchor="middle">0.22</text>
+        <text x="464" y="290" font-family="'SF Mono', 'Cascadia Code', monospace" font-size="10" font-weight="500" fill="#1a1a1a" dominant-baseline="central" text-anchor="middle">a</text>
+
+        <!-- Bar: "this" p=0.18 -->
+        <rect x="492" y="234.3" width="36" height="40.7" rx="3" fill="#854F0B" opacity="0.6" />
+        <text x="510" y="227" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#854F0B" dominant-baseline="central" text-anchor="middle">0.18</text>
+        <text x="510" y="290" font-family="'SF Mono', 'Cascadia Code', monospace" font-size="10" font-weight="500" fill="#1a1a1a" dominant-baseline="central" text-anchor="middle">this</text>
+
+        <!-- Bar: "an" p=0.14 -->
+        <rect x="538" y="243.4" width="36" height="31.6" rx="3" fill="#9c9a92" opacity="0.5" />
+        <text x="556" y="236" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#9c9a92" dominant-baseline="central" text-anchor="middle">0.14</text>
+        <text x="556" y="290" font-family="'SF Mono', 'Cascadia Code', monospace" font-size="10" font-weight="500" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle">an</text>
+
+        <!-- Bar: "my" p=0.10 -->
+        <rect x="584" y="252.5" width="36" height="22.5" rx="3" fill="#9c9a92" opacity="0.4" />
+        <text x="602" y="246" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="400" fill="#9c9a92" dominant-baseline="central" text-anchor="middle">0.10</text>
+        <text x="602" y="290" font-family="'SF Mono', 'Cascadia Code', monospace" font-size="10" font-weight="500" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle">my</text>
+
+        <!-- X-axis label shared -->
+        <text class="svg2-axis-label" x="185" y="308" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle">Candidate Tokens</text>
+        <text class="svg2-axis-label" x="510" y="308" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle">Candidate Tokens</text>
+
+        <!-- Annotation: arrow from left peak to right flat -->
+        <line x1="340" y1="340" x2="340" y2="340" stroke="none" />
+
+        <!-- Key insight box -->
+        <rect x="80" y="330" width="520" height="72" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="1" opacity="0.6" />
+        <text x="340" y="354" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#854F0B" dominant-baseline="central" text-anchor="middle">Low temperature: model picks the obvious token almost every time.</text>
+        <text x="340" y="374" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#854F0B" dominant-baseline="central" text-anchor="middle">High temperature: probability spreads across many candidates, increasing variety.</text>
+        <text x="340" y="394" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="400" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle">Context: "The patient was admitted to ___"</text>
+      </svg>
+      <figcaption>Figure 2.1 — How temperature reshapes the next-token probability distribution. Left: low temperature concentrates mass on the most likely token. Right: high temperature flattens the distribution, giving more tokens a chance of being selected.</figcaption>
+    </figure>
+
+    <h3>Other Sampling Parameters</h3>
+
+    <p><strong>max_tokens</strong> caps the number of tokens the model will generate. This is a hard ceiling, not a target — the model will stop at this limit even mid-sentence. Set it too low and you get truncated output; set it too high and you pay for unused capacity. For agent systems, calculate your expected output size (the length of a typical tool-call JSON or reasoning trace) and add a 30% buffer.</p>
+
+    <p><strong>frequency_penalty</strong> and <strong>presence_penalty</strong> reduce repetition. Frequency penalty scales with how many times a token has already appeared; presence penalty applies a flat penalty to any token that has appeared at all. These are useful for free-form text generation but rarely needed for structured agent outputs where the format constraints already prevent repetition.</p>
+
+    <p><strong>seed</strong> is available on some providers and enables reproducible outputs when combined with <code>temperature=0</code>. For testing and evaluation, always set a seed so you can deterministically reproduce the model's behavior. In production, omit it — you want the model to degrade gracefully across slightly different conditions rather than overfit to one execution path.</p>
+
+    <!-- ============================================================
+         SECTION 5: STREAMING
+         ============================================================ -->
+    <h2>Streaming</h2>
+
+    <p>Without streaming, an API call blocks until the model has generated its entire response. For a 500-token completion at a typical generation rate of 50 tokens per second, that is a 10-second wait during which your application shows nothing. Streaming changes the communication pattern from request-response to request-stream: the model sends tokens as they are generated, and your application receives them incrementally via Server-Sent Events (SSE).</p>
+
+    <p>Enabling streaming is a one-parameter change (<code>stream=True</code>), but handling it correctly requires care. Each chunk in the stream is a partial delta — a fragment of the message being built. You must accumulate these deltas to reconstruct the full response. More importantly, tool calls arrive in fragments too: first the function name, then pieces of the arguments JSON. You cannot parse the tool call until the stream signals it is complete.</p>
+
+    <pre><code>stream = client.chat.completions.create(
+    model="gpt-4o",
+    messages=messages,
+    stream=True,
+)
+
+full_response = ""
+for chunk in stream:
+    delta = chunk.choices[0].delta
+    if delta.content:
+        full_response += delta.content
+        print(delta.content, end="", flush=True)  # Real-time display
+
+# After the stream ends, full_response contains the complete text
+print(f"\n\nTotal length: {len(full_response)} characters")</code></pre>
+
+    <p>Streaming is not just a user-experience optimization. In agent architectures, streaming enables early exit: if you detect that the model is generating an obviously wrong tool call (perhaps referencing a tool that does not exist), you can abort the stream and retry with a corrected prompt, saving both time and tokens. Some orchestration frameworks also use streaming to implement speculative execution — starting to prepare for the most likely tool call before the model has finished deciding.</p>
+
+    <div class="callout tip">
+      <span class="callout-label">Production Consideration</span>
+      <p>When streaming over HTTP/2 in production, be aware that load balancers and reverse proxies may buffer SSE responses or enforce idle timeouts. Configure NGINX with <code>proxy_buffering off</code> and set <code>proxy_read_timeout</code> high enough to accommodate long completions. AWS ALBs have a 60-second idle timeout by default that will silently kill streaming connections during complex reasoning tasks. Test your entire infrastructure path with a slow-generating prompt before launching.</p>
+    </div>
+
+    <!-- ============================================================
+         SECTION 6: TOOL/FUNCTION CALLS
+         ============================================================ -->
+    <h2>Tool and Function Calls</h2>
+
+    <p>Tool calling is the mechanism that transforms a language model from a text generator into an agent. Without tool calls, the model can only produce strings. With tool calls, the model can decide to invoke external functions — query a database, call an API, read a file, execute code — and then incorporate the results back into its reasoning. This is the foundational capability that the rest of this book builds upon.</p>
+
+    <p>The protocol works as follows. In your API request, you include a <code>tools</code> array that describes the available functions: their names, descriptions, and parameter schemas (specified as JSON Schema). The model reads these descriptions alongside the conversation and decides whether to call a tool and, if so, which one with what arguments. If it decides to call a tool, the response's <code>finish_reason</code> is <code>"tool_calls"</code> instead of <code>"stop"</code>, and the message contains a <code>tool_calls</code> array with the function name and arguments as a JSON string.</p>
+
+    <p>Your application is then responsible for actually executing the function, collecting the result, and sending it back to the model as a message with <code>role: "tool"</code>. The model sees this result and either produces a final text response or decides to call another tool. This loop — model decides, application executes, model integrates — is the agent loop. Chapter 4 will formalize this pattern, but the underlying mechanism is just the tool-call protocol defined here.</p>
+
+    <pre><code># Define tools available to the model
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_stock_price",
+            "description": "Get the current stock price for a given ticker symbol.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "ticker": {
+                        "type": "string",
+                        "description": "Stock ticker symbol, e.g. 'AAPL'",
+                    },
+                    "currency": {
+                        "type": "string",
+                        "enum": ["USD", "EUR", "GBP"],
+                        "description": "Currency for the price. Defaults to USD.",
+                    },
+                },
+                "required": ["ticker"],
+            },
+        },
+    }
+]
+
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "You are a financial data assistant."},
+        {"role": "user", "content": "What is Apple's current stock price?"},
+    ],
+    tools=tools,
+    tool_choice="auto",  # Let the model decide whether to call a tool
+)
+
+# The model responds with a tool call, not text
+tool_call = response.choices[0].message.tool_calls[0]
+print(tool_call.function.name)       # "get_stock_price"
+print(tool_call.function.arguments)  # '{"ticker": "AAPL"}'</code></pre>
+
+    <p>The quality of tool descriptions directly determines how reliably the model selects and parameterizes tools. Vague descriptions like "does stuff with data" lead to misrouted tool calls. Precise descriptions like "Retrieves the current spot price for a publicly traded stock, identified by its NYSE or NASDAQ ticker symbol" give the model enough context to make correct decisions. The parameter schema serves double duty: it constrains the model's output to valid types and provides documentation the model reads during inference.</p>
+
+    <!-- Diagram 1: LLM Request/Response Lifecycle -->
+    <figure class="diagram">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 620" role="img" aria-label="Flowchart showing the LLM request/response lifecycle with tool call branch">
+        <title>LLM Request/Response Lifecycle with Tool Call Branch</title>
+        <style>
+          @media (prefers-color-scheme: dark) {
+            .svg1-bg { fill: #222120; }
+            .svg1-box-blue { fill: #042C53; stroke: #185FA5; }
+            .svg1-box-purple { fill: #26215C; stroke: #B0ABEE; }
+            .svg1-box-teal { fill: #04342C; stroke: #0F6E56; }
+            .svg1-box-gray { fill: #2e2d2b; stroke: #9c9a92; }
+            .svg1-label-blue { fill: #E6F1FB !important; }
+            .svg1-label-purple { fill: #EEEDFE !important; }
+            .svg1-label-teal { fill: #E1F5EE !important; }
+            .svg1-label-gray { fill: #E8E6DE !important; }
+            .svg1-arrow { stroke: #9c9a92 !important; }
+            .svg1-arrow-marker { fill: #9c9a92 !important; }
+            .svg1-decision-text { fill: #E8E6DE !important; }
+            .svg1-branch-label { fill: #9c9a92 !important; }
+          }
+        </style>
+        <defs>
+          <marker id="arrow-1" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+            <path class="svg1-arrow-marker" d="M 0 0 L 10 3.5 L 0 7 Z" fill="#5F5E5A" />
+          </marker>
+        </defs>
+
+        <!-- Background -->
+        <rect class="svg1-bg" x="0" y="0" width="680" height="620" rx="4" fill="#F8F7F4" />
+
+        <!-- Title -->
+        <text x="340" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#1a1a1a" dominant-baseline="central" text-anchor="middle">LLM Request/Response Lifecycle</text>
+
+        <!-- Legend -->
+        <rect x="135" y="44" width="12" height="12" rx="2" fill="#E6F1FB" stroke="#185FA5" stroke-width="1" />
+        <text x="152" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="500" fill="#5F5E5A" dominant-baseline="central">Data / Request</text>
+        <rect x="245" y="44" width="12" height="12" rx="2" fill="#EEEDFE" stroke="#534AB7" stroke-width="1" />
+        <text x="262" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="500" fill="#5F5E5A" dominant-baseline="central">Model</text>
+        <rect x="320" y="44" width="12" height="12" rx="2" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1" />
+        <text x="337" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="500" fill="#5F5E5A" dominant-baseline="central">Tool Call Path</text>
+        <rect x="430" y="44" width="12" height="12" rx="2" fill="#F0EFEC" stroke="#9c9a92" stroke-width="1" />
+        <text x="447" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="500" fill="#5F5E5A" dominant-baseline="central">Decision / Structure</text>
+
+        <!-- Step 1: User Message — "User Message" = 12 chars × 8 + 48 = 144px -->
+        <rect class="svg1-box-blue" x="268" y="72" width="144" height="40" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="1.5" />
+        <text class="svg1-label-blue" x="340" y="92" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#185FA5" dominant-baseline="central" text-anchor="middle">User Message</text>
+
+        <!-- Arrow 1→2 -->
+        <line class="svg1-arrow" x1="340" y1="112" x2="340" y2="138" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none" />
+
+        <!-- Step 2: Build API Request — "Build API Request" = 17 chars × 8 + 48 = 184px -->
+        <rect class="svg1-box-blue" x="248" y="140" width="184" height="40" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="1.5" />
+        <text class="svg1-label-blue" x="340" y="160" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#185FA5" dominant-baseline="central" text-anchor="middle">Build API Request</text>
+
+        <!-- Arrow 2→3 -->
+        <line class="svg1-arrow" x1="340" y1="180" x2="340" y2="206" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none" />
+
+        <!-- Step 3: Tokenize Input — "Tokenize Input" = 14 chars × 8 + 48 = 160px -->
+        <rect class="svg1-box-purple" x="260" y="208" width="160" height="40" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5" />
+        <text class="svg1-label-purple" x="340" y="228" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#534AB7" dominant-baseline="central" text-anchor="middle">Tokenize Input</text>
+
+        <!-- Arrow 3→4 -->
+        <line class="svg1-arrow" x1="340" y1="248" x2="340" y2="274" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none" />
+
+        <!-- Step 4: Model Inference — "Model Inference" = 15 chars × 8 + 48 = 168px -->
+        <rect class="svg1-box-purple" x="256" y="276" width="168" height="40" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5" />
+        <text class="svg1-label-purple" x="340" y="296" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#534AB7" dominant-baseline="central" text-anchor="middle">Model Inference</text>
+
+        <!-- Arrow 4→Decision -->
+        <line class="svg1-arrow" x1="340" y1="316" x2="340" y2="346" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none" />
+
+        <!-- Decision diamond — using rotated square -->
+        <rect class="svg1-box-gray" x="308" y="348" width="64" height="40" rx="6" fill="#F0EFEC" stroke="#9c9a92" stroke-width="1.5" />
+        <text class="svg1-decision-text" x="340" y="368" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle">Output?</text>
+
+        <!-- Branch LEFT: Text Response -->
+        <!-- Arrow Decision → Text Response (left) -->
+        <path class="svg1-arrow" d="M 308 368 L 180 368 L 180 402" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none" />
+        <text class="svg1-branch-label" x="240" y="360" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="500" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle">text</text>
+
+        <!-- Text Response box — "Text Response" = 13 chars × 8 + 48 = 152px -->
+        <rect class="svg1-box-blue" x="104" y="404" width="152" height="40" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="1.5" />
+        <text class="svg1-label-blue" x="180" y="424" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#185FA5" dominant-baseline="central" text-anchor="middle">Text Response</text>
+
+        <!-- Arrow Text Response → Final Output -->
+        <line class="svg1-arrow" x1="180" y1="444" x2="180" y2="556" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none" />
+
+        <!-- Branch RIGHT: Tool Call -->
+        <!-- Arrow Decision → Tool Call (right) -->
+        <path class="svg1-arrow" d="M 372 368 L 500 368 L 500 402" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none" />
+        <text class="svg1-branch-label" x="440" y="360" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="500" fill="#0F6E56" dominant-baseline="central" text-anchor="middle">tool_call</text>
+
+        <!-- Emit Tool Call box — "Emit Tool Call" = 14 chars × 8 + 48 = 160px -->
+        <rect class="svg1-box-teal" x="420" y="404" width="160" height="40" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5" />
+        <text class="svg1-label-teal" x="500" y="424" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#0F6E56" dominant-baseline="central" text-anchor="middle">Emit Tool Call</text>
+
+        <!-- Arrow Emit Tool Call → Execute Tool -->
+        <line class="svg1-arrow" x1="500" y1="444" x2="500" y2="470" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none" />
+
+        <!-- Execute Tool box — "Execute Tool" = 12 chars × 8 + 48 = 144px -->
+        <rect class="svg1-box-teal" x="428" y="472" width="144" height="40" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5" />
+        <text class="svg1-label-teal" x="500" y="492" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#0F6E56" dominant-baseline="central" text-anchor="middle">Execute Tool</text>
+
+        <!-- Arrow Execute Tool → Return Result to Model -->
+        <line class="svg1-arrow" x1="500" y1="512" x2="500" y2="538" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none" />
+
+        <!-- Return Result box — "Return Result to Model" = 22 chars × 8 + 48 = 224px -->
+        <rect class="svg1-box-teal" x="388" y="540" width="224" height="40" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5" />
+        <text class="svg1-label-teal" x="500" y="560" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#0F6E56" dominant-baseline="central" text-anchor="middle">Return Result to Model</text>
+
+        <!-- Arrow Return Result → back up to Model Inference -->
+        <path class="svg1-arrow" d="M 612 560 L 640 560 L 640 296 L 424 296" stroke="#0F6E56" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrow-1)" fill="none" />
+        <text x="650" y="428" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="500" fill="#0F6E56" dominant-baseline="central" text-anchor="start" transform="rotate(90, 650, 428)">re-infer</text>
+
+        <!-- Final Output box — "Final Response to User" = 22 chars × 8 + 48 = 224px -->
+        <rect class="svg1-box-blue" x="120" y="558" width="224" height="40" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="2" />
+        <text class="svg1-label-blue" x="232" y="578" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#185FA5" dominant-baseline="central" text-anchor="middle">Final Response to User</text>
+      </svg>
+      <figcaption>Figure 2.2 — The LLM request/response lifecycle. After model inference, the output branches: either a direct text response (left path) or a tool call that must be executed and fed back to the model for another inference pass (right path). The tool-call loop can repeat multiple times before producing a final response.</figcaption>
+    </figure>
+
+    <h3>Tool Choice and Parallel Tool Calls</h3>
+
+    <p>The <code>tool_choice</code> parameter controls whether and how the model uses tools. Set to <code>"auto"</code>, the model decides on its own. Set to <code>"none"</code>, tool calls are disabled entirely — useful for forcing a text-only response. Set to a specific function name, the model is forced to call that function. In agent systems, you will use all three modes: <code>"auto"</code> for general operation, <code>"none"</code> when you want a summary after tool execution, and forced calls when the orchestrator knows exactly which tool should run next.</p>
+
+    <p>Some models support parallel tool calls — returning multiple tool calls in a single response. If the model determines that answering the user's question requires both a database lookup and a weather API call, it can issue both simultaneously rather than making two sequential inference passes. Your application must handle this by executing the calls (potentially in parallel), collecting all results, and sending them back as separate tool-result messages. This feature can dramatically reduce latency in multi-tool agent architectures.</p>
+
+    <!-- ============================================================
+         SECTION 7: STRUCTURED OUTPUTS
+         ============================================================ -->
+    <h2>Structured Outputs</h2>
+
+    <p>Free-form text responses are useful for chatbots but problematic for agents. When an agent needs to return a JSON object with specific fields, or when a downstream system expects data in a precise schema, you need the model to produce structured output reliably. There are three approaches, listed in order of increasing reliability.</p>
+
+    <p><strong>Prompt-based structuring</strong> relies on instructions in the system message: "Respond only in JSON with keys: action, parameters, reasoning." This works surprisingly well but offers no guarantees. The model might include a preamble before the JSON, use slightly different key names, or produce syntactically invalid JSON — especially under high temperature or when the prompt is complex.</p>
+
+    <p><strong>JSON mode</strong> is a provider-level feature (available as <code>response_format={"type": "json_object"}</code> in the OpenAI API) that constrains the model's output to valid JSON. The model will always produce parseable JSON, but the schema is still not enforced — you might get valid JSON with wrong keys or missing fields.</p>
+
+    <p><strong>Structured outputs with schema enforcement</strong> is the strongest option. You provide a JSON Schema definition, and the provider's decoding engine constrains the token generation to only produce tokens that result in schema-compliant JSON. This means you get guaranteed type-correct, schema-valid output on every call. For agent systems, this is the correct choice for any tool output that feeds into downstream processing.</p>
+
+    <pre><code>from pydantic import BaseModel
+from openai import OpenAI
+
+class DiagnosisAssessment(BaseModel):
+    condition: str
+    confidence: float
+    icd10_code: str
+    reasoning: str
+    recommended_tests: list[str]
+
+client = OpenAI()
+completion = client.beta.chat.completions.parse(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "You are a clinical decision support assistant."},
+        {"role": "user", "content": "Patient presents with acute onset chest pain, "
+         "diaphoresis, and ST elevation in leads II, III, aVF."},
+    ],
+    response_format=DiagnosisAssessment,
+)
+
+assessment = completion.choices[0].message.parsed
+print(assessment.condition)          # "Inferior ST-elevation myocardial infarction"
+print(assessment.icd10_code)         # "I21.1"
+print(assessment.recommended_tests)  # ["Troponin I", "CK-MB", "Coronary angiography"]</code></pre>
+
+    <div class="callout">
+      <span class="callout-label">Under the Hood</span>
+      <p>Schema-enforced structured outputs work by modifying the model's sampling mask at each token generation step. If the schema requires the next value to be a number, all non-numeric tokens are masked to zero probability before sampling. This is implemented at the inference engine level using constrained decoding (sometimes called grammar-guided generation). The model is not "trying harder" to follow the schema — it is physically prevented from generating tokens that would violate it. This is why structured outputs are strictly more reliable than prompt-based approaches: the guarantee is mechanical, not behavioral.</p>
+    </div>
+
+    <!-- ============================================================
+         SECTION 8: RATE LIMITS AND ERROR HANDLING
+         ============================================================ -->
+    <h2>Rate Limits and Error Handling</h2>
+
+    <p>Every LLM API enforces rate limits, and your production system will hit them. The limits typically operate on three dimensions simultaneously: requests per minute (RPM), tokens per minute (TPM), and sometimes tokens per day (TPD). You can be within your RPM limit but exceed TPM because a few requests carried enormous context windows. The limits vary by model tier, organization, and payment plan — and they can change without notice.</p>
+
+    <p>When you hit a rate limit, the API returns HTTP 429 with a <code>Retry-After</code> header indicating how many seconds to wait. The correct handling pattern is exponential backoff with jitter: wait a base delay, double it on each retry, and add a random component to prevent thundering-herd effects when multiple processes retry simultaneously. Most client libraries implement this automatically, but you should verify the behavior and configure the maximum retry count and backoff ceiling.</p>
+
+    <pre><code>import time
+import random
+from openai import OpenAI, RateLimitError
+
+client = OpenAI()
+
+def call_with_backoff(messages, max_retries=5):
+    """LLM call with exponential backoff and jitter."""
+    for attempt in range(max_retries):
+        try:
+            return client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages,
+                temperature=0,
+            )
+        except RateLimitError as e:
+            if attempt == max_retries - 1:
+                raise
+            # Exponential backoff: 1s, 2s, 4s, 8s, 16s + jitter
+            wait = (2 ** attempt) + random.uniform(0, 1)
+            print(f"Rate limited. Retrying in {wait:.1f}s (attempt {attempt + 1})")
+            time.sleep(wait)
+    raise RuntimeError("Exhausted retries")</code></pre>
+
+    <p>Beyond rate limits, you must handle several other failure modes. <strong>Context length exceeded</strong> (HTTP 400) means your messages array plus the expected output exceeds the model's context window. <strong>Content filter triggered</strong> means the input or output was flagged by the provider's safety filters. <strong>Server errors</strong> (HTTP 500/503) indicate transient provider issues. <strong>Timeout</strong> means the request took longer than your client's configured timeout — common with large context windows and high max_tokens values. Each requires a different recovery strategy: truncate context, rephrase the prompt, retry, or fall back to a different model.</p>
+
+    <div class="callout warning">
+      <span class="callout-label">Common Mistake</span>
+      <p>Retrying on every error without distinguishing error types. A 400 error (bad request) will never succeed on retry — retrying it just wastes time and quota. A 429 (rate limit) will succeed after waiting. A 500 (server error) might succeed on immediate retry. Build your error handler with a classification layer that routes each error type to the appropriate recovery strategy. The naive <code>except Exception: retry()</code> pattern causes cascading failures in production.</p>
+    </div>
+
+    <!-- ============================================================
+         SECTION 9: COST OPTIMIZATION
+         ============================================================ -->
+    <h2>Cost Optimization</h2>
+
+    <p>LLM API costs follow a simple formula — (input_tokens + output_tokens) x price_per_token — but optimizing that formula requires understanding where tokens accumulate across your entire system. In an agent that makes five tool calls per user request, the conversation history grows with each round trip. By the fifth call, the model is re-reading the original system message, the user query, four previous assistant responses, and four tool results. The cumulative input token count grows quadratically with the number of turns.</p>
+
+    <p>The most impactful optimization strategies, in order of typical savings:</p>
+
+    <ol>
+      <li><strong>Prompt compression.</strong> Audit your system messages and tool descriptions for verbosity. Remove examples that repeat the same pattern. Use abbreviations in tool-result messages that the model can unpack. A system message reduced from 800 tokens to 300 tokens saves 500 tokens on every single request — across millions of requests, this dominates all other optimizations.</li>
+      <li><strong>Context window management.</strong> Do not pass the full conversation history when only the last two turns matter. Implement a sliding window that keeps the system message, the current user query, and the N most recent exchanges. For long-running agents, periodically summarize older turns into a compact "conversation so far" assistant message.</li>
+      <li><strong>Model routing.</strong> Not every request needs GPT-4o. A classification layer that routes simple queries to a smaller, cheaper model (GPT-4o-mini, Claude Haiku) and reserves the expensive model for complex reasoning can reduce costs by 70-90% while maintaining quality where it matters. This is sometimes called a "model cascade" or "LLM router."</li>
+      <li><strong>Caching.</strong> If the same prompt appears repeatedly (common in batch processing and evaluation), cache the response keyed on the full messages array. Some providers offer server-side prompt caching that reduces costs when the prefix of your messages is identical across requests.</li>
+      <li><strong>Output token limits.</strong> Set <code>max_tokens</code> to a reasonable ceiling. If your agent's tool-call JSON is never longer than 200 tokens, do not leave the default at 4,096. This does not save money directly (you only pay for tokens actually generated), but it prevents runaway completions where the model generates thousands of tokens of irrelevant text.</li>
+    </ol>
+
+    <div class="callout tip">
+      <span class="callout-label">Production Consideration</span>
+      <p>Instrument your token usage from day one. Log input tokens, output tokens, model used, and latency for every request. Build a dashboard that shows cost per user, cost per agent task, and cost per tool call. Teams that wait until they receive a surprising bill to start tracking costs always discover that one poorly optimized agent path accounts for 80% of their spend. The telemetry is trivial to implement — the response object already contains the token counts — and the insight it provides is indispensable.</p>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Strategy</th>
+          <th>Typical Savings</th>
+          <th>Implementation Effort</th>
+          <th>Trade-off</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Prompt compression</td>
+          <td>20-50%</td>
+          <td>Low</td>
+          <td>Requires careful testing to ensure no quality loss</td>
+        </tr>
+        <tr>
+          <td>Sliding window context</td>
+          <td>30-60%</td>
+          <td>Medium</td>
+          <td>May lose relevant context from older turns</td>
+        </tr>
+        <tr>
+          <td>Model routing</td>
+          <td>70-90%</td>
+          <td>Medium</td>
+          <td>Adds latency for routing decision; risk of quality drops</td>
+        </tr>
+        <tr>
+          <td>Response caching</td>
+          <td>40-80%</td>
+          <td>Low</td>
+          <td>Only helps with repeated identical prompts</td>
+        </tr>
+        <tr>
+          <td>Max token limits</td>
+          <td>5-15%</td>
+          <td>Trivial</td>
+          <td>Risk of truncation if set too aggressively</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ============================================================
+         PROJECT: LLM EXPLORER
+         ============================================================ -->
+    <section class="project">
+      <h2>Project: LLM Explorer</h2>
+      <p>Build an interactive command-line tool that lets you experiment with every LLM primitive covered in this chapter. The LLM Explorer accepts a prompt and lets you modify parameters in real time, observe their effects on output quality, token usage, latency, and cost.</p>
+
+      <h3>Core Requirements</h3>
+      <ol>
+        <li><strong>Token inspector.</strong> Before sending any request, display the tokenized form of the input: token IDs, decoded token strings, and total count. Use <code>tiktoken</code> for OpenAI models or the appropriate tokenizer for your provider.</li>
+        <li><strong>Parameter playground.</strong> Accept command-line flags or an interactive menu to set temperature (0.0-2.0), top_p (0.0-1.0), max_tokens, frequency_penalty, and presence_penalty. Send the same prompt with different settings and display outputs side by side.</li>
+        <li><strong>Streaming visualizer.</strong> Send a streaming request and display tokens as they arrive, with timing information: time to first token and tokens per second. Color-code the stream to distinguish content tokens from whitespace and punctuation.</li>
+        <li><strong>Tool call tracer.</strong> Define at least three sample tools (e.g., get_weather, calculate, search_knowledge_base). Send prompts that trigger tool calls and display the full lifecycle: model decision, emitted tool call, simulated execution, result injection, and final response.</li>
+        <li><strong>Structured output validator.</strong> Define a Pydantic model, request structured output, and display the parsed result alongside the raw JSON. Show what happens when you switch from structured output mode to plain JSON mode to prompt-only mode.</li>
+        <li><strong>Cost calculator.</strong> After every request, display: input tokens, output tokens, total tokens, estimated cost (based on current model pricing), and cumulative session cost.</li>
+      </ol>
+
+      <h3>Domain Variants</h3>
+      <div class="variant-grid">
+        <div class="variant-card">
+          Tech / Software
+          <span class="variant-domain">Tools: GitHub API, CI/CD status, code search</span>
+        </div>
+        <div class="variant-card">
+          Healthcare
+          <span class="variant-domain">Tools: Drug interaction check, ICD-10 lookup, lab results</span>
+        </div>
+        <div class="variant-card">
+          Finance
+          <span class="variant-domain">Tools: Stock price, SEC filing search, risk calculator</span>
+        </div>
+        <div class="variant-card">
+          Education
+          <span class="variant-domain">Tools: Curriculum search, grade calculator, LMS query</span>
+        </div>
+        <div class="variant-card">
+          E-commerce
+          <span class="variant-domain">Tools: Product search, inventory check, price comparison</span>
+        </div>
+        <div class="variant-card">
+          Legal
+          <span class="variant-domain">Tools: Case law search, contract clause lookup, statute finder</span>
+        </div>
+      </div>
+
+      <h3>Stretch Goals</h3>
+      <ul>
+        <li>Add a <code>--compare</code> flag that sends the same prompt to multiple models (GPT-4o, GPT-4o-mini, Claude Sonnet) and displays quality, speed, and cost differences in a table.</li>
+        <li>Implement prompt caching — detect repeated prompts and serve cached responses, displaying the cost savings.</li>
+        <li>Add a rate-limit simulator that artificially throttles requests and demonstrates your backoff strategy working correctly.</li>
+      </ul>
+    </section>
+
+    <!-- ============================================================
+         SUMMARY
+         ============================================================ -->
+    <section class="summary">
+      <h2>Summary</h2>
+      <p>This chapter dismantled the LLM API into its constituent parts — the primitives that every agent, every RAG pipeline, and every production AI system is built from. You now understand that tokens are the atomic unit of LLM computation, and that the tokenizer is a separate artifact you can (and should) run locally to predict costs and manage context windows. The Completion API is stateless: every call must include the full conversation context, which means every message in the history costs tokens on every subsequent call.</p>
+
+      <p>You learned that temperature and top-p control the randomness of token selection, and that agent systems almost always want low temperature for deterministic, reproducible behavior. The three message roles — system, user, and assistant — form the control surface of every LLM application, with system messages providing the most reliable anchor for behavioral constraints. Streaming transforms the user experience and enables early-exit optimizations in agent loops.</p>
+
+      <p>Tool calling is the mechanism that elevates LLMs from text generators to agents: the model decides to invoke a function, your code executes it, and the result feeds back into the next inference pass. Structured outputs with schema enforcement guarantee that the model's output conforms to your data contract — a non-negotiable requirement for production agent systems. Finally, rate limits and cost optimization are not afterthoughts but core architectural concerns that determine whether your system is economically viable at scale.</p>
+
+      <h3>Key Takeaways</h3>
+      <ul class="key-takeaways">
+        <li>Tokens, not words, are the unit of cost, context, and computation. Count them before sending requests, and instrument their usage across your system from the start.</li>
+        <li>The Completion API is stateless. You control exactly what the model sees by constructing the messages array — this is a feature, not a limitation. Use it to manage context, reduce costs, and steer behavior.</li>
+        <li>Temperature near zero for agents, higher for creativity. Sampling parameters are your primary lever for controlling output determinism. Do not use both temperature and top-p simultaneously.</li>
+        <li>Tool calls are the bridge from language to action. The quality of your tool descriptions determines how reliably the model selects and parameterizes them. Treat tool schemas as a first-class API contract.</li>
+        <li>Cost grows quadratically with conversation length in multi-turn agents. Prompt compression, context windowing, and model routing are not premature optimizations — they are required for economic viability.</li>
+      </ul>
+
+      <div class="exercises">
+        <h3>Exercises</h3>
+        <div class="exercise-item">
+          <span class="exercise-type conceptual">Conceptual</span>
+          <p><strong>Token budget analysis.</strong> You are designing an agent that processes customer support tickets. Each ticket contains an average of 350 words of customer text, your system message is 200 tokens, and each tool call adds approximately 150 tokens of result. The agent averages 3 tool calls per ticket. Calculate the total input tokens consumed per ticket by the final inference pass. Then calculate the daily cost at 10,000 tickets/day using GPT-4o pricing ($2.50 per million input tokens). How much would you save by compressing the system message to 80 tokens and summarizing tool results to 60 tokens each?</p>
+        </div>
+        <div class="exercise-item">
+          <span class="exercise-type coding">Coding</span>
+          <p><strong>Temperature sweep experiment.</strong> Write a script that sends the same prompt to GPT-4o at seven temperature values: 0, 0.2, 0.5, 0.7, 1.0, 1.5, and 2.0. For each temperature, make 10 identical requests and measure: (a) the number of unique responses, (b) the average response length in tokens, and (c) the semantic similarity between responses (use an embedding model to compute pairwise cosine similarity). Plot the results showing how each metric changes with temperature. What temperature produces the best trade-off between consistency and diversity for a code-generation task versus a creative-writing task?</p>
+        </div>
+        <div class="exercise-item">
+          <span class="exercise-type design">Design</span>
+          <p><strong>Model routing architecture.</strong> Design a model routing system for a multi-tenant SaaS platform where each customer has a different quality/cost preference. The system should classify incoming requests by complexity (simple factual lookup, moderate reasoning, complex multi-step analysis) and route them to the appropriate model tier. Specify: (1) what features the classifier uses, (2) how you would train or configure the classifier, (3) the fallback strategy when the cheap model's output fails a quality check, and (4) how you would expose cost/quality controls to tenants. Draw the architecture diagram and estimate the cost savings compared to routing everything through GPT-4o.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="chapter-footer">
+    <a href="ch01-what-is-agentic-ai.html">&larr; What Is Agentic AI?</a>
+    <span>Agentic AI: Build, Ship, Portfolio</span>
+    <a href="ch03-agent-anatomy.html">Next: Agent Anatomy &rarr;</a>
+  </footer>
+<script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

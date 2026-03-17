@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 5 — Reasoning Patterns | Agentic AI: Build, Ship, Portfolio</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="../part-01-foundations/ch04-first-agent.html" class="nav-prev">Your First Agent</a>
+    <span class="nav-title">Part 2 — Core Patterns</span>
+    <a href="ch06-tool-use.html" class="nav-next">Tool Use</a>
+  </nav>
+
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 2 — Core Patterns</span>
+      <h1>Reasoning Patterns</h1>
+      <p class="chapter-intro">Your agent from Chapter 4 can reason one step at a time. But ask it to plan a weekend trip involving flights, hotels, dietary restrictions, and a budget constraint, and it confidently books a hotel in the wrong city. The problem is not intelligence &mdash; it is the absence of structured thinking.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~25 min</span>
+        <span>Project: Reasoning Engine</span>
+        <span>Variants: Tech / Software, Healthcare, Finance, Education, E-commerce, Legal</span>
+      </div>
+    </header>
+
+    <!-- Objectives -->
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>Why direct prompting fails on multi-step problems and how Chain-of-Thought fixes it</li>
+        <li>The difference between zero-shot CoT and few-shot CoT, and when each is appropriate</li>
+        <li>Tree-of-Thought reasoning: exploring multiple paths and pruning dead ends</li>
+        <li>Self-consistency: sampling multiple reasoning chains and voting on the answer</li>
+        <li>Reflection and self-critique: teaching agents to check their own work</li>
+        <li>How reasoning strategy affects tool selection, planning quality, and end-to-end accuracy</li>
+        <li>Building a configurable Reasoning Engine that lets you swap strategies at runtime</li>
+      </ul>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 5.1 When Direct Prompting Breaks -->
+    <!-- ============================================================ -->
+    <h2>5.1 When Direct Prompting Breaks</h2>
+
+    <p>Consider a straightforward question: <em>"A store sells apples at $1.50 each. You have a $20 bill and need to buy at least 3 apples but want to maximize the number of oranges you can buy at $2.00 each with the remaining money. How many of each fruit do you buy?"</em></p>
+
+    <p>When you send this to a language model with no reasoning guidance, something interesting happens. The model often answers immediately &mdash; "Buy 3 apples ($4.50) and 7 oranges ($14.00), total $18.50" &mdash; and it happens to be correct. But change the numbers slightly, add a constraint (say, you also need at least one banana at $1.25), and the model begins making arithmetic errors or ignoring constraints entirely. It is not that the model cannot do math. It is that the model is pattern-matching to a plausible-sounding answer rather than working through the problem systematically.</p>
+
+    <p>This is the core failure mode of <strong>direct prompting</strong>: the model compresses multi-step reasoning into a single forward pass. For the model, producing the token "7" (oranges) requires simultaneously holding the apple cost, the remaining budget, the orange price, and the integer division &mdash; all in the residual stream at the same layer. Sometimes this works. Often it does not. And when it fails, it fails silently, with the same confident tone as when it succeeds.</p>
+
+    <p>Here is what this failure looks like in agent code:</p>
+
+<pre><code># direct_prompting.py — asking the model to answer in one shot
+import openai
+
+def ask_directly(question: str) -> str:
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "Answer the question precisely."},
+            {"role": "user", "content": question},
+        ],
+        temperature=0.0,
+    )
+    return response.choices[0].message.content
+
+# Multi-step constraint problem
+result = ask_directly(
+    "A hospital has 12 nurses across 3 shifts. Each shift needs at least 3 "
+    "nurses. The night shift requires 1 more nurse than the morning shift. "
+    "The evening shift has exactly 4 nurses. How many nurses per shift?"
+)
+# Model frequently answers: Morning: 3, Evening: 4, Night: 5 → total 12 ✓
+# But add a fourth constraint and accuracy drops to ~60%</code></pre>
+
+    <p>The model gets this particular instance right roughly 85% of the time. But the moment you scale to four constraints, or introduce variables that require backtracking ("if the night shift has fewer than 5, redistribute"), accuracy plummets. The model has no mechanism for trying something, checking it, and revising. It generates tokens left to right, commits to each one, and hopes for the best.</p>
+
+    <p>This matters enormously for agents. An agent making decisions about which tools to call, in what order, with what parameters, is solving a multi-step constraint satisfaction problem at every turn. If the underlying reasoning is "one-shot guess," the agent will select the wrong tool, pass the wrong arguments, or skip steps entirely &mdash; and then confidently present the result as correct.</p>
+
+    <div class="callout warning">
+      <span class="callout-label">Common Mistake</span>
+      <p>Developers often attribute agent failures to "the model is not smart enough" and respond by upgrading to a larger model. In many cases, the same model produces correct answers when given a reasoning structure. Before you spend 10x on tokens, try adding a thinking step. The cheapest performance upgrade is often a prompt change, not a model change.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 5.2 Chain-of-Thought (CoT) Prompting -->
+    <!-- ============================================================ -->
+    <h2>5.2 Chain-of-Thought Prompting</h2>
+
+    <p>Chain-of-Thought prompting, introduced by Wei et al. (2022), is the single most important reasoning technique in the LLM toolkit. The idea is almost embarrassingly simple: instead of asking the model to produce an answer directly, you ask it to show its work. The model generates intermediate reasoning steps as tokens, and those tokens become part of the context for subsequent tokens. Each step is grounded in the previous one, turning a single high-difficulty forward pass into multiple low-difficulty passes.</p>
+
+    <p>The mechanism is important to understand. When a model generates the text "Step 1: The evening shift has 4 nurses, so we have 12 - 4 = 8 nurses remaining," the tokens "8 nurses remaining" are now in the context window. When the model generates Step 2, it can attend to that "8" directly, rather than having to recompute it internally. The chain of thought is, in effect, an <strong>external scratchpad</strong> that offloads intermediate results from the model's hidden state into the token sequence itself.</p>
+
+    <h3>5.2.1 Zero-Shot Chain-of-Thought</h3>
+
+    <p>The simplest form of CoT requires no examples at all. Kojima et al. (2022) discovered that appending the phrase "Let's think step by step" to a prompt produces chain-of-thought reasoning in most modern language models. This is called <strong>zero-shot CoT</strong> because it requires zero demonstrations &mdash; just an instruction to reason.</p>
+
+<pre><code># zero_shot_cot.py — the simplest reasoning upgrade
+import openai
+
+def ask_with_zero_shot_cot(question: str) -> str:
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are a careful problem solver."},
+            {"role": "user", "content": f"{question}\n\nLet's think step by step."},
+        ],
+        temperature=0.0,
+    )
+    return response.choices[0].message.content
+
+result = ask_with_zero_shot_cot(
+    "A hospital has 12 nurses across 3 shifts. Each shift needs at least 3 "
+    "nurses. The night shift requires 1 more nurse than the morning shift. "
+    "The evening shift has exactly 4 nurses. How many nurses per shift?"
+)
+# Output now shows explicit reasoning:
+# Step 1: Evening shift = 4 nurses. Remaining = 12 - 4 = 8.
+# Step 2: Let morning = x. Then night = x + 1.
+# Step 3: x + (x + 1) = 8 → 2x + 1 = 8 → x = 3.5
+# Step 4: Since we need whole nurses, morning = 3, night = 5. Check: 3+4+5 = 12 ✓
+# Step 5: Minimum constraint: all shifts ≥ 3 ✓</code></pre>
+
+    <p>Zero-shot CoT is the lowest-effort, highest-impact change you can make to an agent's reasoning. On the GSM8K math benchmark, zero-shot CoT improved accuracy by 10&ndash;15 percentage points across model sizes. On more complex multi-step tasks, the improvement can be even larger.</p>
+
+    <p>However, zero-shot CoT has a significant limitation: you have no control over the <em>structure</em> of the reasoning. The model might produce three steps or thirteen. It might reason about irrelevant aspects of the problem. It might get the right answer through a sloppy chain. For production agents where you need predictable, auditable reasoning, you often need more control.</p>
+
+    <h3>5.2.2 Few-Shot Chain-of-Thought</h3>
+
+    <p>Few-shot CoT gives you that control. Instead of hoping the model reasons well, you <em>show</em> it exactly what good reasoning looks like by providing examples of questions paired with ideal step-by-step solutions.</p>
+
+<pre><code># few_shot_cot.py — teaching the model your reasoning structure
+import openai
+
+FEW_SHOT_EXAMPLES = [
+    {
+        "role": "user",
+        "content": (
+            "A warehouse has 200 items across 4 zones. Zone A has twice as many "
+            "items as Zone B. Zone C has 30 items. Zone D has 10 more items than "
+            "Zone C. How many items are in each zone?"
+        ),
+    },
+    {
+        "role": "assistant",
+        "content": (
+            "Step 1: Identify known quantities.\n"
+            "  - Zone C = 30 items\n"
+            "  - Zone D = 30 + 10 = 40 items\n\n"
+            "Step 2: Calculate remaining items.\n"
+            "  - Zones A + B = 200 - 30 - 40 = 130 items\n\n"
+            "Step 3: Set up equations for unknowns.\n"
+            "  - Zone A = 2 × Zone B\n"
+            "  - 2B + B = 130 → 3B = 130 → B ≈ 43.3\n\n"
+            "Step 4: Since items are whole numbers, check constraints.\n"
+            "  - B = 43, A = 87 → total = 87 + 43 + 30 + 40 = 200 ✓\n\n"
+            "Answer: Zone A = 87, Zone B = 43, Zone C = 30, Zone D = 40."
+        ),
+    },
+]
+
+def ask_with_few_shot_cot(question: str) -> str:
+    messages = [
+        {"role": "system", "content": (
+            "Solve problems step by step. Show your reasoning clearly. "
+            "Verify your answer in the final step."
+        )},
+        *FEW_SHOT_EXAMPLES,
+        {"role": "user", "content": question},
+    ]
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        messages=messages,
+        temperature=0.0,
+    )
+    return response.choices[0].message.content</code></pre>
+
+    <p>The few-shot examples serve as a template. The model learns not just <em>that</em> it should reason step by step, but <em>how</em> &mdash; identify knowns first, then unknowns, set up equations, solve, and verify. This structural consistency is critical for agents because it makes the reasoning trace parseable. If you know the model will always produce a "Verify" step, you can programmatically extract and double-check it.</p>
+
+    <div class="callout">
+      <span class="callout-label">Under the Hood</span>
+      <p>Why does Chain-of-Thought work mechanically? Transformer models process all tokens in a layer simultaneously, but each token can only attend to tokens that come before it (in autoregressive models). When the model generates "8 nurses remaining" in Step 1, that information becomes directly accessible via attention in Step 2. Without CoT, the model would need to represent "12 minus 4 equals 8" entirely within its hidden state activations &mdash; a much harder computation that fails on problems requiring more than 2&ndash;3 sequential steps. CoT effectively converts depth (computation within a single forward pass) into length (multiple forward passes over an expanding context).</p>
+    </div>
+
+    <h3>5.2.3 Choosing Between Zero-Shot and Few-Shot CoT</h3>
+
+    <p>The decision is not always obvious. Here is a practical guide:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Factor</th>
+          <th>Zero-Shot CoT</th>
+          <th>Few-Shot CoT</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Setup effort</td>
+          <td>None &mdash; one extra sentence</td>
+          <td>Requires crafting 2&ndash;5 examples</td>
+        </tr>
+        <tr>
+          <td>Reasoning structure</td>
+          <td>Unpredictable format</td>
+          <td>Follows your template exactly</td>
+        </tr>
+        <tr>
+          <td>Parsing reliability</td>
+          <td>Low &mdash; format varies</td>
+          <td>High &mdash; consistent structure</td>
+        </tr>
+        <tr>
+          <td>Token cost</td>
+          <td>Lower (no examples in prompt)</td>
+          <td>Higher (examples consume tokens)</td>
+        </tr>
+        <tr>
+          <td>Domain adaptation</td>
+          <td>Generic reasoning</td>
+          <td>Domain-specific patterns</td>
+        </tr>
+        <tr>
+          <td>Best for</td>
+          <td>Prototyping, diverse tasks</td>
+          <td>Production, domain-specific agents</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>For agents, the recommendation is almost always few-shot CoT in production. The upfront cost of writing examples pays for itself in parsing reliability and reasoning consistency. Use zero-shot CoT during development and exploration, then graduate to few-shot once you understand the reasoning patterns your agent needs.</p>
+
+    <!-- ============================================================ -->
+    <!-- Diagram 1: Chain-of-Thought vs Direct Answer -->
+    <!-- ============================================================ -->
+    <figure class="diagram">
+      <svg viewBox="0 0 680 370" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow-1" viewBox="0 0 10 7" refX="10" refY="3.5"
+                  markerWidth="10" markerHeight="7" orient="auto-start-auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#5F5E5A" />
+          </marker>
+        </defs>
+        <style>
+          @media (prefers-color-scheme: dark) {
+            .bg-box-gray { fill: #2e2d2b; stroke: #5F5E5A; }
+            .bg-box-purple { fill: #26215C; stroke: #B0ABEE; }
+            .bg-box-teal { fill: #04342C; stroke: #0F6E56; }
+            .label-gray { fill: #9c9a92; }
+            .label-dark { fill: #E8E6DE; }
+            .label-purple { fill: #B0ABEE; }
+            .label-teal { fill: #0F6E56; }
+            .arrow-line { stroke: #9c9a92; }
+            #arrow-1 polygon { fill: #9c9a92; }
+          }
+        </style>
+
+        <!-- Title -->
+        <text x="340" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#1a1a1a" dominant-baseline="central" text-anchor="middle" class="label-dark">Direct Prompting vs Chain-of-Thought</text>
+
+        <!-- LEFT SIDE: Direct Prompting -->
+        <text x="155" y="58" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle" class="label-gray">DIRECT PROMPTING</text>
+
+        <!-- Prompt box -->
+        <rect x="55" y="80" width="200" height="44" rx="8" fill="#F8F7F4" stroke="#D3D1C7" stroke-width="1.5" class="bg-box-gray" />
+        <text x="155" y="102" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#1a1a1a" dominant-baseline="central" text-anchor="middle" class="label-dark">Prompt (question)</text>
+
+        <!-- Arrow down -->
+        <line x1="155" y1="124" x2="155" y2="168" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none" class="arrow-line" />
+
+        <!-- Answer box (gray - mediocre) -->
+        <rect x="55" y="172" width="200" height="44" rx="8" fill="#F8F7F4" stroke="#D3D1C7" stroke-width="1.5" class="bg-box-gray" />
+        <text x="155" y="194" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle" class="label-gray">Answer (often wrong)</text>
+
+        <!-- Annotation -->
+        <text x="155" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="400" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle" class="label-gray">Single forward pass</text>
+        <text x="155" y="256" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="400" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle" class="label-gray">No intermediate steps</text>
+
+        <!-- Divider -->
+        <line x1="340" y1="50" x2="340" y2="350" stroke="#D3D1C7" stroke-width="1" stroke-dasharray="6,4" fill="none" class="arrow-line" />
+
+        <!-- RIGHT SIDE: Chain-of-Thought -->
+        <text x="510" y="58" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#534AB7" dominant-baseline="central" text-anchor="middle" class="label-purple">CHAIN-OF-THOUGHT</text>
+
+        <!-- Prompt box -->
+        <rect x="410" y="80" width="200" height="44" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5" class="bg-box-purple" />
+        <text x="510" y="102" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#534AB7" dominant-baseline="central" text-anchor="middle" class="label-purple">Prompt (question)</text>
+
+        <!-- Arrow -->
+        <line x1="510" y1="124" x2="510" y2="148" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none" class="arrow-line" />
+
+        <!-- Step 1 -->
+        <rect x="410" y="152" width="200" height="36" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5" class="bg-box-purple" />
+        <text x="510" y="170" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500" fill="#534AB7" dominant-baseline="central" text-anchor="middle" class="label-purple">Step 1: Identify knowns</text>
+
+        <!-- Arrow -->
+        <line x1="510" y1="188" x2="510" y2="204" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none" class="arrow-line" />
+
+        <!-- Step 2 -->
+        <rect x="410" y="208" width="200" height="36" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5" class="bg-box-purple" />
+        <text x="510" y="226" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500" fill="#534AB7" dominant-baseline="central" text-anchor="middle" class="label-purple">Step 2: Solve unknowns</text>
+
+        <!-- Arrow -->
+        <line x1="510" y1="244" x2="510" y2="260" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none" class="arrow-line" />
+
+        <!-- Step 3 -->
+        <rect x="410" y="264" width="200" height="36" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5" class="bg-box-purple" />
+        <text x="510" y="282" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500" fill="#534AB7" dominant-baseline="central" text-anchor="middle" class="label-purple">Step 3: Verify answer</text>
+
+        <!-- Arrow -->
+        <line x1="510" y1="300" x2="510" y2="316" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none" class="arrow-line" />
+
+        <!-- Final Answer (teal - correct) -->
+        <rect x="410" y="320" width="200" height="36" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5" class="bg-box-teal" />
+        <text x="510" y="338" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#0F6E56" dominant-baseline="central" text-anchor="middle" class="label-teal">Answer (grounded)</text>
+      </svg>
+      <figcaption>Figure 5-1. Direct prompting compresses all reasoning into a single step, while Chain-of-Thought externalizes intermediate steps into the token sequence, producing grounded, verifiable answers.</figcaption>
+    </figure>
+
+    <!-- ============================================================ -->
+    <!-- 5.3 Tree-of-Thought (ToT) -->
+    <!-- ============================================================ -->
+    <h2>5.3 Tree-of-Thought Reasoning</h2>
+
+    <p>Chain-of-Thought is a single chain &mdash; one path from question to answer. This works well for problems with a clear sequence of steps, but many real-world problems are not linear. They require exploring multiple possibilities, evaluating partial solutions, and backtracking when a path leads nowhere.</p>
+
+    <p>Consider an agent tasked with debugging a production outage. The symptoms are: API response times increased 5x, database CPU is at 90%, and no recent deployments occurred. The agent needs to consider multiple hypotheses simultaneously &mdash; a slow query introduced by a data change, a connection pool leak, an index that was dropped, a spike in traffic &mdash; evaluate evidence for each, and prune hypotheses that do not fit the data.</p>
+
+    <p><strong>Tree-of-Thought</strong> (Yao et al., 2023) generalizes CoT from a chain to a tree. Instead of generating one reasoning path, the model explores multiple branches, evaluates each, and selects the most promising ones to continue. Branches that look unpromising are pruned, saving computation.</p>
+
+    <p>The algorithm has three components:</p>
+
+    <ol>
+      <li><strong>Thought generation:</strong> at each node, generate multiple possible next steps (typically 2&ndash;5).</li>
+      <li><strong>Thought evaluation:</strong> use the model itself (or a separate evaluator) to score how promising each branch is.</li>
+      <li><strong>Search strategy:</strong> either breadth-first (explore all branches at each depth) or depth-first (follow the most promising branch deeply, backtrack if stuck).</li>
+    </ol>
+
+<pre><code># tree_of_thought.py — exploring multiple reasoning paths
+import openai
+from dataclasses import dataclass
+
+@dataclass
+class ThoughtNode:
+    content: str
+    score: float
+    children: list["ThoughtNode"]
+    depth: int
+
+def generate_thoughts(problem: str, context: str, n: int = 3) -> list[str]:
+    """Generate n possible next reasoning steps."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": (
+                "You are exploring solutions to a problem. Given the current "
+                "reasoning context, propose exactly {n} distinct next steps. "
+                "Format: one step per line, numbered 1-{n}."
+            ).format(n=n)},
+            {"role": "user", "content": (
+                f"Problem: {problem}\n\n"
+                f"Reasoning so far:\n{context}\n\n"
+                f"Propose {n} possible next steps:"
+            )},
+        ],
+        temperature=0.8,  # higher temp for diversity
+    )
+    text = response.choices[0].message.content
+    # Parse numbered lines
+    thoughts = []
+    for line in text.strip().split("\n"):
+        line = line.strip()
+        if line and line[0].isdigit():
+            # Remove "1. " prefix
+            thought = line.split(".", 1)[-1].strip()
+            thoughts.append(thought)
+    return thoughts[:n]
+
+def evaluate_thought(problem: str, reasoning_path: str) -> float:
+    """Score a partial reasoning path from 0.0 to 1.0."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": (
+                "Evaluate how promising this partial reasoning is for solving "
+                "the problem. Respond with a single number from 0.0 (dead end) "
+                "to 1.0 (very likely to lead to correct solution)."
+            )},
+            {"role": "user", "content": (
+                f"Problem: {problem}\n\n"
+                f"Reasoning path:\n{reasoning_path}"
+            )},
+        ],
+        temperature=0.0,
+    )
+    try:
+        return float(response.choices[0].message.content.strip())
+    except ValueError:
+        return 0.5  # default if parsing fails
+
+def tree_of_thought(
+    problem: str,
+    max_depth: int = 3,
+    branch_factor: int = 3,
+    prune_threshold: float = 0.3,
+) -> str:
+    """Solve a problem using Tree-of-Thought search."""
+    root = ThoughtNode(content="", score=1.0, children=[], depth=0)
+    best_path = ""
+    best_score = 0.0
+
+    def expand(node: ThoughtNode, context: str):
+        nonlocal best_path, best_score
+
+        if node.depth >= max_depth:
+            # Leaf node — evaluate complete path
+            score = evaluate_thought(problem, context)
+            if score > best_score:
+                best_score = score
+                best_path = context
+            return
+
+        # Generate candidate next steps
+        thoughts = generate_thoughts(problem, context, n=branch_factor)
+
+        for thought in thoughts:
+            new_context = f"{context}\nStep {node.depth + 1}: {thought}"
+            score = evaluate_thought(problem, new_context)
+
+            # Prune unpromising branches
+            if score < prune_threshold:
+                continue
+
+            child = ThoughtNode(
+                content=thought, score=score,
+                children=[], depth=node.depth + 1,
+            )
+            node.children.append(child)
+
+            # Recurse into promising branches
+            expand(child, new_context)
+
+    expand(root, "")
+    return best_path</code></pre>
+
+    <p>The key insight is the <code>prune_threshold</code>. Without pruning, Tree-of-Thought would explore an exponential number of paths (3 branches at 3 depths = 27 leaf nodes, each requiring an LLM call to evaluate). Pruning cuts this dramatically. In practice, most problems see 60&ndash;80% of branches pruned after the first step, because the evaluator can quickly identify reasoning paths that contradict known facts or violate constraints.</p>
+
+    <div class="callout">
+      <span class="callout-label">Under the Hood</span>
+      <p>Tree-of-Thought is computationally expensive &mdash; it requires multiple LLM calls per reasoning step. A single ToT solve with 3 branches and 3 depths can require 20&ndash;40 LLM calls. This is why ToT is typically reserved for high-stakes decisions where accuracy matters more than latency. In an agent system, you might use zero-shot CoT for routine decisions and escalate to ToT only when the agent detects ambiguity or high risk. The Reasoning Engine project at the end of this chapter implements exactly this adaptive strategy.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Diagram 2: Tree-of-Thought -->
+    <!-- ============================================================ -->
+    <figure class="diagram">
+      <svg viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow-2" viewBox="0 0 10 7" refX="10" refY="3.5"
+                  markerWidth="10" markerHeight="7" orient="auto-start-auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#5F5E5A" />
+          </marker>
+        </defs>
+        <style>
+          @media (prefers-color-scheme: dark) {
+            .tot-bg-purple { fill: #26215C; stroke: #B0ABEE; }
+            .tot-bg-gray { fill: #2e2d2b; stroke: #5F5E5A; }
+            .tot-bg-teal { fill: #04342C; stroke: #0F6E56; }
+            .tot-label-dark { fill: #E8E6DE; }
+            .tot-label-purple { fill: #B0ABEE; }
+            .tot-label-gray { fill: #9c9a92; }
+            .tot-label-teal { fill: #0F6E56; }
+            .tot-arrow-active { stroke: #B0ABEE; }
+            .tot-arrow-pruned { stroke: #5F5E5A; }
+            .tot-arrow-best { stroke: #0F6E56; }
+            #arrow-2 polygon { fill: #9c9a92; }
+          }
+        </style>
+
+        <!-- Title -->
+        <text x="340" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#1a1a1a" dominant-baseline="central" text-anchor="middle" class="tot-label-dark">Tree-of-Thought: Branching and Pruning</text>
+
+        <!-- Root Question -->
+        <rect x="240" y="48" width="200" height="40" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5" class="tot-bg-purple" />
+        <text x="340" y="68" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#534AB7" dominant-baseline="central" text-anchor="middle" class="tot-label-purple">Root Question</text>
+
+        <!-- Level 1: Three branches from root -->
+        <!-- Branch A (active - will lead to best) -->
+        <path d="M 300 88 L 140 130" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow-2)" fill="none" class="tot-arrow-active" />
+        <rect x="40" y="134" width="200" height="36" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5" class="tot-bg-purple" />
+        <text x="140" y="152" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500" fill="#534AB7" dominant-baseline="central" text-anchor="middle" class="tot-label-purple">Thought A (score: 0.8)</text>
+
+        <!-- Branch B (active initially) -->
+        <path d="M 340 88 L 340 130" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow-2)" fill="none" class="tot-arrow-active" />
+        <rect x="240" y="134" width="200" height="36" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5" class="tot-bg-purple" />
+        <text x="340" y="152" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500" fill="#534AB7" dominant-baseline="central" text-anchor="middle" class="tot-label-purple">Thought B (score: 0.6)</text>
+
+        <!-- Branch C (pruned) -->
+        <path d="M 380 88 L 540 130" stroke="#5F5E5A" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-2)" fill="none" class="tot-arrow-pruned" />
+        <rect x="440" y="134" width="200" height="36" rx="8" fill="#F8F7F4" stroke="#D3D1C7" stroke-width="1.5" stroke-dasharray="6,4" class="tot-bg-gray" />
+        <text x="540" y="152" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle" class="tot-label-gray">Thought C (score: 0.2)</text>
+        <text x="614" y="152" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#993C1D" dominant-baseline="central" text-anchor="start">PRUNED</text>
+
+        <!-- Level 2: Branches from A -->
+        <!-- A1 (best path) -->
+        <path d="M 110 170 L 80 210" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow-2)" fill="none" class="tot-arrow-active" />
+        <rect x="8" y="214" width="144" height="36" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5" class="tot-bg-purple" />
+        <text x="80" y="232" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#534AB7" dominant-baseline="central" text-anchor="middle" class="tot-label-purple">A1 (score: 0.9)</text>
+
+        <!-- A2 (pruned) -->
+        <path d="M 170 170 L 220 210" stroke="#5F5E5A" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-2)" fill="none" class="tot-arrow-pruned" />
+        <rect x="160" y="214" width="128" height="36" rx="8" fill="#F8F7F4" stroke="#D3D1C7" stroke-width="1.5" stroke-dasharray="6,4" class="tot-bg-gray" />
+        <text x="224" y="232" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle" class="tot-label-gray">A2 (score: 0.2)</text>
+
+        <!-- Level 2: Branches from B -->
+        <!-- B1 (moderate) -->
+        <path d="M 310 170 L 360 210" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow-2)" fill="none" class="tot-arrow-active" />
+        <rect x="304" y="214" width="120" height="36" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5" class="tot-bg-purple" />
+        <text x="364" y="232" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#534AB7" dominant-baseline="central" text-anchor="middle" class="tot-label-purple">B1 (score: 0.5)</text>
+
+        <!-- B2 (pruned) -->
+        <path d="M 370 170 L 480 210" stroke="#5F5E5A" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-2)" fill="none" class="tot-arrow-pruned" />
+        <rect x="440" y="214" width="120" height="36" rx="8" fill="#F8F7F4" stroke="#D3D1C7" stroke-width="1.5" stroke-dasharray="6,4" class="tot-bg-gray" />
+        <text x="500" y="232" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#5F5E5A" dominant-baseline="central" text-anchor="middle" class="tot-label-gray">B2 (score: 0.1)</text>
+
+        <!-- Level 3: Best path from A1 -->
+        <path d="M 80 250 L 80 290" stroke="#0F6E56" stroke-width="2" marker-end="url(#arrow-2)" fill="none" class="tot-arrow-best" />
+        <rect x="8" y="294" width="144" height="36" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5" class="tot-bg-purple" />
+        <text x="80" y="312" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#534AB7" dominant-baseline="central" text-anchor="middle" class="tot-label-purple">A1a (score: 0.95)</text>
+
+        <!-- B1 also continues but lower -->
+        <path d="M 364 250 L 364 290" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow-2)" fill="none" class="tot-arrow-active" />
+        <rect x="304" y="294" width="120" height="36" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5" class="tot-bg-purple" />
+        <text x="364" y="312" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#534AB7" dominant-baseline="central" text-anchor="middle" class="tot-label-purple">B1a (score: 0.6)</text>
+
+        <!-- Final answer from best path -->
+        <path d="M 80 330 L 80 365" stroke="#0F6E56" stroke-width="2" marker-end="url(#arrow-2)" fill="none" class="tot-arrow-best" />
+        <rect x="8" y="370" width="200" height="36" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="2" class="tot-bg-teal" />
+        <text x="108" y="388" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#0F6E56" dominant-baseline="central" text-anchor="middle" class="tot-label-teal">Best Answer (A1a)</text>
+
+        <!-- Legend -->
+        <rect x="470" y="340" width="12" height="12" rx="2" fill="#EEEDFE" stroke="#534AB7" stroke-width="1" class="tot-bg-purple" />
+        <text x="490" y="346" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="400" fill="#534AB7" dominant-baseline="central" class="tot-label-purple">Active path</text>
+
+        <line x1="470" y1="365" x2="482" y2="365" stroke="#5F5E5A" stroke-width="1.5" stroke-dasharray="4,3" fill="none" class="tot-arrow-pruned" />
+        <text x="490" y="365" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="400" fill="#5F5E5A" dominant-baseline="central" class="tot-label-gray">Pruned (low score)</text>
+
+        <rect x="470" y="381" width="12" height="12" rx="2" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1" class="tot-bg-teal" />
+        <text x="490" y="387" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="400" fill="#0F6E56" dominant-baseline="central" class="tot-label-teal">Selected answer</text>
+      </svg>
+      <figcaption>Figure 5-2. Tree-of-Thought explores multiple reasoning branches from each node, prunes low-scoring paths (dashed), and follows the highest-scoring path to the final answer.</figcaption>
+    </figure>
+
+    <!-- ============================================================ -->
+    <!-- 5.4 Self-Consistency -->
+    <!-- ============================================================ -->
+    <h2>5.4 Self-Consistency</h2>
+
+    <p>Self-consistency (Wang et al., 2022) takes a different approach to the "single chain might be wrong" problem. Instead of exploring a tree, it samples multiple independent chains of thought and takes a majority vote on the final answer. The intuition is simple: if three out of five reasoning chains arrive at the same answer via different paths, that answer is probably correct &mdash; even if some individual chains have errors.</p>
+
+<pre><code># self_consistency.py — majority vote over multiple reasoning chains
+import openai
+from collections import Counter
+
+def solve_with_self_consistency(
+    question: str,
+    num_samples: int = 5,
+    temperature: float = 0.7,
+) -> dict:
+    """
+    Sample multiple CoT solutions and return the majority answer.
+    Returns both the answer and the confidence (vote fraction).
+    """
+    answers = []
+
+    for _ in range(num_samples):
+        response = openai.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": (
+                    "Solve the problem step by step. After your reasoning, "
+                    "write your final answer on the last line as: "
+                    "ANSWER: <your answer>"
+                )},
+                {"role": "user", "content": question},
+            ],
+            temperature=temperature,  # >0 for diverse chains
+        )
+        text = response.choices[0].message.content
+
+        # Extract the final answer line
+        for line in reversed(text.strip().split("\n")):
+            if line.strip().upper().startswith("ANSWER:"):
+                answer = line.split(":", 1)[1].strip()
+                answers.append(answer)
+                break
+
+    # Majority vote
+    if not answers:
+        return {"answer": "Unable to determine", "confidence": 0.0}
+
+    vote_counts = Counter(answers)
+    best_answer, best_count = vote_counts.most_common(1)[0]
+
+    return {
+        "answer": best_answer,
+        "confidence": best_count / len(answers),
+        "vote_distribution": dict(vote_counts),
+        "num_chains": num_samples,
+    }
+
+# Example usage
+result = solve_with_self_consistency(
+    "A trader buys 100 shares at $45, sells 60 at $52, then sells the "
+    "remaining 40 at $38. What is the total profit or loss?",
+    num_samples=5,
+)
+# result:
+# {
+#     "answer": "$140 profit",
+#     "confidence": 0.8,        # 4 out of 5 chains agree
+#     "vote_distribution": {"$140 profit": 4, "$120 profit": 1},
+#     "num_chains": 5,
+# }</code></pre>
+
+    <p>Self-consistency is particularly valuable for agents because it provides a built-in <strong>confidence signal</strong>. If all five chains agree, the agent can proceed with high confidence. If the chains are split 3-2, the agent might want to escalate to a human or use a more expensive reasoning strategy. If the chains produce five different answers, something is fundamentally ambiguous about the problem.</p>
+
+    <div class="callout tip">
+      <span class="callout-label">Production Consideration</span>
+      <p>Self-consistency multiplies your token cost by the number of samples. For a 5-sample self-consistency check, you are paying 5x the inference cost. In production, use self-consistency selectively &mdash; for high-stakes decisions, ambiguous inputs, or when the agent's initial confidence is low. Many production systems use a two-phase approach: generate one chain first, and only escalate to self-consistency if the model's own logprob confidence is below a threshold.</p>
+    </div>
+
+    <p>The temperature parameter is critical. At temperature 0, all chains would be identical (or nearly so), defeating the purpose. A temperature of 0.5&ndash;0.8 produces enough diversity for different reasoning paths while keeping each individual chain coherent. Too high (above 1.0) and individual chains become unreliable, polluting the vote.</p>
+
+    <!-- ============================================================ -->
+    <!-- 5.5 Reflection and Self-Critique -->
+    <!-- ============================================================ -->
+    <h2>5.5 Reflection and Self-Critique</h2>
+
+    <p>The reasoning patterns we have covered so far &mdash; CoT, ToT, self-consistency &mdash; all operate during the initial solve. Reflection adds a second phase: after the model produces an answer, it reviews its own reasoning and corrects any errors it finds. This is inspired by how human experts work &mdash; a doctor does not just diagnose; they review the diagnosis against a mental checklist of differential diagnoses, potential biases, and missing data.</p>
+
+    <p>Reflection typically follows a two-pass structure:</p>
+
+    <ol>
+      <li><strong>Solve pass:</strong> generate a chain-of-thought solution as normal.</li>
+      <li><strong>Critique pass:</strong> present the solution back to the model (or a separate model) and ask it to identify errors, missing steps, unsupported assumptions, or alternative approaches.</li>
+      <li><strong>Revise pass (optional):</strong> use the critique to generate an improved solution.</li>
+    </ol>
+
+<pre><code># reflection.py — solve, critique, revise
+import openai
+
+def solve_with_reflection(question: str) -> dict:
+    """Solve a problem, critique the solution, then revise."""
+
+    # === Pass 1: Initial solve ===
+    solve_response = openai.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": (
+                "Solve the problem step by step. Be thorough."
+            )},
+            {"role": "user", "content": question},
+        ],
+        temperature=0.0,
+    )
+    initial_solution = solve_response.choices[0].message.content
+
+    # === Pass 2: Critique ===
+    critique_response = openai.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": (
+                "You are a rigorous reviewer. Examine the following solution "
+                "for errors, unsupported assumptions, missing steps, and "
+                "logical gaps. Be specific about what is wrong and why."
+            )},
+            {"role": "user", "content": (
+                f"Problem: {question}\n\n"
+                f"Proposed solution:\n{initial_solution}\n\n"
+                "What errors or issues do you find?"
+            )},
+        ],
+        temperature=0.0,
+    )
+    critique = critique_response.choices[0].message.content
+
+    # === Pass 3: Revise ===
+    revise_response = openai.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": (
+                "Revise the solution based on the critique. Keep what was "
+                "correct, fix what was wrong, and add any missing steps."
+            )},
+            {"role": "user", "content": (
+                f"Problem: {question}\n\n"
+                f"Original solution:\n{initial_solution}\n\n"
+                f"Critique:\n{critique}\n\n"
+                "Please provide a corrected solution."
+            )},
+        ],
+        temperature=0.0,
+    )
+    revised_solution = revise_response.choices[0].message.content
+
+    return {
+        "initial_solution": initial_solution,
+        "critique": critique,
+        "revised_solution": revised_solution,
+    }</code></pre>
+
+    <p>Reflection is particularly powerful for agent tasks that involve planning. An agent that generates a plan, critiques it for gaps, and then revises it before execution will produce dramatically better plans than one that executes immediately. The cost is two extra LLM calls, but for complex tasks those calls often save multiple failed tool executions that would cost even more.</p>
+
+    <div class="callout warning">
+      <span class="callout-label">Common Mistake</span>
+      <p>A known failure mode of self-critique is <strong>sycophantic revision</strong> &mdash; the model agrees with the critique even when the original answer was correct. Research shows that models will sometimes "fix" correct answers into incorrect ones if the critique sounds authoritative. To mitigate this, include a line in the critique prompt: "If the solution is correct, say so explicitly. Do not change correct reasoning." Additionally, consider comparing the initial and revised answers &mdash; if they differ, use self-consistency to decide which is more likely correct.</p>
+    </div>
+
+    <h3>5.5.1 Reflection in Agent Loops</h3>
+
+    <p>Reflection becomes most powerful when integrated into the agent's action loop rather than applied as a post-hoc step. After each tool call, the agent can reflect on whether the result matches expectations and whether the overall plan still makes sense.</p>
+
+<pre><code># reflective_agent_loop.py — reflection integrated into the agent cycle
+def reflective_agent_step(state: dict) -> dict:
+    """One step of an agent loop with built-in reflection."""
+
+    # 1. Plan the next action
+    plan = generate_plan(state["goal"], state["history"])
+
+    # 2. Reflect on the plan before executing
+    plan_critique = critique_plan(plan, state["history"])
+
+    if plan_critique["has_issues"]:
+        # Revise the plan based on critique
+        plan = revise_plan(plan, plan_critique["issues"])
+
+    # 3. Execute the action
+    result = execute_action(plan["action"])
+
+    # 4. Reflect on the result
+    result_assessment = assess_result(
+        expected=plan["expected_outcome"],
+        actual=result,
+        goal=state["goal"],
+    )
+
+    # 5. Update state with reflection
+    state["history"].append({
+        "plan": plan,
+        "plan_critique": plan_critique,
+        "result": result,
+        "assessment": result_assessment,
+    })
+
+    # 6. Check if we need to backtrack
+    if result_assessment["progress"] == "negative":
+        state["backtrack_count"] += 1
+        if state["backtrack_count"] > 3:
+            state["status"] = "stuck"  # escalate to human
+            return state
+
+    return state</code></pre>
+
+    <p>This pattern &mdash; plan, critique, execute, assess &mdash; is the hallmark of robust agent systems. It adds latency to each step, but it prevents the far more expensive failure mode of an agent executing a sequence of wrong actions before anyone notices.</p>
+
+    <!-- ============================================================ -->
+    <!-- 5.6 How Reasoning Improves Tool Selection and Planning -->
+    <!-- ============================================================ -->
+    <h2>5.6 How Reasoning Improves Tool Selection and Planning</h2>
+
+    <p>Everything we have discussed &mdash; CoT, ToT, self-consistency, reflection &mdash; has direct implications for the practical problem agents face on every turn: <em>which tool should I call next, with what arguments, and why?</em></p>
+
+    <p>Without structured reasoning, tool selection degrades in predictable ways:</p>
+
+    <ul>
+      <li><strong>Wrong tool:</strong> the agent calls a web search when it should query a database, because it did not reason about where the data actually lives.</li>
+      <li><strong>Wrong arguments:</strong> the agent passes a vague query to a precise API, because it did not decompose the user's question into the API's parameter space.</li>
+      <li><strong>Wrong order:</strong> the agent calls Tool B before Tool A, even though Tool B depends on Tool A's output, because it did not plan the dependency chain.</li>
+      <li><strong>Redundant calls:</strong> the agent calls the same tool three times with slightly different queries, because it does not track what it has already learned.</li>
+    </ul>
+
+    <p>Chain-of-Thought fixes this by forcing the agent to articulate its plan before executing. A CoT-guided tool selection trace looks like:</p>
+
+<pre><code>Thought: The user wants Q3 revenue for Acme Corp. I have two tools:
+  1. web_search — general internet search
+  2. financial_api — structured financial data by ticker
+
+I should use financial_api because:
+  - It returns structured JSON I can parse precisely
+  - Revenue is a standard financial metric it supports
+  - I need Acme Corp's ticker symbol first — let me search for that
+
+Action: web_search("Acme Corp stock ticker symbol")
+Observation: "Acme Corporation trades as ACME on NYSE"
+
+Thought: Good, ticker is ACME. Now I can query the financial API.
+Action: financial_api(ticker="ACME", metric="revenue", period="Q3-2024")
+Observation: {"revenue": 4200000000, "currency": "USD", "period": "Q3-2024"}</code></pre>
+
+    <p>Notice how the reasoning step identified that the financial API was the right tool <em>and</em> that it needed a prerequisite (the ticker symbol). Without CoT, the agent might have called <code>web_search("Acme Corp Q3 revenue")</code> and gotten a six-month-old blog post with stale data.</p>
+
+    <p>Tree-of-Thought extends this further for ambiguous tasks. When an agent is uncertain which of several approaches will work, it can explore branches &mdash; "If I use the SQL database, I need to know the schema first" versus "If I use the analytics API, I can query directly but the data might be aggregated differently" &mdash; and evaluate which path is more likely to succeed before committing to tool calls.</p>
+
+    <div class="callout tip">
+      <span class="callout-label">Production Consideration</span>
+      <p>In production systems, the reasoning trace is as valuable as the final answer. Store every thought/action/observation trace in structured logs. When an agent fails, these traces are the debugging tool that turns a mysterious failure into a diagnosable one. Many teams index reasoning traces in a vector store and use them for few-shot examples in future prompts &mdash; the agent literally learns from its own past reasoning.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 5.7 Choosing a Reasoning Strategy -->
+    <!-- ============================================================ -->
+    <h2>5.7 Choosing a Reasoning Strategy</h2>
+
+    <p>No single reasoning strategy is best for all situations. The art of building production agents is knowing when to use each one. Here is a decision framework:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Strategy</th>
+          <th>Best For</th>
+          <th>Cost</th>
+          <th>Latency</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Direct prompting</strong></td>
+          <td>Simple lookups, classification, extraction</td>
+          <td>1x</td>
+          <td>Lowest</td>
+        </tr>
+        <tr>
+          <td><strong>Zero-shot CoT</strong></td>
+          <td>Moderate reasoning, general tasks</td>
+          <td>1.5x (longer output)</td>
+          <td>Low</td>
+        </tr>
+        <tr>
+          <td><strong>Few-shot CoT</strong></td>
+          <td>Domain-specific tasks, structured output</td>
+          <td>2x (examples + output)</td>
+          <td>Low-Med</td>
+        </tr>
+        <tr>
+          <td><strong>Self-consistency</strong></td>
+          <td>High-stakes single-answer problems</td>
+          <td>Nx (N samples)</td>
+          <td>Medium</td>
+        </tr>
+        <tr>
+          <td><strong>Tree-of-Thought</strong></td>
+          <td>Complex planning, exploration problems</td>
+          <td>10&ndash;40x</td>
+          <td>High</td>
+        </tr>
+        <tr>
+          <td><strong>Reflection</strong></td>
+          <td>Plans, code generation, long-form analysis</td>
+          <td>3x</td>
+          <td>Medium</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>A well-designed agent does not use one strategy for everything. It uses a <strong>strategy selector</strong> that examines the incoming task and chooses the appropriate reasoning approach. Simple factual queries get direct prompting. Arithmetic and logic problems get zero-shot CoT. Complex planning tasks get reflection. Ambiguous, high-stakes decisions get ToT or self-consistency.</p>
+
+    <p>This is exactly what the chapter project implements.</p>
+
+    <!-- ============================================================ -->
+    <!-- 5.8 Project: Reasoning Engine -->
+    <!-- ============================================================ -->
+    <section class="project">
+      <h2>Project: Reasoning Engine</h2>
+
+      <p>The Reasoning Engine is a configurable module that sits between your agent's perception layer and its action layer. It accepts a task, classifies its complexity, selects an appropriate reasoning strategy, executes that strategy, and returns a structured reasoning trace along with the answer.</p>
+
+      <h3>Architecture</h3>
+
+      <p>The engine has four components:</p>
+
+      <ol>
+        <li><strong>Task Classifier:</strong> examines the input and assigns a complexity level (simple, moderate, complex, ambiguous).</li>
+        <li><strong>Strategy Selector:</strong> maps complexity to a reasoning strategy based on configurable rules.</li>
+        <li><strong>Strategy Executor:</strong> runs the selected strategy (CoT, ToT, self-consistency, or reflection).</li>
+        <li><strong>Trace Formatter:</strong> packages the reasoning into a structured, loggable output.</li>
+      </ol>
+
+<pre><code># reasoning_engine.py — configurable reasoning strategy selector
+import openai
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Optional
+
+class Complexity(Enum):
+    SIMPLE = "simple"
+    MODERATE = "moderate"
+    COMPLEX = "complex"
+    AMBIGUOUS = "ambiguous"
+
+class Strategy(Enum):
+    DIRECT = "direct"
+    ZERO_SHOT_COT = "zero_shot_cot"
+    FEW_SHOT_COT = "few_shot_cot"
+    SELF_CONSISTENCY = "self_consistency"
+    TREE_OF_THOUGHT = "tree_of_thought"
+    REFLECTION = "reflection"
+
+@dataclass
+class ReasoningTrace:
+    strategy: Strategy
+    complexity: Complexity
+    steps: list[str] = field(default_factory=list)
+    answer: str = ""
+    confidence: float = 0.0
+    token_cost: int = 0
+    metadata: dict = field(default_factory=dict)
+
+# Default strategy mapping — override per domain
+DEFAULT_STRATEGY_MAP = {
+    Complexity.SIMPLE: Strategy.DIRECT,
+    Complexity.MODERATE: Strategy.ZERO_SHOT_COT,
+    Complexity.COMPLEX: Strategy.REFLECTION,
+    Complexity.AMBIGUOUS: Strategy.SELF_CONSISTENCY,
+}
+
+class ReasoningEngine:
+    def __init__(
+        self,
+        model: str = "gpt-4o",
+        strategy_map: Optional[dict] = None,
+        few_shot_examples: Optional[list] = None,
+        consistency_samples: int = 5,
+        tot_branch_factor: int = 3,
+        tot_max_depth: int = 3,
+    ):
+        self.model = model
+        self.strategy_map = strategy_map or DEFAULT_STRATEGY_MAP
+        self.few_shot_examples = few_shot_examples or []
+        self.consistency_samples = consistency_samples
+        self.tot_branch_factor = tot_branch_factor
+        self.tot_max_depth = tot_max_depth
+
+    def classify_complexity(self, task: str) -> Complexity:
+        """Use the LLM to classify task complexity."""
+        response = openai.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": (
+                    "Classify the complexity of this task. Respond with "
+                    "exactly one word: simple, moderate, complex, or ambiguous.\n\n"
+                    "- simple: single-step lookup, classification, or extraction\n"
+                    "- moderate: 2-4 step reasoning, arithmetic, comparisons\n"
+                    "- complex: multi-step planning, dependencies, constraints\n"
+                    "- ambiguous: unclear requirements, multiple valid approaches"
+                )},
+                {"role": "user", "content": task},
+            ],
+            temperature=0.0,
+            max_tokens=10,
+        )
+        label = response.choices[0].message.content.strip().lower()
+        try:
+            return Complexity(label)
+        except ValueError:
+            return Complexity.MODERATE  # safe default
+
+    def select_strategy(self, complexity: Complexity) -> Strategy:
+        """Map complexity to strategy using configured rules."""
+        return self.strategy_map.get(complexity, Strategy.ZERO_SHOT_COT)
+
+    def execute(
+        self,
+        task: str,
+        strategy_override: Optional[Strategy] = None,
+    ) -> ReasoningTrace:
+        """Run the full reasoning pipeline."""
+        complexity = self.classify_complexity(task)
+        strategy = strategy_override or self.select_strategy(complexity)
+
+        trace = ReasoningTrace(strategy=strategy, complexity=complexity)
+
+        if strategy == Strategy.DIRECT:
+            trace = self._run_direct(task, trace)
+        elif strategy == Strategy.ZERO_SHOT_COT:
+            trace = self._run_zero_shot_cot(task, trace)
+        elif strategy == Strategy.FEW_SHOT_COT:
+            trace = self._run_few_shot_cot(task, trace)
+        elif strategy == Strategy.SELF_CONSISTENCY:
+            trace = self._run_self_consistency(task, trace)
+        elif strategy == Strategy.TREE_OF_THOUGHT:
+            trace = self._run_tree_of_thought(task, trace)
+        elif strategy == Strategy.REFLECTION:
+            trace = self._run_reflection(task, trace)
+
+        return trace
+
+    def _run_direct(self, task: str, trace: ReasoningTrace) -> ReasoningTrace:
+        response = openai.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": "Answer directly and concisely."},
+                {"role": "user", "content": task},
+            ],
+            temperature=0.0,
+        )
+        trace.answer = response.choices[0].message.content
+        trace.confidence = 0.7  # lower confidence for direct
+        trace.steps = ["Direct answer (no reasoning chain)"]
+        trace.token_cost = response.usage.total_tokens
+        return trace
+
+    def _run_zero_shot_cot(
+        self, task: str, trace: ReasoningTrace,
+    ) -> ReasoningTrace:
+        response = openai.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": (
+                    "Solve the problem step by step. Show your reasoning. "
+                    "End with ANSWER: <your answer>"
+                )},
+                {"role": "user", "content": (
+                    f"{task}\n\nLet's think step by step."
+                )},
+            ],
+            temperature=0.0,
+        )
+        text = response.choices[0].message.content
+        trace.steps = self._parse_steps(text)
+        trace.answer = self._extract_answer(text)
+        trace.confidence = 0.8
+        trace.token_cost = response.usage.total_tokens
+        return trace
+
+    def _run_few_shot_cot(
+        self, task: str, trace: ReasoningTrace,
+    ) -> ReasoningTrace:
+        messages = [
+            {"role": "system", "content": (
+                "Solve problems step by step following the demonstrated format. "
+                "End with ANSWER: <your answer>"
+            )},
+            *self.few_shot_examples,
+            {"role": "user", "content": task},
+        ]
+        response = openai.chat.completions.create(
+            model=self.model, messages=messages, temperature=0.0,
+        )
+        text = response.choices[0].message.content
+        trace.steps = self._parse_steps(text)
+        trace.answer = self._extract_answer(text)
+        trace.confidence = 0.85
+        trace.token_cost = response.usage.total_tokens
+        return trace
+
+    def _run_self_consistency(
+        self, task: str, trace: ReasoningTrace,
+    ) -> ReasoningTrace:
+        from collections import Counter
+        answers = []
+        total_tokens = 0
+
+        for _ in range(self.consistency_samples):
+            response = openai.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": (
+                        "Solve step by step. End with ANSWER: <your answer>"
+                    )},
+                    {"role": "user", "content": task},
+                ],
+                temperature=0.7,
+            )
+            text = response.choices[0].message.content
+            total_tokens += response.usage.total_tokens
+            answer = self._extract_answer(text)
+            if answer:
+                answers.append(answer)
+
+        if answers:
+            votes = Counter(answers)
+            best, count = votes.most_common(1)[0]
+            trace.answer = best
+            trace.confidence = count / len(answers)
+            trace.metadata["vote_distribution"] = dict(votes)
+        else:
+            trace.answer = "Unable to determine"
+            trace.confidence = 0.0
+
+        trace.steps = [
+            f"Sampled {self.consistency_samples} reasoning chains",
+            f"Answers: {answers}",
+            f"Majority vote: {trace.answer}",
+        ]
+        trace.token_cost = total_tokens
+        return trace
+
+    def _run_tree_of_thought(
+        self, task: str, trace: ReasoningTrace,
+    ) -> ReasoningTrace:
+        # Simplified ToT — full implementation in tree_of_thought.py
+        best_path = tree_of_thought(
+            task,
+            max_depth=self.tot_max_depth,
+            branch_factor=self.tot_branch_factor,
+        )
+        trace.steps = best_path.split("\n")
+        trace.answer = trace.steps[-1] if trace.steps else ""
+        trace.confidence = 0.9
+        return trace
+
+    def _run_reflection(
+        self, task: str, trace: ReasoningTrace,
+    ) -> ReasoningTrace:
+        result = solve_with_reflection(task)
+        trace.steps = [
+            f"Initial: {result['initial_solution'][:200]}...",
+            f"Critique: {result['critique'][:200]}...",
+            f"Revised: {result['revised_solution'][:200]}...",
+        ]
+        trace.answer = result["revised_solution"]
+        trace.confidence = 0.9
+        return trace
+
+    @staticmethod
+    def _parse_steps(text: str) -> list[str]:
+        """Extract numbered steps from reasoning text."""
+        steps = []
+        for line in text.split("\n"):
+            line = line.strip()
+            if line and (
+                line.startswith("Step") or
+                (len(line) > 2 and line[0].isdigit() and line[1] in ".)")
+            ):
+                steps.append(line)
+        return steps or [text[:200] + "..."]
+
+    @staticmethod
+    def _extract_answer(text: str) -> str:
+        """Extract answer from ANSWER: line."""
+        for line in reversed(text.strip().split("\n")):
+            if "ANSWER:" in line.upper():
+                return line.split(":", 1)[1].strip()
+        # Fallback: last non-empty line
+        for line in reversed(text.strip().split("\n")):
+            if line.strip():
+                return line.strip()
+        return ""
+
+
+# === Usage ===
+if __name__ == "__main__":
+    engine = ReasoningEngine(model="gpt-4o")
+
+    # The engine automatically selects the right strategy
+    trace = engine.execute(
+        "What is the capital of France?"  # simple → direct
+    )
+    print(f"Strategy: {trace.strategy.value}, Answer: {trace.answer}")
+
+    trace = engine.execute(
+        "A store has 150 items. Category A has 3x Category B. "
+        "Category C has 20 items. How many in each?"  # moderate → CoT
+    )
+    print(f"Strategy: {trace.strategy.value}, Answer: {trace.answer}")
+
+    trace = engine.execute(
+        "Design a database schema for a hospital appointment system "
+        "that handles recurring appointments, cancellations, waitlists, "
+        "and insurance pre-authorization."  # complex → reflection
+    )
+    print(f"Strategy: {trace.strategy.value}, Answer: {trace.answer}")
+
+    # Override strategy manually
+    trace = engine.execute(
+        "Should we deploy to production today?",
+        strategy_override=Strategy.SELF_CONSISTENCY,
+    )
+    print(f"Confidence: {trace.confidence}")</code></pre>
+
+      <h3>Domain Variants</h3>
+
+      <div class="variant-grid">
+        <div class="variant-card">
+          Tech / Software
+          <span class="variant-domain">Debug reasoning for production incidents — classify severity, select investigation tools, reason about root causes</span>
+        </div>
+        <div class="variant-card">
+          Healthcare
+          <span class="variant-domain">Differential diagnosis reasoning — systematic elimination of conditions using patient symptoms and test results</span>
+        </div>
+        <div class="variant-card">
+          Finance
+          <span class="variant-domain">Investment analysis reasoning — evaluate trades against risk constraints, compliance rules, and market conditions</span>
+        </div>
+        <div class="variant-card">
+          Education
+          <span class="variant-domain">Adaptive tutoring — diagnose student misconceptions, select appropriate explanations and practice problems</span>
+        </div>
+        <div class="variant-card">
+          E-commerce
+          <span class="variant-domain">Product recommendation reasoning — balance user preferences, inventory, margins, and personalization signals</span>
+        </div>
+        <div class="variant-card">
+          Legal
+          <span class="variant-domain">Legal argument construction — build reasoning chains from statutes, precedent, and case facts</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Summary -->
+    <!-- ============================================================ -->
+    <section class="summary">
+      <h2>Summary</h2>
+
+      <p>Reasoning patterns are the difference between agents that guess and agents that think. Direct prompting compresses all reasoning into a single forward pass, which fails silently on multi-step problems. Chain-of-Thought fixes this by externalizing intermediate steps into the token stream, letting the model attend to its own partial results. Zero-shot CoT is the minimum viable improvement; few-shot CoT gives you structural control. Tree-of-Thought explores multiple paths for problems where the right approach is not obvious. Self-consistency provides a confidence signal through majority voting. Reflection catches errors after the fact, turning a single-pass system into one that checks its own work.</p>
+
+      <p>The most important lesson is that reasoning strategy should not be fixed. Different tasks demand different strategies, and a well-designed agent selects its reasoning approach based on task complexity, cost tolerance, and required confidence. The Reasoning Engine pattern encapsulates this decision, giving you a single interface that adapts to whatever comes in.</p>
+
+      <h3>Key Takeaways</h3>
+      <ol class="key-takeaways">
+        <li><strong>Direct prompting fails silently</strong> on multi-step problems because the model has no scratchpad for intermediate results. Always default to at least zero-shot CoT for anything beyond simple lookups.</li>
+        <li><strong>Chain-of-Thought works mechanically</strong>, not magically. It converts computational depth (hard for transformers) into sequence length (easy for transformers). The chain is an external memory for intermediate values.</li>
+        <li><strong>Tree-of-Thought and self-consistency trade cost for reliability.</strong> Use them selectively for high-stakes decisions, not on every turn. A 5-sample self-consistency check costs 5x but provides a confidence signal you cannot get any other way.</li>
+        <li><strong>Reflection prevents the most expensive agent failures</strong> &mdash; confidently executing a wrong plan. A 3x cost increase for plan critique is cheap compared to the cost of rolling back five wrong tool executions.</li>
+        <li><strong>Strategy selection is itself a reasoning problem.</strong> The Reasoning Engine pattern classifies task complexity and maps it to the appropriate strategy automatically, so you do not pay Tree-of-Thought prices for simple questions.</li>
+      </ol>
+
+      <h3>Exercises</h3>
+      <div class="exercises">
+        <div class="exercise-item">
+          <span class="exercise-type conceptual">Conceptual</span>
+          <p><strong>Reasoning cost analysis.</strong> You are building an agent that processes 10,000 customer support tickets per day. Each ticket requires a reasoning step to classify priority (high/medium/low) and route to the right team. Using GPT-4o at $5/1M input tokens and $15/1M output tokens, calculate the daily cost difference between: (a) direct prompting, (b) zero-shot CoT, and (c) 3-sample self-consistency. Assume average input is 200 tokens, direct output is 20 tokens, CoT output is 150 tokens. At what error rate does the cost of self-consistency become justified if each misrouted ticket costs $12 in human time to fix?</p>
+        </div>
+        <div class="exercise-item">
+          <span class="exercise-type coding">Coding</span>
+          <p><strong>Adaptive reasoning engine.</strong> Extend the Reasoning Engine to include a feedback loop: after the answer is used (simulated by a correctness signal), update a local database tracking which strategy worked best for which task type. Over time, the engine should learn that "arithmetic with 4+ variables" needs self-consistency while "simple classification" is fine with direct prompting. Implement this with a SQLite database storing (task_embedding, strategy, was_correct) tuples and a nearest-neighbor lookup for strategy selection.</p>
+        </div>
+        <div class="exercise-item">
+          <span class="exercise-type design">Design</span>
+          <p><strong>Reasoning for a medical triage agent.</strong> Design the reasoning architecture for an agent that triages emergency room patients based on described symptoms. The agent must: (1) never miss a life-threatening condition, (2) produce an auditable reasoning trace for legal compliance, (3) operate within 5 seconds per patient. Which combination of reasoning strategies would you use? Where would you use CoT vs. self-consistency vs. reflection? How would you handle the case where the model is uncertain about a potentially critical symptom? Draw the decision flowchart and justify each strategy choice in terms of the safety/latency/cost tradeoffs.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="chapter-footer">
+    <a href="../part-01-foundations/ch04-first-agent.html">&larr; Your First Agent</a>
+    <span>Agentic AI: Build, Ship, Portfolio</span>
+    <a href="ch06-tool-use.html">Next: Tool Use &rarr;</a>
+  </footer>
+<script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

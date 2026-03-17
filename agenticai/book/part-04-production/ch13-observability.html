@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 13 &mdash; Observability | Agentic AI: Build, Ship, Portfolio</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="../part-03-multi-agent/ch12-agent-communication.html" class="nav-prev">Agent Communication</a>
+    <span class="nav-title">Part 4 &mdash; Production</span>
+    <a href="ch14-security.html" class="nav-next">Security</a>
+  </nav>
+
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 4 &mdash; Production</span>
+      <h1>Observability</h1>
+      <p class="chapter-intro">Tuesday, 2:47 AM. A loan-approval agent in production has been silently rejecting every application for the past six hours. No errors in the logs. No alerts firing. The HTTP status codes are all 200. Each applicant receives a polite decline email with a coherent, well-structured explanation that cites the bank&rsquo;s lending criteria. The problem: the agent&rsquo;s retrieval step started returning an outdated policy document after a vector store reindex, and the model dutifully followed it. Six hours, four hundred rejected applications, zero exceptions. You discover it at 8 AM when the lending team notices the approval rate dropped to zero. This is not a crash &mdash; it is a silent behavioral drift that only observability can catch.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~25 min</span>
+        <span>Project: Agent Observatory</span>
+        <span>Variants: Tech / Software, Healthcare, Finance, Education, E-commerce, Legal</span>
+      </div>
+    </header>
+
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>Why traditional monitoring fails for agent systems and what observability must cover instead</li>
+        <li>How to instrument agent runs with distributed traces, spans, and structured logs using OpenTelemetry</li>
+        <li>Which metrics matter for production agents &mdash; latency, token usage, error rates, and behavioral signals</li>
+        <li>How to build dashboards that surface agent health, cost, and quality at a glance</li>
+        <li>How to debug non-deterministic agent behavior by replaying traces and inspecting decision points</li>
+        <li>How to integrate LLM observability platforms like LangSmith and Langfuse into your stack</li>
+      </ul>
+    </section>
+
+    <!-- 13.1 -->
+    <h2>13.1 Why Agents Need Observability</h2>
+
+    <p>Traditional web services have a simple contract: a request arrives, the server processes it, a response leaves. If the server throws an exception, the error propagates. If latency spikes, the load balancer notices. Monitoring tools built for this world assume that failures are loud and deterministic.</p>
+
+    <p>Agents break every one of those assumptions. A single user request triggers a chain of LLM calls, tool invocations, retrieval steps, and reasoning loops. Each step is non-deterministic. The agent might take three steps today and seven tomorrow for an identical query. And when it fails, it usually does so silently &mdash; returning a plausible-sounding answer that happens to be wrong.</p>
+
+    <p><strong>Non-determinism.</strong> The same input produces different traces every time. You must observe the distribution of behaviors, not a single expected path.</p>
+
+    <p><strong>Multi-step opacity.</strong> A single agent run might involve five LLM calls, three tool invocations, and two retrieval queries. Traditional request/response monitoring sees one HTTP call. Everything inside is a black box unless you instrument it.</p>
+
+    <p><strong>Silent failure modes.</strong> An agent that retrieves outdated documents or hallucinates a tool argument does not throw an exception. It returns a 200 status code with a confidently wrong answer. The only way to catch these failures is to observe what the agent did at every step.</p>
+
+    <div class="callout warning">
+      <span class="callout-label">Monitoring vs. Observability</span>
+      <p>Monitoring tells you <em>that</em> something went wrong. Observability tells you <em>why</em>. Monitoring watches predefined metrics and fires alerts when thresholds are breached. Observability captures enough context &mdash; traces, logs, metrics &mdash; that you can debug novel failures you did not anticipate. For agents, you cannot predefine what &ldquo;wrong&rdquo; looks like. You need the raw telemetry to investigate.</p>
+    </div>
+
+    <!-- 13.2 -->
+    <h2>13.2 Traces and Spans</h2>
+
+    <p>A <strong>trace</strong> represents one complete agent run from initial request to final response. A trace is composed of <strong>spans</strong> &mdash; individual units of work. Each span captures an operation: an LLM call, a tool invocation, a retrieval query. Spans nest hierarchically. The root span covers the entire run; child spans cover individual steps; grandchild spans cover sub-operations like the HTTP request inside a web-search tool.</p>
+
+<pre><code>from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.resources import Resource
+
+def configure_tracing(service_name: str = "agent-service") -&gt; trace.Tracer:
+    """Configure OpenTelemetry tracing for an agent service."""
+    resource = Resource.create({"service.name": service_name})
+    provider = TracerProvider(resource=resource)
+    exporter = OTLPSpanExporter(endpoint="http://localhost:4317", insecure=True)
+    provider.add_span_processor(BatchSpanProcessor(exporter))
+    trace.set_tracer_provider(provider)
+    return trace.get_tracer(service_name)</code></pre>
+
+    <p>The critical design decision is <strong>what becomes a span</strong>. For agents, create spans for every LLM call (with prompt and completion as attributes), every tool invocation (with arguments and return values), every retrieval query (with query text and result count), and every reasoning step. A reusable decorator makes this practical:</p>
+
+<pre><code>import functools
+
+tracer = trace.get_tracer("agent-service")
+
+def traced(span_name: str = None, capture_args: bool = True):
+    """Decorator that wraps a function in an OpenTelemetry span."""
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            name = span_name or f"{func.__module__}.{func.__qualname__}"
+            with tracer.start_as_current_span(name) as span:
+                if capture_args:
+                    for key, val in kwargs.items():
+                        span.set_attribute(f"kwarg.{key}", str(val)[:500])
+                try:
+                    result = func(*args, **kwargs)
+                    span.set_attribute("result.preview", str(result)[:500])
+                    span.set_status(trace.StatusCode.OK)
+                    return result
+                except Exception as exc:
+                    span.set_status(trace.StatusCode.ERROR, str(exc))
+                    span.record_exception(exc)
+                    raise
+        return wrapper
+    return decorator</code></pre>
+
+    <!-- 13.3 -->
+    <h2>13.3 Structured Logging</h2>
+
+    <p>Unstructured log lines &mdash; <code>print("Processing query...")</code> &mdash; are worthless for debugging agents at scale. Structured logs are JSON objects with consistent fields that can be queried, filtered, and correlated with traces.</p>
+
+<pre><code>import logging, json
+from datetime import datetime, timezone
+
+class StructuredAgentLogger:
+    """Logger that emits JSON lines correlated with OpenTelemetry traces."""
+
+    def __init__(self, service: str = "agent-service"):
+        self.service = service
+        self.logger = logging.getLogger(service)
+
+    def log_event(self, event_type: str, data: dict, level: str = "info"):
+        """Emit a structured log event with automatic trace correlation."""
+        span = trace.get_current_span()
+        ctx = span.get_span_context()
+        record = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "service": self.service,
+            "event_type": event_type,
+            "trace_id": format(ctx.trace_id, "032x") if ctx.trace_id else None,
+            "level": level,
+            **data,
+        }
+        getattr(self.logger, level)(json.dumps(record))
+
+    def log_llm_call(self, model: str, prompt_tokens: int,
+                     completion_tokens: int, latency_ms: float):
+        self.log_event("llm_call", {
+            "model": model, "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": prompt_tokens + completion_tokens,
+            "latency_ms": round(latency_ms, 1),
+        })
+
+    def log_tool_call(self, tool_name: str, arguments: dict,
+                      result_preview: str, latency_ms: float, success: bool = True):
+        self.log_event("tool_call", {
+            "tool_name": tool_name, "arguments": arguments,
+            "result_preview": result_preview[:200],
+            "latency_ms": round(latency_ms, 1), "success": success,
+        })</code></pre>
+
+    <p>The key field is <code>trace_id</code>. Every log event during an agent run carries the same trace ID, so you can pull every log line for a single run with one query. This bridges your logs and traces &mdash; without it, structured logs are just well-formatted noise.</p>
+
+    <!-- 13.4 -->
+    <h2>13.4 Metrics That Matter</h2>
+
+    <p>While traces tell the story of a single run, metrics tell the story of your system. For agents, the metrics that matter fall into four categories:</p>
+
+    <table>
+      <thead>
+        <tr><th>Category</th><th>Metric</th><th>Why It Matters</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Latency</td><td>End-to-end run duration (p50, p95, p99)</td><td>Users abandon slow agents; spikes signal reasoning loops</td></tr>
+        <tr><td>Cost</td><td>Tokens consumed per run (prompt + completion)</td><td>A runaway agent can burn through your budget in minutes</td></tr>
+        <tr><td>Error</td><td>LLM error rate (rate limits, timeouts, malformed output)</td><td>Provider issues propagate silently through agent chains</td></tr>
+        <tr><td>Error</td><td>Tool failure rate per tool</td><td>A broken tool degrades every agent that depends on it</td></tr>
+        <tr><td>Quality</td><td>Retrieval hit rate (queries with zero relevant results)</td><td>Zero-hit retrievals force the agent to hallucinate or fail</td></tr>
+        <tr><td>Quality</td><td>User feedback rate (thumbs up/down)</td><td>The most direct signal of whether the agent is helping</td></tr>
+      </tbody>
+    </table>
+
+<pre><code>from opentelemetry import metrics
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+
+exporter = OTLPMetricExporter(endpoint="http://localhost:4317", insecure=True)
+reader = PeriodicExportingMetricReader(exporter, export_interval_millis=10000)
+provider = MeterProvider(metric_readers=[reader])
+metrics.set_meter_provider(provider)
+meter = metrics.get_meter("agent-service")
+
+run_duration  = meter.create_histogram("agent.run.duration_ms", unit="ms")
+token_counter = meter.create_counter("agent.tokens.total", unit="tokens")
+tool_calls    = meter.create_counter("agent.tool_calls.total")
+error_counter = meter.create_counter("agent.errors.total")
+step_counter  = meter.create_histogram("agent.run.steps")</code></pre>
+
+    <div class="callout tip">
+      <span class="callout-label">Cost Tracking Is Not Optional</span>
+      <p>An agent in a reasoning loop can make dozens of LLM calls before a timeout kills it. At $10&ndash;$30 per million input tokens for frontier models, a single runaway run can cost more than your daily budget. Track tokens per run with hard limits, and alert when any run exceeds your p99 token count by more than 2x.</p>
+    </div>
+
+    <!-- 13.5 -->
+    <h2>13.5 Instrumenting an Agent</h2>
+
+    <p>The following class wraps an agent execution loop with full observability: traces for each step, structured logs for each event, and metrics for aggregate monitoring.</p>
+
+<pre><code>import time
+
+class ObservableAgent:
+    """Agent wrapper that emits traces, logs, and metrics for every run."""
+
+    def __init__(self, agent, model: str = "gpt-4o"):
+        self.agent = agent
+        self.model = model
+        self.logger = StructuredAgentLogger()
+
+    def run(self, user_input: str, session_id: str = None) -&gt; dict:
+        with tracer.start_as_current_span("agent.run") as root_span:
+            root_span.set_attribute("user.input", user_input[:1000])
+            start, total_tokens, steps = time.perf_counter(), 0, 0
+            messages = [{"role": "user", "content": user_input}]
+
+            try:
+                while steps &lt; 15:  # hard cap prevents infinite loops
+                    steps += 1
+
+                    with tracer.start_as_current_span("llm.call") as llm_span:
+                        t0 = time.perf_counter()
+                        response = self._call_llm(messages)
+                        ms = (time.perf_counter() - t0) * 1000
+                        usage = response["usage"]
+                        llm_span.set_attribute("llm.model", self.model)
+                        llm_span.set_attribute("llm.tokens", usage["total_tokens"])
+                        total_tokens += usage["total_tokens"]
+                        token_counter.add(usage["total_tokens"], {"model": self.model})
+                        self.logger.log_llm_call(self.model, usage["prompt_tokens"],
+                                                 usage["completion_tokens"], ms)
+
+                    assistant_msg = response["choices"][0]["message"]
+                    messages.append(assistant_msg)
+                    if not assistant_msg.get("tool_calls"):
+                        break
+
+                    for tc in assistant_msg["tool_calls"]:
+                        with tracer.start_as_current_span("tool.call") as ts:
+                            name = tc["function"]["name"]
+                            ts.set_attribute("tool.name", name)
+                            t0 = time.perf_counter()
+                            result = self._execute_tool(name, tc["function"]["arguments"])
+                            tool_ms = (time.perf_counter() - t0) * 1000
+                            tool_calls.add(1, {"tool": name})
+                            self.logger.log_tool_call(name, {}, str(result), tool_ms)
+                            messages.append({"role": "tool", "tool_call_id": tc["id"],
+                                             "content": str(result)})
+
+                duration_ms = (time.perf_counter() - start) * 1000
+                run_duration.record(duration_ms)
+                step_counter.record(steps)
+                root_span.set_attribute("agent.steps", steps)
+                return {"output": messages[-1].get("content", ""),
+                        "steps": steps, "total_tokens": total_tokens,
+                        "duration_ms": round(duration_ms, 1)}
+            except Exception as exc:
+                error_counter.add(1, {"error_type": type(exc).__name__})
+                root_span.set_status(trace.StatusCode.ERROR, str(exc))
+                root_span.record_exception(exc)
+                raise</code></pre>
+
+    <p>Three design decisions matter here. The <strong>step cap</strong> prevents runaway loops. Every span captures both <strong>inputs and outputs</strong> &mdash; you cannot debug an agent if you only know a tool was called but not what it returned. And <strong>metrics are recorded inline</strong> with the trace, ensuring they always agree.</p>
+
+    <!-- 13.6 -->
+    <h2>13.6 The Observability Stack</h2>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 680 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Observability stack: traces flow through spans, logs, metrics, to dashboards">
+        <defs>
+          <marker id="arrow-1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#4A90D9"/>
+          </marker>
+        </defs>
+        <style>
+          text { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+          .layer-label { font-size: 11px; font-weight: 700; fill: #E0E0E0; text-anchor: middle; text-transform: uppercase; letter-spacing: 0.08em; }
+          .box-label { font-size: 12px; font-weight: 600; fill: #FFFFFF; text-anchor: middle; }
+          .arrow-label { font-size: 9px; fill: #8AB4F8; text-anchor: middle; font-style: italic; }
+        </style>
+        <rect width="680" height="520" rx="8" fill="#1E1E2E"/>
+
+        <!-- Layer 5: Dashboards (Teal) -->
+        <rect x="40" y="25" width="600" height="70" rx="6" fill="#0F6E56" opacity="0.25" stroke="#0F6E56" stroke-width="1"/>
+        <text x="340" y="43" class="layer-label" fill="#2DD4A8">Layer 5 &mdash; Dashboards &amp; Alerts</text>
+        <rect x="80" y="52" width="140" height="32" rx="4" fill="#0F6E56"/>
+        <text x="150" y="72" class="box-label">Grafana</text>
+        <rect x="240" y="52" width="140" height="32" rx="4" fill="#0F6E56"/>
+        <text x="310" y="72" class="box-label">Alert Manager</text>
+        <rect x="400" y="52" width="140" height="32" rx="4" fill="#0F6E56"/>
+        <text x="470" y="72" class="box-label">Cost Dashboard</text>
+
+        <line x1="340" y1="120" x2="340" y2="95" stroke="#4A90D9" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <text x="370" y="112" class="arrow-label">visualize</text>
+
+        <!-- Layer 4: Analysis (Purple) -->
+        <rect x="40" y="125" width="600" height="70" rx="6" fill="#6C5CE7" opacity="0.2" stroke="#6C5CE7" stroke-width="1"/>
+        <text x="340" y="143" class="layer-label" fill="#A78BFA">Layer 4 &mdash; Analysis &amp; Query</text>
+        <rect x="80" y="152" width="160" height="32" rx="4" fill="#6C5CE7"/>
+        <text x="160" y="172" class="box-label">Trace Explorer</text>
+        <rect x="260" y="152" width="160" height="32" rx="4" fill="#6C5CE7"/>
+        <text x="340" y="172" class="box-label">Log Query Engine</text>
+        <rect x="440" y="152" width="160" height="32" rx="4" fill="#6C5CE7"/>
+        <text x="520" y="172" class="box-label">Metric Aggregator</text>
+
+        <line x1="340" y1="220" x2="340" y2="195" stroke="#4A90D9" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <text x="370" y="212" class="arrow-label">query</text>
+
+        <!-- Layer 3: Storage (Gray) -->
+        <rect x="40" y="225" width="600" height="70" rx="6" fill="#555555" opacity="0.25" stroke="#777777" stroke-width="1"/>
+        <text x="340" y="243" class="layer-label" fill="#AAAAAA">Layer 3 &mdash; Storage Backends</text>
+        <rect x="80" y="252" width="160" height="32" rx="4" fill="#555555"/>
+        <text x="160" y="272" class="box-label">Tempo / Jaeger</text>
+        <rect x="260" y="252" width="160" height="32" rx="4" fill="#555555"/>
+        <text x="340" y="272" class="box-label">Loki / Elastic</text>
+        <rect x="440" y="252" width="160" height="32" rx="4" fill="#555555"/>
+        <text x="520" y="272" class="box-label">Prometheus / Mimir</text>
+
+        <line x1="340" y1="320" x2="340" y2="295" stroke="#4A90D9" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <text x="370" y="312" class="arrow-label">persist</text>
+
+        <!-- Layer 2: Collection (Blue) -->
+        <rect x="40" y="325" width="600" height="70" rx="6" fill="#185FA5" opacity="0.25" stroke="#185FA5" stroke-width="1"/>
+        <text x="340" y="343" class="layer-label" fill="#8AB4F8">Layer 2 &mdash; Collection Pipeline</text>
+        <rect x="120" y="352" width="200" height="32" rx="4" fill="#185FA5"/>
+        <text x="220" y="372" class="box-label">OpenTelemetry Collector</text>
+        <rect x="360" y="352" width="200" height="32" rx="4" fill="#185FA5"/>
+        <text x="460" y="372" class="box-label">Sampling &amp; Enrichment</text>
+
+        <line x1="340" y1="420" x2="340" y2="395" stroke="#4A90D9" stroke-width="1.5" marker-end="url(#arrow-1)" fill="none"/>
+        <text x="370" y="412" class="arrow-label">emit</text>
+
+        <!-- Layer 1: Instrumentation (Blue) -->
+        <rect x="40" y="425" width="600" height="70" rx="6" fill="#185FA5" opacity="0.15" stroke="#4A90D9" stroke-width="1"/>
+        <text x="340" y="443" class="layer-label" fill="#8AB4F8">Layer 1 &mdash; Agent Instrumentation</text>
+        <rect x="60" y="452" width="120" height="32" rx="4" fill="#2A5F9E"/>
+        <text x="120" y="472" class="box-label">Traces</text>
+        <rect x="200" y="452" width="120" height="32" rx="4" fill="#2A5F9E"/>
+        <text x="260" y="472" class="box-label">Spans</text>
+        <rect x="340" y="452" width="120" height="32" rx="4" fill="#2A5F9E"/>
+        <text x="400" y="472" class="box-label">Logs</text>
+        <rect x="480" y="452" width="120" height="32" rx="4" fill="#2A5F9E"/>
+        <text x="540" y="472" class="box-label">Metrics</text>
+      </svg>
+      <figcaption>Figure 13-1. The five-layer observability stack for agent systems. Telemetry flows upward from instrumentation through collection, storage, and analysis to dashboards.</figcaption>
+    </figure>
+
+    <p><strong>Layer 1: Instrumentation.</strong> Your agent code emits raw telemetry using the OpenTelemetry SDK &mdash; the <code>@traced</code> decorators, the structured logger calls, the metric counters.</p>
+
+    <p><strong>Layer 2: Collection.</strong> The OpenTelemetry Collector receives telemetry, batches it, applies sampling rules, and enriches it with metadata like environment labels and service version tags.</p>
+
+    <p><strong>Layer 3: Storage.</strong> Each signal type goes to a specialized backend. Traces to Tempo or Jaeger, logs to Loki or Elasticsearch, metrics to Prometheus or Mimir. Specialized storage matters because access patterns differ: traces are queried by ID, logs by time range and filter, metrics by aggregation window.</p>
+
+    <p><strong>Layer 4: Analysis.</strong> Query engines let you explore stored telemetry &mdash; trace waterfalls, log search, metric aggregation and anomaly detection.</p>
+
+    <p><strong>Layer 5: Dashboards and Alerts.</strong> Grafana turns raw data into visual panels. Alert rules fire when metrics cross thresholds: latency exceeding 2x p99, error rate above 5%, token usage per run exceeding budget.</p>
+
+    <!-- 13.7 -->
+    <h2>13.7 Debugging Agent Behavior</h2>
+
+    <p>The hardest part of agent observability is knowing what to look for. Agent failures rarely look like traditional bugs. They look like behavioral shifts: the agent used to answer in three steps and now takes nine, or it started calling a tool with slightly different arguments that produce subtly wrong results.</p>
+
+    <h3>Trace Replay</h3>
+
+    <p>The most powerful debugging technique is <strong>trace replay</strong>: pulling the complete trace for a problematic run and walking through every decision. For each span, examine: what was the input? What did the model output? What tool was called, with what arguments? Where did reasoning diverge from the expected path?</p>
+
+<pre><code>class TraceDebugger:
+    """Utility for replaying and analyzing agent traces."""
+
+    def __init__(self, backend_url: str):
+        self.backend_url = backend_url
+
+    def summarize_run(self, trace_id: str) -&gt; str:
+        """Print a human-readable summary of an agent run."""
+        import requests
+        data = requests.get(f"{self.backend_url}/api/traces/{trace_id}").json()
+        spans = sorted(data["spans"], key=lambda s: s["startTimeUnixNano"])
+        lines = []
+        for span in spans:
+            indent = "  " * span.get("depth", 0)
+            ms = (span["endTimeUnixNano"] - span["startTimeUnixNano"]) / 1e6
+            attrs = {a["key"]: a["value"] for a in span.get("attributes", [])}
+            line = f"{indent}{span['name']} ({ms:.0f}ms)"
+            if "llm.model" in attrs:
+                line += f" | model={attrs['llm.model']} tokens={attrs.get('llm.tokens','?')}"
+            elif "tool.name" in attrs:
+                line += f" | tool={attrs['tool.name']}"
+            lines.append(line)
+        return "\n".join(lines)
+
+    def find_anomalies(self, trace_id: str) -&gt; list[str]:
+        """Flag potential issues in a trace."""
+        import requests
+        spans = requests.get(f"{self.backend_url}/api/traces/{trace_id}").json()["spans"]
+        issues = []
+        llm_calls = [s for s in spans if s["name"] == "llm.call"]
+        if len(llm_calls) &gt; 8:
+            issues.append(f"Excessive LLM calls: {len(llm_calls)}")
+        # Detect duplicate tool calls with identical arguments
+        seen = set()
+        for s in spans:
+            if s["name"] != "tool.call": continue
+            attrs = {a["key"]: a["value"] for a in s.get("attributes", [])}
+            key = (attrs.get("tool.name"), attrs.get("tool.arguments"))
+            if key in seen:
+                issues.append(f"Duplicate tool call: {attrs.get('tool.name')}")
+            seen.add(key)
+        return issues</code></pre>
+
+    <h3>Behavioral Baselines</h3>
+
+    <p>To detect drift, you need to know what normal looks like. Establish baselines from known-good runs: average step count, median latency, typical token usage distribution. Then alert when new runs deviate beyond a configurable threshold.</p>
+
+<pre><code>import statistics
+
+class BehavioralBaseline:
+    """Track and compare agent behavior against established baselines."""
+
+    def __init__(self):
+        self.baselines = {}
+
+    def record_baseline(self, query_type: str, runs: list[dict]):
+        """Establish a baseline from known-good runs."""
+        self.baselines[query_type] = {
+            "steps_p95": sorted(r["steps"] for r in runs)[int(len(runs) * 0.95)],
+            "tokens_median": statistics.median(r["total_tokens"] for r in runs),
+            "latency_p95": sorted(r["duration_ms"] for r in runs)[int(len(runs) * 0.95)],
+        }
+
+    def check_run(self, query_type: str, run: dict) -&gt; list[str]:
+        """Check a run against baseline, return warnings."""
+        b = self.baselines.get(query_type)
+        if not b: return []
+        warnings = []
+        if run["steps"] &gt; b["steps_p95"] * 1.5:
+            warnings.append(f"Steps {run['steps']} exceeds 1.5x p95 ({b['steps_p95']})")
+        if run["total_tokens"] &gt; b["tokens_median"] * 3:
+            warnings.append(f"Tokens {run['total_tokens']} exceeds 3x median ({b['tokens_median']})")
+        if run["duration_ms"] &gt; b["latency_p95"] * 2:
+            warnings.append(f"Latency {run['duration_ms']:.0f}ms exceeds 2x p95 ({b['latency_p95']:.0f}ms)")
+        return warnings</code></pre>
+
+    <div class="callout info">
+      <span class="callout-label">The Hardest Bug: Correct Format, Wrong Content</span>
+      <p>The most insidious agent failures produce output that is syntactically perfect but semantically wrong. The JSON is valid, the tone is professional, the citations are formatted correctly &mdash; but the answer is factually incorrect. These bugs are invisible to traditional monitoring. The only defense is logging the full reasoning chain and periodically sampling runs for human review.</p>
+    </div>
+
+    <!-- 13.8 -->
+    <h2>13.8 Building Dashboards</h2>
+
+    <p>A good agent dashboard answers three questions at a glance: <strong>Is the agent working?</strong> (error rates, completion rates), <strong>Is it fast enough?</strong> (latency percentiles), and <strong>Is it affordable?</strong> (token usage, cost per run).</p>
+
+    <p><strong>Run Success Rate (time series).</strong> Percentage of runs completing without errors. A sudden drop signals a systemic issue; a gradual decline signals drift. Target: above 98%.</p>
+
+    <p><strong>Latency Distribution (heatmap).</strong> Plot p50, p95, and p99 on the same chart. If p99 is 10x p50, some runs are hitting a pathological path &mdash; usually a reasoning loop.</p>
+
+    <p><strong>Token Usage per Run (histogram).</strong> The distribution should be roughly normal for a given query type. A fat right tail means some runs are consuming far more tokens than expected &mdash; investigate those by pulling their traces.</p>
+
+    <p><strong>Step Count Distribution (histogram).</strong> An increase in median step count often precedes an increase in error rate &mdash; the agent is struggling more before it fails.</p>
+
+    <p><strong>Tool Call Breakdown (stacked bar).</strong> If a tool that should be called in 5% of runs suddenly appears in 40%, the agent&rsquo;s planning has changed. This is an early warning sign.</p>
+
+<pre><code># Prometheus alerting rules for agent observability
+ALERTING_RULES = """
+groups:
+  - name: agent_alerts
+    rules:
+      - alert: AgentHighErrorRate
+        expr: >
+          rate(agent_errors_total[5m])
+          / rate(agent_run_duration_ms_count[5m]) > 0.05
+        for: 3m
+        labels: { severity: critical }
+        annotations: { summary: "Agent error rate above 5%" }
+
+      - alert: AgentLatencyDegraded
+        expr: >
+          histogram_quantile(0.95, rate(agent_run_duration_ms_bucket[5m]))
+          > 2 * histogram_quantile(0.95, rate(agent_run_duration_ms_bucket[7d]))
+        for: 10m
+        labels: { severity: warning }
+        annotations: { summary: "p95 latency 2x above 7-day baseline" }
+
+      - alert: AgentTokenBudgetBreach
+        expr: >
+          sum(rate(agent_tokens_total[1h])) * 3600
+          > 1.5 * agent_hourly_token_budget
+        for: 5m
+        labels: { severity: critical }
+        annotations: { summary: "Hourly tokens exceed 150% of budget" }
+"""</code></pre>
+
+    <!-- 13.9 -->
+    <h2>13.9 LangSmith and Langfuse Integration</h2>
+
+    <p>General-purpose tools (Grafana, Jaeger, Prometheus) give you the infrastructure layer. Purpose-built LLM observability platforms provide the application layer &mdash; they understand chains, tool calls, and retrieval steps, and provide specialized views for debugging agent behavior.</p>
+
+    <h3>LangSmith</h3>
+
+    <p>LangSmith is LangChain&rsquo;s observability platform. Even without LangChain, you can use its tracing SDK:</p>
+
+<pre><code>from langsmith import traceable
+
+# Requires: LANGCHAIN_TRACING_V2=true, LANGCHAIN_API_KEY, LANGCHAIN_PROJECT
+
+@traceable(name="agent-run", run_type="chain")
+def run_agent(user_input: str) -&gt; str:
+    plan = plan_steps(user_input)
+    results = [execute_step(s) for s in plan]
+    return synthesize_response(results)
+
+@traceable(name="plan-steps", run_type="llm")
+def plan_steps(user_input: str) -&gt; list[str]:
+    import openai
+    client = openai.OpenAI()
+    resp = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "system", "content": "Break this query into steps."},
+                  {"role": "user", "content": user_input}],
+    )
+    return resp.choices[0].message.content.split("\n")
+
+@traceable(name="execute-step", run_type="tool")
+def execute_step(step: str) -&gt; str:
+    return f"Result for: {step}"  # your tool logic here</code></pre>
+
+    <h3>Langfuse</h3>
+
+    <p>Langfuse is an open-source alternative you can self-host. It provides trace visualization, user feedback collection, prompt management, and cost analytics:</p>
+
+<pre><code>from langfuse.decorators import observe, langfuse_context
+
+@observe(as_type="generation")
+def call_llm(messages: list[dict], model: str = "gpt-4o") -&gt; str:
+    import openai
+    response = openai.OpenAI().chat.completions.create(model=model, messages=messages)
+    langfuse_context.update_current_observation(
+        model=model,
+        usage={"input": response.usage.prompt_tokens,
+               "output": response.usage.completion_tokens},
+    )
+    return response.choices[0].message.content
+
+@observe()
+def agent_run(user_input: str) -&gt; str:
+    langfuse_context.update_current_trace(
+        user_id="user-123", metadata={"source": "web-app"},
+    )
+    context = retrieve_context(user_input)
+    response = call_llm([
+        {"role": "system", "content": f"Context: {context}"},
+        {"role": "user", "content": user_input},
+    ])
+    langfuse_context.update_current_trace(output=response, tags=["production"])
+    return response</code></pre>
+
+    <div class="callout tip">
+      <span class="callout-label">Choosing Between Platforms</span>
+      <p>Use LangSmith if you are already in the LangChain ecosystem. Use Langfuse if you need self-hosting or open-source flexibility. Use both with OpenTelemetry as the common transport layer &mdash; instrument once, export to whichever backend you prefer. You can switch platforms without changing your instrumentation code.</p>
+    </div>
+
+    <!-- 13.10 -->
+    <h2>13.10 Common Failure Patterns</h2>
+
+    <p>After operating agents in production, certain failure patterns recur. Recognizing them by their telemetry signature lets you diagnose issues faster.</p>
+
+    <p><strong>The Infinite Loop.</strong> Step count hits the hard cap, token usage is 5&ndash;10x normal, and the last several LLM calls produce near-identical outputs. The agent is stuck in a cycle. Fix: add loop detection that compares consecutive outputs and breaks when similarity exceeds a threshold.</p>
+
+    <p><strong>The Retrieval Miss.</strong> Retrieval spans return zero results or very low similarity scores, but the agent proceeds to answer anyway, hallucinating confidently. Fix: log retrieval scores and configure the agent to decline when retrieval quality is below threshold.</p>
+
+    <p><strong>The Tool Argument Drift.</strong> Tool calls start failing because the model passes slightly wrong arguments &mdash; a date in the wrong format, a renamed field. Fix: version your tool schemas, test tool calls in CI, and log argument validation failures.</p>
+
+    <p><strong>The Context Window Overflow.</strong> Token counts spike for a subset of runs, and output quality drops. The agent accumulated too much context across steps or a retrieval step returned an unusually large document. Fix: track cumulative context size and implement summarization when it exceeds a threshold.</p>
+
+    <!-- Project -->
+    <section class="project">
+      <h2>Project: Agent Observatory</h2>
+      <p>Build a complete observability layer for an agent system. Instrument an existing agent (or the one from Chapter 4) with OpenTelemetry traces, structured logs, and metrics. Create a dashboard that shows run success rate, latency percentiles, token usage, and step count distribution. Implement at least two alert rules. Test by introducing a deliberate failure (e.g., break a tool, inject a slow response) and verify your observability stack detects it.</p>
+
+      <div class="variant-grid">
+        <div class="variant-card">
+          <strong>DevOps Monitor</strong>
+          <span class="variant-domain">Tech / Software</span>
+        </div>
+        <div class="variant-card">
+          <strong>Clinical Trial Tracker</strong>
+          <span class="variant-domain">Healthcare</span>
+        </div>
+        <div class="variant-card">
+          <strong>Transaction Auditor</strong>
+          <span class="variant-domain">Finance</span>
+        </div>
+        <div class="variant-card">
+          <strong>Tutoring Quality Monitor</strong>
+          <span class="variant-domain">Education</span>
+        </div>
+        <div class="variant-card">
+          <strong>Order Fulfillment Observer</strong>
+          <span class="variant-domain">E-commerce</span>
+        </div>
+        <div class="variant-card">
+          <strong>Contract Review Auditor</strong>
+          <span class="variant-domain">Legal</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Summary -->
+    <section class="summary">
+      <h2>Summary</h2>
+
+      <p>Agent observability is the difference between operating a production system and operating a production liability. Unlike traditional services, agents fail silently, behave non-deterministically, and drift in ways no predefined alert can anticipate. The only defense is capturing enough telemetry that you can reconstruct what any agent did, why it did it, and whether the result was correct.</p>
+
+      <ul class="key-takeaways">
+        <li>Agents fail silently &mdash; a 200 status code with a confidently wrong answer is the default failure mode. Observability must capture what the agent did at every step, not just whether it completed.</li>
+        <li>Instrument every LLM call, tool invocation, and retrieval query as a separate span within a trace. Without span-level visibility, you are debugging with a blindfold.</li>
+        <li>Track four metric categories: latency, cost, errors, and quality. Cost tracking is not optional &mdash; a single runaway loop can exceed your daily budget.</li>
+        <li>Establish behavioral baselines from known-good runs and alert on deviations. Step count increases and token usage spikes are leading indicators of quality degradation.</li>
+        <li>Use OpenTelemetry for vendor-neutral instrumentation and export to your platform of choice &mdash; you can switch backends without rewriting instrumentation code.</li>
+      </ul>
+
+      <div class="exercises">
+        <h3>Exercises</h3>
+
+        <div class="exercise-item">
+          <span class="exercise-type conceptual">Conceptual</span>
+          <p>An agent that summarizes customer support tickets has been producing shorter summaries over the past week. No errors are logged, latency is stable, and token usage has decreased. Explain why traditional monitoring would not catch this issue, identify which observability signals would reveal it, and propose an alert rule that would detect this drift.</p>
+        </div>
+
+        <div class="exercise-item">
+          <span class="exercise-type coding">Coding</span>
+          <p>Write a <code>TraceSampler</code> class that implements head-based sampling for agent traces. The sampler should keep 100% of traces containing errors, 100% of traces where step count exceeds a configurable threshold, and a configurable percentage (default 10%) of all other traces. Include unit tests that verify each sampling rule.</p>
+        </div>
+
+        <div class="exercise-item">
+          <span class="exercise-type design">Design</span>
+          <p>Design an observability architecture for a multi-agent system where five specialized agents collaborate to process insurance claims. Each agent has its own tools and LLM calls, and agents communicate through a shared message bus. Sketch the trace structure, identify which metrics are per-agent vs. system-wide, and explain how you would correlate traces across agents handling the same claim.</p>
+        </div>
+      </div>
+    </section>
+
+    <nav class="chapter-footer">
+      <a href="../part-03-multi-agent/ch12-agent-communication.html">&larr; Agent Communication</a>
+      <span>Chapter 13</span>
+      <a href="ch14-security.html">Security &rarr;</a>
+    </nav>
+  </main>
+<script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>

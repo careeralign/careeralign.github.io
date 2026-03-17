@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 9 &mdash; Orchestration | Agentic AI: Build, Ship, Portfolio</title>
+  <link rel="stylesheet" href="../styles/book.css">
+</head>
+<body>
+  <nav class="book-nav">
+    <a href="../part-02-core-patterns/ch08-rag-pipelines.html" class="nav-prev">RAG Pipelines</a>
+    <span class="nav-title">Part 3 &mdash; Multi-Agent Systems</span>
+    <a href="ch10-supervisor-worker.html" class="nav-next">Supervisor-Worker</a>
+  </nav>
+
+  <main class="chapter">
+    <header class="chapter-header">
+      <span class="part-label">Part 3 &mdash; Multi-Agent Systems</span>
+      <h1>Orchestration</h1>
+      <p class="chapter-intro">The insurance claim seemed straightforward. A customer uploaded a photo of hail damage, and the agent kicked off three parallel tasks: image analysis, policy lookup, and fraud scoring. The image analyzer finished first and classified the damage as severe. The policy lookup returned a coverage limit of $15,000. But the fraud scorer timed out &mdash; and no one had programmed what should happen next. The system approved the claim without a fraud check. Forty-seven similar claims later, an auditor discovered that every one came from the same body shop, with identical damage photos rotated by a few degrees. The agent did exactly what it was told. The problem was that nobody told it what to do when a step fails. Orchestration is the discipline of making that impossible.</p>
+      <div class="chapter-meta">
+        <span>Reading time: ~25 min</span>
+        <span>Project: Workflow Orchestrator</span>
+        <span>Variants: Tech / Software, Healthcare, Finance, Education, E-commerce, Legal</span>
+      </div>
+    </header>
+
+    <section class="objectives">
+      <h3>What You Will Learn</h3>
+      <ul>
+        <li>Why ad-hoc agent chaining fails at scale and how state machines impose the structure production systems need</li>
+        <li>How graph-based workflows model complex agent interactions as nodes, edges, and conditional routing</li>
+        <li>The core abstractions of LangGraph &mdash; state, nodes, edges, and conditional edges &mdash; and when each applies</li>
+        <li>How routing patterns direct execution flow based on runtime conditions, model outputs, and external signals</li>
+        <li>Why interrupts and human-in-the-loop checkpoints are essential for high-stakes workflows</li>
+        <li>How checkpointing enables durable execution, replay, and recovery from partial failures</li>
+      </ul>
+    </section>
+
+    <!-- 9.1 -->
+    <h2>9.1 The Problem with Ad-Hoc Chaining</h2>
+
+    <p>The simplest way to coordinate multiple agents is to call them sequentially. Agent A produces output, you pass it to Agent B, Agent B&rsquo;s output feeds Agent C. This works for demos. It breaks the moment any of the following become true: a step can fail, a step needs to be retried, two steps can run in parallel, the output of one step determines which step runs next, a human needs to approve before continuing, or you need to resume a workflow that crashed halfway through.</p>
+
+    <p>Sequential chaining is <strong>implicit orchestration</strong>. The control flow is hidden inside procedural code &mdash; nested if-statements, try-except blocks, boolean flags tracking which steps have completed. Within a month of production traffic, you cannot look at the code and answer a basic question: given the current state of this workflow, what happens next?</p>
+
+    <p>The alternative is <strong>explicit orchestration</strong>: defining the workflow as a data structure &mdash; a graph &mdash; where nodes represent actions, edges represent transitions, and the current position in the graph tells you everything about what has happened and what will happen. This is not a new idea. Business process management, compiler design, and network protocol specification all converged on the same insight decades ago: when control flow gets complex, make it a first-class data structure you can inspect, serialize, and reason about.</p>
+
+    <div class="callout warning">
+      <span class="callout-label">The Hidden Cost of Implicit Orchestration</span>
+      <p>Teams that chain agents with procedural code spend roughly 40% of their debugging time reconstructing what happened. The logs show which functions ran, but not which <em>state</em> the workflow was in when it decided to skip the fraud check or retry the API call. Explicit graphs make state observable by default &mdash; the graph position <em>is</em> the state.</p>
+    </div>
+
+    <!-- 9.2 -->
+    <h2>9.2 State Machines for Agents</h2>
+
+    <p>A finite state machine is the simplest formalism for explicit orchestration. It consists of a finite set of states, a set of transitions between those states, and a current state. At any moment, the system is in exactly one state. Transitions are triggered by events &mdash; an agent completing its work, a timeout firing, a human clicking &ldquo;approve.&rdquo; The machine moves to the next state, and the process repeats until it reaches a terminal state.</p>
+
+    <p>For agent orchestration, the states represent phases of a workflow: &ldquo;analyzing input,&rdquo; &ldquo;retrieving context,&rdquo; &ldquo;generating response,&rdquo; &ldquo;awaiting approval,&rdquo; &ldquo;complete.&rdquo; The transitions encode the rules your business requires: you cannot generate a response before retrieving context, you cannot mark a task complete without approval if the confidence score is below a threshold.</p>
+
+<pre><code>from enum import Enum, auto
+from dataclasses import dataclass, field
+from typing import Callable
+
+class WorkflowState(Enum):
+    """States in an insurance claim processing workflow."""
+    START = auto()
+    ANALYZING_IMAGE = auto()
+    LOOKING_UP_POLICY = auto()
+    SCORING_FRAUD = auto()
+    AWAITING_REVIEW = auto()
+    APPROVED = auto()
+    DENIED = auto()
+    ERROR = auto()
+
+@dataclass
+class Transition:
+    """A transition between two states."""
+    source: WorkflowState
+    target: WorkflowState
+    condition: Callable[[dict], bool] = lambda ctx: True
+    label: str = ""
+
+class StateMachine:
+    """Minimal finite state machine for workflow orchestration."""
+
+    def __init__(self, initial: WorkflowState):
+        self.state = initial
+        self._transitions: list[Transition] = []
+        self._handlers: dict[WorkflowState, Callable] = {}
+        self._history: list[tuple[WorkflowState, WorkflowState]] = []
+
+    def add_transition(self, source, target, condition=None, label=""):
+        self._transitions.append(Transition(
+            source=source,
+            target=target,
+            condition=condition or (lambda ctx: True),
+            label=label,
+        ))
+
+    def on_enter(self, state: WorkflowState, handler: Callable):
+        """Register a handler that runs when entering a state."""
+        self._handlers[state] = handler
+
+    def step(self, context: dict) -&gt; WorkflowState:
+        """Evaluate transitions from the current state and advance."""
+        valid = [
+            t for t in self._transitions
+            if t.source == self.state and t.condition(context)
+        ]
+        if not valid:
+            raise RuntimeError(
+                f"No valid transition from {self.state} "
+                f"with context keys: {list(context.keys())}"
+            )
+        transition = valid[0]  # First matching transition wins
+        old_state = self.state
+        self.state = transition.target
+        self._history.append((old_state, self.state))
+
+        if self.state in self._handlers:
+            self._handlers[self.state](context)
+        return self.state
+
+    def is_terminal(self) -&gt; bool:
+        return self.state in {
+            WorkflowState.APPROVED,
+            WorkflowState.DENIED,
+            WorkflowState.ERROR,
+        }</code></pre>
+
+    <p>This gives you three things that procedural code does not. <strong>Inspectability</strong>: you can serialize the current state and know exactly where the workflow stands. <strong>Determinism</strong>: given a state and a context, the next state is unambiguous. <strong>Recoverability</strong>: if the process crashes, you reload the last saved state and resume from that point, not from the beginning.</p>
+
+    <p>But finite state machines have a limitation: they cannot model <strong>concurrent execution</strong>. In the insurance example, image analysis and policy lookup are independent &mdash; they should run in parallel. A pure FSM forces you to serialize them. This is where graphs generalize the model.</p>
+
+    <!-- 9.3 -->
+    <h2>9.3 Graph-Based Workflows</h2>
+
+    <p>A workflow graph is a directed graph where nodes represent computational steps and edges represent the flow of data and control between them. Unlike a state machine, a graph can express parallelism (a node with two outgoing edges that both execute), convergence (two edges merging into a single node that waits for both), and conditional branching (edges with guard conditions that determine which path to take at runtime).</p>
+
+    <p>The key insight is that a graph separates <em>what</em> happens (nodes) from <em>when and why</em> it happens (edges). You can change execution order without touching individual steps, add a validation node between two existing nodes without rewriting either one, and hand the rendered diagram to a product manager who has never read a line of code.</p>
+
+<pre><code>from typing import Any
+from dataclasses import dataclass, field
+import asyncio
+
+@dataclass
+class Node:
+    """A computational step in the workflow graph."""
+    name: str
+    func: Callable[[dict], dict]
+    description: str = ""
+
+@dataclass
+class Edge:
+    """A connection between two nodes."""
+    source: str
+    target: str
+    condition: Callable[[dict], bool] | None = None
+    label: str = ""
+
+class WorkflowGraph:
+    """A directed graph for orchestrating agent workflows."""
+
+    def __init__(self):
+        self.nodes: dict[str, Node] = {}
+        self.edges: list[Edge] = []
+        self.entry_point: str | None = None
+
+    def add_node(self, name: str, func: Callable, description: str = ""):
+        self.nodes[name] = Node(name=name, func=func, description=description)
+
+    def add_edge(self, source: str, target: str, condition=None, label=""):
+        self.edges.append(Edge(source, target, condition, label))
+
+    def set_entry(self, name: str):
+        self.entry_point = name
+
+    def get_next_nodes(self, current: str, state: dict) -&gt; list[str]:
+        """Return all valid next nodes from the current position."""
+        outgoing = [e for e in self.edges if e.source == current]
+        return [
+            e.target for e in outgoing
+            if e.condition is None or e.condition(state)
+        ]
+
+    async def run(self, initial_state: dict) -&gt; dict:
+        """Execute the graph from the entry point to completion."""
+        if not self.entry_point:
+            raise ValueError("No entry point set")
+
+        state = dict(initial_state)
+        current_nodes = [self.entry_point]
+        visited = set()
+
+        while current_nodes:
+            # Run all current nodes in parallel
+            tasks = []
+            for node_name in current_nodes:
+                if node_name in visited:
+                    continue
+                visited.add(node_name)
+                node = self.nodes[node_name]
+                tasks.append(self._execute_node(node, state))
+
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+
+            # Merge results into state
+            for result in results:
+                if isinstance(result, Exception):
+                    state["_error"] = str(result)
+                    return state
+                state.update(result)
+
+            # Determine next nodes
+            next_nodes = []
+            for node_name in current_nodes:
+                next_nodes.extend(self.get_next_nodes(node_name, state))
+            current_nodes = list(set(next_nodes))
+
+        return state
+
+    async def _execute_node(self, node: Node, state: dict) -&gt; dict:
+        if asyncio.iscoroutinefunction(node.func):
+            return await node.func(state)
+        return node.func(state)</code></pre>
+
+    <div class="callout tip">
+      <span class="callout-label">Graphs Are Inspectable by Default</span>
+      <p>A graph-based workflow can be serialized to JSON, rendered as a diagram, and diffed in version control. When a claim is approved incorrectly, you do not grep through logs &mdash; you render the graph with the path that was taken highlighted. The audit trail is the execution trace through the graph.</p>
+    </div>
+
+    <!-- ── Diagram 1: LangGraph State Machine ── -->
+    <figure class="diagram">
+      <svg viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LangGraph state machine diagram showing nodes, edges, and conditional routing">
+        <defs>
+          <marker id="arrow-1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/>
+          </marker>
+        </defs>
+        <style>
+          .node-agent { fill: #7c3aed; rx: 10; ry: 10; }
+          .node-cond  { fill: #0d9488; }
+          .node-term  { fill: #64748b; rx: 10; ry: 10; }
+          .edge-line  { stroke: #94a3b8; stroke-width: 2; marker-end: url(#arrow-1); }
+          .edge-cond  { stroke: #0d9488; stroke-width: 2; stroke-dasharray: 6 3; marker-end: url(#arrow-1); }
+          .lbl        { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; fill: #e2e8f0; }
+          .lbl-edge   { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; fill: #94a3b8; font-size: 11px; }
+          .lbl-title  { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; fill: #cbd5e1; font-size: 13px; font-weight: 700; }
+          @media (prefers-color-scheme: light) {
+            .lbl-edge { fill: #475569; }
+            .lbl-title { fill: #334155; }
+          }
+        </style>
+        <rect width="680" height="420" rx="12" fill="#1e293b"/>
+        <text x="340" y="30" text-anchor="middle" class="lbl-title" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#cbd5e1">LangGraph State Machine &mdash; Nodes, Edges &amp; Conditional Routing</text>
+
+        <!-- START node -->
+        <rect x="280" y="50" width="120" height="36" class="node-term" rx="10" ry="10" fill="#64748b"/>
+        <text x="340" y="73" text-anchor="middle" class="lbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e2e8f0">START</text>
+
+        <!-- Edge: START -> Analyze -->
+        <line x1="340" y1="86" x2="340" y2="120" class="edge-line" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow-1)"/>
+
+        <!-- Analyze node (agent) -->
+        <rect x="260" y="120" width="160" height="40" class="node-agent" rx="10" ry="10" fill="#7c3aed"/>
+        <text x="340" y="145" text-anchor="middle" class="lbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e2e8f0">Analyze Input</text>
+
+        <!-- Edge: Analyze -> Router -->
+        <line x1="340" y1="160" x2="340" y2="195" class="edge-line" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow-1)"/>
+
+        <!-- Conditional router (diamond) -->
+        <polygon points="340,195 385,225 340,255 295,225" class="node-cond" fill="#0d9488"/>
+        <text x="340" y="230" text-anchor="middle" class="lbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#e2e8f0">Route?</text>
+
+        <!-- Left branch: simple path -->
+        <line x1="295" y1="225" x2="140" y2="225" class="edge-cond" fill="none" stroke="#0d9488" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#arrow-1)"/>
+        <text x="215" y="218" text-anchor="middle" class="lbl-edge" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" fill="#94a3b8">simple</text>
+        <rect x="50" y="205" width="90" height="40" class="node-agent" rx="10" ry="10" fill="#7c3aed"/>
+        <text x="95" y="230" text-anchor="middle" class="lbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">Respond</text>
+
+        <!-- Right branch: complex path -->
+        <line x1="385" y1="225" x2="530" y2="225" class="edge-cond" fill="none" stroke="#0d9488" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#arrow-1)"/>
+        <text x="455" y="218" text-anchor="middle" class="lbl-edge" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" fill="#94a3b8">needs_tools</text>
+        <rect x="530" y="205" width="110" height="40" class="node-agent" rx="10" ry="10" fill="#7c3aed"/>
+        <text x="585" y="230" text-anchor="middle" class="lbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">Use Tools</text>
+
+        <!-- Edge: Use Tools -> Review -->
+        <line x1="585" y1="245" x2="585" y2="295" class="edge-line" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow-1)"/>
+        <rect x="520" y="295" width="130" height="40" class="node-agent" rx="10" ry="10" fill="#7c3aed"/>
+        <text x="585" y="320" text-anchor="middle" class="lbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">Review Result</text>
+
+        <!-- Edge: Review -> Router (loop back) -->
+        <path d="M520,315 Q460,315 400,270 Q380,255 385,240" class="edge-cond" fill="none" stroke="#0d9488" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#arrow-1)"/>
+        <text x="435" y="285" text-anchor="middle" class="lbl-edge" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#94a3b8">re-evaluate</text>
+
+        <!-- Edge: Respond -> END -->
+        <line x1="95" y1="245" x2="95" y2="360" class="edge-line" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow-1)"/>
+
+        <!-- Center path down from router: error -->
+        <line x1="340" y1="255" x2="340" y2="360" class="edge-cond" fill="none" stroke="#0d9488" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#arrow-1)"/>
+        <text x="360" y="310" text-anchor="start" class="lbl-edge" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" fill="#94a3b8">error</text>
+
+        <!-- END node -->
+        <rect x="160" y="360" width="280" height="36" class="node-term" rx="10" ry="10" fill="#64748b"/>
+        <text x="300" y="383" text-anchor="middle" class="lbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e2e8f0">END</text>
+
+        <!-- Legend -->
+        <rect x="490" y="365" width="14" height="14" rx="3" fill="#7c3aed"/>
+        <text x="510" y="377" class="lbl-edge" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" fill="#94a3b8">Agent Node</text>
+        <rect x="580" y="365" width="14" height="14" rx="2" fill="#0d9488"/>
+        <text x="600" y="377" class="lbl-edge" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" fill="#94a3b8">Conditional</text>
+      </svg>
+      <figcaption>Figure 9-1. A LangGraph state machine with agent nodes (purple), conditional routing edges (teal), and start/end terminals (gray). The conditional router inspects state at runtime to determine which path to take. The loop from Review back to Route enables iterative tool use.</figcaption>
+    </figure>
+
+    <!-- 9.4 -->
+    <h2>9.4 LangGraph Concepts</h2>
+
+    <p>LangGraph is a framework for building agent workflows as graphs. It builds on four core abstractions: <strong>state</strong>, <strong>nodes</strong>, <strong>edges</strong>, and <strong>conditional edges</strong>. Understanding these abstractions matters even if you never use LangGraph directly, because they represent the minimal vocabulary for describing any agent orchestration system.</p>
+
+    <h3>State</h3>
+
+    <p>State is a typed dictionary that flows through the graph. Every node receives the current state and returns an update to it. LangGraph merges the update into the existing state using <strong>reducers</strong> &mdash; functions that define how to combine old and new values. The default reducer replaces the old value with the new one. For accumulating data, you use an append reducer. For counters, you use an add reducer.</p>
+
+<pre><code>from typing import Annotated, TypedDict
+from langgraph.graph import StateGraph
+from operator import add
+
+class ClaimState(TypedDict):
+    """State for insurance claim processing workflow."""
+    claim_id: str
+    image_url: str
+    policy_id: str
+    # Annotated with 'add' reducer: messages accumulate
+    messages: Annotated[list[str], add]
+    damage_assessment: dict | None
+    policy_details: dict | None
+    fraud_score: float | None
+    decision: str | None
+    requires_review: bool</code></pre>
+
+    <p>The state schema is your contract. It defines what information the workflow tracks, what each node can read, and what each node is expected to produce. When a node writes a key that does not exist in the schema, LangGraph raises an error. When a node fails to write a required key, the next node that reads it gets <code>None</code>. This strictness is intentional: it catches integration errors at graph compilation time rather than at 2 AM in production.</p>
+
+    <h3>Nodes</h3>
+
+    <p>A node is a Python function that takes state and returns a partial state update. It can call an LLM, invoke a tool, query a database, or run any arbitrary computation. The only constraint is that it must return a dictionary whose keys are a subset of the state schema.</p>
+
+<pre><code>async def analyze_damage(state: ClaimState) -&gt; dict:
+    """Node: analyze the uploaded damage image."""
+    image_url = state["image_url"]
+    # Call vision model to assess damage
+    assessment = await vision_model.analyze(
+        image_url=image_url,
+        prompt="Assess vehicle damage severity. Return JSON with "
+               "severity (minor/moderate/severe), affected_areas, "
+               "and estimated_repair_cost."
+    )
+    return {
+        "damage_assessment": assessment,
+        "messages": [f"Damage analyzed: {assessment['severity']}"],
+    }
+
+async def lookup_policy(state: ClaimState) -&gt; dict:
+    """Node: retrieve policy details from the database."""
+    policy = await policy_db.get(state["policy_id"])
+    coverage_limit = policy["coverage_limit"]
+    return {
+        "policy_details": policy,
+        "messages": [f"Policy {state['policy_id']}: limit ${coverage_limit:,}"],
+    }
+
+async def score_fraud(state: ClaimState) -&gt; dict:
+    """Node: compute fraud probability score."""
+    score = await fraud_model.predict(
+        claim_id=state["claim_id"],
+        image_url=state["image_url"],
+        damage=state["damage_assessment"],
+    )
+    return {
+        "fraud_score": score,
+        "messages": [f"Fraud score: {score:.2f}"],
+    }</code></pre>
+
+    <h3>Edges and Conditional Edges</h3>
+
+    <p>An edge connects two nodes. A <strong>normal edge</strong> is unconditional: when node A finishes, node B always runs next. A <strong>conditional edge</strong> calls a routing function that inspects the current state and returns the name of the next node. This is how the graph makes decisions.</p>
+
+<pre><code>def route_after_scoring(state: ClaimState) -&gt; str:
+    """Decide the next step based on fraud score and damage severity."""
+    fraud_score = state.get("fraud_score", 0)
+    damage = state.get("damage_assessment", {})
+    severity = damage.get("severity", "unknown")
+
+    if fraud_score &gt; 0.7:
+        return "flag_for_investigation"
+    if severity == "severe" or fraud_score &gt; 0.3:
+        return "human_review"
+    return "auto_approve"
+
+# Building the graph
+graph = StateGraph(ClaimState)
+
+# Add nodes
+graph.add_node("analyze_damage", analyze_damage)
+graph.add_node("lookup_policy", lookup_policy)
+graph.add_node("score_fraud", score_fraud)
+graph.add_node("human_review", human_review)
+graph.add_node("auto_approve", auto_approve)
+graph.add_node("flag_for_investigation", flag_investigation)
+
+# Normal edges
+graph.set_entry_point("analyze_damage")
+graph.add_edge("analyze_damage", "lookup_policy")
+graph.add_edge("lookup_policy", "score_fraud")
+
+# Conditional edge: fraud score determines next node
+graph.add_conditional_edges(
+    "score_fraud",
+    route_after_scoring,
+    {
+        "human_review": "human_review",
+        "auto_approve": "auto_approve",
+        "flag_for_investigation": "flag_for_investigation",
+    },
+)
+
+# Terminal edges
+graph.add_edge("human_review", "__end__")
+graph.add_edge("auto_approve", "__end__")
+graph.add_edge("flag_for_investigation", "__end__")
+
+# Compile
+app = graph.compile()</code></pre>
+
+    <div class="callout info">
+      <span class="callout-label">Compilation Catches Errors Early</span>
+      <p>When you call <code>graph.compile()</code>, LangGraph validates the graph structure: unreachable nodes, missing edges, state schema violations, and cycles without exit conditions. This is the equivalent of a type checker for workflows. A graph that compiles successfully will not fail due to structural errors at runtime &mdash; only due to the logic inside your nodes.</p>
+    </div>
+
+    <!-- 9.5 -->
+    <h2>9.5 Routing Patterns</h2>
+
+    <p>Routing is the mechanism by which a graph decides what happens next. The simplest pattern is <strong>static routing</strong>: edge A always goes to node B. But production workflows demand dynamic decisions, and LangGraph provides several patterns for this.</p>
+
+    <h3>Content-Based Routing</h3>
+
+    <p>The routing function inspects the content of the state &mdash; the output of a previous node &mdash; and selects the next node based on what it finds. This is the most common pattern. The fraud scoring example above is content-based routing: the fraud score determines whether the claim goes to auto-approve, human review, or investigation.</p>
+
+    <h3>Model-Based Routing</h3>
+
+    <p>Instead of writing explicit routing logic, you ask an LLM to decide. This is powerful when the routing decision requires judgment that is hard to encode in rules. The LLM reads the current state and returns a structured decision.</p>
+
+<pre><code>from pydantic import BaseModel, Field
+
+class RoutingDecision(BaseModel):
+    """Structured output for routing decisions."""
+    next_step: str = Field(
+        description="The next node to execute",
+        enum=["research", "draft_response", "escalate_to_human"],
+    )
+    reasoning: str = Field(
+        description="Why this route was chosen",
+    )
+
+async def model_router(state: dict) -&gt; str:
+    """Use an LLM to decide the next step."""
+    decision = await llm.with_structured_output(RoutingDecision).ainvoke(
+        f"Given this customer inquiry and the information gathered so far, "
+        f"decide the next step.\n\n"
+        f"Inquiry: {state['inquiry']}\n"
+        f"Context gathered: {state['context']}\n"
+        f"Confidence: {state['confidence_score']}"
+    )
+    # Log the reasoning for audit trail
+    state["routing_log"].append(decision.reasoning)
+    return decision.next_step</code></pre>
+
+    <h3>Parallel Fan-Out and Fan-In</h3>
+
+    <p>When multiple nodes can execute independently, you fan out from a single node to multiple parallel branches, then fan in to a node that aggregates the results. In LangGraph, you create this by adding multiple edges from the same source node. The target nodes run concurrently, and the fan-in node waits for all of them to write their state updates before executing.</p>
+
+<pre><code># Fan-out: analyze_damage and lookup_policy run in parallel
+graph.add_edge("start", "analyze_damage")
+graph.add_edge("start", "lookup_policy")
+
+# Fan-in: score_fraud waits for both to complete
+graph.add_edge("analyze_damage", "score_fraud")
+graph.add_edge("lookup_policy", "score_fraud")</code></pre>
+
+    <p>This pattern is where the insurance claim example at the opening of this chapter went wrong. The original code ran steps sequentially. When the fraud scorer timed out, the sequential chain simply continued without it. A graph with fan-in makes this failure mode explicit: <code>score_fraud</code> cannot run until both <code>analyze_damage</code> and <code>lookup_policy</code> have written their state. If either times out, <code>score_fraud</code> never executes, and the workflow enters an error state rather than silently proceeding.</p>
+
+    <div class="callout tip">
+      <span class="callout-label">Fan-Out Reduces Latency, Not Cost</span>
+      <p>Running three LLM calls in parallel takes the time of the slowest call instead of the sum of all three. But you still pay for all three calls. Fan-out is a latency optimization. When token costs matter more than response time, sequential execution with early termination (stop the chain if the first step produces a definitive answer) can be more economical.</p>
+    </div>
+
+    <!-- 9.6 -->
+    <h2>9.6 Interrupts and Human-in-the-Loop</h2>
+
+    <p>Not every decision should be made by a machine. High-stakes actions &mdash; approving a $50,000 claim, sending a legal notice, modifying a patient&rsquo;s treatment plan &mdash; require human oversight. An <strong>interrupt</strong> is a deliberate pause in the workflow. The graph stops at a designated node, persists its state, notifies a human, and waits. When the human responds, the graph resumes from exactly where it paused.</p>
+
+    <p>LangGraph implements interrupts through the <code>interrupt_before</code> and <code>interrupt_after</code> parameters at compile time. When execution reaches an interrupt point, the framework raises an <code>InterruptException</code>, saves the current state to the checkpoint store, and returns control to the caller.</p>
+
+<pre><code># Compile with interrupt before human_review node
+app = graph.compile(
+    checkpointer=checkpointer,
+    interrupt_before=["human_review"],
+)
+
+# First invocation runs until the interrupt
+config = {"configurable": {"thread_id": "claim-2847"}}
+result = await app.ainvoke(initial_state, config)
+# result.status == "interrupted"
+# The graph is paused at human_review
+
+# --- Time passes. A human reviews the claim. ---
+
+# Resume with the human's decision injected into state
+await app.aupdate_state(
+    config,
+    {"decision": "approved", "reviewer_notes": "Damage verified via photos"},
+)
+final_result = await app.ainvoke(None, config)
+# Resumes from human_review with updated state</code></pre>
+
+    <p>The interrupt pattern has three critical design considerations. First, <strong>timeouts</strong>: what happens if the human never responds? You need a separate monitoring process that checks for stale interrupts and either escalates or auto-resolves them. Second, <strong>state validity</strong>: the world may have changed while the workflow was paused. The policy may have been updated, the customer may have submitted additional documents. The resuming node should re-validate any state it depends on. Third, <strong>concurrent modifications</strong>: if two reviewers can see the same paused workflow, you need optimistic locking to prevent conflicting updates.</p>
+
+    <div class="callout warning">
+      <span class="callout-label">Interrupts Are Not Optional for Regulated Industries</span>
+      <p>In healthcare, finance, and legal domains, autonomous agent actions on high-stakes decisions can create regulatory liability. An interrupt is not a convenience feature &mdash; it is a compliance requirement. Design your graphs with interrupt points at every action that has legal, financial, or safety consequences. The cost of a 30-second human review is negligible compared to the cost of an automated decision that violates a regulation.</p>
+    </div>
+
+    <!-- ── Diagram 2: State Transition with Interrupts ── -->
+    <figure class="diagram">
+      <svg viewBox="0 0 680 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flowchart showing state transitions with interrupt points for human-in-the-loop review">
+        <defs>
+          <marker id="arrow-2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/>
+          </marker>
+        </defs>
+        <style>
+          .s-node   { fill: #2563eb; rx: 8; ry: 8; }
+          .s-intr   { fill: #f97316; rx: 8; ry: 8; }
+          .s-struct { fill: #64748b; rx: 8; ry: 8; }
+          .s-edge   { stroke: #94a3b8; stroke-width: 2; marker-end: url(#arrow-2); }
+          .s-lbl    { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; fill: #e2e8f0; }
+          .s-elbl   { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; fill: #94a3b8; font-size: 10px; }
+          .s-title  { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; fill: #cbd5e1; font-size: 13px; font-weight: 700; }
+        </style>
+        <rect width="680" height="460" rx="12" fill="#1e293b"/>
+        <text x="340" y="30" text-anchor="middle" class="s-title" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#cbd5e1">State Transitions with Interrupts &amp; Checkpointing</text>
+
+        <!-- Row 1: START -->
+        <rect x="280" y="50" width="120" height="34" class="s-struct" rx="8" ry="8" fill="#64748b"/>
+        <text x="340" y="72" text-anchor="middle" class="s-lbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">START</text>
+        <line x1="340" y1="84" x2="340" y2="114" class="s-edge" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow-2)"/>
+
+        <!-- Row 2: Process Input -->
+        <rect x="255" y="114" width="170" height="38" class="s-node" rx="8" ry="8" fill="#2563eb"/>
+        <text x="340" y="138" text-anchor="middle" class="s-lbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">Process Input</text>
+        <line x1="340" y1="152" x2="340" y2="182" class="s-edge" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow-2)"/>
+
+        <!-- Checkpoint marker 1 -->
+        <rect x="440" y="120" width="90" height="26" rx="4" fill="#334155" stroke="#475569" stroke-width="1"/>
+        <text x="485" y="137" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9" font-weight="600" fill="#94a3b8">CHECKPOINT 1</text>
+        <line x1="425" y1="133" x2="440" y2="133" stroke="#475569" stroke-width="1" stroke-dasharray="3 2" fill="none"/>
+
+        <!-- Row 3: Analyze -->
+        <rect x="255" y="182" width="170" height="38" class="s-node" rx="8" ry="8" fill="#2563eb"/>
+        <text x="340" y="206" text-anchor="middle" class="s-lbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">Analyze &amp; Score</text>
+        <line x1="340" y1="220" x2="340" y2="250" class="s-edge" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow-2)"/>
+
+        <!-- Checkpoint marker 2 -->
+        <rect x="440" y="188" width="90" height="26" rx="4" fill="#334155" stroke="#475569" stroke-width="1"/>
+        <text x="485" y="205" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9" font-weight="600" fill="#94a3b8">CHECKPOINT 2</text>
+        <line x1="425" y1="201" x2="440" y2="201" stroke="#475569" stroke-width="1" stroke-dasharray="3 2" fill="none"/>
+
+        <!-- Row 4: INTERRUPT - Human Review -->
+        <rect x="230" y="250" width="220" height="42" class="s-intr" rx="8" ry="8" fill="#f97316"/>
+        <text x="340" y="267" text-anchor="middle" class="s-lbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#e2e8f0">INTERRUPT</text>
+        <text x="340" y="282" text-anchor="middle" class="s-lbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" fill="#e2e8f0">Human Review Required</text>
+
+        <!-- Side annotation: state persisted -->
+        <rect x="470" y="252" width="150" height="36" rx="4" fill="none" stroke="#f97316" stroke-width="1" stroke-dasharray="4 2"/>
+        <text x="545" y="266" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9" fill="#f97316">State persisted to store</text>
+        <text x="545" y="280" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9" fill="#f97316">Awaiting human input</text>
+        <line x1="450" y1="271" x2="470" y2="271" stroke="#f97316" stroke-width="1" stroke-dasharray="3 2" fill="none"/>
+
+        <!-- Branch: Approve / Reject from interrupt -->
+        <!-- Left: Approve -->
+        <line x1="290" y1="292" x2="160" y2="340" class="s-edge" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow-2)"/>
+        <text x="205" y="310" text-anchor="middle" class="s-elbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#94a3b8">approved</text>
+        <rect x="80" y="340" width="160" height="38" class="s-node" rx="8" ry="8" fill="#2563eb"/>
+        <text x="160" y="364" text-anchor="middle" class="s-lbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">Execute Action</text>
+
+        <!-- Right: Reject -->
+        <line x1="390" y1="292" x2="510" y2="340" class="s-edge" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow-2)"/>
+        <text x="465" y="310" text-anchor="middle" class="s-elbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#94a3b8">rejected</text>
+        <rect x="445" y="340" width="140" height="38" class="s-intr" rx="8" ry="8" fill="#f97316"/>
+        <text x="515" y="364" text-anchor="middle" class="s-lbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">Revise &amp; Retry</text>
+
+        <!-- Retry loop back to Analyze -->
+        <path d="M585,359 Q640,359 640,206 Q640,182 425,200" class="s-edge" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow-2)"/>
+        <text x="648" y="280" text-anchor="start" class="s-elbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#94a3b8" transform="rotate(90,648,280)">retry loop</text>
+
+        <!-- Both converge to END -->
+        <line x1="160" y1="378" x2="280" y2="420" class="s-edge" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow-2)"/>
+        <rect x="280" y="410" width="120" height="34" class="s-struct" rx="8" ry="8" fill="#64748b"/>
+        <text x="340" y="432" text-anchor="middle" class="s-lbl" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">END</text>
+
+        <!-- Legend -->
+        <rect x="30" y="428" width="12" height="12" rx="3" fill="#2563eb"/>
+        <text x="48" y="439" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#94a3b8">State Node</text>
+        <rect x="110" y="428" width="12" height="12" rx="3" fill="#f97316"/>
+        <text x="128" y="439" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#94a3b8">Interrupt</text>
+        <rect x="180" y="428" width="12" height="12" rx="3" fill="#64748b"/>
+        <text x="198" y="439" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#94a3b8">Structural</text>
+      </svg>
+      <figcaption>Figure 9-2. A workflow with interrupt points (coral) where the graph pauses for human review. Checkpoints (dark labels) mark state persistence boundaries. The retry loop allows a rejected workflow to revise and re-enter analysis without losing prior state.</figcaption>
+    </figure>
+
+    <!-- 9.7 -->
+    <h2>9.7 Checkpointing and Durable Execution</h2>
+
+    <p>A checkpoint is a snapshot of the entire graph state at a specific point in execution. Checkpointing serves three purposes: <strong>durability</strong> (surviving process crashes), <strong>resumability</strong> (supporting human-in-the-loop pauses), and <strong>observability</strong> (replaying the exact sequence of state transitions for debugging or audit).</p>
+
+    <p>LangGraph provides a checkpointer interface with implementations for in-memory storage (testing), SQLite (single-machine), and PostgreSQL (production). Every time a node completes, the framework writes a checkpoint. Every checkpoint is identified by a thread ID and a sequence number, forming a complete history of the workflow&rsquo;s execution.</p>
+
+<pre><code>from langgraph.checkpoint.postgres import PostgresSaver
+
+# Production checkpointer with connection pooling
+checkpointer = PostgresSaver.from_conn_string(
+    "postgresql://user:pass@localhost/workflows"
+)
+
+# Compile the graph with checkpointing enabled
+app = graph.compile(checkpointer=checkpointer)
+
+# Every node execution automatically saves a checkpoint
+config = {"configurable": {"thread_id": "claim-2847"}}
+result = await app.ainvoke(initial_state, config)
+
+# If the process crashes after node 3, restart from the last checkpoint
+# The framework detects the existing thread and resumes
+result = await app.ainvoke(None, config)
+
+# Replay: inspect every state the workflow passed through
+history = [state async for state in app.aget_state_history(config)]
+for i, snapshot in enumerate(history):
+    print(f"Step {i}: node={snapshot.metadata.get('source')}, "
+          f"state_keys={list(snapshot.values.keys())}")</code></pre>
+
+    <p>Checkpointing introduces a design question: <strong>what belongs in state?</strong> Everything in the state is serialized at every checkpoint. Store <strong>references and decisions</strong>, not raw data. Store the document ID, not the document. Store the assessment summary, not the full model output. A typical workflow with 8 nodes and 2 KB state generates 16 KB per execution &mdash; trivial for PostgreSQL. Store full LLM responses in state and that jumps to 800 KB per execution. Design your state schema with storage in mind from day one.</p>
+
+    <!-- 9.8 -->
+    <h2>9.8 Error Handling in Graphs</h2>
+
+    <p>Errors in graph-based workflows are fundamentally different from errors in sequential code. In sequential code, an exception propagates up the call stack and you handle it in a catch block. In a graph, an error in one node should not necessarily terminate the entire workflow. The graph should be able to route around errors, retry failed nodes, or enter a degraded mode where it proceeds with partial information.</p>
+
+<pre><code>import asyncio
+from functools import wraps
+
+def with_retry(max_attempts: int = 3, backoff: float = 1.0):
+    """Decorator that adds retry logic to a graph node."""
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(state: dict) -&gt; dict:
+            last_error = None
+            for attempt in range(max_attempts):
+                try:
+                    return await func(state)
+                except Exception as e:
+                    last_error = e
+                    if attempt &lt; max_attempts - 1:
+                        await asyncio.sleep(backoff * (2 ** attempt))
+            # All retries exhausted: return error state
+            return {
+                "messages": [f"Node {func.__name__} failed after "
+                             f"{max_attempts} attempts: {last_error}"],
+                "_error_node": func.__name__,
+                "_error_detail": str(last_error),
+            }
+        return wrapper
+    return decorator
+
+@with_retry(max_attempts=3, backoff=0.5)
+async def score_fraud(state: ClaimState) -&gt; dict:
+    """Fraud scoring with automatic retry."""
+    score = await fraud_model.predict(
+        claim_id=state["claim_id"],
+        image_url=state["image_url"],
+    )
+    return {"fraud_score": score}
+
+def route_with_error_handling(state: ClaimState) -&gt; str:
+    """Router that accounts for node failures."""
+    if state.get("_error_node"):
+        return "error_handler"
+    if state.get("fraud_score", 0) &gt; 0.7:
+        return "flag_for_investigation"
+    return "auto_approve"</code></pre>
+
+    <p>The key principle is: <strong>errors are states, not exceptions</strong>. When a node fails, it writes an error indicator to the state. The routing function reads that indicator and directs the workflow to an error-handling node. The error handler can log the failure, notify an operator, attempt a fallback strategy, or gracefully terminate the workflow with a meaningful status rather than a stack trace.</p>
+
+    <!-- 9.9 -->
+    <h2>9.9 Putting It All Together</h2>
+
+    <p>A complete orchestration system combines all the patterns from this chapter: a graph structure for explicit control flow, typed state for data passing, conditional routing for dynamic decisions, interrupts for human oversight, checkpointing for durability, and error handling for resilience. Here is the full insurance claim workflow, assembled from the pieces we have built.</p>
+
+<pre><code>from langgraph.graph import StateGraph, END
+from langgraph.checkpoint.postgres import PostgresSaver
+
+# Build the complete graph
+workflow = StateGraph(ClaimState)
+
+# Add all nodes
+workflow.add_node("analyze_damage", analyze_damage)
+workflow.add_node("lookup_policy", lookup_policy)
+workflow.add_node("score_fraud", score_fraud)
+workflow.add_node("make_decision", make_decision)
+workflow.add_node("human_review", human_review_node)
+workflow.add_node("execute_decision", execute_decision)
+workflow.add_node("error_handler", handle_error)
+
+# Entry point
+workflow.set_entry_point("analyze_damage")
+
+# Parallel fan-out: damage + policy run concurrently
+workflow.add_edge("analyze_damage", "score_fraud")
+workflow.add_edge("lookup_policy", "score_fraud")
+
+# Conditional routing after fraud scoring
+workflow.add_conditional_edges(
+    "score_fraud",
+    route_with_error_handling,
+    {
+        "auto_approve": "make_decision",
+        "flag_for_investigation": "human_review",
+        "error_handler": "error_handler",
+    },
+)
+
+# Human review leads to decision execution
+workflow.add_edge("human_review", "execute_decision")
+workflow.add_edge("make_decision", "execute_decision")
+workflow.add_edge("execute_decision", END)
+workflow.add_edge("error_handler", END)
+
+# Compile with checkpointing and interrupts
+checkpointer = PostgresSaver.from_conn_string(DB_URL)
+app = workflow.compile(
+    checkpointer=checkpointer,
+    interrupt_before=["human_review"],
+)
+
+# Run
+result = await app.ainvoke(
+    {
+        "claim_id": "CLM-2847",
+        "image_url": "s3://claims/CLM-2847/damage.jpg",
+        "policy_id": "POL-9921",
+        "messages": [],
+        "requires_review": False,
+    },
+    {"configurable": {"thread_id": "claim-2847"}},
+)</code></pre>
+
+    <p>This graph is inspectable: render it as a diagram for compliance review. It is durable: if the server crashes after damage analysis, it resumes from the last checkpoint. It is safe: high-risk claims pause for human review. And it is debuggable: the checkpoint history shows every state transition and routing decision.</p>
+
+    <div class="callout tip">
+      <span class="callout-label">Start Simple, Add Structure as Failures Teach You</span>
+      <p>You do not need a full graph framework for a two-step workflow. Start with sequential code. When you encounter your first failure mode that sequential code cannot handle cleanly &mdash; a timeout, a conditional branch, a need for human approval &mdash; migrate to a graph. Most workflows cross that threshold sooner than you expect.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Project -->
+    <!-- ============================================================ -->
+    <section class="project">
+      <h2>Project: Workflow Orchestrator</h2>
+      <p>Build a graph-based workflow orchestrator that processes domain-specific requests through multiple agent nodes with conditional routing, checkpointing, and human-in-the-loop interrupts. Your orchestrator must support at least three agent nodes, one conditional routing decision, one interrupt point, and checkpoint-based recovery from simulated failures.</p>
+
+      <div class="variant-grid">
+        <div class="variant-card">
+          <strong>Variant A: Deployment Pipeline</strong>
+          <span class="variant-domain">Tech / Software</span>
+        </div>
+        <div class="variant-card">
+          <strong>Variant B: Clinical Trial Triage</strong>
+          <span class="variant-domain">Healthcare</span>
+        </div>
+        <div class="variant-card">
+          <strong>Variant C: Loan Underwriting</strong>
+          <span class="variant-domain">Finance</span>
+        </div>
+        <div class="variant-card">
+          <strong>Variant D: Assignment Grading</strong>
+          <span class="variant-domain">Education</span>
+        </div>
+        <div class="variant-card">
+          <strong>Variant E: Return Processing</strong>
+          <span class="variant-domain">E-commerce</span>
+        </div>
+        <div class="variant-card">
+          <strong>Variant F: Contract Review</strong>
+          <span class="variant-domain">Legal</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Summary -->
+    <!-- ============================================================ -->
+    <section class="summary">
+      <h2>Summary</h2>
+
+      <p>Orchestration is the discipline of making agent workflows explicit, inspectable, and recoverable. Ad-hoc chaining &mdash; calling agents sequentially with procedural control flow &mdash; fails the moment workflows need conditional branching, parallel execution, human oversight, or crash recovery. Graph-based orchestration addresses all of these by representing workflows as directed graphs where nodes are computational steps and edges encode the rules for transitioning between them. LangGraph provides the abstractions to build these graphs in Python: typed state that flows through the graph, nodes that read and update state, edges that connect nodes, conditional edges that route based on runtime conditions, interrupts that pause for human input, and checkpointers that persist state for durability and replay.</p>
+
+      <ul class="key-takeaways">
+        <li><strong>Make control flow a data structure.</strong> When you can inspect, serialize, and render the workflow as a graph, debugging moves from reconstructing what happened to simply looking at the path through the graph. The graph position is the state.</li>
+        <li><strong>State machines enforce discipline, graphs add flexibility.</strong> Finite state machines guarantee that the system is always in exactly one known state. Graph-based workflows extend this with parallelism, fan-out/fan-in, and conditional routing that pure FSMs cannot express.</li>
+        <li><strong>Conditional routing is the decision layer.</strong> Content-based routing uses explicit rules; model-based routing uses LLM judgment. Both read the current state and return the name of the next node. The routing function is the single place where workflow logic lives.</li>
+        <li><strong>Interrupts are a compliance requirement, not a feature.</strong> Any workflow that takes high-stakes actions &mdash; financial, legal, medical &mdash; must include human-in-the-loop checkpoints. The cost of a human review is always less than the cost of an automated mistake in regulated domains.</li>
+        <li><strong>Checkpointing makes workflows durable and auditable.</strong> Every node completion saves a snapshot. Crashed workflows resume from the last checkpoint. The checkpoint history is a complete audit trail of every state transition and routing decision.</li>
+      </ul>
+
+      <div class="exercises">
+        <h3>Exercises</h3>
+
+        <div class="exercise-item">
+          <span class="exercise-type conceptual">Conceptual</span>
+          <p><strong>Failure mode analysis.</strong> You have a five-node workflow where nodes 2 and 3 run in parallel (fan-out from node 1, fan-in at node 4). Node 3 consistently times out after 30 seconds for 5% of requests. Design three different strategies for handling this: (a) fail the entire workflow, (b) proceed with partial data, (c) retry with exponential backoff. For each strategy, describe the trade-offs in terms of latency, correctness, and user experience. Which would you choose for a customer-facing application, and why?</p>
+        </div>
+
+        <div class="exercise-item">
+          <span class="exercise-type coding">Coding</span>
+          <p><strong>Graph visualization.</strong> Write a function that takes a compiled LangGraph and outputs a Mermaid diagram string. The function should represent nodes as rectangles, conditional edges as diamond decision points, and interrupt points with a distinct color. Test it on a graph with at least five nodes and two conditional edges. Bonus: add the ability to overlay a specific execution trace, highlighting the path that was taken in a different color.</p>
+        </div>
+
+        <div class="exercise-item">
+          <span class="exercise-type design">Design</span>
+          <p><strong>Multi-tenant orchestration.</strong> Design an orchestration platform where different teams can define their own workflows using a shared pool of agent nodes. Address: how teams compose graphs from a node registry, how state schemas are validated when connecting nodes from different teams, how you prevent one team&rsquo;s long-running workflow from starving another team&rsquo;s resources, and how you version workflows so that in-flight executions continue on the old graph while new executions use the updated graph.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="chapter-footer">
+    <a href="../part-02-core-patterns/ch08-rag-pipelines.html">&larr; RAG Pipelines</a>
+    <span>Agentic AI: Build, Ship, Portfolio</span>
+    <a href="ch10-supervisor-worker.html">Next: Supervisor-Worker &rarr;</a>
+  </footer>
+<script src="../scripts/sidebar.js"></script>
+<script src="../scripts/insights.js"></script>
+</body>
+</html>
