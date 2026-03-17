@@ -1577,13 +1577,58 @@
     return window.location.pathname.split('/').pop() || '';
   }
 
-  function buildInsightPanel(insights) {
+  // ── Notebook mapping (chapter filename → notebook filename) ──
+  var NOTEBOOKS = {
+    'ch01-what-is-agentic-ai.html': 'ch01-what-is-agentic-ai.ipynb',
+    'ch02-llm-primitives.html': 'ch02-llm-primitives.ipynb',
+    'ch03-agent-anatomy.html': 'ch03-agent-anatomy.ipynb',
+    'ch04-first-agent.html': 'ch04-first-agent.ipynb',
+    'ch05-reasoning-patterns.html': 'ch05-reasoning-patterns.ipynb',
+    'ch06-tool-use.html': 'ch06-tool-use.ipynb',
+    'ch07-memory.html': 'ch07-memory.ipynb',
+    'ch08-rag-pipelines.html': 'ch08-rag-pipelines.ipynb',
+    'ch09-orchestration.html': 'ch09-orchestration.ipynb',
+    'ch10-supervisor-worker.html': 'ch10-supervisor-worker.ipynb',
+    'ch11-human-in-the-loop.html': 'ch11-human-in-the-loop.ipynb',
+    'ch12-agent-communication.html': 'ch12-agent-communication.ipynb',
+    'ch13-observability.html': 'ch13-observability.ipynb',
+    'ch14-security.html': 'ch14-security.ipynb',
+    'ch15-deployment.html': 'ch15-deployment.ipynb',
+    'capstone-01.html': 'capstone-01-research-assistant.ipynb',
+    'capstone-02.html': 'capstone-02-code-review-agent.ipynb',
+    'capstone-03.html': 'capstone-03-customer-support.ipynb',
+    'capstone-04.html': 'capstone-04-data-pipeline.ipynb'
+  };
+
+  var GITHUB_NOTEBOOKS_BASE = 'https://github.com/careeralign/careeralign.github.io/blob/main/agenticai/book/notebooks/';
+  var COLAB_BASE = 'https://colab.research.google.com/github/careeralign/careeralign.github.io/blob/main/agenticai/book/notebooks/';
+
+  function buildNotebookCard(chapter) {
+    var nb = NOTEBOOKS[chapter];
+    if (!nb) return '';
+    var colabUrl = COLAB_BASE + nb;
+    var githubUrl = GITHUB_NOTEBOOKS_BASE + nb;
+    var html = '';
+    html += '<div class="notebook-card">';
+    html += '<div class="notebook-label">Companion Notebook</div>';
+    html += '<div class="notebook-links">';
+    html += '<a href="' + colabUrl + '" target="_blank" rel="noopener" class="notebook-link colab-link">';
+    html += '<img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab">';
+    html += '</a>';
+    html += '<a href="' + githubUrl + '" target="_blank" rel="noopener" class="notebook-link github-link">View on GitHub</a>';
+    html += '</div>';
+    html += '</div>';
+    return html;
+  }
+
+  function buildInsightPanel(insights, chapter) {
     var html = '';
     html += '<div class="insight-header">';
     html += '<div class="insight-header-title">Why This Matters to You</div>';
     html += '<div class="insight-header-sub">Context as you read</div>';
     html += '</div>';
     html += '<div class="insight-body">';
+    html += buildNotebookCard(chapter);
 
     for (var i = 0; i < insights.length; i++) {
       var ins = insights[i];
@@ -1627,7 +1672,7 @@
     // Create panel
     var panel = document.createElement('aside');
     panel.className = 'insight-panel';
-    panel.innerHTML = buildInsightPanel(insights);
+    panel.innerHTML = buildInsightPanel(insights, chapter);
     document.body.appendChild(panel);
 
     // Setup scroll spy for insight cards
