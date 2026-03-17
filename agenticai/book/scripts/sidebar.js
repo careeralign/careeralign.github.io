@@ -297,6 +297,7 @@
     var current = getCurrentHref();
     var html = '';
 
+    html += '<div class="sidebar-home"><a href="https://careeralign.com/">&#127919; CareerAlign Home</a></div>';
     html += '<div class="sidebar-header">';
     html += '<a href="' + base + 'index.html" class="sidebar-title">Agentic AI</a>';
     html += '</div>';
