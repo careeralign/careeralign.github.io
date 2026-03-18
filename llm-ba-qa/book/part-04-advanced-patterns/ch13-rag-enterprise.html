@@ -37,6 +37,112 @@
       </ul>
     </section>
 
+    <!-- SVG Diagram: RAG Architecture Overview -->
+    <figure>
+      <svg viewBox="0 0 900 320" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif;background:#fff;border-radius:8px;border:1px solid #e0e0e0">
+        <!-- User Query -->
+        <rect x="20" y="130" width="120" height="56" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="80" y="154" text-anchor="middle" fill="#333" font-size="13" font-weight="600">User Query</text>
+        <text x="80" y="172" text-anchor="middle" fill="#666" font-size="11">"Refund policy?"</text>
+        <!-- Arrow 1 -->
+        <line x1="140" y1="158" x2="180" y2="158" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowCh13)"/>
+        <!-- Query Enhancement -->
+        <rect x="180" y="120" width="130" height="76" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="245" y="148" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Query</text>
+        <text x="245" y="164" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Enhancement</text>
+        <text x="245" y="182" text-anchor="middle" fill="#666" font-size="10">HyDE / Decompose</text>
+        <!-- Arrow 2 -->
+        <line x1="310" y1="158" x2="350" y2="158" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowCh13)"/>
+        <!-- Vector Search -->
+        <rect x="350" y="100" width="140" height="56" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="420" y="124" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">Vector Search</text>
+        <text x="420" y="142" text-anchor="middle" fill="#fff" font-size="11">Similarity matching</text>
+        <!-- Knowledge Base below -->
+        <rect x="365" y="190" width="110" height="44" rx="6" fill="#f5f5f5" stroke="#666" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="420" y="210" text-anchor="middle" fill="#666" font-size="11" font-weight="600">Knowledge Base</text>
+        <text x="420" y="224" text-anchor="middle" fill="#666" font-size="10">Docs / Wikis / PDFs</text>
+        <line x1="420" y1="156" x2="420" y2="190" stroke="#666" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <!-- Arrow 3 -->
+        <line x1="490" y1="128" x2="540" y2="128" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowCh13)"/>
+        <!-- Retrieved Context + Query box -->
+        <rect x="540" y="105" width="130" height="76" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="605" y="133" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Context + Query</text>
+        <text x="605" y="150" text-anchor="middle" fill="#666" font-size="10">Retrieved chunks</text>
+        <text x="605" y="166" text-anchor="middle" fill="#666" font-size="10">+ original question</text>
+        <!-- Arrow 4 -->
+        <line x1="670" y1="143" x2="710" y2="143" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowCh13)"/>
+        <!-- LLM -->
+        <rect x="710" y="118" width="80" height="50" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="750" y="140" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">LLM</text>
+        <text x="750" y="156" text-anchor="middle" fill="#fff" font-size="10">GPT-4o</text>
+        <!-- Arrow 5 -->
+        <line x1="790" y1="143" x2="810" y2="143" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowCh13)"/>
+        <!-- Grounded Answer -->
+        <rect x="810" y="115" width="80" height="56" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="850" y="138" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Grounded</text>
+        <text x="850" y="154" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Answer</text>
+        <text x="850" y="168" text-anchor="middle" fill="#666" font-size="9">+ citations</text>
+        <!-- Title -->
+        <text x="450" y="38" text-anchor="middle" fill="#333" font-size="16" font-weight="700">RAG Architecture Overview</text>
+        <text x="450" y="58" text-anchor="middle" fill="#666" font-size="12">Retrieval-Augmented Generation connects LLMs to enterprise knowledge</text>
+        <!-- Arrow marker -->
+        <defs>
+          <marker id="arrowCh13" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+      </svg>
+      <figcaption>Figure 13.1 — The RAG pipeline transforms a user query into a grounded answer by retrieving relevant document chunks and providing them as context to the LLM.</figcaption>
+    </figure>
+
+    <!-- SVG Diagram: Document Chunking Strategies -->
+    <figure>
+      <svg viewBox="0 0 900 300" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif;background:#fff;border-radius:8px;border:1px solid #e0e0e0">
+        <text x="450" y="35" text-anchor="middle" fill="#333" font-size="16" font-weight="700">Document Chunking Strategies</text>
+        <!-- Fixed Size Column -->
+        <text x="150" y="70" text-anchor="middle" fill="var(--accent)" font-size="14" font-weight="700">Fixed Size</text>
+        <text x="150" y="88" text-anchor="middle" fill="#666" font-size="11">Uniform blocks</text>
+        <rect x="70" y="100" width="160" height="34" rx="4" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1"/>
+        <text x="150" y="122" text-anchor="middle" fill="#333" font-size="11">500 characters</text>
+        <rect x="70" y="140" width="160" height="34" rx="4" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1"/>
+        <text x="150" y="162" text-anchor="middle" fill="#333" font-size="11">500 characters</text>
+        <rect x="70" y="180" width="160" height="34" rx="4" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1"/>
+        <text x="150" y="202" text-anchor="middle" fill="#333" font-size="11">500 characters</text>
+        <rect x="70" y="220" width="160" height="34" rx="4" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1"/>
+        <text x="150" y="242" text-anchor="middle" fill="#333" font-size="11">500 characters</text>
+        <text x="150" y="278" text-anchor="middle" fill="#666" font-size="10">Simple but may split mid-thought</text>
+        <!-- Semantic Column -->
+        <text x="450" y="70" text-anchor="middle" fill="var(--accent)" font-size="14" font-weight="700">Semantic</text>
+        <text x="450" y="88" text-anchor="middle" fill="#666" font-size="11">Variable blocks by topic</text>
+        <rect x="370" y="100" width="160" height="50" rx="4" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1"/>
+        <text x="450" y="122" text-anchor="middle" fill="#333" font-size="11">Section: Auth</text>
+        <text x="450" y="138" text-anchor="middle" fill="#666" font-size="9">(280 chars)</text>
+        <rect x="370" y="156" width="160" height="70" rx="4" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1"/>
+        <text x="450" y="185" text-anchor="middle" fill="#333" font-size="11">Section: Payments</text>
+        <text x="450" y="201" text-anchor="middle" fill="#666" font-size="9">(620 chars)</text>
+        <rect x="370" y="232" width="160" height="30" rx="4" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1"/>
+        <text x="450" y="252" text-anchor="middle" fill="#333" font-size="11">Section: FAQ (150)</text>
+        <text x="450" y="278" text-anchor="middle" fill="#666" font-size="10">Preserves meaning boundaries</text>
+        <!-- Hierarchical Column -->
+        <text x="750" y="70" text-anchor="middle" fill="var(--accent)" font-size="14" font-weight="700">Hierarchical</text>
+        <text x="750" y="88" text-anchor="middle" fill="#666" font-size="11">Parent-child tree</text>
+        <!-- Parent block -->
+        <rect x="670" y="100" width="160" height="160" rx="4" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="750" y="118" text-anchor="middle" fill="#333" font-size="11" font-weight="600">Parent (2000 chars)</text>
+        <!-- Children inside -->
+        <rect x="682" y="128" width="136" height="28" rx="3" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1"/>
+        <text x="750" y="147" text-anchor="middle" fill="#333" font-size="10">Child 1 (400)</text>
+        <rect x="682" y="162" width="136" height="28" rx="3" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1"/>
+        <text x="750" y="181" text-anchor="middle" fill="#333" font-size="10">Child 2 (400)</text>
+        <rect x="682" y="196" width="136" height="28" rx="3" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1"/>
+        <text x="750" y="215" text-anchor="middle" fill="#333" font-size="10">Child 3 (400)</text>
+        <rect x="682" y="230" width="136" height="22" rx="3" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1"/>
+        <text x="750" y="246" text-anchor="middle" fill="#333" font-size="10">Child 4 (400)</text>
+        <text x="750" y="278" text-anchor="middle" fill="#666" font-size="10">Precise retrieval + rich context</text>
+      </svg>
+      <figcaption>Figure 13.2 — Three chunking strategies compared. Fixed-size splits uniformly, semantic splits by topic, and hierarchical uses parent-child relationships for precise retrieval with full context.</figcaption>
+    </figure>
+
     <!-- Section 1 -->
     <section>
       <h2>13.1 Why RAG Matters for Analysts</h2>
@@ -76,109 +182,23 @@
     <section>
       <h2>13.2 Building a Knowledge Base</h2>
 
-      <p>Before you can retrieve anything, you need to ingest your enterprise documents into a searchable knowledge base. This involves loading documents from various formats, extracting clean text, and preparing them for chunking and embedding.</p>
+      <p>Before you can retrieve anything, you need to ingest your enterprise documents into a searchable knowledge base. This involves three steps: <strong>loading</strong> documents from various formats (Markdown, PDF, Word, HTML), <strong>extracting</strong> clean text content, and <strong>preparing</strong> them for chunking and embedding.</p>
 
-      <pre><code class="language-python">import os
-from pathlib import Path
-from dataclasses import dataclass, field
-from datetime import datetime
+      <p>A typical document loader scans a directory, detects file types by extension, and uses format-specific extractors: PyMuPDF for PDFs, python-docx for Word files, and BeautifulSoup for HTML. Each loaded document carries a unique ID (usually a content hash), the source file path, file type, last-modified timestamp, and metadata such as filename and file size. These metadata fields become critical later when you need to filter retrieval results by department, recency, or document type, and when you cite sources in generated answers.</p>
 
-@dataclass
-class Document:
-    """Represents a single source document."""
-    content: str
-    metadata: dict = field(default_factory=dict)
-    doc_id: str = ""
-    source: str = ""
-    doc_type: str = ""
-    last_modified: str = ""
+      <!-- Code block removed — DocumentLoader implementation details
+           are available in the companion notebook. The key concept is
+           format-aware text extraction with rich metadata. -->
 
-    def __post_init__(self):
-        if not self.doc_id:
-            import hashlib
-            self.doc_id = hashlib.md5(self.content.encode()).hexdigest()[:12]
+      <p>Key design decisions for your document loader:</p>
+      <ul>
+        <li><strong>Error handling:</strong> Skip files that fail to parse rather than crashing the entire pipeline. Log warnings so you can fix format issues later.</li>
+        <li><strong>Metadata richness:</strong> Capture as much metadata as possible at ingestion time — filename, directory, size, last modified date. You cannot add metadata after embedding without re-indexing.</li>
+        <li><strong>Deduplication:</strong> Use content hashing to detect and skip duplicate documents. The same policy document living in three wikis should be indexed once.</li>
+      </ul>
 
-
-class DocumentLoader:
-    """Load documents from various enterprise sources."""
-
-    def load_directory(self, dir_path: str,
-                       extensions: list[str] = None) -> list[Document]:
-        """Recursively load documents from a directory."""
-        extensions = extensions or [".txt", ".md", ".pdf", ".docx", ".html"]
-        documents = []
-        root = Path(dir_path)
-
-        for file_path in root.rglob("*"):
-            if file_path.suffix.lower() in extensions:
-                doc = self._load_file(file_path)
-                if doc:
-                    documents.append(doc)
-
-        print(f"Loaded {len(documents)} documents from {dir_path}")
-        return documents
-
-    def _load_file(self, file_path: Path) -> Document | None:
-        """Load a single file into a Document object."""
-        try:
-            if file_path.suffix == ".pdf":
-                content = self._extract_pdf(file_path)
-            elif file_path.suffix == ".docx":
-                content = self._extract_docx(file_path)
-            elif file_path.suffix == ".html":
-                content = self._extract_html(file_path)
-            else:
-                content = file_path.read_text(encoding="utf-8")
-
-            return Document(
-                content=content,
-                source=str(file_path),
-                doc_type=file_path.suffix,
-                last_modified=datetime.fromtimestamp(
-                    file_path.stat().st_mtime
-                ).isoformat(),
-                metadata={
-                    "filename": file_path.name,
-                    "directory": str(file_path.parent),
-                    "size_bytes": file_path.stat().st_size,
-                }
-            )
-        except Exception as e:
-            print(f"  Warning: Could not load {file_path}: {e}")
-            return None
-
-    def _extract_pdf(self, path: Path) -> str:
-        """Extract text from PDF using PyMuPDF."""
-        import fitz  # PyMuPDF
-        doc = fitz.open(str(path))
-        text_parts = []
-        for page in doc:
-            text_parts.append(page.get_text())
-        doc.close()
-        return "\n\n".join(text_parts)
-
-    def _extract_docx(self, path: Path) -> str:
-        """Extract text from Word documents."""
-        from docx import Document as DocxDoc
-        doc = DocxDoc(str(path))
-        return "\n\n".join(p.text for p in doc.paragraphs if p.text.strip())
-
-    def _extract_html(self, path: Path) -> str:
-        """Extract text from HTML, stripping tags."""
-        from bs4 import BeautifulSoup
-        html = path.read_text(encoding="utf-8")
-        soup = BeautifulSoup(html, "html.parser")
-        for tag in soup(["script", "style", "nav", "footer"]):
-            tag.decompose()
-        return soup.get_text(separator="\n", strip=True)
-
-
-# Usage
-loader = DocumentLoader()
-docs = loader.load_directory("./company_knowledge_base",
-                              extensions=[".md", ".pdf", ".docx"])
-print(f"Total characters: {sum(len(d.content) for d in docs):,}")
-</code></pre>
+      <!-- Removed: ~100-line DocumentLoader class with format-specific extractors.
+           BA/QA analysts configure these tools rather than code them from scratch. -->
 
       <p>A well-organized knowledge base is the foundation of RAG quality. Garbage in, garbage out applies doubly here — if your source documents are poorly formatted, duplicated, or outdated, the LLM will faithfully retrieve and cite bad information.</p>
 
@@ -191,130 +211,19 @@ print(f"Total characters: {sum(len(d.content) for d in docs):,}")
     <section>
       <h2>13.3 Document Chunking Strategies</h2>
 
-      <p>Documents must be split into chunks small enough to fit in an embedding model's context window and focused enough to be relevant to a specific question. This is where most RAG implementations succeed or fail.</p>
+      <p>Documents must be split into chunks small enough to fit in an embedding model's context window and focused enough to be relevant to a specific question. This is where most RAG implementations succeed or fail. The Figure 13.2 above shows three primary strategies visually.</p>
 
-      <pre><code class="language-python">from dataclasses import dataclass
+      <p>Each chunk is a self-contained unit of text with a document ID, chunk index, and metadata inherited from the source document. The three main chunking strategies work as follows:</p>
 
-@dataclass
-class Chunk:
-    """A chunk of text from a document, ready for embedding."""
-    text: str
-    doc_id: str
-    chunk_index: int
-    metadata: dict
+      <ul>
+        <li><strong>Fixed-size chunking</strong> splits text into equal-length segments (typically 500 characters) with overlap between consecutive chunks (typically 100 characters). It tries to break at sentence boundaries to avoid splitting mid-thought. Simple and predictable, but can fragment a single idea across two chunks.</li>
+        <li><strong>Semantic chunking</strong> splits on document structure markers like headings and paragraph breaks. It preserves meaning boundaries, so a chunk about "authentication" stays together rather than being mixed with "payment processing." This produces variable-sized chunks, which is usually a benefit.</li>
+        <li><strong>Parent-child chunking</strong> creates large parent chunks (around 2,000 characters) with smaller child chunks (around 400 characters) nested inside. The system searches against child chunks for precision, but returns the parent chunk to the LLM for richer context. This is the most sophisticated strategy and works best for long documents with context dependencies.</li>
+      </ul>
 
-    @property
-    def char_count(self) -> int:
-        return len(self.text)
-
-
-class ChunkingStrategy:
-    """Various strategies for splitting documents into chunks."""
-
-    @staticmethod
-    def fixed_size(doc: Document, chunk_size: int = 500,
-                   overlap: int = 100) -> list[Chunk]:
-        """Split text into fixed-size chunks with overlap.
-        Simple but can split mid-sentence or mid-paragraph."""
-        chunks = []
-        text = doc.content
-        start = 0
-        index = 0
-
-        while start < len(text):
-            end = start + chunk_size
-            chunk_text = text[start:end]
-
-            # Try to end at a sentence boundary
-            if end < len(text):
-                last_period = chunk_text.rfind(".")
-                last_newline = chunk_text.rfind("\n")
-                boundary = max(last_period, last_newline)
-                if boundary > chunk_size * 0.5:  # Don't shrink too much
-                    chunk_text = chunk_text[:boundary + 1]
-                    end = start + boundary + 1
-
-            chunks.append(Chunk(
-                text=chunk_text.strip(),
-                doc_id=doc.doc_id,
-                chunk_index=index,
-                metadata={**doc.metadata, "chunk_method": "fixed_size"}
-            ))
-            start = end - overlap
-            index += 1
-
-        return chunks
-
-    @staticmethod
-    def semantic_sections(doc: Document,
-                          max_chunk_size: int = 1000) -> list[Chunk]:
-        """Split on document structure: headings, sections, paragraphs.
-        Preserves semantic boundaries for better retrieval."""
-        import re
-        chunks = []
-
-        # Split on markdown-style headings or double newlines
-        sections = re.split(r'\n(?=#{1,3}\s)|(?:\n\s*\n)', doc.content)
-        sections = [s.strip() for s in sections if s.strip()]
-
-        current_chunk = ""
-        index = 0
-
-        for section in sections:
-            if len(current_chunk) + len(section) < max_chunk_size:
-                current_chunk += "\n\n" + section if current_chunk else section
-            else:
-                if current_chunk:
-                    chunks.append(Chunk(
-                        text=current_chunk,
-                        doc_id=doc.doc_id,
-                        chunk_index=index,
-                        metadata={**doc.metadata,
-                                  "chunk_method": "semantic"}
-                    ))
-                    index += 1
-                current_chunk = section
-
-        if current_chunk:
-            chunks.append(Chunk(
-                text=current_chunk,
-                doc_id=doc.doc_id,
-                chunk_index=index,
-                metadata={**doc.metadata, "chunk_method": "semantic"}
-            ))
-
-        return chunks
-
-    @staticmethod
-    def parent_child(doc: Document, parent_size: int = 2000,
-                     child_size: int = 400) -> list[Chunk]:
-        """Create parent chunks for context and child chunks for retrieval.
-        Retrieve on child, return parent for richer LLM context."""
-        parent_chunks = ChunkingStrategy.fixed_size(
-            doc, chunk_size=parent_size, overlap=200
-        )
-        all_chunks = []
-
-        for parent in parent_chunks:
-            # Create child chunks within each parent
-            child_doc = Document(
-                content=parent.text,
-                doc_id=doc.doc_id,
-                metadata=doc.metadata
-            )
-            children = ChunkingStrategy.fixed_size(
-                child_doc, chunk_size=child_size, overlap=50
-            )
-
-            for child in children:
-                child.metadata["parent_chunk_index"] = parent.chunk_index
-                child.metadata["parent_text"] = parent.text
-                child.metadata["chunk_method"] = "parent_child"
-
-            all_chunks.extend(children)
-
-        return all_chunks
-</code></pre>
+      <!-- Removed: ~120-line ChunkingStrategy class implementation.
+           The strategies are described conceptually above.
+           See the companion notebook for working code. -->
 
       <p>Choosing the right strategy depends on your document types and query patterns:</p>
 
@@ -342,95 +251,17 @@ class ChunkingStrategy:
 
       <p>Embeddings are the bridge between natural language and mathematical similarity. An embedding model converts text into a dense numerical vector such that semantically similar texts produce similar vectors. This allows you to find relevant document chunks by measuring vector distance rather than keyword matching.</p>
 
-      <pre><code class="language-python">import numpy as np
-from openai import OpenAI
+      <p>The embedding and retrieval workflow has four parts:</p>
+      <ol>
+        <li><strong>Embed text:</strong> Send each chunk to an embedding model (such as OpenAI's <code>text-embedding-3-small</code>) to get a numerical vector. Process chunks in batches of 100 for efficiency.</li>
+        <li><strong>Index chunks:</strong> Store the vectors alongside their chunk text and metadata. For prototyping, an in-memory NumPy array works. For production, use a dedicated vector database such as Pinecone, Weaviate, Chroma, or pgvector.</li>
+        <li><strong>Search:</strong> When a user asks a question, embed the query using the same model, then compute cosine similarity between the query vector and all stored vectors. Return the top-k most similar chunks.</li>
+        <li><strong>Filter:</strong> Apply a similarity threshold (typically 0.65-0.70) to remove low-relevance results that would add noise to the LLM's context window.</li>
+      </ol>
 
-client = OpenAI()
-
-class EmbeddingStore:
-    """Simple in-memory vector store for RAG prototyping.
-    For production, use Pinecone, Weaviate, Chroma, or pgvector."""
-
-    def __init__(self, model: str = "text-embedding-3-small"):
-        self.model = model
-        self.chunks: list[Chunk] = []
-        self.embeddings: np.ndarray | None = None
-
-    def embed_text(self, text: str) -> list[float]:
-        """Get embedding for a single text."""
-        response = client.embeddings.create(
-            model=self.model,
-            input=text
-        )
-        return response.data[0].embedding
-
-    def embed_batch(self, texts: list[str],
-                    batch_size: int = 100) -> list[list[float]]:
-        """Get embeddings for a batch of texts."""
-        all_embeddings = []
-        for i in range(0, len(texts), batch_size):
-            batch = texts[i:i + batch_size]
-            response = client.embeddings.create(
-                model=self.model,
-                input=batch
-            )
-            all_embeddings.extend(
-                [item.embedding for item in response.data]
-            )
-            print(f"  Embedded {min(i + batch_size, len(texts))}"
-                  f"/{len(texts)} chunks")
-        return all_embeddings
-
-    def index_chunks(self, chunks: list[Chunk]) -> None:
-        """Index document chunks by computing and storing embeddings."""
-        self.chunks = chunks
-        texts = [chunk.text for chunk in chunks]
-        embeddings = self.embed_batch(texts)
-        self.embeddings = np.array(embeddings)
-        print(f"Indexed {len(chunks)} chunks, "
-              f"embedding dim: {self.embeddings.shape[1]}")
-
-    def search(self, query: str, top_k: int = 5) -> list[dict]:
-        """Find the most relevant chunks for a query."""
-        query_embedding = np.array(self.embed_text(query))
-
-        # Cosine similarity
-        similarities = np.dot(self.embeddings, query_embedding) / (
-            np.linalg.norm(self.embeddings, axis=1)
-            * np.linalg.norm(query_embedding)
-        )
-
-        # Get top-k indices
-        top_indices = np.argsort(similarities)[::-1][:top_k]
-
-        results = []
-        for idx in top_indices:
-            results.append({
-                "chunk": self.chunks[idx],
-                "score": float(similarities[idx]),
-                "text": self.chunks[idx].text,
-            })
-
-        return results
-
-
-# Build the retrieval pipeline
-store = EmbeddingStore()
-
-# Chunk all documents
-all_chunks = []
-for doc in docs:
-    chunks = ChunkingStrategy.semantic_sections(doc)
-    all_chunks.extend(chunks)
-
-print(f"Total chunks: {len(all_chunks)}")
-store.index_chunks(all_chunks)
-
-# Search
-results = store.search("What is the refund policy for enterprise customers?")
-for r in results:
-    print(f"[{r['score']:.3f}] {r['text'][:120]}...")
-</code></pre>
+      <!-- Removed: ~90-line EmbeddingStore class.
+           Uses numpy cosine similarity for search. In production, replace with
+           a managed vector database. See companion notebook for implementation. -->
 
       <p>The retrieval step is where RAG quality is won or lost. A perfect LLM cannot answer correctly if it is given the wrong chunks. Key factors that affect retrieval quality:</p>
 
@@ -622,149 +453,19 @@ for r in final_results:
 
       <p>A RAG system that returns confident-sounding wrong answers is worse than no system at all. You need rigorous evaluation metrics to ensure your RAG pipeline is trustworthy. RAG evaluation has three dimensions: retrieval quality, generation quality, and end-to-end quality.</p>
 
-      <pre><code class="language-python">from openai import OpenAI
-import json
+      <p>RAG evaluation has three core methods, each addressing a different dimension of quality:</p>
 
-client = OpenAI()
+      <ul>
+        <li><strong>Faithfulness evaluation</strong> checks whether every claim in the generated answer is supported by the retrieved context. It asks the LLM to quote each claim, find supporting evidence in the context, and mark claims as "supported" or "hallucinated." The output is a faithfulness score from 0.0 to 1.0.</li>
+        <li><strong>Relevance evaluation</strong> measures whether the answer actually addresses the user's question, scoring it on completeness (fully answers the question), directness (no unnecessary tangents), and specificity (actionable information, not generic advice).</li>
+        <li><strong>Retrieval evaluation</strong> uses traditional information retrieval metrics (precision, recall, F1) to measure whether the right document chunks are being found. This requires ground-truth annotations: for each test question, you must know which chunks contain the answer.</li>
+      </ul>
 
-class RAGEvaluator:
-    """Evaluate RAG pipeline quality across multiple dimensions."""
+      <p>A full evaluation suite runs all three checks across a test set of question-answer pairs, aggregates the scores, and flags any questions where faithfulness drops below 0.8 for human review.</p>
 
-    def __init__(self, model: str = "gpt-4o"):
-        self.model = model
-
-    def evaluate_faithfulness(self, answer: str,
-                                context_chunks: list[str]) -> dict:
-        """Does the answer only contain information from the context?
-        Detects hallucination — claims not grounded in retrieved docs."""
-        context = "\n---\n".join(context_chunks)
-        response = client.chat.completions.create(
-            model=self.model,
-            messages=[{
-                "role": "user",
-                "content": f"""Evaluate whether every claim in the Answer
-is supported by the Context. For each claim in the answer:
-1. Quote the claim
-2. Quote the supporting evidence from context (or "NONE")
-3. Verdict: "supported" or "hallucinated"
-
-Context:
-{context}
-
-Answer:
-{answer}
-
-Return JSON with keys: "claims" (array of objects with claim,
-evidence, verdict), "faithfulness_score" (0.0 to 1.0),
-"hallucinated_claims" (array of unsupported claims)."""
-            }],
-            response_format={"type": "json_object"},
-            temperature=0
-        )
-        return json.loads(response.choices[0].message.content)
-
-    def evaluate_relevance(self, query: str,
-                             answer: str) -> dict:
-        """Does the answer actually address the user's question?"""
-        response = client.chat.completions.create(
-            model=self.model,
-            messages=[{
-                "role": "user",
-                "content": f"""Rate how well the Answer addresses
-the Question on these dimensions:
-1. completeness: Does it fully answer the question? (0.0-1.0)
-2. directness: Does it answer the question without unnecessary
-   tangents? (0.0-1.0)
-3. specificity: Does it provide specific, actionable information
-   rather than generic advice? (0.0-1.0)
-
-Question: {query}
-Answer: {answer}
-
-Return JSON with keys: completeness, directness, specificity,
-overall_relevance (average), explanation."""
-            }],
-            response_format={"type": "json_object"},
-            temperature=0
-        )
-        return json.loads(response.choices[0].message.content)
-
-    def evaluate_retrieval(self, query: str,
-                             retrieved_chunks: list[str],
-                             ground_truth_chunks: list[str]) -> dict:
-        """Are the right chunks being retrieved?
-        Requires ground truth annotations."""
-        retrieved_set = set(retrieved_chunks)
-        truth_set = set(ground_truth_chunks)
-
-        true_positives = len(retrieved_set & truth_set)
-        precision = (true_positives / len(retrieved_set)
-                     if retrieved_set else 0)
-        recall = (true_positives / len(truth_set)
-                  if truth_set else 0)
-        f1 = (2 * precision * recall / (precision + recall)
-              if (precision + recall) > 0 else 0)
-
-        return {
-            "precision": round(precision, 3),
-            "recall": round(recall, 3),
-            "f1": round(f1, 3),
-            "retrieved_count": len(retrieved_set),
-            "relevant_count": len(truth_set),
-            "hits": true_positives
-        }
-
-    def run_evaluation_suite(self, test_cases: list[dict],
-                               rag_pipeline) -> dict:
-        """Run a full evaluation over a set of test Q&A pairs."""
-        results = {
-            "faithfulness_scores": [],
-            "relevance_scores": [],
-            "retrieval_f1_scores": [],
-            "failures": []
-        }
-
-        for i, tc in enumerate(test_cases):
-            query = tc["question"]
-            print(f"Evaluating {i+1}/{len(test_cases)}: {query[:60]}...")
-
-            # Run the RAG pipeline
-            answer, chunks = rag_pipeline.answer(query)
-
-            # Evaluate faithfulness
-            faith = self.evaluate_faithfulness(
-                answer, [c.text for c in chunks]
-            )
-            results["faithfulness_scores"].append(
-                faith["faithfulness_score"]
-            )
-
-            # Evaluate relevance
-            rel = self.evaluate_relevance(query, answer)
-            results["relevance_scores"].append(
-                rel["overall_relevance"]
-            )
-
-            # Track failures
-            if faith["faithfulness_score"] < 0.8:
-                results["failures"].append({
-                    "question": query,
-                    "issue": "low_faithfulness",
-                    "score": faith["faithfulness_score"],
-                    "hallucinated": faith["hallucinated_claims"]
-                })
-
-        # Aggregate
-        n = len(test_cases)
-        results["summary"] = {
-            "avg_faithfulness": sum(results["faithfulness_scores"]) / n,
-            "avg_relevance": sum(results["relevance_scores"]) / n,
-            "failure_rate": len(results["failures"]) / n,
-            "total_evaluated": n
-        }
-
-        return results
-</code></pre>
+      <!-- Removed: ~140-line RAGEvaluator class with evaluate_faithfulness,
+           evaluate_relevance, evaluate_retrieval, and run_evaluation_suite methods.
+           See companion notebook for the full implementation. -->
 
       <p>Target quality metrics for enterprise RAG systems:</p>
 
@@ -1000,116 +701,15 @@ print(json.dumps(pipeline.get_analytics(), indent=2))
         <li>Log queries and display analytics (latency, retrieval scores, query count)</li>
       </ol>
 
-      <h3>Starter Code</h3>
+      <h3>Implementation Approach</h3>
 
-      <pre><code class="language-python">import json
-from pathlib import Path
-from openai import OpenAI
+      <p>Your Knowledge Base Assistant combines all the components discussed in this chapter into a single class. It initializes by loading documents from a directory, chunking them with your chosen strategy (semantic or parent-child), and building a vector index. The <code>ask()</code> method runs the full RAG pipeline: enhance the query, retrieve chunks, assemble the prompt with guardrails, generate an answer, and return results with source citations and analytics. An <code>evaluate()</code> method runs the faithfulness and relevance checks from Section 13.6 against a test set of question-answer pairs.</p>
 
-client = OpenAI()
+      <p>Test with questions like "What is our password rotation policy?", "How do I submit an expense report over $5,000?", and "What are the SLA requirements for Tier 1 support?" to verify your pipeline retrieves the right chunks and generates grounded answers.</p>
 
-class KnowledgeBaseAssistant:
-    """RAG-powered knowledge base assistant."""
-
-    def __init__(self, docs_dir: str, chunking: str = "semantic",
-                 model: str = "gpt-4o"):
-        self.model = model
-        self.loader = DocumentLoader()
-        self.store = EmbeddingStore()
-        self.enhancer = QueryEnhancer()
-        self.evaluator = RAGEvaluator()
-        self.chunking = chunking
-
-        # Load and index documents
-        self.documents = self.loader.load_directory(docs_dir)
-        self._build_index()
-
-    def _build_index(self):
-        """Chunk documents and build the vector index."""
-        all_chunks = []
-        for doc in self.documents:
-            if self.chunking == "semantic":
-                chunks = ChunkingStrategy.semantic_sections(doc)
-            elif self.chunking == "parent_child":
-                chunks = ChunkingStrategy.parent_child(doc)
-            else:
-                chunks = ChunkingStrategy.fixed_size(doc)
-            all_chunks.extend(chunks)
-
-        print(f"Chunking: {self.chunking}, total chunks: {len(all_chunks)}")
-        self.store.index_chunks(all_chunks)
-
-    def ask(self, question: str, verbose: bool = False) -> dict:
-        """Ask a question and get an answer with sources."""
-        pipeline = EnterpriseRAGPipeline(
-            self.store, self.enhancer, self.model
-        )
-        answer, chunks = pipeline.answer(question)
-
-        result = {
-            "question": question,
-            "answer": answer,
-            "sources": [
-                {
-                    "file": c.metadata.get("filename", "unknown"),
-                    "chunk": c.chunk_index,
-                    "preview": c.text[:150]
-                }
-                for c in chunks
-            ],
-            "analytics": pipeline.get_analytics()
-        }
-
-        if verbose:
-            print(f"Q: {question}")
-            print(f"A: {answer}\n")
-            print("Sources:")
-            for s in result["sources"]:
-                print(f"  [{s['file']}] {s['preview']}...")
-            print()
-
-        return result
-
-    def evaluate(self, test_questions: list[dict]) -> dict:
-        """Evaluate the assistant on a set of test questions."""
-        pipeline = EnterpriseRAGPipeline(
-            self.store, self.enhancer, self.model
-        )
-        return self.evaluator.run_evaluation_suite(
-            test_questions, pipeline
-        )
-
-
-# Usage
-if __name__ == "__main__":
-    assistant = KnowledgeBaseAssistant(
-        docs_dir="./knowledge_base",
-        chunking="semantic"
-    )
-
-    # Interactive Q&A
-    questions = [
-        "What is our password rotation policy?",
-        "How do I submit an expense report over $5,000?",
-        "What are the SLA requirements for Tier 1 support?",
-    ]
-
-    for q in questions:
-        assistant.ask(q, verbose=True)
-
-    # Run evaluation
-    test_set = [
-        {"question": "What is the vacation policy?",
-         "expected_answer": "Employees get 20 days PTO per year."},
-        {"question": "How do I request a hardware upgrade?",
-         "expected_answer": "Submit a ticket via ServiceNow."},
-    ]
-    results = assistant.evaluate(test_set)
-    print(f"\nEvaluation Results:")
-    print(f"  Faithfulness: {results['summary']['avg_faithfulness']:.2f}")
-    print(f"  Relevance:    {results['summary']['avg_relevance']:.2f}")
-    print(f"  Failure rate: {results['summary']['failure_rate']:.1%}")
-</code></pre>
+      <!-- Removed: ~110-line KnowledgeBaseAssistant class.
+           The class wires together DocumentLoader, EmbeddingStore, QueryEnhancer,
+           and RAGEvaluator. See companion notebook for complete starter code. -->
 
       <h3>Extension Ideas</h3>
       <ul>

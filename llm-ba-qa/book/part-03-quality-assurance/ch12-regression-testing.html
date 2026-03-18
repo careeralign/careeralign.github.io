@@ -36,6 +36,130 @@
       </ul>
     </section>
 
+    <!-- Diagram: Smart Regression Pipeline -->
+    <figure>
+      <svg viewBox="0 0 920 300" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif;max-width:920px;">
+        <rect width="920" height="300" fill="#f5f5f5" rx="12"/>
+        <!-- Step 1: Code Change -->
+        <rect x="15" y="110" width="110" height="55" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="70" y="135" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">Code Change</text>
+        <text x="70" y="150" text-anchor="middle" fill="#fff" font-size="10">PR / commit</text>
+        <!-- Arrow -->
+        <line x1="125" y1="137" x2="150" y2="137" stroke="#666" stroke-width="2" marker-end="url(#arrowCh12)"/>
+        <!-- Step 2: Impact Analysis -->
+        <rect x="150" y="110" width="120" height="55" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="210" y="133" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Impact Analysis</text>
+        <text x="210" y="150" text-anchor="middle" fill="#666" font-size="10">LLM + dependency map</text>
+        <!-- Arrow -->
+        <line x1="270" y1="137" x2="295" y2="137" stroke="#666" stroke-width="2" marker-end="url(#arrowCh12)"/>
+        <!-- Step 3: Test Selection -->
+        <rect x="295" y="110" width="120" height="55" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="355" y="133" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Test Selection</text>
+        <text x="355" y="150" text-anchor="middle" fill="#666" font-size="10">Prioritized subset</text>
+        <!-- Arrow -->
+        <line x1="415" y1="137" x2="440" y2="137" stroke="#666" stroke-width="2" marker-end="url(#arrowCh12)"/>
+        <!-- Step 4: Execution -->
+        <rect x="440" y="110" width="110" height="55" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="495" y="133" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Execution</text>
+        <text x="495" y="150" text-anchor="middle" fill="#666" font-size="10">UI + API + visual</text>
+        <!-- Branch: Self-Healing -->
+        <line x1="495" y1="165" x2="495" y2="210" stroke="#666" stroke-width="1.5"/>
+        <rect x="430" y="210" width="130" height="45" rx="6" fill="#fff" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="495" y="230" text-anchor="middle" fill="#333" font-size="11" font-weight="600">Self-Healing</text>
+        <text x="495" y="245" text-anchor="middle" fill="#666" font-size="9">Fix broken selectors</text>
+        <!-- Arrow back up -->
+        <line x1="560" y1="232" x2="580" y2="232" stroke="#666" stroke-width="1"/>
+        <path d="M580,232 Q600,232 600,160 Q600,137 610,137" stroke="#666" stroke-width="1.5" fill="none" marker-end="url(#arrowCh12)"/>
+        <!-- Arrow from execution to results -->
+        <line x1="550" y1="137" x2="610" y2="137" stroke="#666" stroke-width="2" marker-end="url(#arrowCh12)"/>
+        <!-- Step 5: Results Dashboard -->
+        <rect x="610" y="90" width="180" height="95" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="700" y="117" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">Results Dashboard</text>
+        <line x1="630" y1="128" x2="770" y2="128" stroke="#fff" stroke-width="0.5" opacity="0.4"/>
+        <text x="700" y="147" text-anchor="middle" fill="#fff" font-size="10">Pass / Fail / Healed counts</text>
+        <text x="700" y="163" text-anchor="middle" fill="#fff" font-size="10">Visual regression diffs</text>
+        <text x="700" y="179" text-anchor="middle" fill="#fff" font-size="10">Maintenance recommendations</text>
+        <!-- Title -->
+        <text x="460" y="283" text-anchor="middle" fill="#333" font-size="16" font-weight="700">Smart Regression Pipeline</text>
+        <defs>
+          <marker id="arrowCh12" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6" fill="#666"/>
+          </marker>
+        </defs>
+      </svg>
+      <figcaption>Figure 12-1. The smart regression pipeline uses LLMs at every stage: analyzing code change impact, selecting the most relevant tests, self-healing broken selectors during execution, and producing an actionable results dashboard.</figcaption>
+    </figure>
+
+    <!-- Diagram: Self-Healing Selectors -->
+    <figure>
+      <svg viewBox="0 0 860 320" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif;max-width:860px;">
+        <rect width="860" height="320" fill="#f5f5f5" rx="12"/>
+        <text x="430" y="28" text-anchor="middle" fill="#333" font-size="16" font-weight="700">Self-Healing Selectors: Before and After</text>
+
+        <!-- LEFT SIDE: Broken -->
+        <rect x="20" y="50" width="390" height="240" rx="8" fill="#fff" stroke="#c00" stroke-width="1.5"/>
+        <rect x="20" y="50" width="390" height="35" rx="8" fill="#c00"/>
+        <rect x="20" y="73" width="390" height="12" fill="#c00"/>
+        <text x="215" y="73" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">BEFORE: Selector Fails</text>
+        <!-- DOM tree left -->
+        <text x="40" y="110" fill="#333" font-size="11" font-weight="600">Test selector:</text>
+        <rect x="140" y="95" width="250" height="22" rx="3" fill="#f5f5f5" stroke="#ccc" stroke-width="1"/>
+        <text x="155" y="111" fill="#c00" font-size="11" font-family="monospace">#checkout-btn</text>
+        <!-- X mark -->
+        <text x="370" y="112" fill="#c00" font-size="16" font-weight="700">X</text>
+        <!-- DOM representation -->
+        <text x="40" y="145" fill="#333" font-size="11" font-weight="600">Actual DOM (changed):</text>
+        <rect x="40" y="155" width="350" height="22" rx="3" fill="#f5f5f5" stroke="#ccc" stroke-width="1"/>
+        <text x="55" y="170" fill="#666" font-size="10" font-family="monospace">&lt;div class="actions"&gt;</text>
+        <rect x="60" y="182" width="310" height="22" rx="3" fill="#f5f5f5" stroke="#c00" stroke-width="1.5"/>
+        <text x="75" y="197" fill="#c00" font-size="10" font-family="monospace">&lt;button data-action="proceed-checkout"&gt;</text>
+        <rect x="40" y="210" width="350" height="22" rx="3" fill="#f5f5f5" stroke="#ccc" stroke-width="1"/>
+        <text x="55" y="225" fill="#666" font-size="10" font-family="monospace">&lt;/div&gt;</text>
+        <!-- Error message -->
+        <rect x="60" y="245" width="310" height="30" rx="4" fill="#fff0f0" stroke="#c00" stroke-width="1"/>
+        <text x="215" y="265" text-anchor="middle" fill="#c00" font-size="11">Element not found: #checkout-btn</text>
+
+        <!-- CENTER: Arrow -->
+        <text x="430" y="170" text-anchor="middle" fill="#333" font-size="11" font-weight="600">LLM</text>
+        <text x="430" y="185" text-anchor="middle" fill="#333" font-size="11" font-weight="600">analyzes</text>
+        <text x="430" y="200" text-anchor="middle" fill="#333" font-size="11" font-weight="600">DOM</text>
+        <line x1="415" y1="210" x2="445" y2="210" stroke="#666" stroke-width="2"/>
+        <line x1="430" y1="210" x2="430" y2="230" stroke="#666" stroke-width="2" marker-end="url(#arrowCh12b)"/>
+        <path d="M410,155 Q410,140 430,140 Q450,140 450,155" stroke="var(--accent)" stroke-width="2" fill="none"/>
+
+        <!-- RIGHT SIDE: Healed -->
+        <rect x="460" y="50" width="380" height="240" rx="8" fill="#fff" stroke="green" stroke-width="1.5"/>
+        <rect x="460" y="50" width="380" height="35" rx="8" fill="green"/>
+        <rect x="460" y="73" width="380" height="12" fill="green"/>
+        <text x="650" y="73" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">AFTER: Selector Healed</text>
+        <!-- New selector -->
+        <text x="480" y="110" fill="#333" font-size="11" font-weight="600">New selector:</text>
+        <rect x="570" y="95" width="250" height="22" rx="3" fill="#f0fff0" stroke="green" stroke-width="1"/>
+        <text x="585" y="111" fill="green" font-size="11" font-family="monospace">[data-action="proceed-checkout"]</text>
+        <!-- Check mark -->
+        <text x="805" y="112" fill="green" font-size="16" font-weight="700">&#10003;</text>
+        <!-- Healing details -->
+        <text x="480" y="145" fill="#333" font-size="11" font-weight="600">Change detected:</text>
+        <text x="480" y="163" fill="#666" font-size="10">ID removed, data-action attribute added</text>
+        <text x="480" y="185" fill="#333" font-size="11" font-weight="600">Confidence: 94%</text>
+        <text x="480" y="210" fill="#333" font-size="11" font-weight="600">Backup selectors:</text>
+        <text x="495" y="228" fill="#666" font-size="10" font-family="monospace">1. button.checkout-action</text>
+        <text x="495" y="244" fill="#666" font-size="10" font-family="monospace">2. .actions button[type="submit"]</text>
+        <text x="495" y="260" fill="#666" font-size="10" font-family="monospace">3. //button[contains(text(),"Checkout")]</text>
+
+        <!-- Healing log callout -->
+        <rect x="460" y="270" width="380" height="16" rx="2" fill="#f0fff0"/>
+        <text x="650" y="282" text-anchor="middle" fill="green" font-size="9">Logged for permanent selector update</text>
+
+        <defs>
+          <marker id="arrowCh12b" markerWidth="8" markerHeight="6" refX="4" refY="6" orient="auto">
+            <path d="M0,0 L4,6 L8,0" fill="#666"/>
+          </marker>
+        </defs>
+      </svg>
+      <figcaption>Figure 12-2. Self-healing selectors: when a test selector breaks (left), the LLM analyzes the current DOM to find the intended element and generates a new selector with backup alternatives (right), keeping tests running while flagging selectors for permanent update.</figcaption>
+    </figure>
+
     <!-- Section 1 -->
     <section>
       <h2>12.1 The Regression Burden</h2>
@@ -75,142 +199,9 @@
 
       <p>The most direct application of LLMs to regression testing is generating executable test scripts from natural-language test cases. Instead of manually translating "verify that clicking the Submit button on the checkout page creates an order" into Selenium code, you let the LLM do the translation.</p>
 
-      <pre><code class="language-python">from openai import OpenAI
-import json
+      <p>The prompt provides the LLM with the test case (title, preconditions, steps, expected result), the target framework, and optionally a snippet of the page's HTML structure. The LLM generates a complete test script following best practices: Page Object Model pattern for UI tests, explicit waits instead of <code>sleep()</code>, meaningful assertions with descriptive error messages, and a preference for <code>data-testid</code> selectors over fragile CSS classes or XPath.</p>
 
-client = OpenAI()
-
-SCRIPT_GEN_PROMPT = """You are an expert test automation engineer.
-Convert the given test case into an executable test script.
-
-Requirements:
-1. Use the specified framework (Playwright, Selenium, or pytest)
-2. Include proper setup and teardown
-3. Use explicit waits, not sleep()
-4. Add meaningful assertions with descriptive error messages
-5. Follow Page Object Model (POM) pattern for UI tests
-6. Include docstrings explaining what each test verifies
-7. Handle common failure modes gracefully (element not found, timeout)
-8. Use data-testid attributes as primary selectors when available,
-   falling back to CSS selectors, then XPath as last resort
-
-Return the complete, runnable test script as a code block."""
-
-def generate_test_script(test_case: dict, framework: str = "playwright",
-                         page_context: str = "") -> str:
-    """Generate an executable test script from a test case description."""
-    prompt = f"""Test case:
-Title: {test_case['title']}
-Preconditions: {test_case.get('preconditions', 'User is logged in')}
-Steps:
-{chr(10).join(f"  {i+1}. {step}" for i, step in enumerate(test_case['steps']))}
-Expected Result: {test_case['expected_result']}
-
-Framework: {framework}
-Page context (HTML structure hints): {page_context if page_context else 'Not provided'}
-
-Generate a complete, runnable test script."""
-
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": SCRIPT_GEN_PROMPT},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.3
-    )
-    return response.choices[0].message.content
-
-
-# Example: generate a Playwright test
-test_case = {
-    "title": "Successful checkout with credit card",
-    "preconditions": "User is logged in with items in cart",
-    "steps": [
-        "Navigate to the shopping cart page",
-        "Click the 'Proceed to Checkout' button",
-        "Fill in shipping address: 123 Test St, Springfield, IL 62701",
-        "Select 'Credit Card' as payment method",
-        "Enter card number 4111111111111111, expiry 12/28, CVV 123",
-        "Click 'Place Order' button",
-        "Wait for order confirmation page to load"
-    ],
-    "expected_result": "Order confirmation page displays with order number, "
-                       "order total matches cart total, confirmation email "
-                       "is sent within 2 minutes"
-}
-
-script = generate_test_script(test_case, framework="playwright")
-print(script)
-</code></pre>
-
-      <p>The LLM generates a complete Playwright test:</p>
-
-      <pre><code class="language-python">import pytest
-from playwright.sync_api import Page, expect
-
-
-class CheckoutPage:
-    """Page Object for the checkout flow."""
-
-    def __init__(self, page: Page):
-        self.page = page
-        self.checkout_button = page.locator('[data-testid="proceed-checkout"]')
-        self.shipping_street = page.locator('[data-testid="shipping-street"]')
-        self.shipping_city = page.locator('[data-testid="shipping-city"]')
-        self.shipping_state = page.locator('[data-testid="shipping-state"]')
-        self.shipping_zip = page.locator('[data-testid="shipping-zip"]')
-        self.payment_credit_card = page.locator('[data-testid="payment-credit-card"]')
-        self.card_number = page.locator('[data-testid="card-number"]')
-        self.card_expiry = page.locator('[data-testid="card-expiry"]')
-        self.card_cvv = page.locator('[data-testid="card-cvv"]')
-        self.place_order_button = page.locator('[data-testid="place-order"]')
-        self.order_number = page.locator('[data-testid="order-number"]')
-        self.order_total = page.locator('[data-testid="order-total"]')
-
-    def fill_shipping(self, street: str, city: str, state: str, zip_code: str):
-        """Fill in the shipping address form."""
-        self.shipping_street.fill(street)
-        self.shipping_city.fill(city)
-        self.shipping_state.select_option(state)
-        self.shipping_zip.fill(zip_code)
-
-    def fill_payment(self, card: str, expiry: str, cvv: str):
-        """Fill in credit card payment details."""
-        self.payment_credit_card.click()
-        self.card_number.fill(card)
-        self.card_expiry.fill(expiry)
-        self.card_cvv.fill(cvv)
-
-
-class TestCheckout:
-    """Regression tests for the checkout flow."""
-
-    def test_successful_checkout_with_credit_card(self, page: Page):
-        """Verify that a logged-in user with items in cart can complete
-        checkout with a credit card and receive an order confirmation."""
-
-        # Arrange: navigate to cart
-        page.goto("/cart")
-        checkout = CheckoutPage(page)
-
-        # Act: proceed through checkout flow
-        checkout.checkout_button.click()
-        page.wait_for_url("**/checkout/shipping")
-
-        checkout.fill_shipping("123 Test St", "Springfield", "IL", "62701")
-        page.locator('[data-testid="continue-to-payment"]').click()
-        page.wait_for_url("**/checkout/payment")
-
-        checkout.fill_payment("4111111111111111", "12/28", "123")
-        checkout.place_order_button.click()
-
-        # Assert: order confirmation
-        page.wait_for_url("**/order/confirmation", timeout=15000)
-        expect(checkout.order_number).to_be_visible()
-        expect(checkout.order_number).not_to_be_empty()
-        expect(checkout.order_total).to_be_visible()
-</code></pre>
+      <p>For a checkout flow test case with seven steps, the LLM produces a Playwright test with a <code>CheckoutPage</code> class encapsulating all form locators and fill methods, and a <code>TestCheckout</code> class with the actual test that navigates through shipping, payment, and order confirmation — complete with URL assertions and element visibility checks.</p>
 
       <div class="callout callout-tip">
         <strong>Provide HTML context for better selectors.</strong> If you include a snippet of the page's HTML structure in the <code>page_context</code> parameter, the LLM generates selectors that actually match your application rather than guessing at <code>data-testid</code> names. Extract the relevant HTML using browser DevTools and paste it in.
@@ -218,43 +209,7 @@ class TestCheckout:
 
       <h3>Batch Test Generation</h3>
 
-      <p>For generating an entire test suite, process multiple test cases and organize them into test files by feature area:</p>
-
-      <pre><code class="language-python">def generate_test_suite(test_cases: list[dict],
-                        framework: str = "playwright",
-                        output_dir: str = "tests/") -> dict:
-    """Generate a complete test suite from multiple test cases."""
-    from pathlib import Path
-    import re
-
-    suite = {}
-    for tc in test_cases:
-        # Group by feature area
-        feature = tc.get("feature", "general")
-        if feature not in suite:
-            suite[feature] = []
-
-        script = generate_test_script(tc, framework)
-        suite[feature].append({
-            "test_case": tc,
-            "script": script
-        })
-
-    # Write test files
-    output_path = Path(output_dir)
-    output_path.mkdir(parents=True, exist_ok=True)
-
-    for feature, tests in suite.items():
-        filename = f"test_{re.sub(r'[^a-z0-9]+', '_', feature.lower())}.py"
-        filepath = output_path / filename
-
-        # Combine all test scripts for this feature into one file
-        combined = "\n\n".join(t["script"] for t in tests)
-        filepath.write_text(combined)
-        print(f"Generated {filepath} with {len(tests)} tests")
-
-    return suite
-</code></pre>
+      <p>For generating an entire test suite, process multiple test cases and organize them into test files by feature area. The pipeline groups test cases by feature tag (e.g., "checkout," "auth," "search"), generates a script for each, and writes combined test files like <code>test_checkout.py</code> and <code>test_auth.py</code>. Each file contains all test classes and Page Objects for that feature area.</p>
     </section>
 
     <!-- Section 3 -->
@@ -265,157 +220,13 @@ class TestCheckout:
 
       <p>Self-healing selectors use LLMs to analyze the page's current DOM and find the intended element even when the original selector breaks. The approach works in three steps: try the original selector, if it fails then capture the current page structure, and ask the LLM to locate the intended element.</p>
 
-      <pre><code class="language-python">SELECTOR_HEAL_PROMPT = """You are a DOM analysis expert. A test automation
-selector has broken because the page structure changed.
+      <p>The self-healing approach works in three steps. First, try the original selector with a short timeout. If it fails, capture the current page HTML (stripped of script/style content and truncated to fit the LLM context window). Then send the original selector, a description of what the element does (e.g., <em>"The 'Proceed to Checkout' button on the cart page"</em>), and the current HTML to the LLM. The LLM returns a new primary selector, 2-3 backup selectors using different strategies, a confidence score, and a description of what changed in the DOM.</p>
 
-Given:
-1. The ORIGINAL SELECTOR that no longer works
-2. The ELEMENT DESCRIPTION (what the test is trying to interact with)
-3. The CURRENT PAGE HTML (the page as it exists now)
-
-Find the element in the current HTML and provide:
-- primary_selector: the best CSS selector for this element
-- backup_selectors: 2-3 alternative selectors (different strategies)
-- confidence: how confident you are this is the right element (0-1)
-- change_detected: what changed in the DOM that broke the original selector
-- recommendation: should the test use data-testid? suggest one if so
-
-Prefer selectors in this order:
-1. data-testid (most stable)
-2. aria-label or role (accessibility-based)
-3. CSS with structural context (e.g., form.checkout button[type="submit"])
-4. XPath (last resort)
-
-Return JSON."""
-
-class SelfHealingLocator:
-    """A locator that automatically heals when selectors break."""
-
-    def __init__(self, page, model: str = "gpt-4o"):
-        self.page = page
-        self.model = model
-        self.healing_log = []
-
-    def find(self, selector: str, description: str,
-             timeout: int = 5000) -> object:
-        """Find an element, healing the selector if it breaks."""
-        # Try the original selector first
-        try:
-            element = self.page.locator(selector)
-            element.wait_for(timeout=timeout)
-            return element
-        except Exception:
-            pass  # Selector failed, attempt healing
-
-        # Capture current page HTML for analysis
-        html = self.page.content()
-
-        # Truncate HTML to fit in context window (keep structure, trim content)
-        if len(html) > 30000:
-            html = self._truncate_html(html)
-
-        # Ask LLM to find the element
-        healed = self._heal_selector(selector, description, html)
-
-        if healed["confidence"] < 0.5:
-            raise Exception(
-                f"Self-healing failed for '{description}'. "
-                f"Confidence too low: {healed['confidence']}"
-            )
-
-        # Log the healing event
-        self.healing_log.append({
-            "original_selector": selector,
-            "healed_selector": healed["primary_selector"],
-            "description": description,
-            "change_detected": healed["change_detected"],
-            "confidence": healed["confidence"]
-        })
-
-        # Try the healed selector
-        new_selector = healed["primary_selector"]
-        element = self.page.locator(new_selector)
-        element.wait_for(timeout=timeout)
-
-        print(f"  HEALED: '{selector}' -> '{new_selector}' "
-              f"(confidence: {healed['confidence']:.0%})")
-        print(f"  Change: {healed['change_detected']}")
-
-        return element
-
-    def _heal_selector(self, original: str, description: str,
-                       html: str) -> dict:
-        """Ask LLM to find the element in the current DOM."""
-        response = client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": SELECTOR_HEAL_PROMPT},
-                {"role": "user", "content": f"""Original selector: {original}
-Element description: {description}
-
-Current page HTML:
-{html}"""}
-            ],
-            response_format={"type": "json_object"},
-            temperature=0.1
-        )
-        return json.loads(response.choices[0].message.content)
-
-    def _truncate_html(self, html: str, max_length: int = 30000) -> str:
-        """Truncate HTML while preserving structure."""
-        # Remove script and style contents but keep tags
-        import re
-        html = re.sub(r'<script[^>]*>.*?</script>', '<script></script>',
-                       html, flags=re.DOTALL)
-        html = re.sub(r'<style[^>]*>.*?</style>', '<style></style>',
-                       html, flags=re.DOTALL)
-        # Truncate long text content
-        html = re.sub(r'>([^<]{100})[^<]*<', r'>\1...<', html)
-        return html[:max_length]
-
-    def get_healing_report(self) -> str:
-        """Generate a report of all healed selectors for developer review."""
-        if not self.healing_log:
-            return "No selectors needed healing in this run."
-
-        lines = [f"SELECTOR HEALING REPORT ({len(self.healing_log)} healed)"]
-        for h in self.healing_log:
-            lines.append(f"\n  Element: {h['description']}")
-            lines.append(f"  Old: {h['original_selector']}")
-            lines.append(f"  New: {h['healed_selector']}")
-            lines.append(f"  Change: {h['change_detected']}")
-            lines.append(f"  Confidence: {h['confidence']:.0%}")
-        return "\n".join(lines)
-</code></pre>
+      <p>The healer prefers selectors in this order: <code>data-testid</code> (most stable), <code>aria-label</code> or role (accessibility-based), CSS with structural context, and XPath as a last resort. If confidence drops below 50%, the healing is rejected and the test fails normally. All healing events are logged for later review — if a test heals itself every run, that selector needs a permanent update.</p>
 
       <div class="callout callout-warning">
         <strong>Self-healing is a bandage, not a cure.</strong> Self-healing selectors keep tests running when the DOM changes, but they should trigger a maintenance task to permanently update the selector. If a test heals itself every run, it is adding LLM API call latency and cost. Use the healing report to batch-update broken selectors on a regular cadence.
       </div>
-
-      <h3>Usage in Tests</h3>
-
-      <pre><code class="language-python">def test_checkout_with_healing(page):
-    """Checkout test using self-healing locators."""
-    healer = SelfHealingLocator(page)
-
-    page.goto("/cart")
-
-    # These selectors will self-heal if the DOM changes
-    checkout_btn = healer.find(
-        "#checkout-btn",  # might break if ID changes
-        "The 'Proceed to Checkout' button on the cart page"
-    )
-    checkout_btn.click()
-
-    card_input = healer.find(
-        "input.credit-card-number",  # might break if class changes
-        "The credit card number input field on the payment form"
-    )
-    card_input.fill("4111111111111111")
-
-    # After test run, output healing report
-    print(healer.get_healing_report())
-</code></pre>
     </section>
 
     <!-- Section 4 -->
@@ -424,92 +235,7 @@ Current page HTML:
 
       <p>Traditional visual regression tools compare screenshots pixel-by-pixel or use perceptual hashing. They generate false positives for intentional UI changes (a new button color) and miss subtle bugs (text overlapping an image on specific viewport widths). LLMs can look at two screenshots and make a <em>semantic</em> judgment: "This is an intentional layout change" versus "This text is cut off, which is a bug."</p>
 
-      <pre><code class="language-python">import base64
-from pathlib import Path
-
-VISUAL_PROMPT = """You are a visual QA analyst comparing two screenshots of
-a web application: a BASELINE (expected) and a CURRENT (actual) version.
-
-Analyze the differences and classify each one as:
-1. INTENTIONAL CHANGE: A deliberate design update (new color, new layout,
-   new component). These should be accepted and the baseline updated.
-2. VISUAL BUG: An unintended rendering issue (text overflow, misalignment,
-   broken layout, missing images, z-index problems, responsive issues).
-3. NO CHANGE: The screenshots are visually identical.
-
-For each difference found, provide:
-- location: where on the page (e.g., "top navigation bar", "product card grid")
-- classification: intentional_change | visual_bug | content_change
-- description: what changed
-- severity: if it's a bug, how severe (critical/major/minor/cosmetic)
-- confidence: how confident you are in this classification (0-1)
-
-Return JSON with key "differences" and an overall "verdict":
-pass (no bugs), fail (bugs found), or review (needs human review)."""
-
-def compare_screenshots(baseline_path: str, current_path: str,
-                        page_description: str = "") -> dict:
-    """Compare two screenshots using LLM-based visual analysis."""
-    baseline_b64 = base64.b64encode(
-        Path(baseline_path).read_bytes()
-    ).decode()
-    current_b64 = base64.b64encode(
-        Path(current_path).read_bytes()
-    ).decode()
-
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": VISUAL_PROMPT},
-            {"role": "user", "content": [
-                {"type": "text", "text": f"""Compare these two screenshots.
-Page: {page_description if page_description else 'Web application page'}
-
-The first image is the BASELINE (expected).
-The second image is the CURRENT (actual)."""},
-                {"type": "image_url", "image_url": {
-                    "url": f"data:image/png;base64,{baseline_b64}"}},
-                {"type": "image_url", "image_url": {
-                    "url": f"data:image/png;base64,{current_b64}"}}
-            ]}
-        ],
-        response_format={"type": "json_object"},
-        temperature=0.2
-    )
-    return json.loads(response.choices[0].message.content)
-
-
-# Usage in a visual regression test
-def test_homepage_visual(page):
-    """Visual regression test for the homepage."""
-    page.goto("/")
-    page.wait_for_load_state("networkidle")
-
-    # Capture current screenshot
-    current_path = "screenshots/homepage_current.png"
-    page.screenshot(path=current_path, full_page=True)
-
-    # Compare against baseline
-    baseline_path = "screenshots/homepage_baseline.png"
-    result = compare_screenshots(baseline_path, current_path,
-                                  "Application homepage with hero banner, "
-                                  "product grid, and footer")
-
-    print(f"Visual regression verdict: {result['verdict']}")
-    for diff in result.get("differences", []):
-        print(f"  [{diff['classification']}] {diff['location']}: "
-              f"{diff['description']}")
-        if diff["classification"] == "visual_bug":
-            print(f"    Severity: {diff['severity']}")
-
-    # Fail the test only for actual visual bugs
-    bugs = [d for d in result.get("differences", [])
-            if d["classification"] == "visual_bug"]
-    assert len(bugs) == 0, (
-        f"Found {len(bugs)} visual bugs: "
-        + "; ".join(b["description"] for b in bugs)
-    )
-</code></pre>
+      <p>The approach sends both screenshots (baseline and current) to the LLM's vision API, along with a page description for context. The LLM classifies each difference as an <strong>intentional change</strong> (update baseline), a <strong>visual bug</strong> (file defect), or a <strong>content change</strong> (data update). For each difference, it reports the location on the page, description, severity (if a bug), and classification confidence. The test only fails for actual visual bugs — intentional changes are accepted and the baseline is updated.</p>
 
       <p>The LLM-based visual comparison produces results like:</p>
 
@@ -536,203 +262,9 @@ def test_homepage_visual(page):
 
       <p>API regression tests are often simpler to automate than UI tests, but writing them is still tedious: you need to construct request payloads, set up authentication, define expected responses, and handle edge cases. LLMs can generate comprehensive API tests from endpoint documentation.</p>
 
-      <pre><code class="language-python">API_TEST_PROMPT = """You are an API test automation expert. Generate
-comprehensive regression tests for the given API endpoint.
+      <p>You provide the endpoint specification (method, path, request body schema with required/optional fields, and expected response codes) and the LLM generates comprehensive tests covering five categories: happy path, validation errors (missing/invalid fields), authentication failures, edge cases (empty arrays, boundary values), and idempotency checks. The generated tests use pytest with parametrized decorators for data-driven testing.</p>
 
-For each test, include:
-1. Test name and description
-2. HTTP method and URL
-3. Request headers (including auth)
-4. Request body (for POST/PUT/PATCH)
-5. Expected status code
-6. Response body assertions (specific fields and values)
-7. Response time threshold
-8. Error handling for network failures
-
-Cover these test categories:
-- Happy path (valid request, expected response)
-- Validation errors (missing/invalid fields)
-- Authentication failures (no token, expired token, wrong permissions)
-- Edge cases (empty arrays, large payloads, special characters)
-- Idempotency (same request twice should produce consistent results)
-
-Use pytest with the requests library. Include parametrize decorators
-for data-driven tests where appropriate."""
-
-def generate_api_tests(endpoint_spec: dict) -> str:
-    """Generate API regression tests from an endpoint specification."""
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": API_TEST_PROMPT},
-            {"role": "user", "content": f"""Endpoint specification:
-{json.dumps(endpoint_spec, indent=2)}"""}
-        ],
-        temperature=0.3
-    )
-    return response.choices[0].message.content
-
-
-# Example: generate tests for a REST API endpoint
-endpoint = {
-    "method": "POST",
-    "path": "/api/v2/orders",
-    "description": "Create a new order",
-    "authentication": "Bearer token (JWT)",
-    "request_body": {
-        "customer_id": {"type": "integer", "required": True},
-        "items": {
-            "type": "array",
-            "required": True,
-            "min_items": 1,
-            "items": {
-                "product_id": {"type": "integer", "required": True},
-                "quantity": {"type": "integer", "required": True, "min": 1, "max": 100},
-                "unit_price": {"type": "decimal", "required": True}
-            }
-        },
-        "shipping_address": {"type": "object", "required": True},
-        "discount_code": {"type": "string", "required": False}
-    },
-    "responses": {
-        "201": {"description": "Order created", "body": {"order_id": "integer", "status": "string", "total": "decimal"}},
-        "400": {"description": "Validation error"},
-        "401": {"description": "Unauthorized"},
-        "422": {"description": "Business rule violation (e.g., out of stock)"}
-    }
-}
-
-api_tests = generate_api_tests(endpoint)
-print(api_tests)
-</code></pre>
-
-      <p>The LLM generates tests like:</p>
-
-      <pre><code class="language-python">import pytest
-import requests
-
-BASE_URL = "https://api.example.com"
-VALID_TOKEN = "Bearer test_jwt_token_here"
-
-@pytest.fixture
-def auth_headers():
-    return {"Authorization": VALID_TOKEN, "Content-Type": "application/json"}
-
-@pytest.fixture
-def valid_order_payload():
-    return {
-        "customer_id": 10001,
-        "items": [
-            {"product_id": 501, "quantity": 2, "unit_price": 29.99},
-            {"product_id": 502, "quantity": 1, "unit_price": 49.99}
-        ],
-        "shipping_address": {
-            "street": "123 Test Ave",
-            "city": "Springfield",
-            "state": "IL",
-            "zip": "62701"
-        }
-    }
-
-class TestCreateOrder:
-    """Regression tests for POST /api/v2/orders."""
-
-    def test_create_order_success(self, auth_headers, valid_order_payload):
-        """Happy path: valid order returns 201 with order details."""
-        resp = requests.post(
-            f"{BASE_URL}/api/v2/orders",
-            json=valid_order_payload,
-            headers=auth_headers,
-            timeout=10
-        )
-        assert resp.status_code == 201, f"Expected 201, got {resp.status_code}: {resp.text}"
-        data = resp.json()
-        assert "order_id" in data, "Response missing order_id"
-        assert data["status"] == "confirmed"
-        assert data["total"] == pytest.approx(109.97, abs=0.01)
-
-    def test_create_order_no_auth(self, valid_order_payload):
-        """Request without auth token returns 401."""
-        resp = requests.post(
-            f"{BASE_URL}/api/v2/orders",
-            json=valid_order_payload,
-            timeout=10
-        )
-        assert resp.status_code == 401
-
-    @pytest.mark.parametrize("missing_field", ["customer_id", "items", "shipping_address"])
-    def test_create_order_missing_required_field(self, auth_headers,
-                                                  valid_order_payload,
-                                                  missing_field):
-        """Missing required fields return 400."""
-        payload = {**valid_order_payload}
-        del payload[missing_field]
-        resp = requests.post(
-            f"{BASE_URL}/api/v2/orders",
-            json=payload,
-            headers=auth_headers,
-            timeout=10
-        )
-        assert resp.status_code == 400, (
-            f"Missing '{missing_field}' should return 400, got {resp.status_code}"
-        )
-
-    def test_create_order_empty_items(self, auth_headers, valid_order_payload):
-        """Empty items array returns 400."""
-        payload = {**valid_order_payload, "items": []}
-        resp = requests.post(
-            f"{BASE_URL}/api/v2/orders",
-            json=payload,
-            headers=auth_headers,
-            timeout=10
-        )
-        assert resp.status_code == 400
-
-    def test_create_order_quantity_exceeds_max(self, auth_headers,
-                                                valid_order_payload):
-        """Quantity > 100 returns 400."""
-        payload = {**valid_order_payload}
-        payload["items"][0]["quantity"] = 101
-        resp = requests.post(
-            f"{BASE_URL}/api/v2/orders",
-            json=payload,
-            headers=auth_headers,
-            timeout=10
-        )
-        assert resp.status_code == 400
-
-    def test_create_order_idempotency(self, auth_headers, valid_order_payload):
-        """Submitting the same order twice should not create duplicates
-        (if idempotency key is used)."""
-        headers = {**auth_headers, "Idempotency-Key": "test-key-001"}
-        resp1 = requests.post(
-            f"{BASE_URL}/api/v2/orders",
-            json=valid_order_payload,
-            headers=headers,
-            timeout=10
-        )
-        resp2 = requests.post(
-            f"{BASE_URL}/api/v2/orders",
-            json=valid_order_payload,
-            headers=headers,
-            timeout=10
-        )
-        assert resp1.json()["order_id"] == resp2.json()["order_id"], \
-            "Duplicate request with same idempotency key created a new order"
-
-    def test_create_order_response_time(self, auth_headers,
-                                         valid_order_payload):
-        """Order creation should complete within 2 seconds."""
-        resp = requests.post(
-            f"{BASE_URL}/api/v2/orders",
-            json=valid_order_payload,
-            headers=auth_headers,
-            timeout=10
-        )
-        assert resp.elapsed.total_seconds() < 2.0, (
-            f"Response took {resp.elapsed.total_seconds():.1f}s, exceeds 2s threshold"
-        )
-</code></pre>
+      <p>For a <code>POST /api/v2/orders</code> endpoint, the LLM produces seven test methods covering order creation success (assert 201, verify order_id and total), missing auth (assert 401), missing required fields via <code>@pytest.mark.parametrize</code> (assert 400 for each), empty items array, quantity exceeding maximum, idempotency verification, and response time threshold (under 2 seconds).</p>
 
       <div class="callout callout-tip">
         <strong>Generate contract tests from OpenAPI specs.</strong> If your API has an OpenAPI (Swagger) specification, feed it directly to the LLM to generate contract tests. The LLM can validate that every endpoint defined in the spec has corresponding tests and that request/response schemas match. This catches spec drift — when the API implementation diverges from its documentation.
@@ -745,90 +277,7 @@ class TestCreateOrder:
 
       <p>Performance regressions are among the hardest bugs to catch because they require realistic load patterns. LLMs can analyze production traffic logs (anonymized) and generate load test scenarios that mimic real user behavior, including traffic spikes, concurrent operations, and usage pattern variations.</p>
 
-      <pre><code class="language-python">PERF_TEST_PROMPT = """You are a performance test engineer. Generate
-realistic load test scenarios based on the given traffic pattern
-and system description.
-
-For each scenario, provide:
-1. scenario_name: descriptive name
-2. user_profile: what the virtual user does (think-time, click patterns)
-3. load_pattern: ramp-up, steady-state, spike, or soak
-4. virtual_users: number of concurrent users
-5. duration: how long the test runs
-6. key_transactions: the API calls or pages in the scenario
-7. success_criteria: response time thresholds, error rate limits
-8. monitoring_points: what metrics to watch during the test
-
-Return JSON with key "scenarios"."""
-
-def generate_perf_scenarios(system_description: str,
-                            traffic_patterns: dict = None) -> list[dict]:
-    """Generate performance test scenarios from system description."""
-    context = f"System: {system_description}"
-    if traffic_patterns:
-        context += f"\n\nTraffic patterns: {json.dumps(traffic_patterns, indent=2)}"
-
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": PERF_TEST_PROMPT},
-            {"role": "user", "content": context}
-        ],
-        response_format={"type": "json_object"},
-        temperature=0.5
-    )
-    return json.loads(response.choices[0].message.content)["scenarios"]
-
-
-def generate_locust_script(scenario: dict) -> str:
-    """Generate a Locust load test script from a scenario."""
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{
-            "role": "user",
-            "content": f"""Convert this performance test scenario into a
-Locust load test script (Python):
-
-{json.dumps(scenario, indent=2)}
-
-Include:
-- Proper task weights matching realistic usage
-- Think time between actions (using between() for random delays)
-- Response time assertions
-- Custom event tracking for key transactions
-- Proper setup (on_start) for authentication"""
-        }],
-        temperature=0.3
-    )
-    return response.choices[0].message.content
-
-
-# Generate scenarios
-traffic = {
-    "peak_hours": "9 AM - 5 PM EST",
-    "avg_concurrent_users": 500,
-    "peak_concurrent_users": 2000,
-    "top_endpoints": [
-        {"path": "/api/v2/orders", "method": "POST", "rpm": 120},
-        {"path": "/api/v2/products", "method": "GET", "rpm": 800},
-        {"path": "/api/v2/inventory", "method": "GET", "rpm": 400},
-    ],
-    "avg_response_time_ms": 200,
-    "p95_response_time_ms": 800,
-    "error_rate": "0.1%"
-}
-
-scenarios = generate_perf_scenarios(
-    "E-commerce order management API serving 500 concurrent users",
-    traffic
-)
-
-for s in scenarios:
-    print(f"\nScenario: {s['scenario_name']}")
-    print(f"  Load: {s['virtual_users']} users, {s['load_pattern']}")
-    print(f"  Duration: {s['duration']}")
-    print(f"  Criteria: {s['success_criteria']}")
-</code></pre>
+      <p>You provide the system description and anonymized traffic patterns (peak hours, concurrent users, top endpoints with request rates, response time percentiles, error rate), and the LLM generates load test scenarios with eight attributes: scenario name, user profile (behavior, think-time), load pattern (ramp-up, steady-state, spike, or soak), virtual users, duration, key transactions, success criteria, and monitoring points. It can also generate executable Locust scripts from each scenario.</p>
 
       <p>The LLM generates scenarios covering different performance risk areas:</p>
 
@@ -856,83 +305,7 @@ for s in scenarios:
 
       <p>Generating tests is the easy part. Keeping them healthy over months and years is where most teams fail. LLMs can help with test maintenance by analyzing test failures, identifying flaky tests, and suggesting when tests should be retired or refactored.</p>
 
-      <pre><code class="language-python">MAINTENANCE_PROMPT = """You are a test maintenance specialist. Analyze
-the test execution history and provide maintenance recommendations.
-
-For each test, analyze:
-1. FAILURE PATTERN: Does it fail consistently, intermittently, or in clusters?
-2. FLAKINESS SCORE: Percentage of runs that produce inconsistent results
-3. VALUE ASSESSMENT: Does this test catch real bugs or just generate noise?
-4. MAINTENANCE COST: How often does this test need updates?
-5. RECOMMENDATION: keep | refactor | merge | retire
-
-For retired tests, explain why and confirm no coverage gap results.
-For refactored tests, explain what should change.
-For merged tests, identify which tests overlap and can be combined.
-
-Return JSON with key "test_analysis"."""
-
-def analyze_test_health(test_results: list[dict]) -> list[dict]:
-    """Analyze test execution history for maintenance recommendations."""
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": MAINTENANCE_PROMPT},
-            {"role": "user", "content": f"""Test execution history
-(last 30 runs):
-
-{json.dumps(test_results, indent=2)}"""}
-        ],
-        response_format={"type": "json_object"},
-        temperature=0.3
-    )
-    return json.loads(response.choices[0].message.content)["test_analysis"]
-
-
-# Example test execution data
-test_history = [
-    {
-        "test_id": "test_login_valid_credentials",
-        "results_last_30_runs": {"pass": 30, "fail": 0},
-        "avg_duration_ms": 1200,
-        "last_real_bug_caught": "2025-03-15",
-        "last_modified": "2024-06-01",
-        "maintenance_events": 0
-    },
-    {
-        "test_id": "test_search_results_count",
-        "results_last_30_runs": {"pass": 18, "fail": 12},
-        "avg_duration_ms": 8500,
-        "last_real_bug_caught": "never",
-        "last_modified": "2025-09-20",
-        "maintenance_events": 7
-    },
-    {
-        "test_id": "test_checkout_with_coupon",
-        "results_last_30_runs": {"pass": 28, "fail": 2},
-        "avg_duration_ms": 3200,
-        "last_real_bug_caught": "2025-10-01",
-        "last_modified": "2025-08-15",
-        "maintenance_events": 2
-    },
-    {
-        "test_id": "test_product_image_loads",
-        "results_last_30_runs": {"pass": 25, "fail": 5},
-        "avg_duration_ms": 12000,
-        "last_real_bug_caught": "2024-12-01",
-        "last_modified": "2025-01-10",
-        "maintenance_events": 4
-    }
-]
-
-analysis = analyze_test_health(test_history)
-for t in analysis:
-    print(f"[{t['recommendation'].upper():8s}] {t['test_id']}")
-    print(f"  Flakiness: {t['flakiness_score']}")
-    print(f"  Value: {t['value_assessment']}")
-    print(f"  Reason: {t.get('rationale', '')}")
-    print()
-</code></pre>
+      <p>You feed the LLM each test's execution history from the last 30 runs: pass/fail counts, average duration, last real bug caught, last modification date, and number of maintenance events. The LLM evaluates five dimensions per test: failure pattern (consistent vs. intermittent), flakiness score, value assessment (does it catch real bugs?), maintenance cost, and recommendation (keep, refactor, merge, or retire).</p>
 
       <p>The maintenance analysis produces actionable recommendations:</p>
 
@@ -950,35 +323,7 @@ for t in analysis:
 
       <h3>Automated Test Suite Health Dashboard</h3>
 
-      <pre><code class="language-python">def generate_suite_health_report(analysis: list[dict]) -> str:
-    """Generate an overall test suite health report."""
-    total = len(analysis)
-    keep = sum(1 for t in analysis if t["recommendation"] == "keep")
-    refactor = sum(1 for t in analysis if t["recommendation"] == "refactor")
-    retire = sum(1 for t in analysis if t["recommendation"] == "retire")
-    merge = sum(1 for t in analysis if t["recommendation"] == "merge")
-
-    health_score = (keep / total * 100) if total > 0 else 0
-
-    report = f"""
-TEST SUITE HEALTH REPORT
-========================
-Total tests analyzed: {total}
-Suite health score: {health_score:.0f}%
-
-Recommendations:
-  Keep as-is:  {keep} ({keep/total*100:.0f}%)
-  Refactor:    {refactor} ({refactor/total*100:.0f}%)
-  Retire:      {retire} ({retire/total*100:.0f}%)
-  Merge:       {merge} ({merge/total*100:.0f}%)
-
-Estimated maintenance savings if recommendations applied:
-  Tests removed: {retire + merge}
-  Execution time saved: (calculate from avg_duration_ms)
-  Maintenance events prevented: (estimate from history)
-"""
-    return report
-</code></pre>
+      <p>The health report aggregates the per-test analysis into suite-level metrics: total tests analyzed, suite health score (percentage recommended to keep), and a breakdown of keep/refactor/retire/merge recommendations with estimated maintenance savings (tests removed, execution time saved, maintenance events prevented).</p>
 
       <div class="callout callout-tip">
         <strong>Schedule health analysis monthly.</strong> Run the test health analysis once per month (or per release cycle) as part of your CI/CD pipeline. Track the health score over time. A declining health score means tests are accumulating faster than they are being maintained — it is time to invest in test refactoring before the maintenance burden becomes unmanageable.
@@ -1001,159 +346,16 @@ Estimated maintenance savings if recommendations applied:
         <li>Produce a comprehensive regression report after each run</li>
       </ol>
 
-      <h3>Starter Code</h3>
+      <h3>Pipeline Steps</h3>
 
-      <pre><code class="language-python">import json
-from pathlib import Path
-from datetime import datetime
-from openai import OpenAI
+      <p>The Smart Regression Suite orchestrates four LLM-powered capabilities:</p>
 
-client = OpenAI()
-
-class SmartRegressionSuite:
-    """LLM-powered smart regression testing pipeline."""
-
-    def __init__(self, config_path: str = "regression_config.json",
-                 model: str = "gpt-4o"):
-        self.model = model
-        self.config = self._load_config(config_path)
-        self.generated_tests = []
-        self.execution_results = []
-        self.healing_events = []
-
-    def _load_config(self, path: str) -> dict:
-        """Load suite configuration."""
-        if Path(path).exists():
-            return json.loads(Path(path).read_text())
-        return {
-            "framework": "playwright",
-            "base_url": "http://localhost:3000",
-            "screenshot_dir": "screenshots/",
-            "report_dir": "reports/"
-        }
-
-    def generate_tests(self, test_cases: list[dict],
-                       page_context: dict = None) -> list[str]:
-        """Generate test scripts for all test cases."""
-        scripts = []
-        for tc in test_cases:
-            print(f"Generating test: {tc['title']}...")
-            script = generate_test_script(
-                tc,
-                framework=self.config["framework"],
-                page_context=json.dumps(page_context) if page_context else ""
-            )
-            scripts.append(script)
-            self.generated_tests.append({
-                "test_case": tc,
-                "script": script,
-                "generated_at": datetime.now().isoformat()
-            })
-        return scripts
-
-    def run_visual_regression(self, pages: list[dict]) -> list[dict]:
-        """Run visual regression checks on specified pages."""
-        results = []
-        for page_info in pages:
-            baseline = Path(self.config["screenshot_dir"]) / page_info["baseline"]
-            current = Path(self.config["screenshot_dir"]) / page_info["current"]
-
-            if not baseline.exists():
-                print(f"  No baseline for {page_info['name']} — creating one")
-                # In real implementation, capture and save as baseline
-                continue
-
-            result = compare_screenshots(
-                str(baseline), str(current), page_info["name"]
-            )
-            result["page"] = page_info["name"]
-            results.append(result)
-
-            status = "PASS" if result["verdict"] == "pass" else "FAIL"
-            print(f"  Visual check [{status}]: {page_info['name']}")
-        return results
-
-    def analyze_run(self, results: list[dict]) -> dict:
-        """Analyze test run results for patterns and recommendations."""
-        analysis = analyze_test_health(results)
-
-        # Compile healing events
-        healing_summary = {
-            "total_healed": len(self.healing_events),
-            "selectors_to_update": [
-                {"old": h["original_selector"], "new": h["healed_selector"]}
-                for h in self.healing_events
-            ]
-        }
-
-        return {
-            "test_analysis": analysis,
-            "healing_summary": healing_summary,
-            "run_timestamp": datetime.now().isoformat()
-        }
-
-    def generate_report(self, run_analysis: dict,
-                        visual_results: list[dict] = None) -> str:
-        """Generate a comprehensive regression report."""
-        report = {
-            "title": "Smart Regression Suite Report",
-            "timestamp": datetime.now().isoformat(),
-            "test_analysis": run_analysis["test_analysis"],
-            "self_healing": run_analysis["healing_summary"],
-            "visual_regression": visual_results or []
-        }
-
-        # Save JSON report
-        report_path = Path(self.config["report_dir"])
-        report_path.mkdir(parents=True, exist_ok=True)
-        json_path = report_path / f"regression_{datetime.now():%Y%m%d_%H%M}.json"
-        json_path.write_text(json.dumps(report, indent=2))
-        print(f"\nReport saved to {json_path}")
-
-        # Generate human-readable summary
-        summary = f"""
-SMART REGRESSION REPORT — {datetime.now():%Y-%m-%d %H:%M}
-{'='*55}
-Tests generated: {len(self.generated_tests)}
-Selectors healed: {run_analysis['healing_summary']['total_healed']}
-Visual checks: {len(visual_results or [])}
-
-RECOMMENDATIONS:
-"""
-        for t in run_analysis["test_analysis"]:
-            summary += f"  [{t['recommendation'].upper():8s}] {t['test_id']}\n"
-
-        return summary
-
-
-# Usage
-if __name__ == "__main__":
-    suite = SmartRegressionSuite()
-
-    # Define test cases in natural language
-    test_cases = [
-        {
-            "title": "User login with valid credentials",
-            "steps": ["Navigate to login page", "Enter valid email",
-                      "Enter valid password", "Click Login"],
-            "expected_result": "User is redirected to dashboard"
-        },
-        {
-            "title": "Add item to cart",
-            "steps": ["Navigate to product page", "Click Add to Cart",
-                      "Verify cart count updates"],
-            "expected_result": "Cart icon shows count of 1"
-        }
-    ]
-
-    # Generate tests
-    scripts = suite.generate_tests(test_cases)
-
-    # After running tests, analyze results
-    # analysis = suite.analyze_run(test_execution_results)
-    # report = suite.generate_report(analysis, visual_results)
-    # print(report)
-</code></pre>
+      <ol>
+        <li><strong>Test generation</strong> — convert natural-language test cases into executable Playwright or pytest scripts, organized by feature area</li>
+        <li><strong>Visual regression</strong> — compare baseline and current screenshots for each page, classifying differences as intentional changes or bugs</li>
+        <li><strong>Self-healing execution</strong> — run tests with self-healing selectors that log all healing events for later permanent updates</li>
+        <li><strong>Run analysis</strong> — analyze test results for flaky tests, maintenance recommendations, and a suite health score, producing a JSON report and human-readable summary</li>
+      </ol>
 
       <h3>Extension Ideas</h3>
       <ul>

@@ -36,33 +36,49 @@
     </section>
 
     <!-- Architecture Overview -->
-    <h2>Architecture Overview</h2>
+        <!-- SVG Architecture Diagram -->
+    <figure>
+      <svg viewBox="0 0 900 310" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif;background:#fff;border-radius:8px;border:1px solid #e0e0e0">
+        <text x="450" y="28" text-anchor="middle" fill="#333" font-size="16" font-weight="700">BRD Analyzer Architecture</text>
+        <defs>
+          <marker id="arrowC2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+        <!-- Input -->
+        <rect x="370" y="50" width="160" height="50" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="450" y="72" text-anchor="middle" fill="#333" font-size="13" font-weight="600">BRD Document</text>
+        <text x="450" y="90" text-anchor="middle" fill="#666" font-size="11">.md / .docx</text>
+        <line x1="450" y1="100" x2="450" y2="120" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowC2)"/>
+        <!-- Parse -->
+        <rect x="350" y="120" width="200" height="40" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="450" y="145" text-anchor="middle" fill="#333" font-size="13" font-weight="600">1. Parse &amp; Structure</text>
+        <!-- Three analysis branches -->
+        <line x1="350" y1="160" x2="160" y2="190" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowC2)"/>
+        <line x1="450" y1="160" x2="450" y2="190" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowC2)"/>
+        <line x1="550" y1="160" x2="740" y2="190" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowC2)"/>
+        <rect x="60" y="190" width="200" height="40" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="160" y="215" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">2a. Completeness Check</text>
+        <rect x="350" y="190" width="200" height="40" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="450" y="215" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">2b. Ambiguity Detection</text>
+        <rect x="640" y="190" width="200" height="40" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="740" y="215" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">2c. Compliance Scan</text>
+        <!-- Converge -->
+        <line x1="160" y1="230" x2="350" y2="260" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowC2)"/>
+        <line x1="450" y1="230" x2="450" y2="260" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowC2)"/>
+        <line x1="740" y1="230" x2="550" y2="260" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowC2)"/>
+        <!-- Score -->
+        <rect x="350" y="260" width="200" height="40" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="450" y="285" text-anchor="middle" fill="#333" font-size="13" font-weight="700">3. Score &amp; Report</text>
+      </svg>
+      <figcaption>Figure C2.1 — The BRD Analyzer uses a three-layer architecture: parse the document, run three independent analysis checks in parallel, then aggregate findings into a quality scorecard.</figcaption>
+    </figure>
+
+<h2>Architecture Overview</h2>
 
     <p>The analyzer uses a three-layer architecture: parsing, analysis, and reporting. The parsing layer extracts structure from the document. The analysis layer runs multiple independent checks in parallel. The reporting layer aggregates findings into a scorecard.</p>
 
-    <pre><code class="language-text">                    ┌──────────────────┐
-                    │  BRD Document    │
-                    │  (.md / .docx)   │
-                    └────────┬─────────┘
-                             │
-                    ┌────────▼─────────┐
-                    │  1. Parse &amp;      │
-                    │     Structure    │
-                    └────────┬─────────┘
-                             │
-              ┌──────────────┼──────────────┐
-              │              │              │
-     ┌────────▼───────┐ ┌───▼────────┐ ┌───▼────────────┐
-     │ 2a. Complete-  │ │ 2b. Ambi-  │ │ 2c. Compliance │
-     │     ness Check │ │     guity   │ │     Scan       │
-     └────────┬───────┘ └───┬────────┘ └───┬────────────┘
-              │              │              │
-              └──────────────┼──────────────┘
-                             │
-                    ┌────────▼─────────┐
-                    │  3. Score &amp;      │
-                    │     Report      │
-                    └─────────────────┘</code></pre>
+    <!-- Replaced with SVG diagram above -->
 
     <p><strong>Data models:</strong> The analyzer uses Pydantic to represent the parsed BRD and every finding:</p>
 
@@ -117,94 +133,23 @@ class BRDAnalysis(BaseModel):
 
     <p>Create the project structure and a sample BRD to analyze:</p>
 
-    <pre><code class="language-bash">mkdir -p brd_analyzer/{modules,data,output,templates}
-cd brd_analyzer
-pip install openai pydantic python-docx tiktoken</code></pre>
+    <!-- Removed: bash setup commands. -->
 
     <p>Here is a sample BRD with deliberate quality issues for the analyzer to find:</p>
 
-    <pre><code class="language-markdown"># Business Requirements Document
-## Project: Customer Portal Redesign
-**Version:** 1.2 | **Author:** J. Smith | **Date:** 2025-11-15
+    <!-- Removed: sample BRD markdown with deliberate quality issues. -->
 
-## 1. Executive Summary
-The customer portal needs to be redesigned to improve user experience
-and increase customer satisfaction. The new portal should be modern
-and easy to use.
-
-## 2. Business Objectives
-- Increase customer self-service rate by 40%
-- Reduce support ticket volume
-- Improve customer satisfaction scores
-
-## 3. Functional Requirements
-
-### 3.1 User Authentication
-FR-101: The system shall support SSO login via SAML 2.0.
-FR-102: The system should allow password reset via email.
-FR-103: The system shall lock accounts after failed login attempts.
-
-### 3.2 Dashboard
-FR-201: The dashboard shall display relevant information to the user.
-FR-202: The system shall allow users to customize their dashboard layout.
-FR-203: Dashboard data should load quickly.
-
-### 3.3 Reporting
-FR-301: Users shall be able to generate reports.
-FR-302: Reports shall be exportable in multiple formats.
-
-## 4. Non-Functional Requirements
-NFR-01: The system shall be fast.
-NFR-02: The system shall be available 99.9% of the time.
-NFR-03: The system shall comply with relevant regulations.
-
-## 5. Assumptions
-- Users have modern web browsers
-- Existing APIs will remain stable</code></pre>
+      <p>Create a sample BRD for a Customer Portal Redesign with deliberate quality issues for the analyzer to find: vague terms ("modern," "easy to use," "fast," "quickly," "relevant"), missing sections (no risk analysis, no data requirements, no acceptance criteria), inconsistent modal verbs ("shall" vs. "should"), and undefined thresholds ("failed login attempts" without specifying how many).</p>
 
     <p>Notice the deliberate issues: vague terms ("modern," "easy to use," "fast," "quickly," "relevant"), missing sections (no risk analysis, no data requirements, no acceptance criteria), inconsistent modal verbs ("shall" vs. "should"), and undefined thresholds ("failed login attempts" — how many?).</p>
 
     <p>The parsing module extracts structure from the document:</p>
 
-    <pre><code class="language-python">"""modules/parse_brd.py — Parse a BRD into structured sections."""
-import re
-from pathlib import Path
+    <!-- Removed: parse_brd.py module (~40 lines).
+           Splits markdown into sections by heading level,
+           counts words per section, and extracts requirement IDs. -->
 
-def parse_brd(file_path: str) -> list[dict]:
-    """Parse a markdown BRD into sections with metadata."""
-    text = Path(file_path).read_text(encoding="utf-8")
-    sections = []
-    current_section = None
-
-    for line in text.split("\n"):
-        heading_match = re.match(r"^(#{1,3})\s+(.+)", line)
-        if heading_match:
-            if current_section:
-                current_section["word_count"] = len(current_section["content"].split())
-                current_section["requirements"] = re.findall(
-                    r"((?:FR|NFR|BR)-\d{2,3}):", current_section["content"]
-                )
-                sections.append(current_section)
-            current_section = {
-                "heading": heading_match.group(2).strip(),
-                "level": len(heading_match.group(1)),
-                "content": "",
-                "requirements": [],
-                "word_count": 0,
-            }
-        elif current_section:
-            current_section["content"] += line + "\n"
-
-    # Don't forget the last section
-    if current_section:
-        current_section["word_count"] = len(current_section["content"].split())
-        current_section["requirements"] = re.findall(
-            r"((?:FR|NFR|BR)-\d{2,3}):", current_section["content"]
-        )
-        sections.append(current_section)
-
-    print(f"Parsed {len(sections)} sections from {Path(file_path).name}")
-    return sections</code></pre>
+      <p>The parsing module reads the BRD line by line, detecting headings by the <code>#</code> prefix. For each section it records the heading text, heading level, content, word count, and any requirement IDs found (matching patterns like <code>FR-001</code>, <code>NFR-01</code>). This structured representation feeds into all three analyzers.</p>
 
     <!-- Step 2 -->
     <h2>Step 2: Core Processing Pipeline — The Three Analyzers</h2>
@@ -215,70 +160,11 @@ def parse_brd(file_path: str) -> list[dict]:
 
     <p>The completeness checker compares the BRD's sections against a configurable template of expected sections. It also checks for orphaned references and missing acceptance criteria.</p>
 
-    <pre><code class="language-python">"""modules/completeness.py — Check BRD for structural completeness."""
+    <!-- Removed: completeness.py module (~50 lines).
+           Checks BRD against a template of expected sections
+           and flags thin sections under 20 words. -->
 
-EXPECTED_SECTIONS = [
-    "Executive Summary",
-    "Business Objectives",
-    "Scope",
-    "Functional Requirements",
-    "Non-Functional Requirements",
-    "Data Requirements",
-    "Integration Requirements",
-    "Assumptions",
-    "Constraints",
-    "Risks",
-    "Acceptance Criteria",
-    "Glossary",
-]
-
-def check_completeness(sections: list[dict]) -> list[dict]:
-    """Check whether the BRD contains all expected sections."""
-    findings = []
-    section_headings = [s["heading"].lower() for s in sections]
-    # Also include subheadings for fuzzy matching
-    all_headings_text = " ".join(section_headings)
-
-    finding_id = 0
-    for expected in EXPECTED_SECTIONS:
-        # Fuzzy match: check if the key word appears in any heading
-        key_words = expected.lower().split()
-        matched = any(
-            all(w in heading for w in key_words)
-            for heading in section_headings
-        )
-        if not matched:
-            finding_id += 1
-            findings.append({
-                "id": f"COMP-{finding_id:03d}",
-                "category": "completeness",
-                "severity": "major" if expected in [
-                    "Scope", "Acceptance Criteria", "Risks"
-                ] else "minor",
-                "location": "Document Structure",
-                "description": f"Missing expected section: '{expected}'",
-                "suggestion": f"Add a '{expected}' section to the BRD. "
-                              f"This section is expected in standard BRD templates.",
-                "original_text": None,
-            })
-
-    # Check for thin sections (fewer than 20 words)
-    for section in sections:
-        if section["word_count"] < 20 and section["level"] <= 2:
-            finding_id += 1
-            findings.append({
-                "id": f"COMP-{finding_id:03d}",
-                "category": "completeness",
-                "severity": "minor",
-                "location": section["heading"],
-                "description": f"Section '{section['heading']}' has only "
-                               f"{section['word_count']} words — likely incomplete.",
-                "suggestion": "Expand this section with specific details, "
-                              "examples, or acceptance criteria.",
-                "original_text": None,
-            })
-
-    return findings</code></pre>
+      <p>The completeness checker compares the BRD's section headings against a configurable list of expected sections (Executive Summary, Scope, Functional Requirements, Non-Functional Requirements, Data Requirements, Risks, Acceptance Criteria, Glossary, etc.). Missing sections generate findings with severity based on importance: missing Scope or Acceptance Criteria is "major," missing Glossary is "minor." It also flags sections with fewer than 20 words as likely incomplete.</p>
 
     <h3>2b. Ambiguity Detector</h3>
 
@@ -443,123 +329,11 @@ Return ONLY the JSON array."""
 
     <p>The compliance scanner checks the BRD against configurable rules — organizational naming conventions, required metadata fields, and standards references:</p>
 
-    <pre><code class="language-python">"""modules/compliance.py — Check BRD against compliance rules."""
-import re
+    <!-- Removed: compliance.py module (~80 lines).
+           Checks metadata (version, author, date), requirement ID consistency,
+           acceptance criteria presence, and traceability references. -->
 
-COMPLIANCE_RULES = [
-    {
-        "id": "META-001",
-        "check": "version",
-        "description": "BRD must include a version number",
-        "severity": "major",
-    },
-    {
-        "id": "META-002",
-        "check": "author",
-        "description": "BRD must identify the author",
-        "severity": "major",
-    },
-    {
-        "id": "META-003",
-        "check": "date",
-        "description": "BRD must include a date or last-updated timestamp",
-        "severity": "minor",
-    },
-    {
-        "id": "NAMING-001",
-        "check": "req_id_format",
-        "description": "All requirements must use consistent ID format (XX-NNN)",
-        "severity": "minor",
-    },
-    {
-        "id": "STRUCT-001",
-        "check": "acceptance_criteria",
-        "description": "Each functional requirement should have acceptance criteria",
-        "severity": "major",
-    },
-]
-
-
-def scan_compliance(sections: list[dict], full_text: str) -> list[dict]:
-    """Run all compliance checks against the BRD."""
-    findings = []
-    finding_id = 0
-
-    # Metadata checks
-    if not re.search(r"[Vv]ersion[:\s]+\d", full_text):
-        finding_id += 1
-        findings.append(_make_finding(
-            f"COMPL-{finding_id:03d}", "compliance", "major",
-            "Document Metadata",
-            "No version number found in document metadata.",
-            "Add a version number (e.g., 'Version: 1.0') to the document header.",
-        ))
-
-    if not re.search(r"[Aa]uthor[:\s]+\w", full_text):
-        finding_id += 1
-        findings.append(_make_finding(
-            f"COMPL-{finding_id:03d}", "compliance", "major",
-            "Document Metadata",
-            "No author identified in document metadata.",
-            "Add an 'Author:' field to the document header.",
-        ))
-
-    # Requirement ID consistency
-    all_req_ids = re.findall(r"((?:FR|NFR|BR|CON|REQ)-\d{2,3})", full_text)
-    if all_req_ids:
-        id_formats = set()
-        for rid in all_req_ids:
-            prefix = re.match(r"([A-Z]+-)", rid).group(1)
-            digits = len(re.search(r"\d+", rid).group())
-            id_formats.add(f"{prefix}{'N' * digits}")
-
-        if len(id_formats) > 1:
-            finding_id += 1
-            findings.append(_make_finding(
-                f"COMPL-{finding_id:03d}", "compliance", "minor",
-                "Requirement IDs",
-                f"Inconsistent ID formats found: {', '.join(sorted(id_formats))}. "
-                f"Example IDs: {', '.join(all_req_ids[:5])}",
-                "Standardize all requirement IDs to a single format "
-                "(e.g., FR-001, NFR-001).",
-            ))
-
-    # Check for acceptance criteria
-    ac_pattern = r"[Aa]cceptance\s+[Cc]riteria"
-    if not re.search(ac_pattern, full_text):
-        finding_id += 1
-        findings.append(_make_finding(
-            f"COMPL-{finding_id:03d}", "compliance", "major",
-            "Functional Requirements",
-            "No acceptance criteria found anywhere in the document.",
-            "Add acceptance criteria for each functional requirement. "
-            "Use the format: 'Given [context], When [action], Then [result]'.",
-        ))
-
-    # Check for traceability references
-    if not re.search(r"[Tt]race|[Tt]raceability|[Mm]apping", full_text):
-        finding_id += 1
-        findings.append(_make_finding(
-            f"COMPL-{finding_id:03d}", "compliance", "minor",
-            "Document Structure",
-            "No traceability matrix or cross-references found.",
-            "Add a traceability section linking requirements to business "
-            "objectives and test cases.",
-        ))
-
-    return findings
-
-
-def _make_finding(fid, category, severity, location, description, suggestion):
-    return {
-        "id": fid,
-        "category": category,
-        "severity": severity,
-        "location": location,
-        "description": description,
-        "suggestion": suggestion,
-        "original_text": None,
-    }</code></pre>
+      <p>The compliance scanner runs rule-based checks against the full BRD text: presence of version number, author, and date in metadata; consistency of requirement ID formats (flagging if FR-001 and NFR-01 use different digit counts); presence of acceptance criteria anywhere in the document; and existence of traceability references. Each failed check generates a finding with a specific, actionable recommendation for how to fix it.</p>
 
     <!-- Step 3 -->
     <h2>Step 3: Output Generation — The Quality Scorecard</h2>
@@ -719,86 +493,10 @@ def _score_to_rating(score: float) -> str:
 
     <p>Before trusting the analyzer's output, you need to validate its findings. This step implements self-checks and a confidence calibration layer that uses the LLM to review its own findings (Chapter 15).</p>
 
-    <pre><code class="language-python">"""modules/validate.py — Validate and calibrate analysis findings."""
-import json
-import os
-from openai import OpenAI
+    <!-- Removed: validate.py module (~70 lines).
+           Deduplicates findings and uses LLM to review severity ratings. -->
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-
-def deduplicate_findings(findings: list[dict]) -> list[dict]:
-    """Remove duplicate or near-duplicate findings."""
-    seen_descriptions = set()
-    unique = []
-
-    for f in findings:
-        # Create a normalized key from description and location
-        key = (f.get("location", ""), f.get("description", "").lower()[:60])
-        if key not in seen_descriptions:
-            seen_descriptions.add(key)
-            unique.append(f)
-
-    removed = len(findings) - len(unique)
-    if removed > 0:
-        print(f"  Removed {removed} duplicate findings")
-    return unique
-
-
-def validate_severity(findings: list[dict]) -> list[dict]:
-    """Use an LLM to review and potentially adjust severity ratings."""
-    if not findings:
-        return findings
-
-    # Only review major/critical findings to save API costs
-    high_findings = [f for f in findings if f["severity"] in ("critical", "major")]
-    if not high_findings:
-        return findings
-
-    findings_text = json.dumps(high_findings[:10], indent=2)  # Cap at 10
-
-    prompt = f"""Review these BRD analysis findings. For each one, assess whether
-the severity rating is appropriate. Consider:
-- Is this truly a major issue or is it being over-flagged?
-- Would this issue actually cause problems in development?
-- Is the recommendation actionable?
-
-Findings:
-{findings_text}
-
-Return a JSON array with the finding IDs and your adjusted severity:
-[{{"id": "...", "adjusted_severity": "critical|major|minor|info",
-   "rationale": "brief reason for adjustment"}}]
-
-Only include findings where you would change the severity.
-Return an empty array [] if all severities are appropriate."""
-
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are a senior BA reviewing QA findings. "
-             "Be pragmatic — only flag real issues. Return only JSON."},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.2,
-        max_tokens=800,
-    )
-
-    raw = response.choices[0].message.content.strip()
-    try:
-        adjustments = json.loads(raw)
-    except json.JSONDecodeError:
-        return findings
-
-    # Apply adjustments
-    adj_map = {a["id"]: a["adjusted_severity"] for a in adjustments}
-    for f in findings:
-        if f["id"] in adj_map:
-            old = f["severity"]
-            f["severity"] = adj_map[f["id"]]
-            print(f"  Adjusted {f['id']}: {old} -> {f['severity']}")
-
-    return findings</code></pre>
+      <p>The validation module performs two cleanup passes: <strong>deduplication</strong> removes findings with the same location and similar descriptions, and <strong>severity calibration</strong> sends the top 10 major/critical findings to the LLM for review, asking it to assess whether each severity rating is appropriate. If the LLM recommends a downgrade (e.g., from "major" to "minor"), the finding is adjusted. This reduces false positives and builds trust in the analyzer's output.</p>
 
     <p>Now the main orchestrator that ties all stages together:</p>
 

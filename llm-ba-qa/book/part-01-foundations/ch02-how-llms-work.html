@@ -86,57 +86,70 @@
 
     <p><strong>Quality:</strong> Longer prompts with more context generally produce better outputs — but only up to a point. Research has shown that information in the middle of very long contexts can be "lost" by the model, a phenomenon called the "lost in the middle" effect. Strategically placing your most important context at the beginning and end of your prompt can improve results.</p>
 
-    <pre><code class="language-python">"""
-Token counting utility for analysts.
-Uses the tiktoken library (OpenAI's tokenizer) for estimation.
-"""
-import tiktoken
+    <figure class="diagram">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 180" width="100%" role="img" aria-label="How an LLM processes your prompt — from text through tokens to response">
+        <style>
+          .proc-box { fill: var(--accent-light, #e0e7ff); stroke: var(--accent, #4f46e5); stroke-width: 2; rx: 8; }
+          .proc-core { fill: var(--accent, #4f46e5); stroke: var(--accent, #4f46e5); stroke-width: 2; rx: 8; }
+          .proc-label { font-family: system-ui, sans-serif; font-size: 12px; font-weight: 700; fill: #333; text-anchor: middle; }
+          .proc-label-light { font-family: system-ui, sans-serif; font-size: 12px; font-weight: 700; fill: #fff; text-anchor: middle; }
+          .proc-sub { font-family: system-ui, sans-serif; font-size: 9.5px; fill: #555; text-anchor: middle; }
+          .proc-sub-light { font-family: system-ui, sans-serif; font-size: 9.5px; fill: #e0e7ff; text-anchor: middle; }
+          .proc-icon { font-size: 22px; text-anchor: middle; }
+        </style>
+        <defs>
+          <marker id="proc-arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="var(--accent, #4f46e5)"/>
+          </marker>
+        </defs>
+        <!-- Step 1: Your Text -->
+        <rect x="5" y="35" width="110" height="100" class="proc-box"/>
+        <text x="60" y="62" class="proc-icon">&#128221;</text>
+        <text x="60" y="88" class="proc-label">Your Text</text>
+        <text x="60" y="105" class="proc-sub">"Analyze this</text>
+        <text x="60" y="118" class="proc-sub">requirement..."</text>
+        <line x1="115" y1="85" x2="140" y2="85" stroke="var(--accent,#4f46e5)" stroke-width="2" marker-end="url(#proc-arrow)"/>
 
-def count_tokens(text, model="gpt-4o"):
-    """Count tokens for a given text using the specified model's tokenizer."""
-    try:
-        encoding = tiktoken.encoding_for_model(model)
-    except KeyError:
-        encoding = tiktoken.get_encoding("cl100k_base")
+        <!-- Step 2: Tokenizer -->
+        <rect x="140" y="50" width="95" height="70" class="proc-box"/>
+        <text x="187" y="78" class="proc-label">Tokenizer</text>
+        <text x="187" y="96" class="proc-sub">Splits into chunks</text>
+        <line x1="235" y1="85" x2="260" y2="85" stroke="var(--accent,#4f46e5)" stroke-width="2" marker-end="url(#proc-arrow)"/>
 
-    tokens = encoding.encode(text)
-    return len(tokens)
+        <!-- Step 3: Tokens -->
+        <rect x="260" y="50" width="95" height="70" class="proc-box"/>
+        <text x="307" y="78" class="proc-label">Tokens</text>
+        <text x="307" y="96" class="proc-sub">[481, 29, 1038...]</text>
+        <line x1="355" y1="85" x2="380" y2="85" stroke="var(--accent,#4f46e5)" stroke-width="2" marker-end="url(#proc-arrow)"/>
 
-def estimate_cost(input_tokens, output_tokens, model="gpt-4o"):
-    """Estimate the API cost for a given number of tokens."""
-    # Approximate pricing per 1M tokens (as of early 2026)
-    pricing = {
-        "gpt-4o":       {"input": 2.50, "output": 10.00},
-        "gpt-4o-mini":  {"input": 0.15, "output": 0.60},
-        "claude-sonnet": {"input": 3.00, "output": 15.00},
-        "claude-haiku":  {"input": 0.25, "output": 1.25},
-    }
+        <!-- Step 4: Transformer (core) -->
+        <rect x="380" y="35" width="120" height="100" class="proc-core"/>
+        <text x="440" y="62" class="proc-icon" style="fill:#fff;">&#9881;</text>
+        <text x="440" y="88" class="proc-label-light">Transformer</text>
+        <text x="440" y="105" class="proc-sub-light">Attention +</text>
+        <text x="440" y="118" class="proc-sub-light">pattern matching</text>
+        <line x1="500" y1="85" x2="525" y2="85" stroke="var(--accent,#4f46e5)" stroke-width="2" marker-end="url(#proc-arrow)"/>
 
-    rates = pricing.get(model, pricing["gpt-4o"])
-    input_cost = (input_tokens / 1_000_000) * rates["input"]
-    output_cost = (output_tokens / 1_000_000) * rates["output"]
-    return input_cost + output_cost
+        <!-- Step 5: Probabilities -->
+        <rect x="525" y="50" width="105" height="70" class="proc-box"/>
+        <text x="577" y="78" class="proc-label">Probabilities</text>
+        <text x="577" y="96" class="proc-sub">Next-token scores</text>
+        <line x1="630" y1="85" x2="655" y2="85" stroke="var(--accent,#4f46e5)" stroke-width="2" marker-end="url(#proc-arrow)"/>
 
-# Example: Estimate cost for a requirements analysis task
-requirement_doc = """
-As a customer service representative, I want to search for customer
-accounts by multiple criteria (name, email, phone, account number)
-so that I can quickly locate the correct account during a call.
+        <!-- Step 6: Response -->
+        <rect x="655" y="35" width="115" height="100" class="proc-box"/>
+        <text x="712" y="62" class="proc-icon">&#128196;</text>
+        <text x="712" y="88" class="proc-label">Response</text>
+        <text x="712" y="105" class="proc-sub">Generated text</text>
+        <text x="712" y="118" class="proc-sub">token by token</text>
 
-Acceptance Criteria:
-- Search returns results within 2 seconds
-- Partial matches are supported for name and email
-- Results are sorted by relevance score
-- Maximum 50 results displayed per page
-- Search history is maintained for the current session
-"""
+        <!-- Caption line -->
+        <text x="390" y="170" text-anchor="middle" style="font-family:system-ui,sans-serif;font-size:11px;fill:#555;font-style:italic;">Each token is predicted one at a time based on everything that came before it.</text>
+      </svg>
+      <figcaption>How an LLM Processes Your Prompt — your text is split into tokens, processed by the Transformer's attention mechanism, and the response is generated one token at a time based on learned probability patterns.</figcaption>
+    </figure>
 
-token_count = count_tokens(requirement_doc)
-print(f"Requirement document: {token_count} tokens")
-print(f"Estimated cost for analysis (assuming 500 output tokens):")
-for model in ["gpt-4o", "gpt-4o-mini", "claude-sonnet", "claude-haiku"]:
-    cost = estimate_cost(token_count, 500, model)
-    print(f"  {model}: ${cost:.4f}")</code></pre>
+    <p>You can estimate token counts and API costs using free online tokenizer tools (such as OpenAI's Tokenizer at platform.openai.com/tokenizer) or by using the rule of thumb: roughly 750 English words equals about 1,000 tokens. A typical user story is 50-100 tokens, so analyzing one costs fractions of a cent with any model.</p>
 
     <div class="callout callout-tip">
       <strong>Practical Tip:</strong> When working with large documents, pre-process them before sending to an LLM. Remove boilerplate (headers, footers, page numbers), compress whitespace, and consider sending only the relevant sections rather than the entire document. This reduces cost and often improves output quality.
@@ -284,46 +297,64 @@ for model in ["gpt-4o", "gpt-4o-mini", "claude-sonnet", "claude-haiku"]:
     <p><strong>Strategy 3: System Messages</strong></p>
     <p>Use the system message (available in API calls) to set persistent context — your role, the project background, output format expectations. This is more token-efficient than repeating context in every user message.</p>
 
-    <pre><code class="language-python">"""
-Context window management utility.
-Helps analysts estimate whether their documents fit within model limits.
-"""
+    <figure class="diagram">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" width="100%" role="img" aria-label="Context window explained — showing how prompt, document, and response must all fit within the model's token limit">
+        <style>
+          .cw-border { fill: none; stroke: var(--accent, #4f46e5); stroke-width: 2.5; rx: 10; }
+          .cw-section { rx: 6; }
+          .cw-label { font-family: system-ui, sans-serif; font-size: 12px; font-weight: 700; fill: #333; }
+          .cw-sub { font-family: system-ui, sans-serif; font-size: 10px; fill: #555; }
+          .cw-title { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: var(--accent, #4f46e5); }
+        </style>
+        <!-- Example 1: Fits -->
+        <text x="20" y="25" class="cw-title">Fits in context window (128K tokens)</text>
+        <rect x="20" y="35" width="660" height="90" class="cw-border"/>
+        <text x="650" y="55" text-anchor="end" class="cw-sub" style="font-style:italic;">128,000 tokens</text>
+        <!-- Sections inside -->
+        <rect x="30" y="45" width="120" height="65" class="cw-section" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+        <text x="90" y="72" text-anchor="middle" class="cw-label">Prompt</text>
+        <text x="90" y="88" text-anchor="middle" class="cw-sub">~500 tokens</text>
 
-def check_context_fit(prompt_tokens, document_tokens, expected_output_tokens,
-                      model_limit=128000):
-    """Check if a task fits within a model's context window."""
-    total = prompt_tokens + document_tokens + expected_output_tokens
-    utilization = (total / model_limit) * 100
+        <rect x="160" y="45" width="280" height="65" class="cw-section" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+        <text x="300" y="72" text-anchor="middle" class="cw-label">Document (20-page BRD)</text>
+        <text x="300" y="88" text-anchor="middle" class="cw-sub">~13,000 tokens</text>
 
-    result = {
-        "total_tokens": total,
-        "model_limit": model_limit,
-        "utilization": f"{utilization:.1f}%",
-        "fits": total <= model_limit,
-        "remaining": model_limit - total
-    }
+        <rect x="450" y="45" width="130" height="65" class="cw-section" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5"/>
+        <text x="515" y="72" text-anchor="middle" class="cw-label">Response</text>
+        <text x="515" y="88" text-anchor="middle" class="cw-sub">~2,000 tokens</text>
 
-    if not result["fits"]:
-        excess = total - model_limit
-        result["recommendation"] = (
-            f"Exceeds limit by {excess:,} tokens. "
-            f"Consider: (1) summarizing the document to reduce by "
-            f"{excess:,}+ tokens, or (2) using a model with a larger "
-            f"context window, or (3) splitting into {(total // model_limit) + 1} chunks."
-        )
+        <rect x="590" y="45" width="80" height="65" class="cw-section" fill="#f5f5f5" stroke="#ccc" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="630" y="72" text-anchor="middle" class="cw-sub" style="fill:#999;">Unused</text>
+        <text x="630" y="86" text-anchor="middle" class="cw-sub" style="fill:#999;">capacity</text>
 
-    return result
+        <!-- Example 2: Overflows -->
+        <text x="20" y="165" class="cw-title" style="fill:#ef4444;">Overflows context window (8K model)</text>
+        <rect x="20" y="175" width="300" height="90" class="cw-border" style="stroke:#ef4444;"/>
+        <text x="290" y="195" text-anchor="end" class="cw-sub" style="font-style:italic;fill:#ef4444;">8,000 tokens</text>
 
-# Example: Can I analyze a BRD with GPT-4o?
-result = check_context_fit(
-    prompt_tokens=500,       # Your instructions
-    document_tokens=13000,   # 20-page BRD
-    expected_output_tokens=2000,  # Detailed analysis
-    model_limit=128000       # GPT-4o
-)
-print(f"Fits in context: {result['fits']}")
-print(f"Utilization: {result['utilization']}")
-print(f"Remaining capacity: {result['remaining']:,} tokens")</code></pre>
+        <rect x="30" y="185" width="80" height="65" class="cw-section" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+        <text x="70" y="215" text-anchor="middle" class="cw-label" style="font-size:10px;">Prompt</text>
+        <text x="70" y="232" text-anchor="middle" class="cw-sub">500</text>
+
+        <rect x="115" y="185" width="200" height="65" class="cw-section" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+        <text x="215" y="215" text-anchor="middle" class="cw-label" style="font-size:10px;">Document</text>
+        <text x="215" y="232" text-anchor="middle" class="cw-sub">13,000 tokens</text>
+
+        <!-- Overflow indicator -->
+        <rect x="320" y="185" width="120" height="65" class="cw-section" fill="#fef2f2" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,3"/>
+        <text x="380" y="208" text-anchor="middle" class="cw-label" style="fill:#ef4444;font-size:18px;">&#10060;</text>
+        <text x="380" y="232" text-anchor="middle" class="cw-sub" style="fill:#ef4444;">Overflow!</text>
+
+        <!-- Solution note -->
+        <text x="470" y="195" class="cw-label" style="font-size:11px;">Solutions:</text>
+        <text x="470" y="215" class="cw-sub">1. Summarize the document first</text>
+        <text x="470" y="232" class="cw-sub">2. Use a model with a larger window</text>
+        <text x="470" y="249" class="cw-sub">3. Split into chunks and process separately</text>
+      </svg>
+      <figcaption>Context Window Explained — everything in a single LLM interaction (your prompt, attached documents, and the model's response) must fit within the model's token limit. A 20-page BRD fits easily in GPT-4o's 128K window, but would overflow an 8K-token model.</figcaption>
+    </figure>
+
+    <p>To check whether your document fits: add your prompt tokens (typically 200-500), your document tokens (roughly 650 per page), and your expected response tokens (500-2,000). If the total exceeds the model's context window, use one of the three strategies above.</p>
 
     <div class="callout callout-tip">
       <strong>Conversation Memory:</strong> In multi-turn conversations (like ChatGPT), the entire conversation history is sent with each new message. A conversation that starts small can gradually fill the context window. If you notice an LLM's responses becoming less coherent or accurate in a long conversation, start a new conversation and provide fresh context.
@@ -380,33 +411,7 @@ print(f"Remaining capacity: {result['remaining']:,} tokens")</code></pre>
       <strong>Analyst's Rule of Thumb:</strong> Use temperature 0 for tasks where consistency and accuracy matter most (data extraction, classification, structured output). Use temperature 0.5-0.7 for tasks where quality writing matters (document drafting, communication). Use temperature 0.8+ only when you explicitly want variety and creative options.
     </div>
 
-    <pre><code class="language-python">"""
-Demonstrate the effect of temperature on LLM output.
-This example uses the OpenAI API but the concept applies to all models.
-"""
-from openai import OpenAI
-
-client = OpenAI()  # Uses OPENAI_API_KEY environment variable
-
-user_story = """
-As an online shopper, I want to save items to a wishlist
-so that I can purchase them later.
-"""
-
-# Generate acceptance criteria at different temperatures
-for temp in [0.0, 0.5, 1.0]:
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        temperature=temp,
-        messages=[
-            {"role": "system", "content": "You are a senior Business Analyst. "
-             "Generate acceptance criteria in Given/When/Then format."},
-            {"role": "user", "content": f"Write acceptance criteria for: {user_story}"}
-        ]
-    )
-    print(f"\n--- Temperature {temp} ---")
-    print(response.choices[0].message.content)
-    print(f"Tokens used: {response.usage.total_tokens}")</code></pre>
+    <p><strong>Try it yourself:</strong> In ChatGPT or Claude, ask the same question three times — once requesting "the single most likely answer" (behaves like temperature 0), and once asking to "brainstorm creative alternatives" (behaves like high temperature). Notice how the first gives you a focused, deterministic response, while the second produces varied, exploratory options. When using the API, you control this directly with the <code>temperature</code> parameter.</p>
 
     <!-- Section 2.6 -->
     <h2>2.6 Model Selection for Analysts</h2>
@@ -514,65 +519,7 @@ for temp in [0.0, 0.5, 1.0]:
       <strong>The Verification Imperative:</strong> The single most important habit you can develop as an LLM-augmented analyst is systematic verification. Build verification into your workflow: after every LLM generation, review against source materials, check for internal consistency, and validate against domain knowledge. This is not optional — it is the difference between augmented intelligence and automated mistakes.
     </div>
 
-    <pre><code class="language-python">"""
-LLM Limitation Detector: A simple checklist tool for reviewing LLM output.
-"""
-
-def review_llm_output(output_text, task_type="general"):
-    """Generate a review checklist for LLM output based on known limitations."""
-
-    checklist = {
-        "hallucination_risks": [],
-        "bias_indicators": [],
-        "consistency_checks": [],
-        "verification_needed": []
-    }
-
-    # Check for specific factual claims that need verification
-    claim_indicators = ["according to", "studies show", "research indicates",
-                        "the standard requires", "best practice is",
-                        "typically", "industry standard", "regulation"]
-    for indicator in claim_indicators:
-        if indicator.lower() in output_text.lower():
-            checklist["hallucination_risks"].append(
-                f"Contains '{indicator}' — verify the specific claim"
-            )
-
-    # Check for numbers and statistics
-    import re
-    numbers = re.findall(r'\d+%|\d+\.\d+', output_text)
-    if numbers:
-        checklist["verification_needed"].append(
-            f"Contains {len(numbers)} numerical claims: {numbers[:5]}. "
-            f"Verify each against authoritative sources."
-        )
-
-    # Check for absolute statements
-    absolutes = ["always", "never", "all", "none", "every", "must"]
-    found_absolutes = [a for a in absolutes if a.lower() in output_text.lower()]
-    if found_absolutes:
-        checklist["bias_indicators"].append(
-            f"Contains absolute terms: {found_absolutes}. "
-            f"Verify these aren't overgeneralizations."
-        )
-
-    return checklist
-
-# Example usage
-sample_output = """
-According to industry standards, all user authentication systems must
-implement multi-factor authentication. Studies show that 85% of data
-breaches involve credential theft. The OWASP standard always requires
-session timeout after 15 minutes of inactivity.
-"""
-
-review = review_llm_output(sample_output)
-print("=== LLM Output Review ===")
-for category, items in review.items():
-    if items:
-        print(f"\n{category.upper()}:")
-        for item in items:
-            print(f"  - {item}")</code></pre>
+    <p><strong>Your LLM Output Review Checklist:</strong> Before using any LLM output in a deliverable, scan for these red flags: (1) Phrases like "according to," "studies show," or "the standard requires" — verify the specific claim against an authoritative source. (2) Numerical claims (percentages, statistics) — these are frequently hallucinated and must be fact-checked. (3) Absolute terms ("always," "never," "all," "must") — check whether these are overgeneralizations. (4) Named regulations or standards — confirm they exist and actually say what the LLM claims.</p>
 
     <!-- Project Section -->
     <section class="project">
@@ -582,114 +529,19 @@ for category, items in review.items():
 
       <p><strong>The Task:</strong> Given a set of raw meeting notes, generate a structured requirements summary with user stories and acceptance criteria.</p>
 
-      <pre><code class="language-python">"""
-Model Comparison Lab
-Compare different LLMs on the same analyst task.
-Requires: openai, anthropic, tiktoken packages
-"""
-import time
-import json
+      <p><strong>How to run this lab (no code required):</strong> Take the same set of meeting notes and paste them into two or three different LLM chat interfaces (e.g., ChatGPT, Claude, Gemini). Use the exact same prompt for each: "Based on the following meeting notes, produce: (1) a requirements summary, (2) three user stories, (3) acceptance criteria for each, and (4) any risks or open questions." Compare the outputs side by side. Note the differences in structure, detail level, and whether any model introduced information not present in the notes.</p>
+
+      <p>If you want to try the programmatic approach, the key API call for each provider looks like this:</p>
+
+      <pre><code class="language-python"># OpenAI — send a prompt and get a response
 from openai import OpenAI
-from anthropic import Anthropic
-
-# Sample meeting notes (input for all models)
-meeting_notes = """
-Meeting: Customer Portal Redesign - Sprint Planning
-Date: March 15, 2026
-Attendees: Sarah (PM), Mike (Dev Lead), Lisa (UX), Tom (BA)
-
-Discussion Points:
-- Users are complaining about the current search taking too long.
-  Lisa showed heatmaps - users abandon after 3 seconds. Need instant
-  search with auto-suggestions.
-- Tom mentioned we need to support searching by order number, product
-  name, and date range. Lisa wants to add a visual filter panel.
-- Mike flagged that the current API can handle ~100 searches/sec.
-  New design might need 500/sec. Infrastructure upgrade needed.
-- Sarah wants this in the next 2 sprints (4 weeks). Mike says
-  infrastructure work alone is 1 sprint.
-- Mobile responsive design is a must - 60% of users are on mobile.
-- Accessibility: Lisa raised WCAG 2.1 AA compliance requirement.
-- Tom to write user stories by Thursday. Mike to assess API changes.
-"""
-
-prompt = """You are a Senior Business Analyst. Based on the following meeting notes,
-produce:
-1. A brief requirements summary (3-5 sentences)
-2. Three user stories in standard format (As a... I want... So that...)
-3. Acceptance criteria for each story in Given/When/Then format
-4. Any risks or open questions identified
-
-Meeting Notes:
-{notes}"""
-
-def evaluate_with_openai(model_name, prompt_text):
-    """Send prompt to an OpenAI model and measure performance."""
-    client = OpenAI()
-    start = time.time()
-    response = client.chat.completions.create(
-        model=model_name,
-        temperature=0.3,
-        messages=[{"role": "user", "content": prompt_text}]
-    )
-    elapsed = time.time() - start
-    return {
-        "model": model_name,
-        "output": response.choices[0].message.content,
-        "input_tokens": response.usage.prompt_tokens,
-        "output_tokens": response.usage.completion_tokens,
-        "time_seconds": round(elapsed, 2)
-    }
-
-def evaluate_with_anthropic(model_name, prompt_text):
-    """Send prompt to an Anthropic model and measure performance."""
-    client = Anthropic()
-    start = time.time()
-    response = client.messages.create(
-        model=model_name,
-        max_tokens=2000,
-        temperature=0.3,
-        messages=[{"role": "user", "content": prompt_text}]
-    )
-    elapsed = time.time() - start
-    return {
-        "model": model_name,
-        "output": response.content[0].text,
-        "input_tokens": response.usage.input_tokens,
-        "output_tokens": response.usage.output_tokens,
-        "time_seconds": round(elapsed, 2)
-    }
-
-# Run comparison
-filled_prompt = prompt.format(notes=meeting_notes)
-results = []
-
-# Test each model (uncomment models you have access to)
-models_to_test = [
-    ("openai", "gpt-4o"),
-    ("openai", "gpt-4o-mini"),
-    # ("anthropic", "claude-3-5-sonnet-20241022"),
-    # ("anthropic", "claude-3-5-haiku-20241022"),
-]
-
-for provider, model in models_to_test:
-    print(f"Testing {model}...")
-    if provider == "openai":
-        result = evaluate_with_openai(model, filled_prompt)
-    else:
-        result = evaluate_with_anthropic(model, filled_prompt)
-    results.append(result)
-
-# Display comparison
-print("\n" + "=" * 70)
-print("MODEL COMPARISON RESULTS")
-print("=" * 70)
-for r in results:
-    print(f"\nModel: {r['model']}")
-    print(f"  Time: {r['time_seconds']}s")
-    print(f"  Tokens (in/out): {r['input_tokens']}/{r['output_tokens']}")
-    print(f"  Output preview: {r['output'][:200]}...")
-    print("-" * 70)</code></pre>
+client = OpenAI()
+response = client.chat.completions.create(
+    model="gpt-4o-mini",   # or "gpt-4o" for higher quality
+    temperature=0.3,       # low temperature for analytical tasks
+    messages=[{"role": "user", "content": your_prompt}]
+)
+print(response.choices[0].message.content)</code></pre>
 
       <p><strong>Evaluation Criteria:</strong> After running the comparison, score each model's output on a 1-5 scale for:</p>
       <ul>

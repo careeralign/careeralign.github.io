@@ -97,6 +97,47 @@
           </tr>
         </tbody>
       </table>
+
+      <figure class="diagram">
+        <svg viewBox="0 0 900 120" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif;font-size:13px;">
+          <defs>
+            <marker id="ch5-arrow1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#333"/></marker>
+          </defs>
+          <!-- Boxes -->
+          <rect x="5" y="30" width="120" height="56" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="65" y="55" text-anchor="middle" fill="#333" font-weight="600">Source</text>
+          <text x="65" y="72" text-anchor="middle" fill="#666">Documents</text>
+
+          <rect x="155" y="30" width="110" height="56" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="210" y="62" text-anchor="middle" fill="#333" font-weight="600">Chunking</text>
+
+          <rect x="295" y="30" width="120" height="56" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="355" y="55" text-anchor="middle" fill="#333" font-weight="600">LLM</text>
+          <text x="355" y="72" text-anchor="middle" fill="#666">Analysis</text>
+
+          <rect x="445" y="30" width="120" height="56" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="505" y="55" text-anchor="middle" fill="#333" font-weight="600">Requirements</text>
+          <text x="505" y="72" text-anchor="middle" fill="#666">List</text>
+
+          <rect x="595" y="30" width="120" height="56" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="655" y="62" text-anchor="middle" fill="#333" font-weight="600">Classification</text>
+
+          <rect x="745" y="30" width="140" height="56" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="815" y="55" text-anchor="middle" fill="#fff" font-weight="600">Traceability</text>
+          <text x="815" y="72" text-anchor="middle" fill="#fff">Matrix</text>
+
+          <!-- Arrows -->
+          <line x1="125" y1="58" x2="153" y2="58" stroke="#333" stroke-width="1.5" marker-end="url(#ch5-arrow1)"/>
+          <line x1="265" y1="58" x2="293" y2="58" stroke="#333" stroke-width="1.5" marker-end="url(#ch5-arrow1)"/>
+          <line x1="415" y1="58" x2="443" y2="58" stroke="#333" stroke-width="1.5" marker-end="url(#ch5-arrow1)"/>
+          <line x1="565" y1="58" x2="593" y2="58" stroke="#333" stroke-width="1.5" marker-end="url(#ch5-arrow1)"/>
+          <line x1="715" y1="58" x2="743" y2="58" stroke="#333" stroke-width="1.5" marker-end="url(#ch5-arrow1)"/>
+
+          <!-- Labels -->
+          <text x="450" y="15" text-anchor="middle" fill="#666" font-size="11" font-style="italic">Each chunk processed independently, then deduplicated</text>
+        </svg>
+        <figcaption>Figure 5-1. Requirements Extraction Pipeline &mdash; from raw source documents through chunking and LLM analysis to a classified, traceable requirements set.</figcaption>
+      </figure>
     </section>
 
     <!-- ════════════════════════════════════════════ -->
@@ -107,90 +148,13 @@
 
       <h3>Designing the Extraction Prompt</h3>
 
-      <p>A well-structured extraction prompt has four parts: <strong>role</strong>, <strong>task</strong>, <strong>constraints</strong>, and <strong>output format</strong>. Here is a production-grade template:</p>
+      <p>A well-structured extraction prompt has four parts: <strong>role</strong>, <strong>task</strong>, <strong>constraints</strong>, and <strong>output format</strong>. The role establishes the LLM as a requirements engineering specialist. The task section tells it to read the document and extract every requirement &mdash; explicit or implied &mdash; producing a sequential ID, a clarified requirement statement, a type classification (Functional, Non-Functional, Constraint, or Assumption), a source reference back to the original text, and a confidence rating. Constraints prevent the model from inventing requirements that are not supported by the source and instruct it to flag ambiguous items as low-confidence with an explanatory note. Finally, the output format requests a clean JSON array with no surrounding commentary.</p>
 
-      <pre><code class="language-python">
-import openai, json, textwrap
-
-EXTRACTION_PROMPT = textwrap.dedent("""\
-    You are an expert Business Analyst specialising in requirements engineering.
-
-    TASK:
-    Read the following document excerpt and extract every requirement
-    (explicit or implied). For each requirement, provide:
-      - id: a sequential identifier (REQ-001, REQ-002, ...)
-      - text: the requirement statement, rewritten for clarity
-      - type: FUNCTIONAL | NON_FUNCTIONAL | CONSTRAINT | ASSUMPTION
-      - source: the sentence or paragraph from the original that supports it
-      - confidence: HIGH | MEDIUM | LOW
-
-    CONSTRAINTS:
-    - Do NOT invent requirements that are not supported by the text.
-    - If a statement is ambiguous, extract it but set confidence to LOW
-      and add a note explaining the ambiguity.
-    - Preserve domain terminology exactly as used in the source.
-
-    OUTPUT FORMAT:
-    Return a JSON array of objects. No markdown, no commentary.
-
-    DOCUMENT:
-    {document_text}
-""")
-
-
-def extract_requirements(document_text: str, model: str = "gpt-4o") -> list[dict]:
-    """Extract candidate requirements from a document using an LLM."""
-    response = openai.chat.completions.create(
-        model=model,
-        temperature=0.1,          # Low temperature for consistency
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": "You extract structured requirements from documents."},
-            {"role": "user",   "content": EXTRACTION_PROMPT.format(document_text=document_text)},
-        ],
-    )
-    payload = json.loads(response.choices[0].message.content)
-    # The model may wrap the array in a top-level key
-    if isinstance(payload, dict):
-        payload = next(iter(payload.values()))
-    return payload
-      </code></pre>
+      <p>When calling the LLM, use a low temperature (0.1) for consistency across runs, and set the response format to JSON to guarantee parseable output. The system message reinforces the extraction role, while the user message inserts the document text into the template.</p>
 
       <h3>Handling Large Documents</h3>
 
-      <p>Most stakeholder documents exceed the context window of current models. A chunking strategy is essential:</p>
-
-      <pre><code class="language-python">
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-
-def chunk_document(text: str, chunk_size: int = 6000, overlap: int = 500) -> list[str]:
-    """Split a long document into overlapping chunks for sequential extraction."""
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size,
-        chunk_overlap=overlap,
-        separators=["\n\n", "\n", ". ", " "],
-    )
-    return splitter.split_text(text)
-
-
-def extract_from_large_document(text: str) -> list[dict]:
-    """Run extraction across all chunks and deduplicate."""
-    chunks = chunk_document(text)
-    all_reqs = []
-    seen_texts = set()
-    for i, chunk in enumerate(chunks):
-        reqs = extract_requirements(chunk)
-        for req in reqs:
-            normalised = req["text"].strip().lower()
-            if normalised not in seen_texts:
-                seen_texts.add(normalised)
-                req["chunk_index"] = i
-                all_reqs.append(req)
-    # Re-number IDs sequentially
-    for idx, req in enumerate(all_reqs, start=1):
-        req["id"] = f"REQ-{idx:03d}"
-    return all_reqs
-      </code></pre>
+      <p>Most stakeholder documents exceed the context window of current models. A chunking strategy is essential. Split the document into overlapping segments of approximately 6,000 characters, with a 500-character overlap between consecutive chunks. The overlap ensures that requirements spanning paragraph boundaries are captured in at least one chunk. After extracting candidate requirements from each chunk independently, deduplicate by normalising the requirement text (lowercase, stripped whitespace) and discarding exact matches. Finally, re-number all IDs sequentially (REQ-001, REQ-002, and so on) to produce a clean, unified list.</p>
 
       <div class="callout callout-tip">
         <strong>Tip:</strong> Always include overlap between chunks. Requirements often span paragraph boundaries, and overlap ensures the LLM has enough context to capture cross-boundary requirements.
@@ -282,42 +246,63 @@ def extract_from_large_document(text: str) -> list[dict]:
 
       <h3>Automated Ambiguity Scanner</h3>
 
-      <pre><code class="language-python">
-AMBIGUITY_PROMPT = textwrap.dedent("""\
-    You are a requirements quality auditor. Analyse each requirement below
-    for ambiguity. For every issue found, return:
-      - req_id: the requirement ID
-      - ambiguity_type: VAGUENESS | INCOMPLETENESS | UNDER_SPECIFICATION |
-                        LEXICAL | REFERENTIAL
-      - problematic_phrase: the exact words causing ambiguity
-      - suggestion: a concrete rewrite that eliminates the ambiguity
-      - severity: HIGH | MEDIUM | LOW
+      <p>The ambiguity scanning prompt instructs the LLM to act as a requirements quality auditor. For each requirement in the set, the model checks against the five ambiguity types listed above and returns structured results: the requirement ID, the specific ambiguity type, the exact problematic phrase, a concrete rewrite suggestion, and a severity rating (High, Medium, or Low). Requirements with no issues are omitted from the results, keeping the output focused on items that need attention.</p>
 
-    Requirements:
-    {requirements_json}
+      <p>Use a temperature of 0.0 for this task &mdash; you want deterministic, consistent analysis rather than creative variation. Request JSON output format so the results can be programmatically merged back into your requirements tracker.</p>
 
-    Return a JSON array. If a requirement has no issues, omit it.
-""")
+      <figure class="diagram">
+        <svg viewBox="0 0 860 220" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif;font-size:13px;">
+          <defs>
+            <marker id="ch5-arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#333"/></marker>
+          </defs>
+          <!-- Row 1 -->
+          <rect x="5" y="20" width="130" height="56" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="70" y="42" text-anchor="middle" fill="#333" font-weight="600">Requirement</text>
+          <text x="70" y="59" text-anchor="middle" fill="#666">Text</text>
 
+          <line x1="135" y1="48" x2="173" y2="48" stroke="#333" stroke-width="1.5" marker-end="url(#ch5-arrow2)"/>
 
-def scan_ambiguities(requirements: list[dict]) -> list[dict]:
-    """Scan a list of requirements for ambiguity issues."""
-    response = openai.chat.completions.create(
-        model="gpt-4o",
-        temperature=0.0,
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": "You are a requirements quality auditor."},
-            {"role": "user", "content": AMBIGUITY_PROMPT.format(
-                requirements_json=json.dumps(requirements, indent=2)
-            )},
-        ],
-    )
-    payload = json.loads(response.choices[0].message.content)
-    if isinstance(payload, dict):
-        payload = next(iter(payload.values()))
-    return payload
-      </code></pre>
+          <rect x="175" y="20" width="120" height="56" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="235" y="42" text-anchor="middle" fill="#333" font-weight="600">LLM Scan</text>
+          <text x="235" y="59" text-anchor="middle" fill="#666">(temp = 0.0)</text>
+
+          <line x1="295" y1="48" x2="333" y2="48" stroke="#333" stroke-width="1.5" marker-end="url(#ch5-arrow2)"/>
+
+          <!-- Decision diamond -->
+          <polygon points="405,8 475,48 405,88 335,48" fill="#fff" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="405" y="44" text-anchor="middle" fill="#333" font-weight="600" font-size="12">Ambiguity</text>
+          <text x="405" y="58" text-anchor="middle" fill="#333" font-size="12">Found?</text>
+
+          <!-- No path (down) -->
+          <line x1="405" y1="88" x2="405" y2="120" stroke="#333" stroke-width="1.5" marker-end="url(#ch5-arrow2)"/>
+          <text x="418" y="108" fill="#666" font-size="11">No</text>
+          <rect x="340" y="122" width="130" height="46" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="405" y="150" text-anchor="middle" fill="#fff" font-weight="600">Approved &#x2713;</text>
+
+          <!-- Yes path (right) -->
+          <line x1="475" y1="48" x2="513" y2="48" stroke="#333" stroke-width="1.5" marker-end="url(#ch5-arrow2)"/>
+          <text x="488" y="40" fill="#666" font-size="11">Yes</text>
+
+          <rect x="515" y="20" width="140" height="56" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="585" y="42" text-anchor="middle" fill="#333" font-weight="600">Flag + Suggest</text>
+          <text x="585" y="59" text-anchor="middle" fill="#666">Rewrite</text>
+
+          <line x1="655" y1="48" x2="693" y2="48" stroke="#333" stroke-width="1.5" marker-end="url(#ch5-arrow2)"/>
+
+          <rect x="695" y="20" width="130" height="56" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="760" y="42" text-anchor="middle" fill="#333" font-weight="600">Human</text>
+          <text x="760" y="59" text-anchor="middle" fill="#666">Review</text>
+
+          <!-- Human review back to approved -->
+          <line x1="760" y1="76" x2="760" y2="145" stroke="#333" stroke-width="1.5"/>
+          <line x1="760" y1="145" x2="472" y2="145" stroke="#333" stroke-width="1.5" marker-end="url(#ch5-arrow2)"/>
+          <text x="620" y="138" text-anchor="middle" fill="#666" font-size="11">Stakeholder confirms or revises</text>
+
+          <!-- Bottom label -->
+          <text x="430" y="200" text-anchor="middle" fill="#666" font-size="11" font-style="italic">Every LLM rewrite must be validated by the BA and approved by the stakeholder</text>
+        </svg>
+        <figcaption>Figure 5-2. Ambiguity Detection Workflow &mdash; the LLM flags problematic phrases and suggests rewrites, but only human review produces an approved requirement.</figcaption>
+      </figure>
 
       <h3>The Resolution Workflow</h3>
 
@@ -333,23 +318,7 @@ def scan_ambiguities(requirements: list[dict]) -> list[dict]:
         <strong>Warning:</strong> Never auto-accept LLM rewrites without stakeholder confirmation. The model may introduce assumptions that subtly change the requirement's intent. The BA's role as mediator is essential.
       </div>
 
-      <p>Here is a helper function that formats the side-by-side comparison for stakeholder review:</p>
-
-      <pre><code class="language-python">
-def format_review_report(ambiguities: list[dict], requirements: list[dict]) -> str:
-    """Generate a human-readable review report from ambiguity scan results."""
-    req_lookup = {r["id"]: r["text"] for r in requirements}
-    lines = ["# Ambiguity Review Report", ""]
-    for item in ambiguities:
-        rid = item["req_id"]
-        lines.append(f"## {rid}")
-        lines.append(f"**Original:** {req_lookup.get(rid, 'N/A')}")
-        lines.append(f"**Issue ({item['ambiguity_type']}):** \"{item['problematic_phrase']}\"")
-        lines.append(f"**Severity:** {item['severity']}")
-        lines.append(f"**Suggested rewrite:** {item['suggestion']}")
-        lines.append("")
-    return "\n".join(lines)
-      </code></pre>
+      <p>To facilitate stakeholder review, generate a side-by-side comparison report. For each flagged requirement, show the original text, the ambiguity type and problematic phrase, the severity rating, and the suggested rewrite. This format lets the stakeholder quickly scan, approve, or revise each item without needing to read the full requirements document.</p>
     </section>
 
     <!-- ════════════════════════════════════════════ -->
@@ -397,54 +366,11 @@ def format_review_report(ambiguities: list[dict], requirements: list[dict]) -> s
         </tbody>
       </table>
 
-      <h3>Multi-Dimensional Classification Prompt</h3>
+      <h3>Multi-Dimensional Classification Approach</h3>
 
-      <pre><code class="language-python">
-CLASSIFICATION_PROMPT = textwrap.dedent("""\
-    Classify each requirement across five dimensions.
-    Return a JSON array where each object has:
-      - id: the requirement ID
-      - type: FUNCTIONAL | NON_FUNCTIONAL | CONSTRAINT | ASSUMPTION | DEPENDENCY
-      - domain: SECURITY | PERFORMANCE | USABILITY | DATA | INTEGRATION | COMPLIANCE | BUSINESS_LOGIC
-      - priority: MUST | SHOULD | COULD | WONT
-      - complexity: LOW | MEDIUM | HIGH
-      - rationale: one sentence explaining your classification choices
+      <p>The classification prompt sends the full set of extracted requirements to the LLM and asks it to assign five dimensions simultaneously for each item: type, domain, MoSCoW priority, complexity, and a one-sentence rationale explaining the choices. The model returns a JSON array that can be merged back into the master requirements list programmatically &mdash; matching on requirement ID and updating each record with its new classification fields.</p>
 
-    Requirements:
-    {requirements_json}
-""")
-
-
-def classify_requirements(requirements: list[dict]) -> list[dict]:
-    """Add multi-dimensional classifications to a requirement set."""
-    response = openai.chat.completions.create(
-        model="gpt-4o",
-        temperature=0.0,
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": "You are a senior business analyst."},
-            {"role": "user", "content": CLASSIFICATION_PROMPT.format(
-                requirements_json=json.dumps(requirements, indent=2)
-            )},
-        ],
-    )
-    classifications = json.loads(response.choices[0].message.content)
-    if isinstance(classifications, dict):
-        classifications = next(iter(classifications.values()))
-
-    # Merge classifications back into requirements
-    class_lookup = {c["id"]: c for c in classifications}
-    for req in requirements:
-        cls = class_lookup.get(req["id"], {})
-        req.update({
-            "type": cls.get("type", req.get("type")),
-            "domain": cls.get("domain", "UNKNOWN"),
-            "priority": cls.get("priority", "SHOULD"),
-            "complexity": cls.get("complexity", "MEDIUM"),
-            "classification_rationale": cls.get("rationale", ""),
-        })
-    return requirements
-      </code></pre>
+      <p>Use a temperature of 0.0 for classification to maximise consistency. After the merge, any requirement where the classification rationale seems weak or the domain assignment is unexpected should be flagged for manual BA review.</p>
 
       <div class="callout callout-info">
         <strong>Best Practice:</strong> Run classification twice with different model temperatures (0.0 and 0.3) and compare. Where the two runs disagree, flag the requirement for manual review. This "ensemble" approach catches edge cases where the model is uncertain.
@@ -504,56 +430,9 @@ def classify_requirements(requirements: list[dict]) -> list[dict]:
 
       <h3>Generating the Matrix with LLMs</h3>
 
-      <pre><code class="language-python">
-TRACE_PROMPT = textwrap.dedent("""\
-    You are a traceability specialist. Given the following requirements
-    and a list of design elements and test cases, produce a traceability
-    matrix as a JSON array.
+      <p>To generate the traceability matrix, provide the LLM with three inputs: the classified requirements list, a catalogue of design elements (module names, component descriptions), and a list of test cases with their IDs and descriptions. The prompt instructs the model to act as a traceability specialist and produce a JSON array where each entry links a requirement ID to its source document and section, related design components, verifying test cases, current status (Planned, In Progress, Implemented, or Verified), and any coverage notes flagging gaps.</p>
 
-    Each entry should have:
-      - req_id: requirement identifier
-      - source_doc: originating document or stakeholder
-      - source_section: section/page reference (or "N/A")
-      - design_elements: list of related design components
-      - test_cases: list of test case IDs that verify this requirement
-      - status: PLANNED | IN_PROGRESS | IMPLEMENTED | VERIFIED
-      - coverage_notes: any gaps or concerns
-
-    Requirements:
-    {requirements_json}
-
-    Design Elements:
-    {design_elements}
-
-    Test Cases:
-    {test_cases}
-""")
-
-
-def generate_traceability_matrix(
-    requirements: list[dict],
-    design_elements: list[str],
-    test_cases: list[dict],
-) -> list[dict]:
-    """Generate a traceability matrix linking requirements to design and tests."""
-    response = openai.chat.completions.create(
-        model="gpt-4o",
-        temperature=0.0,
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": "You produce traceability matrices."},
-            {"role": "user", "content": TRACE_PROMPT.format(
-                requirements_json=json.dumps(requirements, indent=2),
-                design_elements=json.dumps(design_elements),
-                test_cases=json.dumps(test_cases, indent=2),
-            )},
-        ],
-    )
-    matrix = json.loads(response.choices[0].message.content)
-    if isinstance(matrix, dict):
-        matrix = next(iter(matrix.values()))
-    return matrix
-      </code></pre>
+      <p>The resulting JSON can be exported as an HTML table for stakeholder review or converted to Excel using standard libraries. The key advantage over manual matrix creation is speed: a 200-requirement matrix that takes a BA two days to compile manually can be generated in under a minute, giving the analyst time to focus on verifying the linkages rather than building them from scratch.</p>
 
       <div class="callout callout-tip">
         <strong>Tip:</strong> Export the matrix as both JSON (for programmatic use) and as a formatted HTML table or Excel file (for stakeholder distribution). Libraries like <code>pandas</code> and <code>openpyxl</code> make the conversion trivial.
@@ -572,47 +451,9 @@ def generate_traceability_matrix(
 
       <h3>LLM-Driven Gap Detection</h3>
 
-      <pre><code class="language-python">
-GAP_ANALYSIS_PROMPT = textwrap.dedent("""\
-    You are performing a gap analysis. Compare the PROJECT REQUIREMENTS
-    against the REFERENCE FRAMEWORK below.
+      <p>The gap analysis prompt provides the LLM with two inputs: the project requirements (as a JSON array) and the full text of the reference framework. The model compares them systematically and produces a structured list of gaps, each with a sequential ID (GAP-001, GAP-002), the specific reference area not covered, a description of what is missing, a severity rating (Critical, Major, or Minor), a draft requirement that would close the gap, and a list of affected stakeholders.</p>
 
-    For each area in the reference that is NOT adequately covered by
-    a project requirement, produce:
-      - gap_id: GAP-001, GAP-002, ...
-      - reference_area: the section/topic from the reference
-      - description: what is missing or insufficient
-      - severity: CRITICAL | MAJOR | MINOR
-      - suggested_requirement: a draft requirement that would close the gap
-      - affected_stakeholders: who is impacted
-
-    PROJECT REQUIREMENTS:
-    {requirements_json}
-
-    REFERENCE FRAMEWORK:
-    {reference_text}
-""")
-
-
-def run_gap_analysis(requirements: list[dict], reference_text: str) -> list[dict]:
-    """Identify gaps between current requirements and a reference framework."""
-    response = openai.chat.completions.create(
-        model="gpt-4o",
-        temperature=0.2,
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": "You are a gap analysis specialist."},
-            {"role": "user", "content": GAP_ANALYSIS_PROMPT.format(
-                requirements_json=json.dumps(requirements, indent=2),
-                reference_text=reference_text,
-            )},
-        ],
-    )
-    gaps = json.loads(response.choices[0].message.content)
-    if isinstance(gaps, dict):
-        gaps = next(iter(gaps.values()))
-    return gaps
-      </code></pre>
+      <p>Use a slightly higher temperature (0.2) for gap analysis than for extraction or classification, because identifying gaps requires a degree of inferential reasoning about what <em>should</em> be present but is not. After the LLM produces its gap list, the BA should review each item against the original reference to confirm that the gap is genuine and not a misinterpretation of the standard's requirements.</p>
 
       <h3>Common Reference Frameworks</h3>
 
@@ -666,78 +507,11 @@ def run_gap_analysis(requirements: list[dict], reference_text: str) -> list[dict
 
       <h3>Audience-Aware Summaries</h3>
 
-      <pre><code class="language-python">
-SUMMARY_PROMPT = textwrap.dedent("""\
-    Summarise the following requirements for a {audience} audience.
-
-    Rules for {audience}:
-    - EXECUTIVE: Focus on business outcomes, costs, and risks. No technical jargon.
-      Use bullet points. Limit to one page.
-    - TECHNICAL: Include system components, interfaces, and constraints.
-      Use precise terminology. Organise by subsystem.
-    - LEGAL: Highlight compliance, liability, and contractual obligations.
-      Reference specific regulations.
-
-    Requirements:
-    {requirements_json}
-""")
-
-
-def generate_review_summary(requirements: list[dict], audience: str) -> str:
-    """Generate a stakeholder-appropriate summary of requirements."""
-    response = openai.chat.completions.create(
-        model="gpt-4o",
-        temperature=0.3,
-        messages=[
-            {"role": "system", "content": "You write clear, audience-appropriate requirement summaries."},
-            {"role": "user", "content": SUMMARY_PROMPT.format(
-                audience=audience.upper(),
-                requirements_json=json.dumps(requirements, indent=2),
-            )},
-        ],
-    )
-    return response.choices[0].message.content
-      </code></pre>
+      <p>Different stakeholders need different views of the same requirement set. The summary generation prompt accepts an audience parameter &mdash; Executive, Technical, or Legal &mdash; and applies audience-specific rules. For executives, the summary focuses on business outcomes, costs, and risks using bullet points limited to one page with no technical jargon. For technical audiences, it organises requirements by subsystem and includes system components, interfaces, and constraints. For legal audiences, it highlights compliance obligations, liability considerations, and specific regulatory references.</p>
 
       <h3>Change-Highlighted Review Packages</h3>
 
-      <p>When preparing for a follow-up review, it is critical to show stakeholders what has changed since the last version. The following function computes a diff and asks the LLM to narrate it:</p>
-
-      <pre><code class="language-python">
-def generate_change_summary(
-    previous_reqs: list[dict],
-    current_reqs: list[dict],
-) -> str:
-    """Produce a human-readable summary of changes between two requirement versions."""
-    prev_ids = {r["id"] for r in previous_reqs}
-    curr_ids = {r["id"] for r in current_reqs}
-
-    added   = [r for r in current_reqs if r["id"] not in prev_ids]
-    removed = [r for r in previous_reqs if r["id"] not in curr_ids]
-
-    prev_lookup = {r["id"]: r for r in previous_reqs}
-    modified = [
-        {"id": r["id"], "old": prev_lookup[r["id"]]["text"], "new": r["text"]}
-        for r in current_reqs
-        if r["id"] in prev_ids and r["text"] != prev_lookup[r["id"]]["text"]
-    ]
-
-    change_data = {"added": added, "removed": removed, "modified": modified}
-
-    response = openai.chat.completions.create(
-        model="gpt-4o",
-        temperature=0.2,
-        messages=[
-            {"role": "system", "content": "You narrate requirement changes clearly."},
-            {"role": "user", "content": (
-                "Summarise these requirement changes in a clear, professional format "
-                "suitable for a stakeholder review meeting:\n\n"
-                + json.dumps(change_data, indent=2)
-            )},
-        ],
-    )
-    return response.choices[0].message.content
-      </code></pre>
+      <p>When preparing for a follow-up review, it is critical to show stakeholders what has changed since the last version. The change summary process works in two steps. First, it programmatically compares the previous and current requirement sets to identify three categories: added requirements (IDs present in the current set but not the previous), removed requirements (IDs present in the previous set but not the current), and modified requirements (same ID but different text). Second, it passes this structured change data to the LLM with a prompt to narrate the changes in a clear, professional format suitable for a stakeholder review meeting. The result is a human-readable summary that stakeholders can scan in minutes rather than having to diff two large documents manually.</p>
 
       <div class="callout callout-info">
         <strong>Integration Idea:</strong> Connect this workflow to your organisation's collaboration tools. Generate the review summary, post it to a Confluence page or SharePoint site, and send a Slack/Teams notification with a direct link and a deadline for feedback.
@@ -752,26 +526,7 @@ def generate_change_summary(
 
       <h3>Architecture Overview</h3>
 
-      <pre><code>
-┌─────────────────┐     ┌──────────────┐     ┌──────────────────┐
-│  Raw Document   │────▶│  Chunker     │────▶│  LLM Extractor   │
-│  (PDF / DOCX)   │     │              │     │  (per chunk)      │
-└─────────────────┘     └──────────────┘     └──────┬───────────┘
-                                                     │
-                                              ┌──────▼───────────┐
-                                              │  Deduplicator    │
-                                              └──────┬───────────┘
-                                                     │
-                        ┌──────────────┐      ┌──────▼───────────┐
-                        │  Ambiguity   │◀─────│  Classifier      │
-                        │  Scanner     │      │                  │
-                        └──────┬───────┘      └──────────────────┘
-                               │
-                        ┌──────▼───────────┐
-                        │  Review Package  │
-                        │  Generator       │
-                        └──────────────────┘
-      </code></pre>
+      <p>The pipeline flows through five stages: (1) the raw document is split into chunks, (2) each chunk is processed by the LLM extractor independently, (3) extracted requirements are deduplicated and merged, (4) the unified list passes through classification and ambiguity scanning, and (5) the results are assembled into a stakeholder-ready review package with audience-appropriate summaries. Refer to Figure 5-1 above for a visual representation of this flow.</p>
 
       <h3>Step 1: Set Up the Project</h3>
 

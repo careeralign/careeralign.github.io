@@ -90,12 +90,68 @@
       </tbody>
     </table>
 
+    <figure class="diagram">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 340" width="100%" role="img" aria-label="Anatomy of a Good Prompt — showing six components stacked as labeled blocks">
+        <style>
+          .anat-box { stroke-width: 2; rx: 6; }
+          .anat-label { font-family: system-ui, sans-serif; font-size: 12.5px; font-weight: 700; fill: #fff; }
+          .anat-desc { font-family: system-ui, sans-serif; font-size: 10.5px; fill: #333; }
+          .anat-num { font-family: system-ui, sans-serif; font-size: 11px; font-weight: 700; fill: #fff; }
+          .anat-example { font-family: system-ui, sans-serif; font-size: 9.5px; fill: #555; font-style: italic; }
+        </style>
+        <!-- Component 1: Role -->
+        <rect x="30" y="10" width="640" height="45" class="anat-box" fill="var(--accent, #4f46e5)" stroke="var(--accent, #4f46e5)"/>
+        <circle cx="55" cy="32" r="12" fill="#fff" opacity="0.3"/>
+        <text x="55" y="37" text-anchor="middle" class="anat-num">1</text>
+        <text x="80" y="30" class="anat-label">Role / Persona</text>
+        <text x="80" y="44" style="font-size:9.5px;fill:#e0e7ff;">"You are a senior QA analyst specializing in financial systems."</text>
+
+        <!-- Component 2: Context -->
+        <rect x="30" y="62" width="640" height="45" class="anat-box" fill="#3b82f6" stroke="#3b82f6"/>
+        <circle cx="55" cy="84" r="12" fill="#fff" opacity="0.3"/>
+        <text x="55" y="89" text-anchor="middle" class="anat-num">2</text>
+        <text x="80" y="82" class="anat-label">Context</text>
+        <text x="80" y="96" style="font-size:9.5px;fill:#dbeafe;">"We are building a HIPAA-compliant patient portal for a hospital."</text>
+
+        <!-- Component 3: Task -->
+        <rect x="30" y="114" width="640" height="45" class="anat-box" fill="#0891b2" stroke="#0891b2"/>
+        <circle cx="55" cy="136" r="12" fill="#fff" opacity="0.3"/>
+        <text x="55" y="141" text-anchor="middle" class="anat-num">3</text>
+        <text x="80" y="134" class="anat-label">Task / Instruction</text>
+        <text x="80" y="148" style="font-size:9.5px;fill:#cffafe;">"Generate test cases for the login page covering all auth methods."</text>
+
+        <!-- Component 4: Input Data -->
+        <rect x="30" y="166" width="640" height="45" class="anat-box" fill="#059669" stroke="#059669"/>
+        <circle cx="55" cy="188" r="12" fill="#fff" opacity="0.3"/>
+        <text x="55" y="193" text-anchor="middle" class="anat-num">4</text>
+        <text x="80" y="186" class="anat-label">Input Data</text>
+        <text x="80" y="200" style="font-size:9.5px;fill:#d1fae5;">[The actual user story, requirement, or document to process]</text>
+
+        <!-- Component 5: Output Specification -->
+        <rect x="30" y="218" width="640" height="45" class="anat-box" fill="#d97706" stroke="#d97706"/>
+        <circle cx="55" cy="240" r="12" fill="#fff" opacity="0.3"/>
+        <text x="55" y="245" text-anchor="middle" class="anat-num">5</text>
+        <text x="80" y="238" class="anat-label">Output Specification</text>
+        <text x="80" y="252" style="font-size:9.5px;fill:#fef3c7;">"Return a table with: Test ID, Category, Steps, Expected Result, Priority."</text>
+
+        <!-- Component 6: Constraints -->
+        <rect x="30" y="270" width="640" height="45" class="anat-box" fill="#dc2626" stroke="#dc2626"/>
+        <circle cx="55" cy="292" r="12" fill="#fff" opacity="0.3"/>
+        <text x="55" y="297" text-anchor="middle" class="anat-num">6</text>
+        <text x="80" y="290" class="anat-label">Constraints / Rules</text>
+        <text x="80" y="304" style="font-size:9.5px;fill:#fef2f2;">"Include at least 3 security tests. Do not include registration test cases."</text>
+
+        <!-- Bottom note -->
+        <text x="350" y="335" text-anchor="middle" style="font-family:system-ui,sans-serif;font-size:11px;fill:#555;font-style:italic;">Not every prompt needs all six components, but knowing them lets you diagnose why a prompt underperforms.</text>
+      </svg>
+      <figcaption>Anatomy of a Good Prompt — six components that transform a vague request into a precise instruction. The Role sets expertise, Context provides background, the Task defines what to do, Input Data is the material to process, Output Specification controls format, and Constraints set boundaries.</figcaption>
+    </figure>
+
     <p>Let's see the difference between a weak prompt and a strong one for the same task:</p>
 
-    <p><strong>Weak prompt:</strong></p>
-    <pre><code>Write test cases for a login page.</code></pre>
+    <p><strong>Weak prompt:</strong> "Write test cases for a login page." — too vague, produces generic results.</p>
 
-    <p><strong>Strong prompt:</strong></p>
+    <p><strong>Strong prompt</strong> (using all six components):</p>
     <pre><code>Role: You are a senior QA analyst specializing in web application security testing.
 
 Context: We are testing a login page for an online banking application. The login
@@ -132,6 +188,69 @@ Constraints:
     <p><strong>Zero-shot prompting:</strong> You give the model instructions but no examples. The model must figure out what you want from the description alone.</p>
 
     <p><strong>Few-shot prompting:</strong> You provide one or more examples of inputs paired with desired outputs. The model learns the pattern from your examples and applies it to new inputs.</p>
+
+    <figure class="diagram">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 320" width="100%" role="img" aria-label="Decision tree for choosing between zero-shot, few-shot, and chain-of-thought prompting">
+        <style>
+          .dt-decision { fill: var(--accent-light, #e0e7ff); stroke: var(--accent, #4f46e5); stroke-width: 2; }
+          .dt-outcome { rx: 8; stroke-width: 2; }
+          .dt-label { font-family: system-ui, sans-serif; font-size: 11.5px; font-weight: 700; fill: #333; text-anchor: middle; }
+          .dt-qlabel { font-family: system-ui, sans-serif; font-size: 10.5px; fill: #333; text-anchor: middle; }
+          .dt-yesno { font-family: system-ui, sans-serif; font-size: 10px; font-weight: 700; text-anchor: middle; }
+          .dt-desc { font-family: system-ui, sans-serif; font-size: 9px; fill: #555; text-anchor: middle; }
+          .dt-line { stroke: var(--accent, #4f46e5); stroke-width: 1.5; fill: none; }
+        </style>
+        <defs>
+          <marker id="dt-arr" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+            <polygon points="0 0, 7 2.5, 0 5" fill="var(--accent, #4f46e5)"/>
+          </marker>
+        </defs>
+
+        <!-- Q1: Is the task simple and well-defined? -->
+        <polygon points="340,15 480,60 340,105 200,60" class="dt-decision"/>
+        <text x="340" y="55" class="dt-qlabel">Is the task simple</text>
+        <text x="340" y="70" class="dt-qlabel">and well-defined?</text>
+
+        <!-- Yes branch -->
+        <line x1="480" y1="60" x2="580" y2="60" class="dt-line" marker-end="url(#dt-arr)"/>
+        <text x="530" y="52" class="dt-yesno" style="fill:#22c55e;">YES</text>
+        <rect x="580" y="30" width="90" height="60" class="dt-outcome" fill="#dcfce7" stroke="#22c55e"/>
+        <text x="625" y="55" class="dt-label" style="fill:#166534;">Zero-Shot</text>
+        <text x="625" y="72" class="dt-desc">Just give clear</text>
+        <text x="625" y="83" class="dt-desc">instructions</text>
+
+        <!-- No branch -->
+        <line x1="340" y1="105" x2="340" y2="150" class="dt-line" marker-end="url(#dt-arr)"/>
+        <text x="355" y="130" class="dt-yesno" style="fill:#ef4444;">NO</text>
+
+        <!-- Q2: Do you have good examples? -->
+        <polygon points="340,150 480,195 340,240 200,195" class="dt-decision"/>
+        <text x="340" y="190" class="dt-qlabel">Do you have good</text>
+        <text x="340" y="205" class="dt-qlabel">examples of desired output?</text>
+
+        <!-- Yes branch -->
+        <line x1="480" y1="195" x2="580" y2="195" class="dt-line" marker-end="url(#dt-arr)"/>
+        <text x="530" y="187" class="dt-yesno" style="fill:#22c55e;">YES</text>
+        <rect x="580" y="165" width="90" height="60" class="dt-outcome" fill="#dbeafe" stroke="#3b82f6"/>
+        <text x="625" y="190" class="dt-label" style="fill:#1e40af;">Few-Shot</text>
+        <text x="625" y="207" class="dt-desc">Include 2-3</text>
+        <text x="625" y="218" class="dt-desc">examples in prompt</text>
+
+        <!-- No branch -->
+        <line x1="200" y1="195" x2="100" y2="195" class="dt-line" marker-end="url(#dt-arr)"/>
+        <text x="150" y="187" class="dt-yesno" style="fill:#ef4444;">NO</text>
+        <rect x="5" y="165" width="100" height="60" class="dt-outcome" fill="#fef3c7" stroke="#f59e0b"/>
+        <text x="55" y="186" class="dt-label" style="fill:#92400e;font-size:10.5px;">Chain-of-</text>
+        <text x="55" y="200" class="dt-label" style="fill:#92400e;font-size:10.5px;">Thought</text>
+        <text x="55" y="217" class="dt-desc">Ask model to</text>
+        <text x="55" y="228" class="dt-desc">reason step-by-step</text>
+
+        <!-- Bottom guidance -->
+        <text x="340" y="285" text-anchor="middle" style="font-family:system-ui,sans-serif;font-size:11px;fill:#555;font-style:italic;">When in doubt, start with zero-shot. If quality is insufficient, add examples (few-shot).</text>
+        <text x="340" y="302" text-anchor="middle" style="font-family:system-ui,sans-serif;font-size:11px;fill:#555;font-style:italic;">For complex analytical tasks, use chain-of-thought to make reasoning transparent.</text>
+      </svg>
+      <figcaption>Zero-Shot vs Few-Shot Decision Tree -- start with the simplest approach and escalate only when output quality demands it. Chain-of-thought is best for complex analytical tasks where you need auditable reasoning.</figcaption>
+    </figure>
 
     <p><strong>When to use zero-shot:</strong></p>
     <ul>
@@ -205,26 +324,7 @@ Input: "Managers want to see who's doing what"</code></pre>
 
     <p>Consider how different roles produce different analyses of the same requirement:</p>
 
-    <pre><code class="language-text">Requirement: "The system shall support up to 10,000 concurrent users."
-
-Prompt with BA role:
-"As a Senior Business Analyst, analyze this requirement for completeness
-and ambiguity."
-→ Focuses on: Who are these users? What actions are they performing
-  concurrently? What is the business impact if this limit is exceeded?
-  Is 10,000 based on current or projected usage?
-
-Prompt with QA role:
-"As a Performance Test Engineer, analyze this requirement for testability."
-→ Focuses on: How do we define "concurrent"? What load testing tool and
-  approach? What are the pass/fail criteria? What's the ramp-up profile?
-  What infrastructure matches production?
-
-Prompt with Security role:
-"As a Security Analyst, analyze this requirement for security implications."
-→ Focuses on: What happens during a DDoS attack above 10,000? Is there
-  rate limiting per user? How is concurrency measured — sessions,
-  connections, active requests? What authentication load does this imply?</code></pre>
+    <p>For example, given the requirement <em>"The system shall support up to 10,000 concurrent users,"</em> a <strong>BA role</strong> prompt focuses on completeness (Who are these users? What actions? Is 10,000 based on current or projected usage?). A <strong>QA Performance role</strong> focuses on testability (How do we define "concurrent"? What are pass/fail criteria? What load tool?). A <strong>Security role</strong> focuses on threats (What about DDoS above 10,000? Is there rate limiting?). Same requirement, three different and valuable analyses — all driven by the role you set.</p>
 
     <p>Effective role specifications include three elements:</p>
     <ol>
@@ -277,10 +377,7 @@ Prompt with Security role:
 
     <p>The basic mechanism is simple: include a phrase like "Think through this step by step" or "Show your reasoning process" in your prompt. But for analyst work, structured chain-of-thought is far more powerful than the generic approach.</p>
 
-    <p><strong>Generic CoT:</strong></p>
-    <pre><code>"Analyze this requirement. Think step by step."</code></pre>
-
-    <p><strong>Structured CoT for Requirements Analysis:</strong></p>
+    <p><strong>Generic CoT</strong> ("Analyze this requirement. Think step by step.") produces decent results, but <strong>Structured CoT</strong> is far more powerful for analyst work because it forces a systematic analysis through named steps:</p>
     <pre><code>"Analyze this requirement using the following framework:
 
 Step 1 — COMPREHENSION: Restate the requirement in your own words
@@ -304,30 +401,7 @@ the issues found in steps 2-5."</code></pre>
 
     <p>The structured approach produces dramatically better output because it forces the model through a systematic analysis rather than allowing it to jump to whatever pattern matches first.</p>
 
-    <p>Here's another powerful CoT pattern for QA work — defect root cause analysis:</p>
-
-    <pre><code class="language-text">You are investigating a production defect. Think through the analysis
-systematically:
-
-Step 1 — SYMPTOM: Describe what the user observed (from the defect report).
-
-Step 2 — REPRODUCTION: Based on the report, outline the likely steps
-to reproduce.
-
-Step 3 — HYPOTHESES: Generate at least 3 possible root causes, ranked
-by likelihood. For each:
-  a) What would cause this behavior?
-  b) What evidence would confirm or rule out this hypothesis?
-  c) What other symptoms would this cause produce?
-
-Step 4 — INVESTIGATION PLAN: Recommend the specific logs, code areas,
-or tests to check, ordered by highest-probability hypothesis first.
-
-Step 5 — IMPACT ASSESSMENT: Based on the most likely root cause, what
-else might be affected? What is the blast radius?
-
-Defect Report:
-[paste defect report here]</code></pre>
+    <p>The same structured CoT approach works beautifully for QA tasks like defect root cause analysis. Define steps such as: (1) SYMPTOM — restate what the user observed, (2) REPRODUCTION — outline likely steps to reproduce, (3) HYPOTHESES — generate 3+ possible root causes ranked by likelihood with confirming/ruling evidence, (4) INVESTIGATION PLAN — recommend specific logs or tests to check, (5) IMPACT ASSESSMENT — what else might be affected? This step-by-step framework produces far more thorough analysis than simply asking "What caused this bug?"</p>
 
     <div class="callout callout-tip">
       <strong>When to Use Chain-of-Thought:</strong> CoT is most valuable for complex analytical tasks where you need to trust the model's reasoning — requirements analysis, defect investigation, impact assessment, risk evaluation. For simple generative tasks (drafting an email, formatting data), CoT adds token cost without much benefit. Use it when the <em>reasoning</em> matters as much as the conclusion.
@@ -360,39 +434,11 @@ For each story, use this format:
 |------|-----------|--------|------------|
 | ...  | ...       | ...    | ...        |</code></pre>
 
-    <p><strong>Technique 2: JSON Output for Tool Integration</strong></p>
+    <p><strong>Technique 2: JSON Output for Tool Integration</strong> — When you need machine-readable output (for importing into spreadsheets, dashboards, or other tools), tell the model to return JSON with a specific schema you define. Include the exact field names, data types, and a note saying "Return ONLY valid JSON, no additional text." Most APIs also offer a dedicated JSON mode that guarantees valid structure.</p>
 
-    <pre><code class="language-text">Analyze the following test results and return your analysis as a JSON
-object with this exact schema:
+    <p><strong>Technique 3: Markdown Tables for Reports</strong> — Ask for output as a Markdown table by specifying the exact column headers you want. This produces clean, consistent tabular data you can paste into Confluence, Notion, or any Markdown-compatible tool.</p>
 
-{
-  "summary": "string — overall assessment in one sentence",
-  "pass_rate": "number — percentage of tests passing",
-  "critical_failures": [
-    {
-      "test_id": "string",
-      "failure_reason": "string",
-      "recommended_action": "string",
-      "severity": "critical | high | medium"
-    }
-  ],
-  "trends": ["string — observed pattern or trend"],
-  "recommendation": "string — next steps"
-}
-
-Return ONLY the JSON object, no additional text or explanation.</code></pre>
-
-    <p><strong>Technique 3: Markdown Tables for Reports</strong></p>
-
-    <pre><code class="language-text">Present the comparison as a Markdown table with these exact columns:
-| Feature | Current System | Proposed System | Gap | Effort Estimate |
-
-Include at least 8 rows covering the major functional areas.
-Use emoji indicators: ✅ for met, ⚠️ for partial, ❌ for not met.</code></pre>
-
-    <p><strong>Technique 4: Constrained Length</strong></p>
-    <pre><code class="language-text">Provide your response in exactly 5 bullet points, each no longer
-than 2 sentences. Focus on actionable insights, not observations.</code></pre>
+    <p><strong>Technique 4: Constrained Length</strong> — Specify exact limits: "Respond in exactly 5 bullet points, each no longer than 2 sentences. Focus on actionable insights, not observations." This prevents the model from producing overly verbose output and forces it to prioritize.</p>
 
     <p>A critical technique for ensuring format compliance is to include a negative constraint — tell the model what NOT to include:</p>
     <ul>
@@ -413,124 +459,7 @@ than 2 sentences. Focus on actionable insights, not observations.</code></pre>
 
     <p>Here's a framework for building a prompt library for analyst work:</p>
 
-    <pre><code class="language-python">"""
-Prompt Library for Business and Quality Analysts.
-A structured collection of reusable prompt templates.
-"""
-
-class PromptTemplate:
-    """A reusable prompt template with variable substitution."""
-
-    def __init__(self, name, category, template, variables,
-                 model_recommendation, temperature):
-        self.name = name
-        self.category = category
-        self.template = template
-        self.variables = variables  # dict of variable_name: description
-        self.model_recommendation = model_recommendation
-        self.temperature = temperature
-
-    def render(self, **kwargs):
-        """Render the template with provided variable values."""
-        missing = [v for v in self.variables if v not in kwargs]
-        if missing:
-            raise ValueError(f"Missing variables: {missing}")
-        return self.template.format(**kwargs)
-
-
-# === Requirements Analysis Templates ===
-
-user_story_generator = PromptTemplate(
-    name="User Story Generator",
-    category="Requirements",
-    template="""You are a Senior Business Analyst with expertise in {domain}.
-
-Context: {project_context}
-
-Task: Convert the following informal requirement into a well-structured
-user story with acceptance criteria.
-
-Informal Requirement:
-{requirement}
-
-Output Format:
-## User Story
-**As a** [specific role]
-**I want** [specific capability]
-**So that** [measurable business value]
-
-## Acceptance Criteria
-Write 3-5 acceptance criteria in Given/When/Then format. Each must be:
-- Specific and testable
-- Independent of implementation details
-- Inclusive of at least one edge case
-
-## Questions for Stakeholder
-List 2-3 clarifying questions that would improve this story.
-
-## Definition of Done Checklist
-- [ ] Acceptance criteria reviewed by QA
-- [ ] UI/UX design completed (if applicable)
-- [ ] API contract defined (if applicable)
-- [ ] Performance requirements specified""",
-    variables={
-        "domain": "The business domain (e.g., healthcare, fintech)",
-        "project_context": "Brief project description and constraints",
-        "requirement": "The informal requirement to convert"
-    },
-    model_recommendation="gpt-4o or claude-sonnet",
-    temperature=0.3
-)
-
-# === Test Case Templates ===
-
-test_case_generator = PromptTemplate(
-    name="Test Case Generator",
-    category="Quality Assurance",
-    template="""You are a Senior QA Engineer specializing in {test_type} testing.
-
-Context: {system_context}
-
-Task: Generate comprehensive test cases for the following requirement:
-
-Requirement:
-{requirement}
-
-Acceptance Criteria:
-{acceptance_criteria}
-
-Generate test cases in this format:
-
-| TC ID | Category | Scenario | Preconditions | Steps | Expected Result | Priority |
-|-------|----------|----------|--------------|-------|-----------------|----------|
-
-Requirements:
-- Include at least {min_cases} test cases
-- Cover: happy path, negative cases, boundary values, edge cases
-- At least 2 test cases must focus on {focus_area}
-- Each step must be specific enough for a junior tester to execute
-- Priority must be one of: Critical, High, Medium, Low""",
-    variables={
-        "test_type": "Type of testing (functional, security, performance, etc.)",
-        "system_context": "Description of the system under test",
-        "requirement": "The requirement being tested",
-        "acceptance_criteria": "The acceptance criteria to validate",
-        "min_cases": "Minimum number of test cases to generate",
-        "focus_area": "Specific area to emphasize (e.g., security, edge cases)"
-    },
-    model_recommendation="gpt-4o or claude-sonnet",
-    temperature=0.2
-)
-
-# === Usage Example ===
-
-prompt = user_story_generator.render(
-    domain="e-commerce",
-    project_context="Building a B2C marketplace platform for handmade goods. "
-                    "Target launch Q3 2026. Must support mobile and web.",
-    requirement="Sellers want to offer discount codes to their customers"
-)
-print(prompt)</code></pre>
+    <p>A prompt template is simply a saved prompt with placeholders (like <code>{domain}</code>, <code>{requirement}</code>, <code>{project_context}</code>) that you fill in each time you use it. You can store templates in a shared document, a spreadsheet, or a simple text file — one per task type. The key is having a consistent structure so every analyst on your team produces the same quality of output. For example, a "User Story Generator" template would include placeholders for the domain, project context, and the informal requirement to convert, with fixed instructions for output format and acceptance criteria standards.</p>
 
     <p><strong>Organizing Your Prompt Library</strong></p>
     <p>A well-organized prompt library becomes a team asset. Consider this structure:</p>
@@ -681,138 +610,27 @@ print(prompt)</code></pre>
       <p><strong>Step 3: Test and Iterate</strong></p>
       <p>Run each template with real data from your work. Score the output on a 1-5 scale for quality, format compliance, and usefulness. Iterate on templates that score below 4.</p>
 
-      <pre><code class="language-python">"""
-Prompt Library Builder — Your personal analyst toolkit.
-"""
-import json
-from datetime import datetime
+      <p><strong>How to build your library:</strong> Create a shared document (Google Doc, Confluence page, or simple spreadsheet) with one row per template. For each, record: <em>Template Name</em>, <em>Category</em> (Requirements, QA, Communication, etc.), <em>The Prompt</em> (with {placeholders} for variable inputs), <em>Recommended Model</em>, and <em>Test Score</em> (1-5, updated after each use). Here is an example template entry:</p>
 
-class PromptLibrary:
-    """Manage a collection of tested prompt templates."""
+      <pre><code class="language-text">Template: Meeting Notes to Action Items
+Category: Communication
 
-    def __init__(self, analyst_name):
-        self.analyst_name = analyst_name
-        self.templates = {}
-        self.test_results = []
-
-    def add_template(self, name, category, template_text, variables,
-                     model="gpt-4o", temperature=0.3):
-        """Add a new template to the library."""
-        self.templates[name] = {
-            "name": name,
-            "category": category,
-            "template": template_text,
-            "variables": variables,
-            "model": model,
-            "temperature": temperature,
-            "created": datetime.now().isoformat(),
-            "version": 1,
-            "test_score": None
-        }
-
-    def test_template(self, name, score, notes):
-        """Record a test result for a template."""
-        self.test_results.append({
-            "template": name,
-            "score": score,
-            "notes": notes,
-            "date": datetime.now().isoformat()
-        })
-        if name in self.templates:
-            self.templates[name]["test_score"] = score
-
-    def get_template(self, name, **kwargs):
-        """Retrieve and render a template."""
-        if name not in self.templates:
-            raise KeyError(f"Template '{name}' not found")
-        return self.templates[name]["template"].format(**kwargs)
-
-    def export_library(self, filepath):
-        """Export the library to a JSON file for sharing."""
-        data = {
-            "analyst": self.analyst_name,
-            "exported": datetime.now().isoformat(),
-            "templates": self.templates,
-            "test_results": self.test_results
-        }
-        with open(filepath, "w") as f:
-            json.dump(data, f, indent=2)
-        print(f"Library exported to {filepath}")
-
-    def summary(self):
-        """Print a summary of the library."""
-        print(f"\n{'='*50}")
-        print(f"Prompt Library: {self.analyst_name}")
-        print(f"Templates: {len(self.templates)}")
-        print(f"{'='*50}")
-        for name, tmpl in self.templates.items():
-            score = tmpl['test_score'] or 'Not tested'
-            print(f"  [{tmpl['category']}] {name} — Score: {score}")
-
-# Example: Build your library
-library = PromptLibrary("Your Name")
-
-library.add_template(
-    name="Meeting Notes to Action Items",
-    category="Communication",
-    template="""You are a Senior Business Analyst.
-
+Prompt:
+You are a Senior Business Analyst.
 Convert the following meeting notes into structured action items.
 
-Meeting Notes:
-{meeting_notes}
+Meeting Notes: {meeting_notes}
 
 Output Format:
 ## Action Items
-| # | Action | Owner | Due Date | Priority | Dependencies |
-|---|--------|-------|----------|----------|-------------|
+| # | Action | Owner | Due Date | Priority |
 
-## Decisions Made
-- [List each decision with brief context]
-
-## Open Questions
-- [List unresolved items with suggested owner]
-
-## Next Meeting Agenda Items
-- [Suggest 3-5 items based on open questions and pending actions]
+## Decisions Made  |  ## Open Questions  |  ## Next Meeting Agenda
 
 Rules:
 - Infer owners from context when mentioned by name
-- Flag any action without a clear owner as "TBD — needs assignment"
-- Set priority based on business impact and urgency discussed""",
-    variables={"meeting_notes": "Raw meeting notes or transcript"},
-    model="gpt-4o",
-    temperature=0.2
-)
-
-library.add_template(
-    name="Requirement Ambiguity Detector",
-    category="Requirements",
-    template="""You are a meticulous Senior BA known for catching ambiguous requirements
-before they cause development issues.
-
-Analyze the following requirement for ambiguity:
-
-Requirement:
-{requirement}
-
-For each ambiguity found:
-1. Quote the ambiguous phrase
-2. Explain why it is ambiguous (multiple interpretations)
-3. List 2-3 possible interpretations
-4. Suggest a rewritten version that eliminates the ambiguity
-5. Provide a clarifying question for the stakeholder
-
-After the analysis, rate the requirement:
-- Clarity Score: [1-5]
-- Testability Score: [1-5]
-- Implementation Readiness: [Ready / Needs Clarification / Needs Rewrite]""",
-    variables={"requirement": "The requirement text to analyze"},
-    model="gpt-4o",
-    temperature=0.1
-)
-
-library.summary()</code></pre>
+- Flag any action without a clear owner as "TBD"
+- Set priority based on business impact discussed</code></pre>
 
       <p><strong>Deliverable:</strong> A JSON file containing your prompt library with at least 5 templates, each tested at least once with a score of 4 or higher. Share it with your team and invite them to contribute their own templates.</p>
     </section>

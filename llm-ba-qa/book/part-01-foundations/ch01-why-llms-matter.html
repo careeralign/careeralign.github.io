@@ -206,6 +206,58 @@
       </tbody>
     </table>
 
+    <figure class="diagram">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 210" width="100%" role="img" aria-label="The Augmentation Spectrum from Manual to Workflow Automated">
+        <style>
+          .spec-box { fill: var(--accent-light, #e0e7ff); stroke: var(--accent, #4f46e5); stroke-width: 2; rx: 10; }
+          .spec-box-active { fill: var(--accent, #4f46e5); stroke: var(--accent, #4f46e5); stroke-width: 2; rx: 10; }
+          .spec-title { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #333; }
+          .spec-title-light { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #fff; }
+          .spec-desc { font-family: system-ui, sans-serif; font-size: 10.5px; fill: #555; }
+          .spec-level { font-family: system-ui, sans-serif; font-size: 11px; font-weight: 600; fill: var(--accent, #4f46e5); }
+          .spec-arrow { fill: var(--accent, #4f46e5); }
+          .spec-icon { font-size: 26px; }
+        </style>
+        <!-- Level 0: Manual -->
+        <rect x="10" y="30" width="175" height="140" class="spec-box"/>
+        <text x="97" y="60" text-anchor="middle" class="spec-level">Level 0</text>
+        <text x="97" y="82" text-anchor="middle" class="spec-icon">&#9997;</text>
+        <text x="97" y="108" text-anchor="middle" class="spec-title">Manual</text>
+        <text x="97" y="126" text-anchor="middle" class="spec-desc">All work done by hand.</text>
+        <text x="97" y="142" text-anchor="middle" class="spec-desc">Blank page every time.</text>
+        <!-- Arrow 1 -->
+        <polygon points="193,100 210,90 210,95 230,95 230,105 210,105 210,110" class="spec-arrow"/>
+        <!-- Level 1: Ad-hoc Assisted -->
+        <rect x="218" y="30" width="175" height="140" class="spec-box"/>
+        <text x="305" y="60" text-anchor="middle" class="spec-level">Level 1</text>
+        <text x="305" y="82" text-anchor="middle" class="spec-icon">&#128172;</text>
+        <text x="305" y="108" text-anchor="middle" class="spec-title">Ad-hoc Assisted</text>
+        <text x="305" y="126" text-anchor="middle" class="spec-desc">Occasional ChatGPT use.</text>
+        <text x="305" y="142" text-anchor="middle" class="spec-desc">Copy-paste, one-off tasks.</text>
+        <!-- Arrow 2 -->
+        <polygon points="401,100 418,90 418,95 438,95 438,105 418,105 418,110" class="spec-arrow"/>
+        <!-- Level 2: Systematically Augmented -->
+        <rect x="426" y="30" width="175" height="140" class="spec-box-active"/>
+        <text x="513" y="60" text-anchor="middle" class="spec-title-light" style="font-size:11px;">Level 2 — Goal</text>
+        <text x="513" y="82" text-anchor="middle" class="spec-icon">&#9881;</text>
+        <text x="513" y="108" text-anchor="middle" class="spec-title-light">Augmented</text>
+        <text x="513" y="126" text-anchor="middle" style="font-size:10.5px;fill:#e0e7ff;">Prompt templates &amp; repeatable</text>
+        <text x="513" y="142" text-anchor="middle" style="font-size:10.5px;fill:#e0e7ff;">workflows in daily practice.</text>
+        <!-- Arrow 3 -->
+        <polygon points="609,100 626,90 626,95 646,95 646,105 626,105 626,110" class="spec-arrow"/>
+        <!-- Level 3: Workflow Automated -->
+        <rect x="634" y="30" width="175" height="140" class="spec-box"/>
+        <text x="721" y="60" text-anchor="middle" class="spec-level">Level 3</text>
+        <text x="721" y="82" text-anchor="middle" class="spec-icon">&#9889;</text>
+        <text x="721" y="108" text-anchor="middle" class="spec-title">Automated</text>
+        <text x="721" y="126" text-anchor="middle" class="spec-desc">LLMs embedded in CI/CD</text>
+        <text x="721" y="142" text-anchor="middle" class="spec-desc">pipelines with human oversight.</text>
+        <!-- Bottom label -->
+        <text x="410" y="200" text-anchor="middle" style="font-family:system-ui,sans-serif;font-size:12px;fill:#555;font-style:italic;">Most analysts are at Level 0-1. This book takes you to Level 2.</text>
+      </svg>
+      <figcaption>The Augmentation Spectrum — four maturity levels for LLM adoption in analyst work. This book targets Level 2: systematic, repeatable use of LLMs with defined templates and workflows.</figcaption>
+    </figure>
+
     <p>Most analysts today are at Level 0 or Level 1. This book will take you to Level 2 and give you the foundations for Level 3. The goal is not to automate yourself out of a job — it's to elevate the work you do so that your time is spent on judgment, not on typing.</p>
 
     <div class="callout callout-tip">
@@ -302,6 +354,93 @@
       </tbody>
     </table>
 
+    <figure class="diagram">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 370" width="100%" role="img" aria-label="Where LLMs Fit in the SDLC — showing BA and QA touchpoints across six phases">
+        <style>
+          .sdlc-phase { fill: var(--accent-light, #e0e7ff); stroke: var(--accent, #4f46e5); stroke-width: 2; rx: 8; }
+          .sdlc-label { font-family: system-ui, sans-serif; font-size: 12.5px; font-weight: 700; fill: #333; text-anchor: middle; }
+          .sdlc-arrow { fill: none; stroke: var(--accent, #4f46e5); stroke-width: 2; marker-end: url(#sdlc-arrowhead); }
+          .sdlc-callout { font-family: system-ui, sans-serif; font-size: 10px; fill: #555; }
+          .sdlc-ba { fill: #dbeafe; stroke: #3b82f6; stroke-width: 1.5; rx: 6; }
+          .sdlc-qa { fill: #fef3c7; stroke: #f59e0b; stroke-width: 1.5; rx: 6; }
+          .sdlc-ba-label { font-family: system-ui, sans-serif; font-size: 9.5px; fill: #1e40af; }
+          .sdlc-qa-label { font-family: system-ui, sans-serif; font-size: 9.5px; fill: #92400e; }
+          .sdlc-badge { font-family: system-ui, sans-serif; font-size: 9px; font-weight: 700; }
+        </style>
+        <defs>
+          <marker id="sdlc-arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="var(--accent, #4f46e5)"/>
+          </marker>
+        </defs>
+        <!-- Phase boxes (horizontal flow) -->
+        <rect x="10" y="100" width="110" height="50" class="sdlc-phase"/>
+        <text x="65" y="130" class="sdlc-label">Discovery</text>
+        <line x1="120" y1="125" x2="150" y2="125" class="sdlc-arrow"/>
+
+        <rect x="150" y="100" width="110" height="50" class="sdlc-phase"/>
+        <text x="205" y="130" class="sdlc-label">Requirements</text>
+        <line x1="260" y1="125" x2="290" y2="125" class="sdlc-arrow"/>
+
+        <rect x="290" y="100" width="110" height="50" class="sdlc-phase"/>
+        <text x="345" y="130" class="sdlc-label">Design</text>
+        <line x1="400" y1="125" x2="430" y2="125" class="sdlc-arrow"/>
+
+        <rect x="430" y="100" width="110" height="50" class="sdlc-phase"/>
+        <text x="485" y="130" class="sdlc-label">Build</text>
+        <line x1="540" y1="125" x2="570" y2="125" class="sdlc-arrow"/>
+
+        <rect x="570" y="100" width="110" height="50" class="sdlc-phase"/>
+        <text x="625" y="130" class="sdlc-label">Test</text>
+        <line x1="680" y1="125" x2="710" y2="125" class="sdlc-arrow"/>
+
+        <rect x="710" y="100" width="60" height="50" class="sdlc-phase"/>
+        <text x="740" y="130" class="sdlc-label" style="font-size:11px;">Deploy</text>
+
+        <!-- BA callouts (above) -->
+        <text x="10" y="20" class="sdlc-badge sdlc-ba-label" style="font-size:11px;">BA LLM Touchpoints</text>
+        <rect x="15" y="30" width="140" height="50" class="sdlc-ba"/>
+        <text x="25" y="47" class="sdlc-ba-label">Stakeholder analysis,</text>
+        <text x="25" y="60" class="sdlc-ba-label">vision doc drafting</text>
+        <line x1="65" y1="80" x2="65" y2="100" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4,3"/>
+
+        <rect x="155" y="30" width="140" height="50" class="sdlc-ba"/>
+        <text x="165" y="47" class="sdlc-ba-label">User stories, BRD,</text>
+        <text x="165" y="60" class="sdlc-ba-label">acceptance criteria</text>
+        <line x1="205" y1="80" x2="205" y2="100" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4,3"/>
+
+        <rect x="435" y="30" width="140" height="50" class="sdlc-ba"/>
+        <text x="445" y="47" class="sdlc-ba-label">Change request analysis,</text>
+        <text x="445" y="60" class="sdlc-ba-label">impact assessment</text>
+        <line x1="485" y1="80" x2="485" y2="100" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4,3"/>
+
+        <!-- QA callouts (below) -->
+        <text x="10" y="190" class="sdlc-badge sdlc-qa-label" style="font-size:11px;">QA LLM Touchpoints</text>
+        <rect x="155" y="195" width="140" height="50" class="sdlc-qa"/>
+        <text x="165" y="212" class="sdlc-qa-label">Testability review,</text>
+        <text x="165" y="225" class="sdlc-qa-label">ambiguity detection</text>
+        <line x1="205" y1="150" x2="205" y2="195" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4,3"/>
+
+        <rect x="295" y="195" width="140" height="50" class="sdlc-qa"/>
+        <text x="305" y="212" class="sdlc-qa-label">Test case design,</text>
+        <text x="305" y="225" class="sdlc-qa-label">test data generation</text>
+        <line x1="345" y1="150" x2="345" y2="195" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4,3"/>
+
+        <rect x="575" y="195" width="140" height="50" class="sdlc-qa"/>
+        <text x="585" y="212" class="sdlc-qa-label">Defect reporting,</text>
+        <text x="585" y="225" class="sdlc-qa-label">regression analysis</text>
+        <line x1="625" y1="150" x2="625" y2="195" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4,3"/>
+
+        <!-- Legend -->
+        <rect x="250" y="280" width="12" height="12" class="sdlc-ba"/>
+        <text x="270" y="291" style="font-family:system-ui,sans-serif;font-size:11px;fill:#333;">= BA touchpoint</text>
+        <rect x="380" y="280" width="12" height="12" class="sdlc-qa"/>
+        <text x="400" y="291" style="font-family:system-ui,sans-serif;font-size:11px;fill:#333;">= QA touchpoint</text>
+
+        <text x="390" y="330" text-anchor="middle" style="font-family:system-ui,sans-serif;font-size:11px;fill:#555;font-style:italic;">LLMs add the most value at phase boundaries where information is translated between formats.</text>
+      </svg>
+      <figcaption>Where LLMs Fit in the SDLC — BA touchpoints (blue) focus on requirements and change analysis; QA touchpoints (amber) span from testability review through regression analysis. The highest-value opportunities lie at the handoffs between phases.</figcaption>
+    </figure>
+
     <p>The key insight is that LLMs are most valuable at the boundaries between phases — the handoffs where information must be transformed from one format to another. Converting meeting notes into user stories. Transforming user stories into test cases. Translating defect reports into change requests. These translation tasks are where LLMs excel, and they are also where the most time is traditionally lost.</p>
 
     <div class="callout callout-tip">
@@ -392,105 +531,7 @@
       <p><strong>Step 1: Map Your Current Activities</strong></p>
       <p>Create an inventory of your typical weekly activities. For each, estimate the time spent and categorize the type of work.</p>
 
-      <pre><code class="language-python">"""
-LLM Impact Assessment Tool
-Run this script to create a structured assessment of your analyst workflow.
-"""
-
-# Define your weekly activities
-activities = [
-    {
-        "name": "Writing user stories",
-        "hours_per_week": 4,
-        "category": "Document Creation",
-        "involves_text_generation": True,
-        "involves_analysis": True,
-        "involves_stakeholder_interaction": True,
-        "data_sensitivity": "medium"
-    },
-    {
-        "name": "Reviewing requirements for completeness",
-        "hours_per_week": 3,
-        "category": "Quality Review",
-        "involves_text_generation": False,
-        "involves_analysis": True,
-        "involves_stakeholder_interaction": False,
-        "data_sensitivity": "medium"
-    },
-    {
-        "name": "Creating test cases",
-        "hours_per_week": 5,
-        "category": "Document Creation",
-        "involves_text_generation": True,
-        "involves_analysis": True,
-        "involves_stakeholder_interaction": False,
-        "data_sensitivity": "low"
-    },
-    {
-        "name": "Attending meetings and taking notes",
-        "hours_per_week": 6,
-        "category": "Communication",
-        "involves_text_generation": True,
-        "involves_analysis": False,
-        "involves_stakeholder_interaction": True,
-        "data_sensitivity": "high"
-    },
-    {
-        "name": "Analyzing defect reports",
-        "hours_per_week": 2,
-        "category": "Analysis",
-        "involves_text_generation": False,
-        "involves_analysis": True,
-        "involves_stakeholder_interaction": False,
-        "data_sensitivity": "low"
-    },
-]
-
-# Score each activity for LLM augmentation potential
-def score_llm_potential(activity):
-    score = 0
-    # Text generation tasks benefit most from LLMs
-    if activity["involves_text_generation"]:
-        score += 3
-    # Analysis tasks benefit moderately
-    if activity["involves_analysis"]:
-        score += 2
-    # High data sensitivity reduces practical LLM usability
-    if activity["data_sensitivity"] == "high":
-        score -= 2
-    elif activity["data_sensitivity"] == "medium":
-        score -= 1
-    # Stakeholder interaction is human-led, LLM assists with prep
-    if activity["involves_stakeholder_interaction"]:
-        score += 1
-    return max(0, min(5, score))
-
-# Generate the assessment
-print("=" * 60)
-print("LLM IMPACT ASSESSMENT")
-print("=" * 60)
-
-total_hours = sum(a["hours_per_week"] for a in activities)
-total_saveable = 0
-
-for activity in activities:
-    potential = score_llm_potential(activity)
-    estimated_savings = activity["hours_per_week"] * (potential / 5) * 0.5
-    total_saveable += estimated_savings
-
-    print(f"\n{activity['name']}")
-    print(f"  Hours/week: {activity['hours_per_week']}")
-    print(f"  LLM Potential: {'*' * potential}{'.' * (5 - potential)} ({potential}/5)")
-    print(f"  Estimated time savings: {estimated_savings:.1f} hrs/week")
-    print(f"  Data sensitivity: {activity['data_sensitivity']}")
-
-print(f"\n{'=' * 60}")
-print(f"Total weekly hours analyzed: {total_hours}")
-print(f"Estimated recoverable hours: {total_saveable:.1f}")
-print(f"Potential efficiency gain: {(total_saveable/total_hours)*100:.0f}%")
-print(f"{'=' * 60}")
-print("\nTop recommendation: Start with the highest-scoring,")
-print("lowest-sensitivity activity for your first LLM workflow.")</code></pre>
+      <p><strong>How to do this exercise (no code required):</strong> Create a simple spreadsheet or table with these columns for each of your weekly activities: <em>Activity Name</em>, <em>Hours/Week</em>, <em>Involves Text Generation?</em> (Yes/No), <em>Involves Analysis?</em> (Yes/No), and <em>Data Sensitivity</em> (Low/Medium/High). Score each activity's LLM potential from 1-5 using this rule: text-heavy tasks with low sensitivity score highest; tasks requiring stakeholder interaction or involving sensitive data score lower. Multiply the score by hours to find your biggest opportunities. Start with the highest-scoring, lowest-sensitivity activity for your first LLM workflow.</p>
 
       <p><strong>Step 2: Prioritize Your Opportunities</strong></p>
       <p>Modify the <code>activities</code> list to reflect your actual work. Run the script and identify your top three candidates for LLM augmentation. Consider starting with tasks that have high LLM potential and low data sensitivity — these give you the best learning opportunity with the least risk.</p>

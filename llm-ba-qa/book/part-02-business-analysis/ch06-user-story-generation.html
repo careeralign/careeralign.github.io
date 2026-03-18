@@ -56,6 +56,49 @@
 
       <h3>The Translation Pipeline</h3>
 
+      <figure class="diagram">
+        <svg viewBox="0 0 900 120" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif;font-size:13px;">
+          <defs>
+            <marker id="ch6-arrow1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#333"/></marker>
+          </defs>
+          <rect x="5" y="28" width="120" height="56" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="65" y="50" text-anchor="middle" fill="#333" font-weight="600">Business</text>
+          <text x="65" y="67" text-anchor="middle" fill="#666">Requirement</text>
+
+          <line x1="125" y1="56" x2="148" y2="56" stroke="#333" stroke-width="1.5" marker-end="url(#ch6-arrow1)"/>
+
+          <rect x="150" y="28" width="110" height="56" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="205" y="50" text-anchor="middle" fill="#333" font-weight="600">Role</text>
+          <text x="205" y="67" text-anchor="middle" fill="#666">Identification</text>
+
+          <line x1="260" y1="56" x2="283" y2="56" stroke="#333" stroke-width="1.5" marker-end="url(#ch6-arrow1)"/>
+
+          <rect x="285" y="28" width="110" height="56" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="340" y="50" text-anchor="middle" fill="#333" font-weight="600">Story</text>
+          <text x="340" y="67" text-anchor="middle" fill="#666">Generation</text>
+
+          <line x1="395" y1="56" x2="418" y2="56" stroke="#333" stroke-width="1.5" marker-end="url(#ch6-arrow1)"/>
+
+          <rect x="420" y="28" width="110" height="56" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="475" y="50" text-anchor="middle" fill="#333" font-weight="600">INVEST</text>
+          <text x="475" y="67" text-anchor="middle" fill="#666">Validation</text>
+
+          <line x1="530" y1="56" x2="553" y2="56" stroke="#333" stroke-width="1.5" marker-end="url(#ch6-arrow1)"/>
+
+          <rect x="555" y="28" width="120" height="56" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="615" y="50" text-anchor="middle" fill="#333" font-weight="600">Acceptance</text>
+          <text x="615" y="67" text-anchor="middle" fill="#666">Criteria</text>
+
+          <line x1="675" y1="56" x2="698" y2="56" stroke="#333" stroke-width="1.5" marker-end="url(#ch6-arrow1)"/>
+
+          <rect x="700" y="28" width="110" height="56" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="755" y="56" text-anchor="middle" fill="#fff" font-weight="600">Backlog</text>
+
+          <text x="450" y="15" text-anchor="middle" fill="#666" font-size="11" font-style="italic">One requirement may produce multiple stories; stories too large are split before entering the backlog</text>
+        </svg>
+        <figcaption>Figure 6-1. Requirements to User Stories Pipeline &mdash; from a business requirement through role identification, story generation, validation, and acceptance criteria to a sprint-ready backlog item.</figcaption>
+      </figure>
+
       <table>
         <thead>
           <tr>
@@ -99,124 +142,18 @@
 
       <p>The core generation step converts a requirement into one or more user stories. The quality of the output depends heavily on the prompt design. A good prompt provides the requirement text, any known user roles, the project domain, and explicit instructions about the output format.</p>
 
-      <h3>Story Generation Prompt</h3>
+      <h3>Story Generation Approach</h3>
 
-      <pre><code class="language-python">
-import openai, json, textwrap
+      <p>The story generation prompt casts the LLM as a senior Product Owner and provides five explicit rules. First, each story must be atomic &mdash; delivering exactly one piece of user-visible functionality. Second, if the requirement implies multiple user roles, a separate story is created for each role. Third, compound requirements (those containing "and" joining distinct capabilities) are split into separate stories. Fourth, the "so that" clause must state a concrete business benefit rather than merely restating the capability. Fifth, every story receives a sequential ID and a link back to its source requirement.</p>
 
-STORY_GEN_PROMPT = textwrap.dedent("""\
-    You are a senior Product Owner experienced in Agile methodologies.
-
-    TASK:
-    Convert the following requirement into one or more user stories
-    using the standard template: "As a [role], I want [capability],
-    so that [benefit]."
-
-    RULES:
-    1. Each story must be atomic — it delivers exactly one piece of
-       user-visible functionality.
-    2. If the requirement implies multiple user roles, create a
-       separate story for each role.
-    3. If the requirement is compound (contains "and" joining distinct
-       capabilities), split into separate stories.
-    4. The "so that" clause must state a concrete business benefit,
-       not merely restate the capability.
-    5. Include a story_id (STORY-001, STORY-002, ...) and link it
-       back to the source requirement ID.
-
-    OUTPUT FORMAT:
-    Return a JSON array of objects with keys:
-      story_id, req_id, role, capability, benefit, story_text
-
-    CONTEXT:
-    Project domain: {domain}
-    Known user roles: {roles}
-
-    REQUIREMENT:
-    ID: {req_id}
-    Text: {req_text}
-    Type: {req_type}
-""")
-
-
-def generate_stories(
-    requirement: dict,
-    domain: str = "Enterprise Software",
-    roles: list[str] | None = None,
-) -> list[dict]:
-    """Generate user stories from a single requirement."""
-    if roles is None:
-        roles = ["End User", "Administrator", "Manager"]
-
-    response = openai.chat.completions.create(
-        model="gpt-4o",
-        temperature=0.3,
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": "You are a senior Product Owner."},
-            {"role": "user", "content": STORY_GEN_PROMPT.format(
-                domain=domain,
-                roles=json.dumps(roles),
-                req_id=requirement["id"],
-                req_text=requirement["text"],
-                req_type=requirement.get("type", "FUNCTIONAL"),
-            )},
-        ],
-    )
-    stories = json.loads(response.choices[0].message.content)
-    if isinstance(stories, dict):
-        stories = next(iter(stories.values()))
-    return stories
-      </code></pre>
+      <p>The prompt also accepts contextual inputs: the project domain (for example, "Healthcare Portal" or "Financial Services Platform") and a list of known user roles. These help the LLM generate stories that use consistent role names aligned with your project's terminology.</p>
 
       <h3>Batch Generation Across a Requirement Set</h3>
 
-      <pre><code class="language-python">
-import asyncio
-from openai import AsyncOpenAI
-
-aclient = AsyncOpenAI()
-
-
-async def generate_stories_async(requirement: dict, domain: str, roles: list[str]) -> list[dict]:
-    """Async version for parallel processing."""
-    response = await aclient.chat.completions.create(
-        model="gpt-4o",
-        temperature=0.3,
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": "You are a senior Product Owner."},
-            {"role": "user", "content": STORY_GEN_PROMPT.format(
-                domain=domain,
-                roles=json.dumps(roles),
-                req_id=requirement["id"],
-                req_text=requirement["text"],
-                req_type=requirement.get("type", "FUNCTIONAL"),
-            )},
-        ],
-    )
-    stories = json.loads(response.choices[0].message.content)
-    if isinstance(stories, dict):
-        stories = next(iter(stories.values()))
-    return stories
-
-
-async def batch_generate(requirements: list[dict], domain: str, roles: list[str]) -> list[dict]:
-    """Generate stories for all requirements in parallel."""
-    tasks = [generate_stories_async(req, domain, roles) for req in requirements]
-    results = await asyncio.gather(*tasks)
-    all_stories = []
-    counter = 1
-    for story_list in results:
-        for story in story_list:
-            story["story_id"] = f"STORY-{counter:03d}"
-            counter += 1
-            all_stories.append(story)
-    return all_stories
-      </code></pre>
+      <p>For large requirement sets, process each requirement independently and in parallel using asynchronous API calls. Apply a concurrency limit (for example, 10 simultaneous requests) to stay within API rate limits. After all responses return, merge the story lists and assign sequential IDs (STORY-001, STORY-002, and so on) across the full set. This approach lets you generate stories for 50 or more requirements in under a minute.</p>
 
       <div class="callout callout-tip">
-        <strong>Tip:</strong> Use async generation with rate limiting (e.g., <code>asyncio.Semaphore(10)</code>) to process large requirement sets efficiently without hitting API rate limits.
+        <strong>Tip:</strong> Use async generation with rate limiting to process large requirement sets efficiently without hitting API rate limits.
       </div>
     </section>
 
@@ -228,44 +165,7 @@ async def batch_generate(requirements: list[dict], domain: str, roles: list[str]
 
       <h3>Generating Gherkin-Style AC</h3>
 
-      <pre><code class="language-python">
-AC_PROMPT = textwrap.dedent("""\
-    Generate acceptance criteria for the following user story using
-    Gherkin syntax (Given/When/Then).
-
-    RULES:
-    1. Cover the happy path, at least one edge case, and one error scenario.
-    2. Each scenario must be independently testable.
-    3. Use concrete values, not placeholders (e.g., "3 seconds" not "quickly").
-    4. Include boundary conditions where applicable.
-
-    USER STORY:
-    {story_text}
-
-    Return a JSON object with:
-      - story_id: the story identifier
-      - scenarios: array of objects, each with:
-          - scenario_name: descriptive name
-          - given: precondition(s)
-          - when: action(s)
-          - then: expected outcome(s)
-          - type: HAPPY_PATH | EDGE_CASE | ERROR
-""")
-
-
-def generate_acceptance_criteria(story: dict) -> dict:
-    """Generate Gherkin-style acceptance criteria for a user story."""
-    response = openai.chat.completions.create(
-        model="gpt-4o",
-        temperature=0.2,
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": "You write precise, testable acceptance criteria."},
-            {"role": "user", "content": AC_PROMPT.format(story_text=story["story_text"])},
-        ],
-    )
-    return json.loads(response.choices[0].message.content)
-      </code></pre>
+      <p>The acceptance criteria prompt instructs the LLM to generate scenarios in Given/When/Then format for each story. Four rules ensure quality: cover the happy path plus at least one edge case and one error scenario; make each scenario independently testable; use concrete values instead of vague terms (for example, "within 3 seconds" rather than "quickly"); and include boundary conditions where applicable. The output is a JSON object containing the story ID and an array of scenario objects, each with a descriptive name, preconditions, actions, expected outcomes, and a type tag (Happy Path, Edge Case, or Error).</p>
 
       <h3>Example Output</h3>
 
@@ -388,53 +288,68 @@ def generate_acceptance_criteria(story: dict) -> dict:
 
       <h3>Automated Splitting</h3>
 
-      <pre><code class="language-python">
-SPLIT_PROMPT = textwrap.dedent("""\
-    You are an Agile coach. The following user story is too large for
-    a single sprint (estimated at {points} story points; target is 5 or fewer).
+      <p>The splitting prompt provides the LLM with the oversized story (including its current point estimate, story text, and acceptance criteria) and asks it to apply the most appropriate pattern or combination of patterns from the nine listed in the table above. For each resulting sub-story, the model produces a new ID (for example, STORY-003.1, STORY-003.2), the full "As a... I want... so that..." text, the pattern used, a revised point estimate (targeting 1, 2, 3, or 5 points), and any dependencies between sub-stories.</p>
 
-    Analyse the story and split it using the most appropriate pattern(s)
-    from this list: workflow_steps, business_rules, happy_unhappy_paths,
-    input_methods, data_types, crud_operations, user_roles, platforms,
-    performance_levels.
+      <figure class="diagram">
+        <svg viewBox="0 0 780 320" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif;font-size:12px;">
+          <defs>
+            <marker id="ch6-arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#333"/></marker>
+          </defs>
 
-    For each resulting sub-story, provide:
-      - sub_story_id: STORY-{parent_num}.1, STORY-{parent_num}.2, ...
-      - story_text: the full "As a... I want... so that..." text
-      - pattern_used: which splitting pattern was applied
-      - estimated_points: your estimate (1, 2, 3, or 5)
-      - dependencies: list of sub_story_ids this depends on (if any)
+          <!-- Top decision -->
+          <polygon points="250,10 350,50 250,90 150,50" fill="#fff" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="250" y="46" text-anchor="middle" fill="#333" font-weight="600" font-size="12">Story &gt; 8</text>
+          <text x="250" y="60" text-anchor="middle" fill="#333" font-size="12">points?</text>
 
-    ORIGINAL STORY:
-    ID: {story_id}
-    Text: {story_text}
-    Acceptance Criteria: {acceptance_criteria}
+          <!-- No path (right) -->
+          <line x1="350" y1="50" x2="440" y2="50" stroke="#333" stroke-width="1.5" marker-end="url(#ch6-arrow2)"/>
+          <text x="390" y="42" fill="#666" font-size="11">No</text>
+          <rect x="442" y="24" width="160" height="52" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="522" y="48" text-anchor="middle" fill="#fff" font-weight="600">Keep as-is</text>
+          <text x="522" y="63" text-anchor="middle" fill="#fff" font-size="11">Ready for sprint</text>
 
-    Return a JSON object with keys: original_story_id, split_rationale,
-    sub_stories (array).
-""")
+          <!-- Yes path (down) -->
+          <line x1="250" y1="90" x2="250" y2="118" stroke="#333" stroke-width="1.5" marker-end="url(#ch6-arrow2)"/>
+          <text x="260" y="108" fill="#666" font-size="11">Yes</text>
 
+          <!-- Second decision -->
+          <polygon points="250,120 370,160 250,200 130,160" fill="#fff" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="250" y="153" text-anchor="middle" fill="#333" font-weight="600" font-size="12">Split by</text>
+          <text x="250" y="167" text-anchor="middle" fill="#333" font-size="12">workflow step?</text>
 
-def split_story(story: dict, estimated_points: int = 13) -> dict:
-    """Split an oversized story into smaller, sprint-sized stories."""
-    parent_num = story["story_id"].split("-")[1]
-    response = openai.chat.completions.create(
-        model="gpt-4o",
-        temperature=0.3,
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": "You are an experienced Agile coach."},
-            {"role": "user", "content": SPLIT_PROMPT.format(
-                points=estimated_points,
-                parent_num=parent_num,
-                story_id=story["story_id"],
-                story_text=story["story_text"],
-                acceptance_criteria=json.dumps(story.get("acceptance_criteria", [])),
-            )},
-        ],
-    )
-    return json.loads(response.choices[0].message.content)
-      </code></pre>
+          <!-- Yes (left) -->
+          <line x1="130" y1="160" x2="15" y2="160" stroke="#333" stroke-width="1.5"/>
+          <line x1="15" y1="160" x2="15" y2="240" stroke="#333" stroke-width="1.5" marker-end="url(#ch6-arrow2)"/>
+          <text x="75" y="152" fill="#666" font-size="11">Yes</text>
+          <rect x="-55" y="242" width="140" height="52" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="15" y="262" text-anchor="middle" fill="#333" font-weight="600" font-size="12">Workflow Steps</text>
+          <text x="15" y="278" text-anchor="middle" fill="#666" font-size="11">One story per step</text>
+
+          <!-- No (right from second decision) -->
+          <line x1="370" y1="160" x2="410" y2="160" stroke="#333" stroke-width="1.5" marker-end="url(#ch6-arrow2)"/>
+          <text x="385" y="152" fill="#666" font-size="11">No</text>
+
+          <!-- Third decision -->
+          <polygon points="510,120 620,160 510,200 400,160" fill="#fff" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="510" y="153" text-anchor="middle" fill="#333" font-weight="600" font-size="12">Multiple</text>
+          <text x="510" y="167" text-anchor="middle" fill="#333" font-size="12">user roles?</text>
+
+          <!-- Yes (down-left from third) -->
+          <line x1="460" y1="195" x2="340" y2="245" stroke="#333" stroke-width="1.5" marker-end="url(#ch6-arrow2)"/>
+          <text x="380" y="218" fill="#666" font-size="11">Yes</text>
+          <rect x="240" y="242" width="140" height="52" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="310" y="262" text-anchor="middle" fill="#333" font-weight="600" font-size="12">By User Role</text>
+          <text x="310" y="278" text-anchor="middle" fill="#666" font-size="11">One story per role</text>
+
+          <!-- No (down-right from third) -->
+          <line x1="560" y1="195" x2="660" y2="245" stroke="#333" stroke-width="1.5" marker-end="url(#ch6-arrow2)"/>
+          <text x="620" y="218" fill="#666" font-size="11">No</text>
+          <rect x="590" y="242" width="170" height="52" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="675" y="262" text-anchor="middle" fill="#333" font-weight="600" font-size="12">By Business Rule</text>
+          <text x="675" y="278" text-anchor="middle" fill="#666" font-size="11">or CRUD / Data Type</text>
+        </svg>
+        <figcaption>Figure 6-2. Story Splitting Decision Tree &mdash; a simplified guide for choosing the right splitting pattern based on story characteristics.</figcaption>
+      </figure>
 
       <div class="callout callout-tip">
         <strong>Tip:</strong> After splitting, re-run acceptance criteria generation on each sub-story. The original AC should be distributed across the sub-stories, with each sub-story getting the specific scenarios it covers.
@@ -449,46 +364,7 @@ def split_story(story: dict, estimated_points: int = 13) -> dict:
 
       <h3>INVEST Validator</h3>
 
-      <pre><code class="language-python">
-INVEST_PROMPT = textwrap.dedent("""\
-    Evaluate the following user story against the INVEST criteria.
-    For each criterion, provide:
-      - criterion: I | N | V | E | S | T
-      - name: Independent | Negotiable | Valuable | Estimable | Small | Testable
-      - pass: true | false
-      - score: 1 (poor) to 5 (excellent)
-      - explanation: why it passes or fails
-      - suggestion: how to improve (if score < 4)
-
-    Also provide an overall_score (average of all six) and a
-    recommendation: READY | NEEDS_REFINEMENT | NEEDS_SPLIT | REJECT.
-
-    USER STORY:
-    ID: {story_id}
-    Text: {story_text}
-    Acceptance Criteria: {acceptance_criteria}
-
-    Return as a JSON object.
-""")
-
-
-def validate_invest(story: dict) -> dict:
-    """Validate a user story against INVEST criteria."""
-    response = openai.chat.completions.create(
-        model="gpt-4o",
-        temperature=0.1,
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": "You are an Agile quality coach."},
-            {"role": "user", "content": INVEST_PROMPT.format(
-                story_id=story["story_id"],
-                story_text=story["story_text"],
-                acceptance_criteria=json.dumps(story.get("acceptance_criteria", [])),
-            )},
-        ],
-    )
-    return json.loads(response.choices[0].message.content)
-      </code></pre>
+      <p>The INVEST validation prompt sends the LLM each story along with its acceptance criteria and asks it to evaluate against all six criteria. For each criterion, the model returns a pass/fail flag, a score from 1 (poor) to 5 (excellent), an explanation, and an improvement suggestion for any score below 4. It also computes an overall score (the average of all six) and a recommendation: Ready, Needs Refinement, Needs Split, or Reject. Use a very low temperature (0.1) for this evaluation, as you want consistent, deterministic assessments.</p>
 
       <h3>Interpreting Results</h3>
 
@@ -539,89 +415,11 @@ def validate_invest(story: dict) -> dict:
 
       <p>An LLM can help with two aspects of story mapping: (1) identifying the user activities and steps that form the horizontal backbone, and (2) placing stories under the correct activity at the right priority level.</p>
 
-      <pre><code class="language-python">
-STORY_MAP_PROMPT = textwrap.dedent("""\
-    You are building a User Story Map. Given the following user stories,
-    produce a story map structure.
-
-    OUTPUT FORMAT (JSON):
-    {{
-      "activities": [
-        {{
-          "name": "Activity Name",
-          "steps": [
-            {{
-              "name": "Step Name",
-              "stories": [
-                {{
-                  "story_id": "STORY-001",
-                  "summary": "brief summary",
-                  "priority": "must_have | should_have | could_have",
-                  "release": 1  // suggested release number
-                }}
-              ]
-            }}
-          ]
-        }}
-      ],
-      "release_plan": [
-        {{
-          "release": 1,
-          "theme": "MVP - Core Workflow",
-          "story_count": 8,
-          "story_ids": ["STORY-001", ...]
-        }}
-      ]
-    }}
-
-    RULES:
-    - Activities are high-level user goals (e.g., "Manage Account").
-    - Steps are specific actions within an activity (e.g., "Register", "Log In").
-    - Assign each story to exactly one step.
-    - Must-have stories go in Release 1, should-have in Release 2, could-have in Release 3.
-
-    USER STORIES:
-    {stories_json}
-""")
-
-
-def generate_story_map(stories: list[dict]) -> dict:
-    """Generate a user story map from a list of stories."""
-    response = openai.chat.completions.create(
-        model="gpt-4o",
-        temperature=0.3,
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": "You are a product strategist."},
-            {"role": "user", "content": STORY_MAP_PROMPT.format(
-                stories_json=json.dumps(stories, indent=2)
-            )},
-        ],
-    )
-    return json.loads(response.choices[0].message.content)
-      </code></pre>
+      <p>The story mapping prompt takes the full set of user stories and organises them into a two-level hierarchy. At the top level are <strong>activities</strong> &mdash; high-level user goals such as "Manage Account" or "Process Orders." Each activity contains <strong>steps</strong> (specific actions like "Register" or "Log In"), and each step contains the stories assigned to it, tagged with a priority level and a suggested release number. The model also generates a release plan grouping stories into releases: Must-Have stories go into Release 1, Should-Have into Release 2, and Could-Have into Release 3.</p>
 
       <h3>Visualising the Story Map</h3>
 
-      <p>The JSON output can be rendered as an interactive HTML table or exported to tools like Miro or Mural. For a quick text-based visualisation:</p>
-
-      <pre><code class="language-python">
-def print_story_map(story_map: dict) -> None:
-    """Print a text-based story map to the console."""
-    for activity in story_map["activities"]:
-        print(f"\n{'='*60}")
-        print(f"  ACTIVITY: {activity['name']}")
-        print(f"{'='*60}")
-        for step in activity["steps"]:
-            print(f"\n  Step: {step['name']}")
-            print(f"  {'-'*40}")
-            for release_num in [1, 2, 3]:
-                release_stories = [s for s in step["stories"] if s["release"] == release_num]
-                if release_stories:
-                    label = {1: "R1 (Must)", 2: "R2 (Should)", 3: "R3 (Could)"}[release_num]
-                    summaries = ", ".join(s["story_id"] for s in release_stories)
-                    print(f"    {label}: {summaries}")
-      </code></pre>
+      <p>The JSON output can be rendered as an interactive HTML table, exported to tools like Miro or Mural, or printed as a simple text-based grid organised by activity, step, and release tier. The visual format makes it easy for the team to spot gaps &mdash; steps where no stories exist but where a user would logically need functionality.</p>
 
       <div class="callout callout-tip">
         <strong>Tip:</strong> Feed the story map back to the LLM with the prompt "Identify any gaps in the user journey &mdash; steps where no stories exist but a user would logically need functionality." This is a powerful way to discover missing stories.
@@ -636,96 +434,11 @@ def print_story_map(story_map: dict) -> None:
 
       <h3>Pre-Grooming Analysis</h3>
 
-      <pre><code class="language-python">
-GROOMING_PROMPT = textwrap.dedent("""\
-    You are preparing a backlog grooming session. Analyse the following
-    backlog and produce a grooming report with:
-
-    1. STALE STORIES: Stories that haven't been updated in 30+ days
-       and may need re-evaluation.
-    2. DUPLICATES: Stories that appear to overlap significantly.
-       Suggest which to merge or remove.
-    3. DEPENDENCY CHAINS: Groups of stories that must be delivered in
-       a specific order. Flag any circular dependencies.
-    4. ESTIMATION GAPS: Stories missing estimates or with estimates
-       that seem inconsistent (e.g., similar stories with vastly
-       different point values).
-    5. BLOCKED ITEMS: Stories that reference external dependencies
-       or prerequisites not in the backlog.
-    6. REFINEMENT CANDIDATES: Stories that need more detail before
-       they are ready for sprint planning.
-
-    BACKLOG:
-    {backlog_json}
-
-    Return a JSON object with keys matching the six categories above.
-""")
-
-
-def pre_grooming_analysis(backlog: list[dict]) -> dict:
-    """Analyse a backlog before a grooming session and surface issues."""
-    response = openai.chat.completions.create(
-        model="gpt-4o",
-        temperature=0.2,
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": "You are a Scrum Master preparing for grooming."},
-            {"role": "user", "content": GROOMING_PROMPT.format(
-                backlog_json=json.dumps(backlog, indent=2)
-            )},
-        ],
-    )
-    return json.loads(response.choices[0].message.content)
-      </code></pre>
+      <p>The pre-grooming prompt sends the full backlog to the LLM and asks it to produce a structured report across six categories: <strong>stale stories</strong> not updated in 30+ days, <strong>duplicates</strong> that overlap significantly (with merge recommendations), <strong>dependency chains</strong> including any circular dependencies, <strong>estimation gaps</strong> where similar stories have inconsistent point values, <strong>blocked items</strong> referencing external prerequisites, and <strong>refinement candidates</strong> needing more detail before sprint planning. This analysis, which would take a Scrum Master 30 to 60 minutes to perform manually, can be generated in seconds and used as the agenda for the grooming session.</p>
 
       <h3>Interactive Refinement Loop</h3>
 
-      <p>During the grooming session itself, the assistant can operate in a conversational mode, answering questions about stories, suggesting rewrites, and recording decisions:</p>
-
-      <pre><code class="language-python">
-class GroomingAssistant:
-    """Interactive backlog grooming assistant backed by an LLM."""
-
-    def __init__(self, backlog: list[dict]):
-        self.backlog = backlog
-        self.decisions: list[dict] = []
-        self.conversation: list[dict] = [
-            {"role": "system", "content": (
-                "You are an Agile coach helping a team refine their backlog. "
-                "You have access to the full backlog. Answer questions, suggest "
-                "improvements, and record decisions. Be concise and actionable."
-            )},
-            {"role": "user", "content": f"Here is our current backlog:\n{json.dumps(backlog, indent=2)}"},
-        ]
-
-    def ask(self, question: str) -> str:
-        """Ask the assistant a question about the backlog."""
-        self.conversation.append({"role": "user", "content": question})
-        response = openai.chat.completions.create(
-            model="gpt-4o",
-            temperature=0.3,
-            messages=self.conversation,
-        )
-        answer = response.choices[0].message.content
-        self.conversation.append({"role": "assistant", "content": answer})
-        return answer
-
-    def record_decision(self, story_id: str, decision: str, rationale: str) -> None:
-        """Record a grooming decision for the session log."""
-        self.decisions.append({
-            "story_id": story_id,
-            "decision": decision,
-            "rationale": rationale,
-        })
-
-    def session_summary(self) -> str:
-        """Generate a summary of all decisions made during grooming."""
-        return self.ask(
-            "Summarise all decisions made during this session in a format "
-            "suitable for meeting minutes. Include: stories reviewed, "
-            "decisions made, action items, and who is responsible."
-        )
-      </code></pre>
+      <p>During the grooming session itself, the assistant operates in a conversational mode. It maintains the full backlog in its context window and responds to team questions: "Which stories depend on STORY-042?", "Suggest a rewrite for this vague story," or "What is the total point estimate for Release 2?" Decisions made during the session &mdash; such as splitting a story, changing priority, or deferring an item &mdash; are recorded with story ID, decision, and rationale. At the end of the session, the assistant generates meeting minutes summarising all decisions, action items, and responsible owners.</p>
 
       <div class="callout callout-warning">
         <strong>Warning:</strong> The grooming assistant should augment, not replace, the Scrum Master. Use it to surface data and suggestions, but let the team make the decisions. Over-reliance on AI in ceremonies can reduce team engagement and ownership.
@@ -740,82 +453,7 @@ class GroomingAssistant:
 
       <h3>Pipeline Architecture</h3>
 
-      <pre><code>
-┌──────────────────┐     ┌───────────────────┐     ┌──────────────────┐
-│  Requirements    │────▶│  Story Generator  │────▶│  AC Generator    │
-│  (from Ch. 5)    │     │  (per requirement)│     │  (per story)     │
-└──────────────────┘     └───────────────────┘     └──────┬───────────┘
-                                                          │
-                         ┌───────────────────┐     ┌──────▼───────────┐
-                         │  Story Splitter   │◀────│  INVEST Validator│
-                         │  (if needed)      │     │                  │
-                         └──────┬────────────┘     └──────────────────┘
-                                │
-                         ┌──────▼────────────┐     ┌──────────────────┐
-                         │  Story Mapper     │────▶│  Output:         │
-                         │                   │     │  JSON + HTML map │
-                         └───────────────────┘     └──────────────────┘
-      </code></pre>
-
-      <h3>Main Pipeline Code</h3>
-
-      <pre><code class="language-python">
-# agile_story_generator/pipeline.py
-import asyncio, json, pathlib
-
-
-async def run_pipeline(requirements_file: pathlib.Path, output_dir: pathlib.Path):
-    """End-to-end story generation pipeline."""
-    requirements = json.loads(requirements_file.read_text())
-    output_dir.mkdir(exist_ok=True)
-
-    # Step 1: Generate stories from all requirements
-    print(f"[1/4] Generating stories from {len(requirements)} requirements...")
-    stories = await batch_generate(requirements, domain="Healthcare Portal", roles=[
-        "Patient", "Doctor", "Nurse", "Administrator", "Pharmacist"
-    ])
-    print(f"       Generated {len(stories)} stories")
-
-    # Step 2: Generate acceptance criteria for each story
-    print("[2/4] Generating acceptance criteria...")
-    for story in stories:
-        ac = generate_acceptance_criteria(story)
-        story["acceptance_criteria"] = ac.get("scenarios", [])
-
-    # Step 3: Validate and split
-    print("[3/4] Validating against INVEST criteria...")
-    final_stories = []
-    for story in stories:
-        result = validate_invest(story)
-        story["invest_score"] = result.get("overall_score", 0)
-        story["invest_recommendation"] = result.get("recommendation", "UNKNOWN")
-
-        if result.get("recommendation") == "NEEDS_SPLIT":
-            split_result = split_story(story, estimated_points=13)
-            for sub in split_result.get("sub_stories", []):
-                sub["acceptance_criteria"] = []  # Will need AC generation
-                final_stories.append(sub)
-        else:
-            final_stories.append(story)
-
-    print(f"       Final backlog: {len(final_stories)} stories")
-
-    # Step 4: Generate story map
-    print("[4/4] Generating story map...")
-    story_map = generate_story_map(final_stories)
-
-    # Write outputs
-    (output_dir / "stories.json").write_text(json.dumps(final_stories, indent=2))
-    (output_dir / "story_map.json").write_text(json.dumps(story_map, indent=2))
-    print(f"       Outputs written to {output_dir}/")
-
-
-if __name__ == "__main__":
-    asyncio.run(run_pipeline(
-        pathlib.Path("input/requirements.json"),
-        pathlib.Path("output"),
-    ))
-      </code></pre>
+      <p>The pipeline follows the same flow shown in Figure 6-1. Requirements from Chapter 5 feed into the Story Generator, which produces draft stories for each requirement. These pass through the AC Generator (acceptance criteria in Gherkin format), then the INVEST Validator. Stories scoring below 3.0 are sent to the Story Splitter, which breaks them into sprint-sized sub-stories. Finally, the Story Mapper organises all stories into a release plan. The pipeline outputs two JSON files: the full story backlog (with acceptance criteria and INVEST scores) and the story map (with activities, steps, and release assignments).</p>
 
       <h3>Testing Your Pipeline</h3>
 

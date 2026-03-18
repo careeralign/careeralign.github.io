@@ -36,24 +36,50 @@
     </section>
 
     <!-- Architecture Overview -->
-    <h2>Architecture Overview</h2>
+        <!-- SVG Architecture Diagram: Hub and Spoke -->
+    <figure>
+      <svg viewBox="0 0 900 380" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif;background:#fff;border-radius:8px;border:1px solid #e0e0e0">
+        <text x="450" y="28" text-anchor="middle" fill="#333" font-size="16" font-weight="700">Sprint Assistant Modules</text>
+        <!-- Center hub -->
+        <circle cx="450" cy="200" r="65" fill="var(--accent)" stroke="var(--accent)" stroke-width="2"/>
+        <text x="450" y="193" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">Sprint</text>
+        <text x="450" y="213" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">Assistant</text>
+        <!-- Spoke 1: Planner (top) -->
+        <line x1="450" y1="135" x2="450" y2="80" stroke="var(--accent)" stroke-width="2"/>
+        <rect x="370" y="45" width="160" height="55" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="450" y="68" text-anchor="middle" fill="#333" font-size="13" font-weight="700">Planner</text>
+        <text x="450" y="86" text-anchor="middle" fill="#666" font-size="10">Estimate + scope sprint</text>
+        <!-- Spoke 2: Standup (top-right) -->
+        <line x1="503" y1="155" x2="620" y2="90" stroke="var(--accent)" stroke-width="2"/>
+        <rect x="600" y="55" width="160" height="55" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="680" y="78" text-anchor="middle" fill="#333" font-size="13" font-weight="700">Standup</text>
+        <text x="680" y="96" text-anchor="middle" fill="#666" font-size="10">Summarize + flag blockers</text>
+        <!-- Spoke 3: Retro (bottom-right) -->
+        <line x1="503" y1="245" x2="620" y2="300" stroke="var(--accent)" stroke-width="2"/>
+        <rect x="600" y="280" width="160" height="55" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="680" y="303" text-anchor="middle" fill="#333" font-size="13" font-weight="700">Retro</text>
+        <text x="680" y="321" text-anchor="middle" fill="#666" font-size="10">Themes + action items</text>
+        <!-- Spoke 4: Dependencies (bottom-left) -->
+        <line x1="397" y1="245" x2="280" y2="300" stroke="var(--accent)" stroke-width="2"/>
+        <rect x="140" y="280" width="200" height="55" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="240" y="303" text-anchor="middle" fill="#333" font-size="13" font-weight="700">Dependencies</text>
+        <text x="240" y="321" text-anchor="middle" fill="#666" font-size="10">Cross-team risk mapping</text>
+        <!-- Spoke 5: Dashboard (top-left) -->
+        <line x1="397" y1="155" x2="280" y2="90" stroke="var(--accent)" stroke-width="2"/>
+        <rect x="140" y="55" width="160" height="55" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="220" y="78" text-anchor="middle" fill="#333" font-size="13" font-weight="700">Dashboard</text>
+        <text x="220" y="96" text-anchor="middle" fill="#666" font-size="10">Aggregated health view</text>
+        <!-- Label -->
+        <text x="450" y="370" text-anchor="middle" fill="#666" font-size="11">All modules share a central Sprint Context Store (JSON). Each module reads from and writes to the shared context.</text>
+      </svg>
+      <figcaption>Figure C4.1 — Hub-and-spoke architecture. The Sprint Assistant connects five specialized modules through a shared context store.</figcaption>
+    </figure>
+
+<h2>Architecture Overview</h2>
 
     <p>The assistant is organized around the sprint lifecycle. Each ceremony has a dedicated module, and a central sprint context store connects them — so the retrospective analyzer knows what was planned, the planner knows what went wrong last sprint, and the standup summarizer knows what was committed.</p>
 
-    <pre><code class="language-text">                    ┌──────────────────────┐
-                    │   Sprint Context     │
-                    │   Store (JSON)       │
-                    └──────────┬───────────┘
-                               │
-         ┌─────────┬───────────┼───────────┬──────────┐
-         │         │           │           │          │
-    ┌────▼───┐ ┌───▼────┐ ┌───▼────┐ ┌───▼─────┐ ┌──▼──────┐
-    │Planning│ │Standup │ │ Retro  │ │Depend-  │ │ Health  │
-    │Module  │ │Module  │ │ Module │ │ency     │ │Dashboard│
-    │        │ │        │ │        │ │Tracker  │ │         │
-    └────────┘ └────────┘ └────────┘ └─────────┘ └─────────┘
-     Backlog    Daily       Team       Cross-team   Aggregated
-     analysis   summaries   feedback   mapping      status</code></pre>
+    <!-- Replaced with SVG diagram above -->
 
     <p><strong>Data models:</strong></p>
 
@@ -121,125 +147,18 @@ class Dependency(BaseModel):
     <!-- Step 1 -->
     <h2>Step 1: Setup and Data Ingestion</h2>
 
-    <pre><code class="language-bash">mkdir -p sprint_assistant/{modules,data,output}
-cd sprint_assistant
-pip install openai pydantic python-dateutil</code></pre>
+    <!-- Removed: bash setup commands. -->
 
     <p>Create sample sprint data to work with. In a real deployment, this would come from Jira, Azure DevOps, or a similar tool:</p>
 
-    <pre><code class="language-python">"""data/sample_sprint.py — Sample sprint data for development and testing."""
+    <!-- Removed: sample_sprint.py (~110 lines).
+           Contains sample backlog (6 user stories with IDs, descriptions,
+           acceptance criteria, dependencies, and team assignments),
+           standup entries (5 team members with blockers), and
+           retrospective feedback (10 items across went_well, to_improve,
+           and action_item categories). -->
 
-BACKLOG = [
-    {
-        "id": "US-101", "title": "User login with SSO",
-        "description": "As a user, I want to log in using my company SSO credentials "
-                       "so that I don't need a separate password.",
-        "acceptance_criteria": [
-            "User can authenticate via SAML 2.0 SSO",
-            "Failed SSO redirects to error page with clear message",
-            "Session persists for 8 hours after login",
-        ],
-        "story_points": None, "status": "todo", "assignee": None,
-        "dependencies": ["US-105"], "team": "Platform",
-    },
-    {
-        "id": "US-102", "title": "Dashboard data visualization",
-        "description": "As a manager, I want to see key metrics on a dashboard "
-                       "so that I can monitor team performance at a glance.",
-        "acceptance_criteria": [
-            "Dashboard displays 4 KPI widgets",
-            "Data refreshes every 5 minutes",
-            "Widgets are configurable per user",
-        ],
-        "story_points": None, "status": "todo", "assignee": None,
-        "dependencies": [], "team": "Frontend",
-    },
-    {
-        "id": "US-103", "title": "Email notification service",
-        "description": "As a user, I want to receive email notifications for important "
-                       "events so that I stay informed without checking the app.",
-        "acceptance_criteria": [
-            "Emails sent within 60 seconds of trigger event",
-            "Users can configure notification preferences",
-            "Emails include unsubscribe link",
-        ],
-        "story_points": None, "status": "todo", "assignee": None,
-        "dependencies": ["US-101"], "team": "Backend",
-    },
-    {
-        "id": "US-104", "title": "Export reports to PDF",
-        "description": "As an analyst, I want to export reports as PDF files "
-                       "so that I can share them with stakeholders offline.",
-        "acceptance_criteria": [
-            "PDF matches on-screen report layout",
-            "Supports tables, charts, and images",
-            "File size under 10MB for standard reports",
-        ],
-        "story_points": None, "status": "todo", "assignee": None,
-        "dependencies": ["US-102"], "team": "Frontend",
-    },
-    {
-        "id": "US-105", "title": "API rate limiting",
-        "description": "As an ops engineer, I want API rate limiting so that "
-                       "no single client can overload the system.",
-        "acceptance_criteria": [
-            "Default limit: 100 requests per minute per client",
-            "Returns 429 status with retry-after header",
-            "Admin can configure limits per client",
-        ],
-        "story_points": None, "status": "todo", "assignee": None,
-        "dependencies": [], "team": "Platform",
-    },
-    {
-        "id": "US-106", "title": "Automated data backup",
-        "description": "As an admin, I want automated daily backups so that "
-                       "data can be recovered in case of failure.",
-        "acceptance_criteria": [
-            "Backups run daily at 02:00 UTC",
-            "Backup completes within 30 minutes",
-            "Retention: 30 days rolling",
-            "Backup verification runs automatically",
-        ],
-        "story_points": None, "status": "todo", "assignee": None,
-        "dependencies": [], "team": "Platform",
-    },
-]
-
-STANDUP_ENTRIES = [
-    {"team_member": "Alice", "date": "2025-11-17",
-     "yesterday": "Finished SSO integration with identity provider.",
-     "today": "Starting session management implementation.",
-     "blockers": ["Waiting for security team to approve the SAML config"]},
-    {"team_member": "Bob", "date": "2025-11-17",
-     "yesterday": "Set up dashboard component framework.",
-     "today": "Implementing KPI widget data fetching.",
-     "blockers": []},
-    {"team_member": "Carol", "date": "2025-11-17",
-     "yesterday": "Designed email template system.",
-     "today": "Integrating with SendGrid API.",
-     "blockers": ["SendGrid API key not provisioned yet"]},
-    {"team_member": "Dave", "date": "2025-11-17",
-     "yesterday": "Research on PDF generation libraries.",
-     "today": "Prototyping PDF export with WeasyPrint.",
-     "blockers": []},
-    {"team_member": "Eve", "date": "2025-11-17",
-     "yesterday": "Implemented token bucket algorithm for rate limiter.",
-     "today": "Adding Redis-backed distributed rate limiting.",
-     "blockers": ["Redis cluster not available in staging environment"]},
-]
-
-RETRO_FEEDBACK = [
-    {"category": "went_well", "text": "SSO integration was well-documented", "votes": 4},
-    {"category": "went_well", "text": "Daily standups were focused and brief", "votes": 3},
-    {"category": "went_well", "text": "Cross-team communication improved", "votes": 5},
-    {"category": "to_improve", "text": "Stories were too large — hard to finish in one sprint", "votes": 6},
-    {"category": "to_improve", "text": "Staging environment was unreliable", "votes": 7},
-    {"category": "to_improve", "text": "Acceptance criteria were unclear on some stories", "votes": 4},
-    {"category": "to_improve", "text": "Too many meetings disrupted focus time", "votes": 3},
-    {"category": "action_item", "text": "Break stories into smaller slices (max 5 points)", "votes": 5},
-    {"category": "action_item", "text": "Request dedicated staging environment from ops", "votes": 6},
-    {"category": "action_item", "text": "Add definition of ready checklist for stories", "votes": 4},
-]</code></pre>
+      <p>Create sample sprint data with three datasets: a <strong>backlog</strong> of 6 user stories spanning Platform, Frontend, and Backend teams (with cross-team dependencies like US-101 depending on US-105), <strong>standup entries</strong> from 5 team members (with 3 having active blockers like "waiting for security team approval" and "Redis cluster not available"), and <strong>retrospective feedback</strong> with 10 items across went-well, to-improve, and action-item categories (with vote counts to show priority). In production, this data would come from Jira, Azure DevOps, or Slack integrations.</p>
 
     <!-- Step 2 -->
     <h2>Step 2: Core Processing Pipeline — Sprint Planning</h2>
@@ -373,72 +292,12 @@ def recommend_sprint_scope(
 
     <p>The standup summarizer parses daily updates, detects blockers and risks, and produces a concise team status:</p>
 
-    <pre><code class="language-python">"""modules/standup.py — Analyze standup entries and surface risks."""
-import json
-import os
-from openai import OpenAI
+    <!-- Removed: standup.py module (~40 lines).
+           Sends standup entries to LLM for analysis, extracting
+           blockers with impact levels, risks, cross-team flags,
+           and progress concerns. -->
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-ANALYSIS_PROMPT = """Analyze these daily standup entries from a development team.
-
-Standup entries:
-{entries_json}
-
-Provide a JSON analysis with:
-1. "summary": A 2-3 sentence executive summary of team status
-2. "blockers": Array of {{"team_member": "...", "blocker": "...",
-   "impact": "high/medium/low", "suggested_action": "..."}}
-3. "risks": Array of {{"description": "...", "affected_members": [...],
-   "risk_level": "high/medium/low"}}
-4. "cross_team_flags": Array of items that require coordination with
-   other teams: {{"description": "...", "teams_involved": [...]}}
-5. "progress_concerns": Array of team members who may be stuck or
-   making slow progress based on their updates
-
-Return ONLY the JSON object."""
-
-
-def analyze_standup(entries: list[dict]) -> dict:
-    """Analyze standup entries to extract blockers, risks, and flags."""
-    if not entries:
-        return {"summary": "No standup entries to analyze.", "blockers": [],
-                "risks": [], "cross_team_flags": [], "progress_concerns": []}
-
-    prompt = ANALYSIS_PROMPT.format(entries_json=json.dumps(entries, indent=2))
-
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are an agile coach analyzing team health. "
-             "Be specific and actionable. Return only JSON."},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.2,
-        max_tokens=1000,
-    )
-
-    raw = response.choices[0].message.content.strip()
-    try:
-        analysis = json.loads(raw)
-    except json.JSONDecodeError:
-        import re
-        match = re.search(r"\{.*\}", raw, re.DOTALL)
-        analysis = json.loads(match.group()) if match else {}
-
-    # Print key findings
-    if analysis.get("blockers"):
-        print(f"  Blockers found: {len(analysis['blockers'])}")
-        for b in analysis["blockers"]:
-            print(f"    - [{b.get('impact', '?')}] {b.get('team_member', '?')}: "
-                  f"{b.get('blocker', '')}")
-
-    if analysis.get("risks"):
-        print(f"  Risks identified: {len(analysis['risks'])}")
-        for r in analysis["risks"]:
-            print(f"    - [{r.get('risk_level', '?')}] {r.get('description', '')}")
-
-    return analysis</code></pre>
+      <p>The standup analyzer sends all daily entries to the LLM in a single call, asking it to produce a structured analysis with five components: an executive summary (2-3 sentences), active blockers with impact ratings and suggested actions, identified risks with affected team members, cross-team coordination flags, and progress concerns for team members who may be stuck. The LLM returns JSON that the system parses and displays with severity indicators.</p>
 
     <!-- Step 3 -->
     <h2>Step 3: Output Generation — Retrospective Analysis and Sprint Report</h2>
@@ -523,354 +382,32 @@ def analyze_retrospective(
 
     <p>The dependency tracker maps relationships between stories across teams and alerts on alignment risks:</p>
 
-    <pre><code class="language-python">"""modules/dependencies.py — Track and analyze cross-team dependencies."""
-import json
-import os
-from openai import OpenAI
+    <!-- Removed: dependencies.py module (~70 lines).
+           Maps story dependencies from backlog data, determines
+           alignment status (aligned/at_risk/blocked), and uses LLM
+           to assess dependency risks and suggest mitigations. -->
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-
-def map_dependencies(stories: list[dict]) -> list[dict]:
-    """Build a dependency map from story data."""
-    story_map = {s["id"]: s for s in stories}
-    dependencies = []
-
-    for story in stories:
-        for dep_id in story.get("dependencies", []):
-            dep_story = story_map.get(dep_id)
-            if dep_story:
-                # Determine alignment status
-                dep_status = dep_story.get("status", "todo")
-                story_status = story.get("status", "todo")
-
-                if dep_status == "done":
-                    status = "aligned"
-                elif dep_status == "blocked":
-                    status = "blocked"
-                elif dep_status in ("todo",) and story_status in ("in_progress", "in_review"):
-                    status = "at_risk"
-                else:
-                    status = "aligned"
-
-                dependencies.append({
-                    "from_story": story["id"],
-                    "to_story": dep_id,
-                    "from_team": story.get("team", "Unknown"),
-                    "to_team": dep_story.get("team", "Unknown"),
-                    "status": status,
-                    "notes": f"{story['id']} ({story.get('team')}) depends on "
-                             f"{dep_id} ({dep_story.get('team')})",
-                })
-
-    return dependencies
-
-
-def analyze_dependency_risks(
-    dependencies: list[dict],
-    stories: list[dict],
-) -> dict:
-    """Use an LLM to assess dependency risks and suggest mitigations."""
-    if not dependencies:
-        return {"risk_level": "low", "risks": [], "recommendations": []}
-
-    prompt = f"""Analyze these cross-team dependencies for a sprint.
-
-Dependencies:
-{json.dumps(dependencies, indent=2)}
-
-Story context:
-{json.dumps([{{"id": s["id"], "title": s["title"], "team": s.get("team"),
-               "status": s.get("status")}} for s in stories], indent=2)}
-
-Return a JSON analysis:
-1. "risk_level": overall risk — "high", "medium", or "low"
-2. "risks": array of specific risks with description and impact
-3. "recommendations": array of specific actions to reduce dependency risk
-4. "communication_needs": array of cross-team conversations that should happen
-
-Return ONLY the JSON object."""
-
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are a program manager analyzing "
-             "cross-team dependencies. Return only JSON."},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.2,
-        max_tokens=800,
-    )
-
-    raw = response.choices[0].message.content.strip()
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        import re
-        match = re.search(r"\{.*\}", raw, re.DOTALL)
-        return json.loads(match.group()) if match else {}</code></pre>
+      <p>The dependency tracker builds a map from each story's <code>dependencies</code> field, linking the dependent story to its dependency and recording both teams. It determines alignment status automatically: if the dependency is "done," status is "aligned"; if it is "blocked," status is "blocked"; if it is still "todo" while the dependent story is already "in progress," status is "at risk." An LLM analysis call then assesses overall dependency risk, identifies specific risks, recommends actions, and lists cross-team conversations that need to happen.</p>
 
     <p>The sprint health dashboard brings all signals together into one report:</p>
 
-    <pre><code class="language-python">"""modules/dashboard.py — Generate the sprint health dashboard."""
-import json
-from datetime import datetime
-from pathlib import Path
+    <!-- Removed: dashboard.py module (~160 lines).
+           Generates comprehensive markdown sprint health report with
+           planning summary, standup analysis, dependency status,
+           and retrospective insights. Also exports JSON data. -->
 
-
-def generate_dashboard(
-    sprint_number: int,
-    plan: dict,
-    standup_analysis: dict,
-    retro_analysis: dict,
-    dependency_analysis: dict,
-    dependencies: list[dict],
-    output_dir: str = "output",
-) -> str:
-    """Generate a comprehensive sprint health report."""
-    out = Path(output_dir)
-    out.mkdir(exist_ok=True)
-
-    lines = [
-        f"# Sprint {sprint_number} — Health Dashboard",
-        f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M')}",
-        "",
-        "---",
-        "",
-        "## Sprint Planning Summary",
-        "",
-        f"| Metric | Value |",
-        f"|--------|-------|",
-        f"| Stories included | {len(plan.get('included', []))} |",
-        f"| Stories deferred | {len(plan.get('deferred', []))} |",
-        f"| Total points | {plan.get('total_points', 0)} |",
-        f"| Capacity | {plan.get('capacity', 0)} |",
-        f"| Utilization | {plan.get('utilization', 0)}% |",
-        "",
-    ]
-
-    # Included stories
-    if plan.get("included"):
-        lines.append("### Included Stories")
-        lines.append("")
-        lines.append("| ID | Title | Points | Team |")
-        lines.append("|-----|-------|--------|------|")
-        for s in plan["included"]:
-            pts = s.get("estimated_points") or s.get("story_points") or "?"
-            lines.append(f"| {s['id']} | {s['title']} | {pts} | {s.get('team', '-')} |")
-        lines.append("")
-
-    # Deferred stories
-    if plan.get("deferred"):
-        lines.append("### Deferred Stories")
-        lines.append("")
-        for s in plan["deferred"]:
-            lines.append(f"- **{s['id']}**: {s['title']} — _{s.get('defer_reason', 'N/A')}_")
-        lines.append("")
-
-    # Standup analysis
-    lines.extend([
-        "---",
-        "",
-        "## Daily Standup Analysis",
-        "",
-        f"**Summary:** {standup_analysis.get('summary', 'No data')}",
-        "",
-    ])
-
-    blockers = standup_analysis.get("blockers", [])
-    if blockers:
-        lines.append("### Active Blockers")
-        lines.append("")
-        lines.append("| Member | Blocker | Impact | Suggested Action |")
-        lines.append("|--------|---------|--------|-----------------|")
-        for b in blockers:
-            lines.append(
-                f"| {b.get('team_member', '?')} | {b.get('blocker', '')} | "
-                f"{b.get('impact', '?')} | {b.get('suggested_action', '')} |"
-            )
-        lines.append("")
-
-    risks = standup_analysis.get("risks", [])
-    if risks:
-        lines.append("### Identified Risks")
-        lines.append("")
-        for r in risks:
-            members = ", ".join(r.get("affected_members", []))
-            lines.append(f"- **[{r.get('risk_level', '?')}]** {r.get('description', '')} "
-                         f"(affects: {members})")
-        lines.append("")
-
-    # Dependency analysis
-    lines.extend([
-        "---",
-        "",
-        "## Cross-Team Dependencies",
-        "",
-        f"**Overall dependency risk:** {dependency_analysis.get('risk_level', 'unknown')}",
-        "",
-    ])
-
-    if dependencies:
-        lines.append("| From | To | Teams | Status |")
-        lines.append("|------|----|-------|--------|")
-        for d in dependencies:
-            status_icon = {"aligned": "OK", "at_risk": "AT RISK", "blocked": "BLOCKED"}
-            lines.append(
-                f"| {d['from_story']} | {d['to_story']} | "
-                f"{d['from_team']} / {d['to_team']} | "
-                f"{status_icon.get(d['status'], d['status'])} |"
-            )
-        lines.append("")
-
-    comms = dependency_analysis.get("communication_needs", [])
-    if comms:
-        lines.append("### Required Cross-Team Conversations")
-        lines.append("")
-        for c in comms:
-            if isinstance(c, dict):
-                lines.append(f"- {c.get('description', c)}")
-            else:
-                lines.append(f"- {c}")
-        lines.append("")
-
-    # Retrospective analysis
-    lines.extend([
-        "---",
-        "",
-        "## Retrospective Insights",
-        "",
-        f"**Team morale:** {retro_analysis.get('team_morale_signal', 'unknown')}",
-        "",
-    ])
-
-    themes = retro_analysis.get("themes", [])
-    if themes:
-        lines.append("### Themes")
-        lines.append("")
-        for t in themes:
-            emoji_map = {"went_well": "+", "to_improve": "-"}
-            marker = emoji_map.get(t.get("category", ""), " ")
-            lines.append(f"- [{marker}] **{t.get('theme', '')}** "
-                         f"({t.get('count', 0)} mentions): {t.get('summary', '')}")
-        lines.append("")
-
-    actions = retro_analysis.get("action_items", [])
-    if actions:
-        lines.append("### Action Items")
-        lines.append("")
-        lines.append("| Action | Owner Type | Priority | Addresses |")
-        lines.append("|--------|-----------|----------|-----------|")
-        for a in actions:
-            lines.append(
-                f"| {a.get('action', '')} | {a.get('owner_type', '?')} | "
-                f"{a.get('priority', '?')} | {a.get('addresses_theme', '-')} |"
-            )
-        lines.append("")
-
-    report_text = "\n".join(lines)
-
-    report_path = out / f"sprint_{sprint_number}_dashboard.md"
-    report_path.write_text(report_text, encoding="utf-8")
-
-    json_path = out / f"sprint_{sprint_number}_data.json"
-    json_path.write_text(json.dumps({
-        "sprint_number": sprint_number,
-        "generated_at": datetime.now().isoformat(),
-        "planning": plan,
-        "standup_analysis": standup_analysis,
-        "retro_analysis": retro_analysis,
-        "dependency_analysis": dependency_analysis,
-        "dependencies": dependencies,
-    }, indent=2, default=str), encoding="utf-8")
-
-    print(f"\nDashboard: {report_path}")
-    print(f"JSON:      {json_path}")
-    return str(report_path)</code></pre>
+      <p>The dashboard generator produces a comprehensive sprint health report combining all module outputs: a <strong>planning summary</strong> table (stories included/deferred, points, utilization), a <strong>standup analysis</strong> section with blocker and risk tables, a <strong>cross-team dependencies</strong> section with status indicators, and <strong>retrospective insights</strong> with themed feedback and action items. The report is written as markdown and also exported as JSON for programmatic consumption.</p>
 
     <!-- Step 4 -->
     <h2>Step 4: Validation and Quality</h2>
 
     <p>The validation step checks the sprint plan for common mistakes — overcommitment, unresolved dependencies, and missing estimation data:</p>
 
-    <pre><code class="language-python">"""modules/validate_sprint.py — Validate the sprint plan and assistant outputs."""
+    <!-- Removed: validate_sprint.py module (~70 lines).
+           Checks for overcommitment, high utilization, unestimated stories,
+           large stories (8+ points), and deferred dependencies. -->
 
-
-def validate_sprint_plan(plan: dict, velocity: float) -> list[dict]:
-    """Check the sprint plan for common issues."""
-    issues = []
-
-    # Check utilization
-    utilization = plan.get("utilization", 0)
-    if utilization > 100:
-        issues.append({
-            "type": "overcommitment",
-            "severity": "critical",
-            "message": (
-                f"Sprint is overcommitted at {utilization:.0f}% utilization. "
-                f"Total points ({plan.get('total_points', 0)}) exceeds "
-                f"capacity ({plan.get('capacity', 0)})."
-            ),
-            "recommendation": "Remove lower-priority stories to reach 85% utilization."
-        })
-    elif utilization > 95:
-        issues.append({
-            "type": "high_utilization",
-            "severity": "major",
-            "message": f"Sprint utilization is {utilization:.0f}% — very little buffer for surprises.",
-            "recommendation": "Consider removing one story to build in a safety margin."
-        })
-    elif utilization < 60:
-        issues.append({
-            "type": "undercommitment",
-            "severity": "minor",
-            "message": f"Sprint utilization is only {utilization:.0f}% — team may have excess capacity.",
-            "recommendation": "Consider pulling in additional stories from the backlog."
-        })
-
-    # Check for unestimated stories
-    included = plan.get("included", [])
-    unestimated = [
-        s for s in included
-        if s.get("estimated_points") is None and s.get("story_points") is None
-    ]
-    if unestimated:
-        issues.append({
-            "type": "missing_estimates",
-            "severity": "major",
-            "message": f"{len(unestimated)} stories have no point estimates: "
-                       f"{', '.join(s['id'] for s in unestimated)}",
-            "recommendation": "Estimate all stories before committing to a sprint plan."
-        })
-
-    # Check for large stories
-    large_stories = [
-        s for s in included
-        if (s.get("estimated_points") or s.get("story_points") or 0) >= 8
-    ]
-    if large_stories:
-        issues.append({
-            "type": "large_stories",
-            "severity": "minor",
-            "message": f"{len(large_stories)} stories are 8+ points: "
-                       f"{', '.join(s['id'] for s in large_stories)}. "
-                       f"Large stories have higher risk of not completing.",
-            "recommendation": "Consider splitting these into smaller stories."
-        })
-
-    # Check for stories with unresolved dependencies in deferred list
-    deferred_ids = {s["id"] for s in plan.get("deferred", [])}
-    for story in included:
-        for dep in story.get("dependencies", []):
-            if dep in deferred_ids:
-                issues.append({
-                    "type": "deferred_dependency",
-                    "severity": "critical",
-                    "message": f"{story['id']} depends on {dep}, which is deferred.",
-                    "recommendation": f"Either include {dep} in the sprint or remove {story['id']}."
-                })
-
-    return issues</code></pre>
+      <p>Sprint plan validation checks five common mistakes: <strong>overcommitment</strong> (utilization above 100%), <strong>high utilization</strong> (above 95%, leaving no buffer), <strong>undercommitment</strong> (below 60%, wasting capacity), <strong>missing estimates</strong> (stories without point values in the sprint), <strong>large stories</strong> (8+ points that risk not completing), and <strong>deferred dependencies</strong> (included stories that depend on deferred stories). Each issue includes a severity level and a specific recommendation for how to fix it.</p>
 
     <p>The main orchestrator:</p>
 

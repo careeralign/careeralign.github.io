@@ -36,16 +36,49 @@
     </section>
 
     <!-- Architecture Overview -->
-    <h2>Architecture Overview</h2>
+        <!-- SVG Architecture Diagram -->
+    <figure>
+      <svg viewBox="0 0 900 200" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif;background:#fff;border-radius:8px;border:1px solid #e0e0e0">
+        <text x="450" y="28" text-anchor="middle" fill="#333" font-size="16" font-weight="700">Requirements-to-Test-Cases Pipeline</text>
+        <defs>
+          <marker id="arrowC1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+        <!-- Stage 1 -->
+        <rect x="30" y="60" width="170" height="80" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="115" y="85" text-anchor="middle" fill="#333" font-size="13" font-weight="700">1. Ingest &amp; Parse</text>
+        <text x="115" y="105" text-anchor="middle" fill="#666" font-size="11">Requirements.md</text>
+        <text x="115" y="120" text-anchor="middle" fill="#666" font-size="11">.docx / .txt</text>
+        <line x1="200" y1="100" x2="240" y2="100" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowC1)"/>
+        <!-- Stage 2 -->
+        <rect x="240" y="60" width="170" height="80" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="325" y="85" text-anchor="middle" fill="#333" font-size="13" font-weight="700">2. Classify &amp; Enrich</text>
+        <text x="325" y="105" text-anchor="middle" fill="#666" font-size="11">Type, priority,</text>
+        <text x="325" y="120" text-anchor="middle" fill="#666" font-size="11">testability, ambiguity</text>
+        <line x1="410" y1="100" x2="450" y2="100" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowC1)"/>
+        <!-- Stage 3 -->
+        <rect x="450" y="60" width="170" height="80" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="535" y="85" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">3. Generate Tests</text>
+        <text x="535" y="105" text-anchor="middle" fill="#fff" font-size="11">Positive, negative,</text>
+        <text x="535" y="120" text-anchor="middle" fill="#fff" font-size="11">boundary + traceability</text>
+        <line x1="620" y1="100" x2="660" y2="100" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowC1)"/>
+        <!-- Stage 4 -->
+        <rect x="660" y="60" width="210" height="80" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="765" y="85" text-anchor="middle" fill="#333" font-size="13" font-weight="700">4. Prioritize &amp; Report</text>
+        <text x="765" y="105" text-anchor="middle" fill="#666" font-size="11">Risk-ranked test suite</text>
+        <text x="765" y="120" text-anchor="middle" fill="#666" font-size="11">+ coverage matrix</text>
+        <!-- Bottom labels -->
+        <text x="450" y="175" text-anchor="middle" fill="#666" font-size="11">Each stage communicates through Pydantic data models. The LLM receives structured prompts and returns structured JSON.</text>
+      </svg>
+      <figcaption>Figure C1.1 — End-to-end pipeline architecture. Raw requirements flow through four stages to produce a prioritized, traceable test suite.</figcaption>
+    </figure>
+
+<h2>Architecture Overview</h2>
 
     <p>The pipeline follows a four-stage architecture. Each stage is a self-contained Python module that reads structured input and writes structured output, making the system easy to test, debug, and extend.</p>
 
-    <pre><code class="language-text">┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  1. Ingest &amp;     │────▶│  2. Classify &amp;  │────▶│  3. Generate    │────▶│  4. Prioritize  │
-│     Parse        │     │     Enrich      │     │     Test Cases  │     │     &amp; Report    │
-└─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘
-  Requirements.md        Structured reqs         Test cases w/           Ranked test suite
-  or .docx or .txt       with metadata           traceability            + coverage matrix</code></pre>
+    <!-- Replaced with SVG diagram above -->
 
     <p><strong>Data contracts between stages:</strong> Every stage communicates through Pydantic models. This ensures type safety, makes validation automatic, and gives you clear error messages when something goes wrong. The LLM never sees raw, unstructured data — it always receives a well-defined prompt with structured context.</p>
 
@@ -94,95 +127,26 @@ class TestSuite(BaseModel):
 
     <p>Start by creating the project structure and the ingestion module. The ingestion module reads a requirements document, splits it into individual requirement statements, and assigns each one a unique identifier.</p>
 
-    <pre><code class="language-bash"># Project structure
-mkdir -p req_to_tests/{modules,data,output,tests}
-cd req_to_tests
-
-# Install dependencies
-pip install openai pydantic python-docx tiktoken jinja2</code></pre>
+    <!-- Removed: bash setup commands (mkdir, pip install).
+           Create a project with modules/, data/, output/, tests/ directories
+           and install openai, pydantic, python-docx, tiktoken, jinja2. -->
 
     <p>Create a sample requirements document to work with throughout the capstone:</p>
 
-    <pre><code class="language-markdown"># E-Commerce Checkout System — Requirements
+    <!-- Removed: sample requirements markdown document.
+           Create a requirements doc with functional (FR-001 through FR-006),
+           non-functional (NFR-001 through NFR-003), and constraint
+           (CON-001, CON-002) requirements for an e-commerce checkout system. -->
 
-## Functional Requirements
-
-FR-001: The system shall allow registered users to add items to a shopping cart.
-FR-002: The system shall calculate order totals including tax and shipping.
-FR-003: The system shall support payment via credit card, debit card, and PayPal.
-FR-004: The system shall send an order confirmation email within 30 seconds of
-        successful payment.
-FR-005: The system shall allow users to apply discount codes at checkout.
-FR-006: The system shall prevent checkout if any cart item is out of stock.
-
-## Non-Functional Requirements
-
-NFR-001: The checkout page shall load within 2 seconds under normal conditions.
-NFR-002: The system shall handle at least 500 concurrent checkout sessions.
-NFR-003: All payment data shall be encrypted using TLS 1.3 or higher.
-
-## Constraints
-
-CON-001: The system must integrate with the existing inventory microservice API.
-CON-002: The checkout flow shall comply with PCI-DSS requirements.</code></pre>
+      <p>Create a sample requirements document with deliberate variety: functional requirements covering cart, payment, email, and discount features; non-functional requirements for performance, capacity, and security; and constraints for API integration and PCI-DSS compliance. Use a consistent ID format (FR-001, NFR-001, CON-001) so the ingestion module can extract them with a simple regex pattern.</p>
 
     <p>Now build the ingestion module. It reads the document, extracts individual requirements, and assigns preliminary IDs:</p>
 
-    <pre><code class="language-python">"""modules/ingest.py — Parse requirements from various document formats."""
-import re
-from pathlib import Path
+    <!-- Removed: ingest.py module (~50 lines).
+           Reads .md/.txt/.docx files and extracts requirements using regex
+           pattern matching on ID prefixes (FR-, NFR-, CON-, REQ-). -->
 
-def ingest_requirements(file_path: str) -> list[dict]:
-    """Read a requirements document and extract individual requirements.
-
-    Supports .md and .txt files. Each requirement is expected to start
-    with an identifier like FR-001, NFR-001, or CON-001.
-    """
-    path = Path(file_path)
-    if not path.exists():
-        raise FileNotFoundError(f"Requirements file not found: {file_path}")
-
-    text = path.read_text(encoding="utf-8")
-
-    # Pattern matches lines starting with an ID like FR-001, NFR-001, CON-001
-    pattern = r"((?:FR|NFR|CON|REQ)-\d{3}):\s*(.+?)(?=\n(?:FR|NFR|CON|REQ)-\d{3}:|\n##|\Z)"
-    matches = re.findall(pattern, text, re.DOTALL)
-
-    requirements = []
-    for req_id, req_text in matches:
-        # Collapse multi-line text into a single line
-        cleaned = " ".join(req_text.strip().split())
-        requirements.append({
-            "id": req_id,
-            "text": cleaned,
-            "source_file": str(path.name),
-        })
-
-    print(f"Ingested {len(requirements)} requirements from {path.name}")
-    return requirements
-
-
-def ingest_docx(file_path: str) -> list[dict]:
-    """Read requirements from a Word document (.docx)."""
-    from docx import Document
-
-    doc = Document(file_path)
-    full_text = "\n".join(para.text for para in doc.paragraphs)
-
-    pattern = r"((?:FR|NFR|CON|REQ)-\d{3}):\s*(.+?)(?=\n(?:FR|NFR|CON|REQ)-\d{3}:|\n##|\Z)"
-    matches = re.findall(pattern, full_text, re.DOTALL)
-
-    requirements = []
-    for req_id, req_text in matches:
-        cleaned = " ".join(req_text.strip().split())
-        requirements.append({
-            "id": req_id,
-            "text": cleaned,
-            "source_file": Path(file_path).name,
-        })
-
-    print(f"Ingested {len(requirements)} requirements from {Path(file_path).name}")
-    return requirements</code></pre>
+      <p>The ingestion module reads the requirements document and uses a regex pattern to find lines starting with identifiers like <code>FR-001:</code>, <code>NFR-001:</code>, or <code>CON-001:</code>. It extracts the ID and the requirement text, collapses multi-line requirements into single lines, and returns a list of dictionaries with <code>id</code>, <code>text</code>, and <code>source_file</code> fields. A separate function handles .docx files using the python-docx library, extracting paragraph text before applying the same regex pattern.</p>
 
     <!-- Step 2 -->
     <h2>Step 2: Core Processing Pipeline — Classify and Enrich</h2>
@@ -364,183 +328,20 @@ def generate_all(requirements: list[dict]) -> list[dict]:
 
     <p>The final stage brings everything together. It builds a traceability matrix, validates coverage, applies risk-based prioritization, and generates a human-readable report. This stage applies the evaluation patterns from Chapter 15.</p>
 
-    <pre><code class="language-python">"""modules/prioritize.py — Prioritize test cases and build the traceability matrix."""
+    <!-- Removed: prioritize.py module (~40 lines).
+           Builds coverage matrix, finds gaps, sorts by priority weight,
+           and runs basic quality checks on generated test cases. -->
 
-PRIORITY_WEIGHTS = {
-    "critical": 4,
-    "high": 3,
-    "medium": 2,
-    "low": 1,
-}
-
-def build_coverage_matrix(requirements: list[dict], test_cases: list[dict]) -> dict:
-    """Build a requirement-to-test-case traceability matrix."""
-    matrix = {req["id"]: [] for req in requirements}
-
-    for tc in test_cases:
-        for req_id in tc.get("requirement_ids", []):
-            if req_id in matrix:
-                matrix[req_id].append(tc["id"])
-
-    return matrix
-
-
-def find_coverage_gaps(matrix: dict) -> list[str]:
-    """Identify requirements with no test coverage."""
-    return [req_id for req_id, tc_ids in matrix.items() if len(tc_ids) == 0]
-
-
-def prioritize_test_cases(test_cases: list[dict]) -> list[dict]:
-    """Sort test cases by priority weight, then by type preference."""
-    type_bonus = {"positive": 0.3, "negative": 0.2, "boundary": 0.1, "edge": 0.0}
-
-    def score(tc):
-        base = PRIORITY_WEIGHTS.get(tc.get("priority", "medium"), 2)
-        bonus = type_bonus.get(tc.get("test_type", "positive"), 0)
-        return base + bonus
-
-    return sorted(test_cases, key=score, reverse=True)
-
-
-def validate_test_cases(test_cases: list[dict]) -> list[dict]:
-    """Run basic quality checks on generated test cases."""
-    issues = []
-    for tc in test_cases:
-        problems = []
-        if not tc.get("steps") or len(tc["steps"]) == 0:
-            problems.append("No test steps defined")
-        if not tc.get("expected_result"):
-            problems.append("No expected result defined")
-        if not tc.get("requirement_ids"):
-            problems.append("No traceability link")
-        if len(tc.get("title", "")) < 10:
-            problems.append("Title too short — may lack clarity")
-
-        if problems:
-            issues.append({"test_case_id": tc["id"], "issues": problems})
-
-    return issues</code></pre>
+      <p>The prioritization module performs four functions: it builds a <strong>coverage matrix</strong> mapping each requirement ID to its test case IDs, identifies <strong>coverage gaps</strong> (requirements with zero test cases), <strong>sorts test cases</strong> by a composite score combining priority weight (critical=4, high=3, medium=2, low=1) with a test-type bonus (positive tests first, then negative, then boundary), and <strong>validates quality</strong> by checking that every test case has steps, an expected result, and a traceability link.</p>
 
     <p>Now build the report generator using Jinja2 templates:</p>
 
-    <pre><code class="language-python">"""modules/report.py — Generate the final HTML and JSON reports."""
-import json
-from datetime import datetime
-from pathlib import Path
+    <!-- Removed: report.py module (~80 lines).
+           Generates markdown report with summary table, coverage matrix,
+           gap analysis, prioritized test cases, and validation issues.
+           Also exports JSON for programmatic consumption. -->
 
-REPORT_TEMPLATE = """
-# Requirements-to-Test-Cases Report
-**Generated:** {timestamp}
-**Project:** {project_name}
-**Source:** {source_file}
-
----
-
-## Summary
-| Metric                  | Value |
-|-------------------------|-------|
-| Requirements ingested   | {req_count} |
-| Test cases generated    | {tc_count} |
-| Coverage gaps           | {gap_count} |
-| Validation issues       | {issue_count} |
-
-## Coverage Matrix
-{coverage_table}
-
-## Coverage Gaps
-{gap_section}
-
-## Prioritized Test Cases
-{test_case_section}
-
-## Validation Issues
-{issue_section}
-"""
-
-def generate_report(
-    project_name: str,
-    source_file: str,
-    requirements: list[dict],
-    test_cases: list[dict],
-    coverage_matrix: dict,
-    gaps: list[str],
-    issues: list[dict],
-    output_dir: str = "output",
-) -> str:
-    """Generate a markdown report and a JSON export."""
-    out = Path(output_dir)
-    out.mkdir(exist_ok=True)
-
-    # Build coverage table
-    coverage_rows = []
-    for req_id, tc_ids in sorted(coverage_matrix.items()):
-        status = ", ".join(tc_ids) if tc_ids else "** NO COVERAGE **"
-        coverage_rows.append(f"| {req_id} | {status} |")
-    coverage_table = "| Requirement | Test Cases |\n|-------------|------------|\n"
-    coverage_table += "\n".join(coverage_rows)
-
-    # Build gap section
-    if gaps:
-        gap_section = "\n".join(f"- **{g}** — No test cases generated" for g in gaps)
-    else:
-        gap_section = "All requirements have at least one test case."
-
-    # Build test case section
-    tc_lines = []
-    for tc in test_cases:
-        tc_lines.append(f"### {tc['id']}: {tc.get('title', 'Untitled')}")
-        tc_lines.append(f"**Priority:** {tc.get('priority', 'medium')} | "
-                        f"**Type:** {tc.get('test_type', 'positive')} | "
-                        f"**Traces to:** {', '.join(tc.get('requirement_ids', []))}")
-        tc_lines.append(f"**Preconditions:** {'; '.join(tc.get('preconditions', ['None']))}")
-        tc_lines.append("**Steps:**")
-        for j, step in enumerate(tc.get("steps", []), 1):
-            tc_lines.append(f"  {j}. {step}")
-        tc_lines.append(f"**Expected Result:** {tc.get('expected_result', 'N/A')}")
-        tc_lines.append("")
-
-    # Build issue section
-    if issues:
-        issue_lines = []
-        for iss in issues:
-            issue_lines.append(f"- **{iss['test_case_id']}**: {'; '.join(iss['issues'])}")
-        issue_section = "\n".join(issue_lines)
-    else:
-        issue_section = "No validation issues found."
-
-    report = REPORT_TEMPLATE.format(
-        timestamp=datetime.now().strftime("%Y-%m-%d %H:%M"),
-        project_name=project_name,
-        source_file=source_file,
-        req_count=len(requirements),
-        tc_count=len(test_cases),
-        gap_count=len(gaps),
-        issue_count=len(issues),
-        coverage_table=coverage_table,
-        gap_section=gap_section,
-        test_case_section="\n".join(tc_lines),
-        issue_section=issue_section,
-    )
-
-    # Write markdown report
-    report_path = out / "test_suite_report.md"
-    report_path.write_text(report, encoding="utf-8")
-
-    # Write JSON export for programmatic consumption
-    json_path = out / "test_suite.json"
-    json_path.write_text(json.dumps({
-        "project_name": project_name,
-        "generated_at": datetime.now().isoformat(),
-        "requirements": requirements,
-        "test_cases": test_cases,
-        "coverage_matrix": coverage_matrix,
-        "gaps": gaps,
-        "validation_issues": issues,
-    }, indent=2), encoding="utf-8")
-
-    print(f"\nReport written to {report_path}")
-    print(f"JSON export written to {json_path}")
-    return str(report_path)</code></pre>
+      <p>The report generator produces two outputs: a <strong>markdown report</strong> with a summary table (requirements count, test case count, coverage gaps, validation issues), the full coverage matrix, a gap analysis section, all test cases with their details, and any validation issues; and a <strong>JSON export</strong> containing the complete structured data for programmatic consumption. Use Python string formatting or Jinja2 templates to build the markdown. Write both files to the output directory.</p>
 
     <p>Finally, wire everything together in a main script:</p>
 

@@ -36,35 +36,64 @@
     </section>
 
     <!-- Architecture Overview -->
-    <h2>Architecture Overview</h2>
+        <!-- SVG Architecture Diagram -->
+    <figure>
+      <svg viewBox="0 0 900 300" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif;background:#fff;border-radius:8px;border:1px solid #e0e0e0">
+        <text x="450" y="28" text-anchor="middle" fill="#333" font-size="16" font-weight="700">Intelligent Test Suite Generator</text>
+        <defs>
+          <marker id="arrowC3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+        <!-- Three inputs -->
+        <rect x="30" y="55" width="150" height="50" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="105" y="77" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Git Diffs</text>
+        <text x="105" y="94" text-anchor="middle" fill="#666" font-size="10">Recent changes</text>
+        <rect x="30" y="120" width="150" height="50" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="105" y="142" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Defect History</text>
+        <text x="105" y="159" text-anchor="middle" fill="#666" font-size="10">CSV / JSON bugs</text>
+        <rect x="30" y="185" width="150" height="50" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="105" y="207" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Existing Tests</text>
+        <text x="105" y="224" text-anchor="middle" fill="#666" font-size="10">Current coverage</text>
+        <!-- Arrows to center -->
+        <line x1="180" y1="80" x2="260" y2="135" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowC3)"/>
+        <line x1="180" y1="145" x2="260" y2="145" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowC3)"/>
+        <line x1="180" y1="210" x2="260" y2="155" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowC3)"/>
+        <!-- Risk Engine -->
+        <rect x="260" y="110" width="170" height="70" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="345" y="138" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">Risk Analysis</text>
+        <text x="345" y="158" text-anchor="middle" fill="#fff" font-size="11">Weighted scoring</text>
+        <text x="345" y="173" text-anchor="middle" fill="#fff" font-size="10">change + defect + coverage</text>
+        <!-- Arrow to generation -->
+        <line x1="430" y1="145" x2="480" y2="145" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowC3)"/>
+        <!-- Three outputs -->
+        <rect x="480" y="55" width="160" height="50" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="560" y="77" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Generate Tests</text>
+        <text x="560" y="94" text-anchor="middle" fill="#666" font-size="10">Targeted by risk</text>
+        <rect x="480" y="120" width="160" height="50" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="560" y="142" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Generate Test Data</text>
+        <text x="560" y="159" text-anchor="middle" fill="#666" font-size="10">Faker + LLM</text>
+        <rect x="480" y="185" width="160" height="50" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="560" y="207" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Optimize Suite</text>
+        <text x="560" y="224" text-anchor="middle" fill="#666" font-size="10">Dedupe + prioritize</text>
+        <!-- Arrows to output -->
+        <line x1="640" y1="80" x2="700" y2="135" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowC3)"/>
+        <line x1="640" y1="145" x2="700" y2="145" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowC3)"/>
+        <line x1="640" y1="210" x2="700" y2="155" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowC3)"/>
+        <!-- Final output -->
+        <rect x="700" y="110" width="170" height="70" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="785" y="138" text-anchor="middle" fill="#333" font-size="14" font-weight="700">Smart Test Suite</text>
+        <text x="785" y="158" text-anchor="middle" fill="#666" font-size="11">Ranked + traced</text>
+        <text x="785" y="173" text-anchor="middle" fill="#666" font-size="10">with test data</text>
+      </svg>
+      <figcaption>Figure C3.1 — Three input channels (code changes, defect history, existing tests) feed into a risk analysis engine that drives targeted test generation.</figcaption>
+    </figure>
+
+<h2>Architecture Overview</h2>
 
     <p>The system has three input channels — code changes, defect history, and existing test coverage — that feed into a central intelligence layer. The intelligence layer uses an LLM to synthesize these signals into prioritized test generation decisions.</p>
 
-    <pre><code class="language-text">┌───────────┐  ┌───────────────┐  ┌────────────────┐
-│ Git Diffs │  │ Defect History│  │ Existing Tests │
-│ (changes) │  │ (CSV/JSON)    │  │ (test files)   │
-└─────┬─────┘  └───────┬───────┘  └───────┬────────┘
-      │                │                   │
-      └────────────────┼───────────────────┘
-                       │
-              ┌────────▼─────────┐
-              │  Risk Analysis   │
-              │  Engine          │
-              └────────┬─────────┘
-                       │
-         ┌─────────────┼─────────────┐
-         │             │             │
-   ┌─────▼─────┐ ┌────▼─────┐ ┌────▼──────┐
-   │ Generate  │ │ Generate │ │ Optimize  │
-   │ New Tests │ │ Test Data│ │ Existing  │
-   └─────┬─────┘ └────┬─────┘ └────┬──────┘
-         │             │             │
-         └─────────────┼─────────────┘
-                       │
-              ┌────────▼─────────┐
-              │  Output: Smart   │
-              │  Test Suite      │
-              └──────────────────┘</code></pre>
+    <!-- Replaced with SVG diagram above -->
 
     <p><strong>Data models:</strong></p>
 
@@ -126,179 +155,24 @@ class GeneratedTest(BaseModel):
     <!-- Step 1 -->
     <h2>Step 1: Setup and Data Ingestion</h2>
 
-    <pre><code class="language-bash">mkdir -p smart_test_gen/{modules,data,output}
-cd smart_test_gen
-pip install openai pydantic gitpython faker</code></pre>
+    <!-- Removed: bash setup commands. -->
 
     <p>The change analyzer reads git history to identify what changed and maps file paths to logical modules:</p>
 
-    <pre><code class="language-python">"""modules/change_analyzer.py — Analyze git changes to identify affected modules."""
-import subprocess
-import re
-from pathlib import Path
+    <!-- Removed: change_analyzer.py module (~70 lines).
+           Reads git log to find changed files, maps file paths to logical
+           modules using a configurable MODULE_MAP dictionary, and extracts
+           diff stats (lines added/deleted) for each changed file. -->
 
-# Configurable mapping from file paths to logical modules
-MODULE_MAP = {
-    "auth/": "Authentication",
-    "user/": "User Management",
-    "payment/": "Payment Processing",
-    "cart/": "Shopping Cart",
-    "order/": "Order Management",
-    "report/": "Reporting",
-    "api/": "API Layer",
-    "db/": "Database",
-    "ui/": "User Interface",
-}
-
-
-def get_recent_changes(repo_path: str, since: str = "1 week ago") -> list[dict]:
-    """Extract recent code changes from git history."""
-    result = subprocess.run(
-        ["git", "log", f"--since={since}", "--name-status", "--pretty=format:"],
-        cwd=repo_path,
-        capture_output=True,
-        text=True,
-    )
-
-    changes = []
-    for line in result.stdout.strip().split("\n"):
-        line = line.strip()
-        if not line:
-            continue
-        parts = line.split("\t")
-        if len(parts) >= 2:
-            status_code = parts[0][0]  # A, M, D, R
-            file_path = parts[-1]
-
-            change_type_map = {"A": "added", "M": "modified", "D": "deleted", "R": "renamed"}
-            change_type = change_type_map.get(status_code, "modified")
-
-            changes.append({
-                "file_path": file_path,
-                "change_type": change_type,
-                "module": infer_module(file_path),
-            })
-
-    # Get diff stats for modified files
-    for change in changes:
-        if change["change_type"] in ("modified", "added"):
-            diff = get_file_diff(repo_path, change["file_path"])
-            change["diff_content"] = diff
-            change["lines_added"] = diff.count("\n+") if diff else 0
-            change["lines_deleted"] = diff.count("\n-") if diff else 0
-
-    print(f"Found {len(changes)} changes since {since}")
-    return changes
-
-
-def get_file_diff(repo_path: str, file_path: str) -> str:
-    """Get the unified diff for a specific file."""
-    result = subprocess.run(
-        ["git", "diff", "HEAD~5", "--", file_path],
-        cwd=repo_path,
-        capture_output=True,
-        text=True,
-    )
-    # Truncate large diffs to save tokens
-    diff = result.stdout
-    if len(diff) > 3000:
-        diff = diff[:3000] + "\n... [truncated]"
-    return diff
-
-
-def infer_module(file_path: str) -> str:
-    """Map a file path to a logical module name."""
-    for prefix, module in MODULE_MAP.items():
-        if prefix in file_path.lower():
-            return module
-    # Fallback: use the top-level directory
-    parts = Path(file_path).parts
-    if len(parts) > 1:
-        return parts[0].replace("_", " ").title()
-    return "General"</code></pre>
+      <p>The change analyzer runs <code>git log --name-status</code> to find recently modified files and maps each file path to a logical module name (e.g., <code>auth/login.py</code> maps to "Authentication") using a configurable lookup table. For each changed file, it extracts the diff content and counts lines added and deleted. Files with large diffs signal higher change risk.</p>
 
     <p>The defect history loader reads historical bug data and extracts patterns:</p>
 
-    <pre><code class="language-python">"""modules/defect_analyzer.py — Analyze defect history for recurring patterns."""
-import json
-import csv
-from pathlib import Path
-from collections import Counter
+    <!-- Removed: defect_analyzer.py module (~70 lines).
+           Loads bug records from CSV/JSON, counts defects per module,
+           calculates defect density, and identifies hotspot modules. -->
 
-
-def load_defects(file_path: str) -> list[dict]:
-    """Load defect records from CSV or JSON."""
-    path = Path(file_path)
-
-    if path.suffix == ".json":
-        with open(path) as f:
-            return json.load(f)
-    elif path.suffix == ".csv":
-        with open(path) as f:
-            return list(csv.DictReader(f))
-    else:
-        raise ValueError(f"Unsupported format: {path.suffix}")
-
-
-def analyze_defect_patterns(defects: list[dict]) -> dict:
-    """Identify defect hotspots and recurring patterns."""
-    module_counts = Counter(d.get("module", "Unknown") for d in defects)
-    severity_counts = Counter(d.get("severity", "medium") for d in defects)
-    root_cause_counts = Counter(
-        d.get("root_cause", "unclassified") for d in defects
-        if d.get("root_cause")
-    )
-
-    # Calculate defect density per module
-    total = len(defects) if defects else 1
-    hotspots = []
-    for module, count in module_counts.most_common():
-        density = count / total
-        hotspots.append({
-            "module": module,
-            "defect_count": count,
-            "density": round(density, 3),
-            "severity_breakdown": dict(Counter(
-                d.get("severity", "medium") for d in defects
-                if d.get("module") == module
-            )),
-        })
-
-    return {
-        "total_defects": total,
-        "hotspots": hotspots,
-        "top_root_causes": dict(root_cause_counts.most_common(10)),
-        "severity_distribution": dict(severity_counts),
-    }
-
-
-# Sample defect data for testing
-SAMPLE_DEFECTS = [
-    {"id": "BUG-101", "title": "Login fails with special chars in password",
-     "module": "Authentication", "severity": "critical",
-     "root_cause": "input_validation", "date_found": "2025-09-15"},
-    {"id": "BUG-102", "title": "Cart total wrong with multiple discounts",
-     "module": "Shopping Cart", "severity": "high",
-     "root_cause": "calculation_logic", "date_found": "2025-09-20"},
-    {"id": "BUG-103", "title": "Payment timeout not handled gracefully",
-     "module": "Payment Processing", "severity": "critical",
-     "root_cause": "error_handling", "date_found": "2025-10-01"},
-    {"id": "BUG-104", "title": "SSO redirect loop on expired session",
-     "module": "Authentication", "severity": "high",
-     "root_cause": "session_management", "date_found": "2025-10-05"},
-    {"id": "BUG-105", "title": "Report CSV export missing headers",
-     "module": "Reporting", "severity": "medium",
-     "root_cause": "output_formatting", "date_found": "2025-10-10"},
-    {"id": "BUG-106", "title": "Order status not updated after refund",
-     "module": "Order Management", "severity": "high",
-     "root_cause": "state_management", "date_found": "2025-10-12"},
-    {"id": "BUG-107", "title": "Password reset token never expires",
-     "module": "Authentication", "severity": "critical",
-     "root_cause": "security", "date_found": "2025-10-18"},
-    {"id": "BUG-108", "title": "Cart items duplicated on page refresh",
-     "module": "Shopping Cart", "severity": "medium",
-     "root_cause": "state_management", "date_found": "2025-10-22"},
-]</code></pre>
+      <p>The defect analyzer loads historical bug records (from CSV or JSON), counts defects per module, and calculates defect density. It produces a hotspot report showing which modules have the most bugs, with severity breakdowns. Modules with critical defects get flagged as higher risk. The sample dataset includes 8 representative bugs across Authentication, Shopping Cart, Payment Processing, Reporting, and Order Management modules to demonstrate the analysis.</p>
 
     <!-- Step 2 -->
     <h2>Step 2: Core Processing Pipeline — Risk-Based Test Generation</h2>
@@ -526,324 +400,33 @@ def generate_all_tests(
 
     <p>Each test case needs realistic test data. The test data generator uses the Faker library for base data and the LLM for domain-specific values (Chapter 10):</p>
 
-    <pre><code class="language-python">"""modules/test_data.py — Generate realistic test data for test cases."""
-import json
-import os
-from faker import Faker
-from openai import OpenAI
+    <!-- Removed: test_data.py module (~120 lines).
+           Uses Faker library for standard data types (email, name, amount)
+           and LLM for domain-specific field selection. Includes generators
+           for negative test data (SQL injection, XSS, oversized input)
+           and boundary values (min/max, unicode, floating-point edge cases). -->
 
-fake = Faker()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-# Standard data generators for common field types
-STANDARD_GENERATORS = {
-    "email": lambda: fake.email(),
-    "name": lambda: fake.name(),
-    "phone": lambda: fake.phone_number(),
-    "address": lambda: fake.address(),
-    "date": lambda: fake.date_this_year().isoformat(),
-    "amount": lambda: round(fake.pyfloat(min_value=0.01, max_value=9999.99), 2),
-    "username": lambda: fake.user_name(),
-    "password": lambda: fake.password(length=12, special_chars=True),
-    "credit_card": lambda: fake.credit_card_number(),
-    "url": lambda: fake.url(),
-}
-
-
-def generate_test_data(test_case: dict) -> dict:
-    """Generate appropriate test data for a test case."""
-    module = test_case.get("module", "").lower()
-    test_type = test_case.get("test_type", "positive")
-
-    # For negative tests, generate invalid data
-    if test_type == "negative":
-        return generate_negative_data(test_case)
-
-    # For boundary tests, generate boundary values
-    if test_type == "boundary":
-        return generate_boundary_data(test_case)
-
-    # For standard tests, use Faker with LLM-suggested fields
-    return generate_standard_data(test_case)
-
-
-def generate_standard_data(test_case: dict) -> dict:
-    """Use LLM to determine what fields are needed, then Faker to generate values."""
-    prompt = f"""Given this test case, list the test data fields needed.
-
-Test: {test_case.get('title', '')}
-Module: {test_case.get('module', '')}
-Steps: {json.dumps(test_case.get('steps', []))}
-
-Return a JSON object mapping field names to their data types.
-Use these types: email, name, phone, address, date, amount,
-username, password, credit_card, url, text, number, boolean.
-Example: {{"user_email": "email", "order_total": "amount"}}
-
-Return ONLY the JSON object."""
-
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.1,
-        max_tokens=300,
-    )
-
-    raw = response.choices[0].message.content.strip()
-    try:
-        field_spec = json.loads(raw)
-    except json.JSONDecodeError:
-        return {"note": "Auto-generated data not available"}
-
-    # Generate values using Faker
-    data = {}
-    for field_name, field_type in field_spec.items():
-        generator = STANDARD_GENERATORS.get(field_type)
-        if generator:
-            data[field_name] = generator()
-        elif field_type == "text":
-            data[field_name] = fake.sentence()
-        elif field_type == "number":
-            data[field_name] = fake.random_int(min=1, max=1000)
-        elif field_type == "boolean":
-            data[field_name] = fake.boolean()
-        else:
-            data[field_name] = fake.word()
-
-    return data
-
-
-def generate_negative_data(test_case: dict) -> dict:
-    """Generate intentionally invalid data for negative testing."""
-    return {
-        "invalid_email": "not-an-email",
-        "empty_field": "",
-        "sql_injection": "'; DROP TABLE users; --",
-        "xss_payload": "<script>alert('xss')</script>",
-        "oversized_input": "A" * 10000,
-        "negative_amount": -99.99,
-        "future_date": "2099-12-31",
-        "special_chars": "!@#$%^&*(){}[]|\\",
-        "null_value": None,
-        "zero_value": 0,
-    }
-
-
-def generate_boundary_data(test_case: dict) -> dict:
-    """Generate boundary and edge case values."""
-    return {
-        "min_value": 0,
-        "max_value": 2147483647,
-        "min_length_string": "a",
-        "max_length_string": "X" * 255,
-        "empty_string": "",
-        "whitespace_only": "   ",
-        "unicode_text": "Cafe\u0301 re\u0301sume\u0301 nai\u0308ve",
-        "min_date": "1900-01-01",
-        "max_date": "2099-12-31",
-        "float_precision": 0.1 + 0.2,  # Classic floating point issue
-        "zero_quantity": 0,
-        "max_quantity": 99999,
-    }
-
-
-def enrich_tests_with_data(test_cases: list[dict]) -> list[dict]:
-    """Add test data to each test case."""
-    for i, tc in enumerate(test_cases):
-        print(f"  Generating data for {tc['id']} ({i+1}/{len(test_cases)})...")
-        tc["test_data"] = generate_test_data(tc)
-    return test_cases</code></pre>
+      <p>The test data generator uses a two-step approach: the LLM determines what data fields each test case needs (e.g., "user_email: email, order_total: amount"), then the Faker library generates realistic values for each field type. For negative tests, it produces intentionally invalid data including empty fields, SQL injection strings, XSS payloads, and oversized inputs. For boundary tests, it generates min/max values, unicode text, floating-point precision edge cases, and zero-length strings.</p>
 
     <p>The suite report generator produces a ranked test execution plan:</p>
 
-    <pre><code class="language-python">"""modules/suite_report.py — Generate the test suite execution report."""
-import json
-from datetime import datetime
-from pathlib import Path
+    <!-- Removed: suite_report.py module (~90 lines).
+           Generates markdown report with risk assessment table,
+           grouped test cases by module, and recommended execution order. -->
 
-
-def generate_suite_report(
-    assessments: list[dict],
-    test_cases: list[dict],
-    defect_patterns: dict,
-    output_dir: str = "output",
-) -> str:
-    """Generate a comprehensive test suite report."""
-    out = Path(output_dir)
-    out.mkdir(exist_ok=True)
-
-    lines = [
-        "# Intelligent Test Suite Report",
-        f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M')}",
-        "",
-        "## Risk Assessment Summary",
-        "",
-        "| Module | Risk | Score | Changes | Defects | Tests to Run |",
-        "|--------|------|-------|---------|---------|-------------|",
-    ]
-
-    for a in assessments:
-        test_count = len([t for t in test_cases if t.get("module") == a["module"]])
-        lines.append(
-            f"| {a['module']} | {a['risk_level'].upper()} | "
-            f"{a['risk_score']:.0f} | {a['change_factor']:.0f} | "
-            f"{a['defect_factor']:.0f} | {test_count} |"
-        )
-
-    lines.extend(["", "## Generated Test Suite", ""])
-
-    # Group tests by module
-    modules = {}
-    for tc in test_cases:
-        modules.setdefault(tc.get("module", "General"), []).append(tc)
-
-    for module, tests in modules.items():
-        lines.append(f"### {module}")
-        lines.append("")
-        for tc in tests:
-            lines.append(f"#### {tc['id']}: {tc.get('title', 'Untitled')}")
-            lines.append(f"**Risk:** {tc.get('risk_level', 'medium')} | "
-                         f"**Type:** {tc.get('test_type', 'regression')} | "
-                         f"**Triggered by:** {tc.get('triggered_by', 'unknown')}")
-            lines.append("")
-            lines.append("**Preconditions:**")
-            for pre in tc.get("preconditions", ["None"]):
-                lines.append(f"- {pre}")
-            lines.append("")
-            lines.append("**Steps:**")
-            for j, step in enumerate(tc.get("steps", []), 1):
-                lines.append(f"{j}. {step}")
-            lines.append("")
-            lines.append(f"**Expected:** {tc.get('expected_result', 'N/A')}")
-            if tc.get("test_data"):
-                lines.append("")
-                lines.append("**Test Data:**")
-                lines.append(f"```json\n{json.dumps(tc['test_data'], indent=2, default=str)}\n```")
-            lines.append("")
-
-    # Execution plan
-    lines.extend([
-        "## Recommended Execution Order",
-        "",
-        "Run tests in this order to maximize early defect detection:",
-        "",
-    ])
-    for i, tc in enumerate(test_cases, 1):
-        lines.append(f"{i}. **{tc['id']}** — {tc.get('title', '')} "
-                     f"[{tc.get('risk_level', 'medium')}]")
-
-    report_text = "\n".join(lines)
-
-    report_path = out / "smart_test_suite.md"
-    report_path.write_text(report_text, encoding="utf-8")
-
-    json_path = out / "smart_test_suite.json"
-    json_path.write_text(json.dumps({
-        "generated_at": datetime.now().isoformat(),
-        "risk_assessments": assessments,
-        "test_cases": test_cases,
-        "defect_patterns": defect_patterns,
-    }, indent=2, default=str), encoding="utf-8")
-
-    print(f"\nReport: {report_path}")
-    print(f"JSON:   {json_path}")
-    return str(report_path)</code></pre>
+      <p>The suite report generator produces a markdown report with three sections: a <strong>risk assessment summary table</strong> showing each module's risk level, score, change factor, defect factor, and number of generated tests; <strong>grouped test cases by module</strong> with full details (preconditions, steps, expected results, and test data in JSON format); and a <strong>recommended execution order</strong> listing all tests ranked by risk level for maximum early defect detection.</p>
 
     <!-- Step 4 -->
     <h2>Step 4: Validation and Quality</h2>
 
     <p>The validation stage checks the generated test suite for quality and completeness. It ensures every high-risk module has sufficient coverage and that no generated test is a duplicate of an existing test:</p>
 
-    <pre><code class="language-python">"""modules/suite_validator.py — Validate the generated test suite."""
-import json
-import os
-from openai import OpenAI
+    <!-- Removed: suite_validator.py module (~70 lines).
+           Checks that high-risk modules have minimum test counts,
+           verifies test type diversity, and uses LLM to detect
+           semantically duplicate test cases. -->
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-
-def check_coverage_completeness(
-    assessments: list[dict],
-    test_cases: list[dict],
-) -> list[dict]:
-    """Ensure high-risk modules have adequate test coverage."""
-    issues = []
-    min_tests = {"critical": 4, "high": 3, "medium": 1, "low": 0}
-
-    for a in assessments:
-        module_tests = [t for t in test_cases if t.get("module") == a["module"]]
-        required = min_tests.get(a["risk_level"], 1)
-
-        if len(module_tests) < required:
-            issues.append({
-                "type": "coverage_gap",
-                "module": a["module"],
-                "message": (
-                    f"{a['module']} is {a['risk_level']} risk but only has "
-                    f"{len(module_tests)} tests (minimum: {required})"
-                ),
-            })
-
-        # Check test type diversity
-        test_types = set(t.get("test_type", "") for t in module_tests)
-        if a["risk_level"] in ("critical", "high") and "negative" not in test_types:
-            issues.append({
-                "type": "missing_test_type",
-                "module": a["module"],
-                "message": (
-                    f"{a['module']} has no negative tests despite "
-                    f"being {a['risk_level']} risk"
-                ),
-            })
-
-    return issues
-
-
-def check_duplicate_tests(test_cases: list[dict]) -> list[dict]:
-    """Use the LLM to identify semantically duplicate test cases."""
-    if len(test_cases) < 2:
-        return []
-
-    titles = [{"id": tc["id"], "title": tc.get("title", "")} for tc in test_cases]
-
-    prompt = f"""Review these test case titles and identify any that are
-semantically duplicated (testing the same thing with different words).
-
-Test cases:
-{json.dumps(titles, indent=2)}
-
-Return a JSON array of duplicate groups:
-[{{"duplicate_ids": ["TC-001", "TC-005"], "reason": "both test X"}}]
-
-Return an empty array [] if no duplicates found."""
-
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are a QA lead reviewing test suites. "
-             "Return only JSON."},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.1,
-        max_tokens=500,
-    )
-
-    raw = response.choices[0].message.content.strip()
-    try:
-        duplicates = json.loads(raw)
-    except json.JSONDecodeError:
-        return []
-
-    issues = []
-    for dup in duplicates:
-        issues.append({
-            "type": "duplicate",
-            "ids": dup.get("duplicate_ids", []),
-            "message": f"Potential duplicates: {', '.join(dup.get('duplicate_ids', []))} "
-                       f"— {dup.get('reason', '')}",
-        })
-
-    return issues</code></pre>
+      <p>The suite validator performs two checks: <strong>coverage completeness</strong> verifies that critical-risk modules have at least 4 tests, high-risk at least 3, and medium at least 1, while also flagging high-risk modules with no negative tests; and <strong>duplicate detection</strong> sends all test titles to the LLM to identify semantically similar tests that may be redundant (e.g., "login fails with wrong password" and "authentication error on invalid credentials").</p>
 
     <p>The main orchestrator:</p>
 

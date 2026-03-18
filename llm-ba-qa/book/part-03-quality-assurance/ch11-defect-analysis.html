@@ -36,6 +36,126 @@
       </ul>
     </section>
 
+    <!-- Diagram: Defect Triage Workflow -->
+    <figure>
+      <svg viewBox="0 0 920 280" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif;max-width:920px;">
+        <rect width="920" height="280" fill="#f5f5f5" rx="12"/>
+        <!-- Step 1: New Defect -->
+        <rect x="15" y="95" width="110" height="60" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="70" y="122" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">New Defect</text>
+        <text x="70" y="139" text-anchor="middle" fill="#fff" font-size="10">Filed by reporter</text>
+        <!-- Arrow -->
+        <line x1="125" y1="125" x2="150" y2="125" stroke="#666" stroke-width="2" marker-end="url(#arrowCh11)"/>
+        <!-- Step 2: LLM Classification -->
+        <rect x="150" y="80" width="130" height="90" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="215" y="105" text-anchor="middle" fill="#333" font-size="12" font-weight="600">LLM Classification</text>
+        <text x="215" y="123" text-anchor="middle" fill="#666" font-size="10">Type</text>
+        <text x="215" y="138" text-anchor="middle" fill="#666" font-size="10">Severity</text>
+        <text x="215" y="153" text-anchor="middle" fill="#666" font-size="10">Component</text>
+        <!-- Arrow -->
+        <line x1="280" y1="125" x2="305" y2="125" stroke="#666" stroke-width="2" marker-end="url(#arrowCh11)"/>
+        <!-- Step 3: Duplicate Check -->
+        <rect x="305" y="95" width="120" height="60" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="365" y="120" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Duplicate Check</text>
+        <text x="365" y="137" text-anchor="middle" fill="#666" font-size="10">Semantic matching</text>
+        <!-- Duplicate branch (down) -->
+        <line x1="365" y1="155" x2="365" y2="210" stroke="#c00" stroke-width="1.5"/>
+        <rect x="310" y="210" width="110" height="35" rx="6" fill="#fff" stroke="#c00" stroke-width="1.5"/>
+        <text x="365" y="232" text-anchor="middle" fill="#c00" font-size="11" font-weight="600">Close as Duplicate</text>
+        <!-- Arrow (continue) -->
+        <line x1="425" y1="125" x2="450" y2="125" stroke="#666" stroke-width="2" marker-end="url(#arrowCh11)"/>
+        <!-- Step 4: Priority Scoring -->
+        <rect x="450" y="95" width="120" height="60" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="510" y="120" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Priority Scoring</text>
+        <text x="510" y="137" text-anchor="middle" fill="#666" font-size="10">Risk + Impact</text>
+        <!-- Arrow -->
+        <line x1="570" y1="125" x2="595" y2="125" stroke="#666" stroke-width="2" marker-end="url(#arrowCh11)"/>
+        <!-- Step 5: Assignment -->
+        <rect x="595" y="95" width="110" height="60" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="650" y="120" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Assignment</text>
+        <text x="650" y="137" text-anchor="middle" fill="#666" font-size="10">Route to team</text>
+        <!-- Arrow -->
+        <line x1="705" y1="125" x2="730" y2="125" stroke="#666" stroke-width="2" marker-end="url(#arrowCh11)"/>
+        <!-- Step 6: Resolution -->
+        <rect x="730" y="95" width="110" height="60" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="785" y="120" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">Resolution</text>
+        <text x="785" y="137" text-anchor="middle" fill="#fff" font-size="10">Fix + verify</text>
+        <!-- Feedback loop arrow -->
+        <path d="M840,125 Q870,125 870,60 Q870,30 500,30 Q150,30 150,80" stroke="#666" stroke-width="1" fill="none" stroke-dasharray="5,3" marker-end="url(#arrowCh11)"/>
+        <text x="500" y="22" text-anchor="middle" fill="#666" font-size="10">Feedback loop: corrections improve classification accuracy</text>
+        <!-- Title -->
+        <text x="460" y="265" text-anchor="middle" fill="#333" font-size="16" font-weight="700">Defect Triage Workflow</text>
+        <defs>
+          <marker id="arrowCh11" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6" fill="#666"/>
+          </marker>
+        </defs>
+      </svg>
+      <figcaption>Figure 11-1. The LLM-powered defect triage workflow classifies, deduplicates, scores, and routes defects automatically, with a feedback loop that improves accuracy over time.</figcaption>
+    </figure>
+
+    <!-- Diagram: Defect Pattern Recognition -->
+    <figure>
+      <svg viewBox="0 0 860 380" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif;max-width:860px;">
+        <rect width="860" height="380" fill="#f5f5f5" rx="12"/>
+        <text x="430" y="30" text-anchor="middle" fill="#333" font-size="16" font-weight="700">Defect Pattern Recognition</text>
+        <text x="430" y="50" text-anchor="middle" fill="#666" font-size="11">Clustered defect groups reveal systemic quality issues</text>
+        <!-- Cluster 1: UI Regression -->
+        <ellipse cx="180" cy="160" rx="140" ry="90" fill="var(--accent)" opacity="0.12" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="180" y="100" text-anchor="middle" fill="var(--accent)" font-size="13" font-weight="700">UI Regression Cluster</text>
+        <rect x="105" y="115" width="150" height="28" rx="4" fill="#fff" stroke="var(--accent)" stroke-width="1"/>
+        <text x="180" y="134" text-anchor="middle" fill="#333" font-size="10">BUG-401 Button misaligned</text>
+        <rect x="105" y="148" width="150" height="28" rx="4" fill="#fff" stroke="var(--accent)" stroke-width="1"/>
+        <text x="180" y="167" text-anchor="middle" fill="#333" font-size="10">BUG-415 Font rendering off</text>
+        <rect x="105" y="181" width="150" height="28" rx="4" fill="#fff" stroke="var(--accent)" stroke-width="1"/>
+        <text x="180" y="200" text-anchor="middle" fill="#333" font-size="10">BUG-422 Modal overlap</text>
+        <text x="180" y="235" text-anchor="middle" fill="#666" font-size="11" font-weight="600">3 defects</text>
+        <!-- Trend arrow (up) -->
+        <line x1="158" y1="248" x2="158" y2="262" stroke="#c00" stroke-width="2" marker-end="url(#arrowUpCh11)"/>
+        <text x="200" y="260" fill="#c00" font-size="10" font-weight="600">Trending up</text>
+
+        <!-- Cluster 2: API Timeout Pattern -->
+        <ellipse cx="480" cy="165" rx="150" ry="100" fill="var(--accent)" opacity="0.12" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="480" y="95" text-anchor="middle" fill="var(--accent)" font-size="13" font-weight="700">API Timeout Pattern</text>
+        <rect x="395" y="110" width="170" height="28" rx="4" fill="#fff" stroke="var(--accent)" stroke-width="1"/>
+        <text x="480" y="129" text-anchor="middle" fill="#333" font-size="10">BUG-521 Payment timeout</text>
+        <rect x="395" y="143" width="170" height="28" rx="4" fill="#fff" stroke="var(--accent)" stroke-width="1"/>
+        <text x="480" y="162" text-anchor="middle" fill="#333" font-size="10">BUG-489 Receipt email delayed</text>
+        <rect x="395" y="176" width="170" height="28" rx="4" fill="#fff" stroke="var(--accent)" stroke-width="1"/>
+        <text x="480" y="195" text-anchor="middle" fill="#333" font-size="10">BUG-455 Duplicate charge</text>
+        <rect x="395" y="209" width="170" height="28" rx="4" fill="#fff" stroke="var(--accent)" stroke-width="1"/>
+        <text x="480" y="228" text-anchor="middle" fill="#333" font-size="10">BUG-401 Status stuck pending</text>
+        <text x="480" y="255" text-anchor="middle" fill="#666" font-size="11" font-weight="600">4 defects</text>
+        <!-- Trend arrow (up) -->
+        <line x1="458" y1="265" x2="458" y2="279" stroke="#c00" stroke-width="2" marker-end="url(#arrowUpCh11)"/>
+        <text x="505" y="277" fill="#c00" font-size="10" font-weight="600">Critical - trending up</text>
+
+        <!-- Cluster 3: Data Validation Gap -->
+        <ellipse cx="740" cy="155" rx="100" ry="80" fill="var(--accent)" opacity="0.12" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="740" y="100" text-anchor="middle" fill="var(--accent)" font-size="13" font-weight="700">Data Validation Gap</text>
+        <rect x="665" y="115" width="150" height="28" rx="4" fill="#fff" stroke="var(--accent)" stroke-width="1"/>
+        <text x="740" y="134" text-anchor="middle" fill="#333" font-size="10">BUG-380 Currency rounding</text>
+        <rect x="665" y="148" width="150" height="28" rx="4" fill="#fff" stroke="var(--accent)" stroke-width="1"/>
+        <text x="740" y="167" text-anchor="middle" fill="#333" font-size="10">BUG-267 Report truncation</text>
+        <text x="740" y="210" text-anchor="middle" fill="#666" font-size="11" font-weight="600">2 defects</text>
+        <!-- Trend arrow (stable) -->
+        <line x1="718" y1="222" x2="762" y2="222" stroke="#999" stroke-width="2" marker-end="url(#arrowCh11)"/>
+        <text x="740" y="240" text-anchor="middle" fill="#999" font-size="10" font-weight="600">Stable</text>
+
+        <!-- Summary bar -->
+        <rect x="60" y="310" width="740" height="50" rx="6" fill="#fff" stroke="var(--accent)" stroke-width="1"/>
+        <text x="100" y="338" fill="#333" font-size="11" font-weight="600">Recommendation:</text>
+        <text x="200" y="338" fill="#666" font-size="11">Payment module needs dedicated code review + circuit breaker pattern. UI needs cross-browser test suite.</text>
+
+        <defs>
+          <marker id="arrowUpCh11" markerWidth="8" markerHeight="6" refX="4" refY="0" orient="auto">
+            <path d="M0,6 L4,0 L8,6" fill="#c00"/>
+          </marker>
+        </defs>
+      </svg>
+      <figcaption>Figure 11-2. Defect pattern recognition groups related defects into clusters, revealing systemic issues like API integration fragility or recurring UI regressions, with trend indicators showing whether patterns are worsening.</figcaption>
+    </figure>
+
     <!-- Section 1 -->
     <section>
       <h2>11.1 The Defect Flood</h2>
@@ -71,96 +191,23 @@
 
       <p>The first step in taming the defect flood is consistent classification. LLMs can categorize defects along multiple dimensions simultaneously:</p>
 
-      <pre><code class="language-python">from openai import OpenAI
-import json
+      <p>The classification prompt feeds the full defect report (title, description, steps to reproduce, expected/actual results, environment, stack trace) to the LLM and asks it to classify along five dimensions: defect type, affected component, root cause category, affected user segment, and reproducibility. It also extracts key symptoms, related features, and a suggested assignee team.</p>
 
-client = OpenAI()
+      <p>For example, consider a defect: <em>"Payment fails intermittently for amounts over $10,000. The payment gateway returns a timeout error after 30 seconds. Smaller payments process normally. Happens more frequently on weekends."</em> The classification output provides structured metadata that would take a human 3-5 minutes to determine:</p>
 
-CLASSIFICATION_PROMPT = """You are a senior QA engineer classifying defects.
-Analyze the defect report and classify it along these dimensions:
-
-1. DEFECT TYPE: functional | performance | security | usability | data |
-   integration | configuration | documentation
-2. COMPONENT: identify the most likely system component/module affected
-3. ROOT CAUSE CATEGORY: code_logic | data_handling | concurrency |
-   configuration | third_party | requirements_gap | environment
-4. AFFECTED USER SEGMENT: all_users | specific_role | specific_browser |
-   specific_region | specific_data_pattern
-5. REPRODUCIBILITY: always | intermittent | rare | environment_specific
-
-Also extract:
-- key_symptoms: array of observable symptoms mentioned in the report
-- related_features: array of features likely affected
-- suggested_assignee_team: which team should investigate
-
-Return JSON with all classification fields."""
-
-def classify_defect(defect: dict) -> dict:
-    """Classify a defect report along multiple dimensions."""
-    defect_text = f"""Title: {defect.get('title', '')}
-Description: {defect.get('description', '')}
-Steps to Reproduce: {defect.get('steps', '')}
-Expected Result: {defect.get('expected', '')}
-Actual Result: {defect.get('actual', '')}
-Environment: {defect.get('environment', '')}
-Stack Trace: {defect.get('stack_trace', '')}
-Reporter: {defect.get('reporter', '')}
-Date: {defect.get('date', '')}"""
-
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": CLASSIFICATION_PROMPT},
-            {"role": "user", "content": defect_text}
-        ],
-        response_format={"type": "json_object"},
-        temperature=0.2
-    )
-    classification = json.loads(response.choices[0].message.content)
-    return {**defect, "classification": classification}
-
-
-# Example defect
-defect = {
-    "id": "BUG-4521",
-    "title": "Payment fails intermittently for amounts over $10,000",
-    "description": """Users report that payments over $10,000 sometimes fail
-    with a generic error message. The issue seems to happen more frequently
-    on weekends. The payment gateway returns a timeout error after 30 seconds.
-    Smaller payments process normally.""",
-    "steps": """1. Log in as any user
-    2. Initiate a payment of $15,000
-    3. Select wire transfer as payment method
-    4. Confirm payment
-    5. Observe: ~30% of the time, payment fails after 30-second delay""",
-    "expected": "Payment processes successfully within 5 seconds",
-    "actual": "Payment times out after 30 seconds with error 'Transaction failed'",
-    "environment": "Production, all browsers",
-    "stack_trace": "TimeoutException at PaymentGateway.processTransaction()",
-    "reporter": "Sarah Chen (Customer Support)",
-    "date": "2025-11-15"
-}
-
-classified = classify_defect(defect)
-c = classified["classification"]
-print(f"Defect: {defect['title']}")
-print(f"  Type: {c['defect_type']}")
-print(f"  Component: {c['component']}")
-print(f"  Root cause: {c['root_cause_category']}")
-print(f"  Reproducibility: {c['reproducibility']}")
-print(f"  Affected users: {c['affected_user_segment']}")
-print(f"  Assign to: {c['suggested_assignee_team']}")
-</code></pre>
-
-      <p>The classification output provides structured metadata that would take a human 3-5 minutes to determine:</p>
-
-      <pre><code>Defect: Payment fails intermittently for amounts over $10,000
-  Type: integration
-  Component: payment_gateway
-  Root cause: third_party (gateway timeout under high-value transactions)
-  Reproducibility: intermittent
-  Affected users: specific_data_pattern (amounts > $10,000)
-  Assign to: payments_integration_team</code></pre>
+      <table>
+        <thead>
+          <tr><th>Dimension</th><th>Classification</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Defect Type</td><td>Integration</td></tr>
+          <tr><td>Component</td><td>payment_gateway</td></tr>
+          <tr><td>Root Cause</td><td>third_party (gateway timeout under high-value transactions)</td></tr>
+          <tr><td>Reproducibility</td><td>Intermittent</td></tr>
+          <tr><td>Affected Users</td><td>specific_data_pattern (amounts > $10,000)</td></tr>
+          <tr><td>Assign To</td><td>payments_integration_team</td></tr>
+        </tbody>
+      </table>
 
       <div class="callout callout-tip">
         <strong>Build a classification feedback loop.</strong> Track cases where the LLM's classification is overridden during triage. Feed these corrections back as few-shot examples in the prompt. After 50-100 corrections, classification accuracy typically improves from 70-75% (out of the box) to 85-90% (fine-tuned with your team's patterns).
@@ -173,108 +220,21 @@ print(f"  Assign to: {c['suggested_assignee_team']}")
 
       <p>Beyond classification, LLMs can perform preliminary root cause analysis by correlating the defect description with recent code changes, system architecture, and known issues. This transforms triage from "what happened?" to "why did it happen?" — before a developer even looks at the bug.</p>
 
-      <pre><code class="language-python">RCA_PROMPT = """You are a senior software engineer performing root cause
-analysis. Given a defect report and recent code changes, determine:
+      <p>The RCA prompt feeds the defect report alongside recent code changes and known issues. For example, if the defect is a payment timeout and the commit history shows a recent change to "increase payment gateway timeout from 15s to 30s" and another to "add retry logic for failed gateway calls," the LLM correlates these signals to produce a hypothesis.</p>
 
-1. PROBABLE ROOT CAUSE: What most likely caused this defect? Be specific.
-2. CONTRIBUTING FACTORS: What other factors may have contributed?
-3. EVIDENCE: What evidence from the defect report supports your analysis?
-4. INVESTIGATION STEPS: What should the developer check first?
-5. SIMILAR PAST ISSUES: What patterns suggest this is a recurring problem?
-6. CONFIDENCE: How confident are you in this analysis? (high/medium/low)
+      <p>The LLM correlates the defect with the recent changes and produces a structured analysis:</p>
 
-Return JSON with these keys."""
-
-def analyze_root_cause(defect: dict,
-                       recent_changes: list[dict] = None,
-                       known_issues: list[dict] = None) -> dict:
-    """Perform preliminary root cause analysis on a defect."""
-    context = f"""Defect Report:
-Title: {defect['title']}
-Description: {defect['description']}
-Steps: {defect.get('steps', 'Not provided')}
-Stack Trace: {defect.get('stack_trace', 'Not provided')}
-Environment: {defect.get('environment', 'Not provided')}
-"""
-
-    if recent_changes:
-        context += f"\nRecent Code Changes:\n{json.dumps(recent_changes, indent=2)}"
-    if known_issues:
-        context += f"\nKnown Issues:\n{json.dumps(known_issues, indent=2)}"
-
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": RCA_PROMPT},
-            {"role": "user", "content": context}
-        ],
-        response_format={"type": "json_object"},
-        temperature=0.3
-    )
-    return json.loads(response.choices[0].message.content)
-
-
-# Analyze root cause with context
-recent_changes = [
-    {
-        "commit": "abc123",
-        "date": "2025-11-12",
-        "author": "dev_team",
-        "message": "Increased payment gateway timeout from 15s to 30s",
-        "files": ["services/payment_gateway.py"]
-    },
-    {
-        "commit": "def456",
-        "date": "2025-11-10",
-        "author": "dev_team",
-        "message": "Added retry logic for failed gateway calls",
-        "files": ["services/payment_gateway.py", "config/retry_policy.yaml"]
-    }
-]
-
-known_issues = [
-    {
-        "id": "BUG-3891",
-        "title": "Gateway timeout on international transactions",
-        "status": "resolved",
-        "resolution": "Increased timeout and added retry"
-    }
-]
-
-rca = analyze_root_cause(defect, recent_changes, known_issues)
-print(f"PROBABLE ROOT CAUSE: {rca['probable_root_cause']}")
-print(f"CONFIDENCE: {rca['confidence']}")
-print(f"\nCONTRIBUTING FACTORS:")
-for factor in rca['contributing_factors']:
-    print(f"  - {factor}")
-print(f"\nINVESTIGATION STEPS:")
-for step in rca['investigation_steps']:
-    print(f"  1. {step}")
-</code></pre>
-
-      <p>The LLM correlates the defect with the recent changes and produces an analysis like:</p>
-
-      <pre><code>PROBABLE ROOT CAUSE: The payment gateway has a processing time that
-scales with transaction amount. The recent timeout increase from 15s to
-30s masks the underlying issue — the gateway itself struggles with
-high-value transactions, possibly due to additional fraud checks or
-compliance validation on amounts exceeding $10,000.
-
-CONFIDENCE: medium
-
-CONTRIBUTING FACTORS:
-  - Weekend processing may coincide with batch settlement windows,
-    adding load to the gateway
-  - Retry logic (commit def456) may be causing duplicate authorization
-    attempts that further slow processing
-
-INVESTIGATION STEPS:
-  1. Check gateway logs for transactions > $10,000 — measure actual
-     processing time distribution
-  2. Verify if the gateway applies additional fraud screening above
-     a threshold amount
-  3. Check if retry logic is creating duplicate authorization requests
-  4. Compare weekend vs weekday gateway response times</code></pre>
+      <table>
+        <thead>
+          <tr><th>Analysis Dimension</th><th>Finding</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Probable Root Cause</strong></td><td>The payment gateway has processing time that scales with transaction amount. The timeout increase from 15s to 30s masks the underlying issue — the gateway struggles with high-value transactions, possibly due to additional fraud checks above $10,000.</td></tr>
+          <tr><td><strong>Confidence</strong></td><td>Medium</td></tr>
+          <tr><td><strong>Contributing Factors</strong></td><td>Weekend processing coincides with batch settlement windows, adding gateway load. Retry logic may cause duplicate authorization attempts that further slow processing.</td></tr>
+          <tr><td><strong>Investigation Steps</strong></td><td>1) Check gateway logs for transactions > $10K processing times. 2) Verify if additional fraud screening kicks in above a threshold. 3) Check for duplicate authorization requests from retry logic. 4) Compare weekend vs. weekday response times.</td></tr>
+        </tbody>
+      </table>
 
       <div class="callout callout-warning">
         <strong>Root cause analysis is hypothesis generation, not proof.</strong> The LLM's analysis is a starting point for investigation, not a conclusion. Always verify the hypothesis with actual log analysis, code review, and debugging. The value is in giving the developer a focused starting point rather than a blank slate.
@@ -289,90 +249,9 @@ INVESTIGATION STEPS:
 
       <p>Traditional duplicate detection uses keyword matching and fails on bugs described in different words. LLMs understand semantics — they recognize that "login button unresponsive" and "cannot click sign-in after page loads" describe the same issue.</p>
 
-      <pre><code class="language-python">DUPLICATE_PROMPT = """You are a defect deduplication specialist.
-Compare the NEW defect against each EXISTING defect and determine
-if the new defect is a duplicate, related, or unique.
+      <p>The LLM compares the new defect against each existing defect in the backlog, classifying each pair as <strong>duplicate</strong> (same underlying issue, different wording), <strong>related</strong> (same component, different issue), or <strong>unique</strong>. Each comparison includes a confidence score (0-1), reasoning, key similarities, and key differences. Results above a configurable threshold (default 0.7) are flagged as high-confidence matches.</p>
 
-For each comparison, provide:
-- existing_id: the ID of the existing defect
-- relationship: "duplicate" | "related" | "unique"
-- confidence: 0.0 to 1.0
-- reasoning: why you think they are related or not
-- key_similarities: what they share
-- key_differences: what distinguishes them
-
-A defect is a DUPLICATE if it describes the same underlying issue,
-even if the symptoms, steps, or wording are different.
-A defect is RELATED if it involves the same component or feature
-but describes a different issue.
-
-Return JSON with key "comparisons" sorted by confidence (highest first),
-and a "verdict" field with the overall recommendation."""
-
-def detect_duplicates(new_defect: dict,
-                      existing_defects: list[dict],
-                      threshold: float = 0.7) -> dict:
-    """Check if a new defect is a duplicate of any existing defect."""
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": DUPLICATE_PROMPT},
-            {"role": "user", "content": f"""NEW DEFECT:
-{json.dumps(new_defect, indent=2)}
-
-EXISTING DEFECTS:
-{json.dumps(existing_defects, indent=2)}"""}
-        ],
-        response_format={"type": "json_object"},
-        temperature=0.2
-    )
-    result = json.loads(response.choices[0].message.content)
-
-    # Filter to matches above threshold
-    result["high_confidence_matches"] = [
-        c for c in result["comparisons"]
-        if c["confidence"] >= threshold
-    ]
-    return result
-
-
-# Example: check a new defect against existing backlog
-new_defect = {
-    "id": "BUG-4590",
-    "title": "Wire transfer over $10K gets stuck",
-    "description": "Customer tried to send $12,000 via wire transfer. "
-                   "The transaction spinner kept going for about 30 seconds "
-                   "and then showed an error. Tried again on Monday and it "
-                   "worked fine."
-}
-
-existing_defects = [
-    {
-        "id": "BUG-4521",
-        "title": "Payment fails intermittently for amounts over $10,000",
-        "description": "Users report that payments over $10,000 sometimes fail..."
-    },
-    {
-        "id": "BUG-4102",
-        "title": "Slow page load on transaction history",
-        "description": "Transaction history page takes 10+ seconds to load..."
-    },
-    {
-        "id": "BUG-3998",
-        "title": "Wire transfer form validation error",
-        "description": "Routing number validation rejects valid ABA numbers..."
-    }
-]
-
-result = detect_duplicates(new_defect, existing_defects)
-print(f"Verdict: {result['verdict']}")
-for match in result["high_confidence_matches"]:
-    print(f"\n  Match: {match['existing_id']} "
-          f"({match['relationship']}, confidence: {match['confidence']:.0%})")
-    print(f"  Reason: {match['reasoning']}")
-</code></pre>
-
-      <p>Expected output:</p>
+      <p>For example, a new defect titled <em>"Wire transfer over $10K gets stuck"</em> is compared against the existing backlog. Expected output:</p>
 
       <pre><code>Verdict: DUPLICATE of BUG-4521
 
@@ -387,40 +266,7 @@ for match in result["high_confidence_matches"]:
 
       <h3>Batch Deduplication</h3>
 
-      <p>For cleaning an entire backlog, process defects in batches and build a cluster map:</p>
-
-      <pre><code class="language-python">def deduplicate_backlog(defects: list[dict]) -> dict:
-    """Identify all duplicate clusters in a defect backlog."""
-    clusters = {}  # canonical_id -> [duplicate_ids]
-    processed = set()
-
-    for i, defect in enumerate(defects):
-        if defect["id"] in processed:
-            continue
-
-        # Compare against all remaining unprocessed defects
-        remaining = [d for d in defects[i+1:] if d["id"] not in processed]
-        if not remaining:
-            continue
-
-        result = detect_duplicates(defect, remaining, threshold=0.75)
-        duplicates = [
-            m["existing_id"] for m in result.get("high_confidence_matches", [])
-            if m["relationship"] == "duplicate"
-        ]
-
-        if duplicates:
-            clusters[defect["id"]] = duplicates
-            processed.update(duplicates)
-
-    return clusters
-
-# Run on full backlog
-# clusters = deduplicate_backlog(all_defects)
-# print(f"Found {len(clusters)} duplicate clusters")
-# for canonical, dupes in clusters.items():
-#     print(f"  {canonical} <- {', '.join(dupes)}")
-</code></pre>
+      <p>For cleaning an entire backlog, process defects in sequence: compare each unprocessed defect against all remaining ones, identify duplicates above the confidence threshold, and build a cluster map. The canonical defect (the first filed, or the most detailed) becomes the primary, and all duplicates are marked for closure. This approach typically finds 15-40% of defects are duplicates, dramatically reducing backlog size.</p>
 
       <div class="callout callout-insight">
         <strong>Integrate at filing time, not triage time.</strong> The most effective duplicate detection happens when the bug is filed, not during triage. Add a pre-submission check: when a user starts typing a defect title, query the LLM to search for similar existing defects and display them. This prevents duplicates from entering the system at all — the reporter sees the existing bug and adds their information as a comment instead of creating a new ticket.
@@ -433,70 +279,9 @@ for match in result["high_confidence_matches"]:
 
       <p>Severity (how bad is the bug?) and priority (how soon should we fix it?) are the two axes of defect triage. But teams routinely confuse them or apply them inconsistently. An LLM can apply a consistent scoring rubric across all defects.</p>
 
-      <pre><code class="language-python">SCORING_PROMPT = """You are a QA lead applying a standardized severity and
-priority scoring rubric to defect reports. Score each defect using these
-definitions:
+      <p>The scoring rubric uses standard industry definitions. <strong>Severity</strong> measures impact: S1 (system crash, data loss, security breach), S2 (feature partially broken, no workaround), S3 (works with issues, workaround available), S4 (cosmetic). <strong>Priority</strong> measures urgency: P1 (fix now), P2 (this sprint), P3 (next sprint), P4 (backlog). The LLM considers five factors: business impact, user impact, workaround availability, fix complexity, and regression risk.</p>
 
-SEVERITY (how bad is the impact):
-- S1 Critical: System crash, data loss, security breach, complete feature failure
-- S2 Major: Feature partially broken, significant user impact, no workaround
-- S3 Moderate: Feature works but with issues, workaround available
-- S4 Minor: Cosmetic issues, minor inconvenience, edge case
-
-PRIORITY (how soon to fix):
-- P1 Immediate: Fix now, block release if needed
-- P2 High: Fix this sprint
-- P3 Medium: Fix next sprint
-- P4 Low: Fix when convenient, backlog
-
-Consider these factors for priority:
-1. Business impact (revenue, compliance, reputation)
-2. User impact (how many users, how often)
-3. Workaround availability
-4. Fix complexity (quick fix vs. architectural change)
-5. Regression risk (could the fix break other things?)
-
-Return JSON with: severity, severity_rationale, priority,
-priority_rationale, business_impact_score (1-10),
-user_impact_score (1-10), fix_complexity (low/medium/high),
-recommended_sprint (current/next/backlog)."""
-
-def score_defect(defect: dict, business_context: str = "") -> dict:
-    """Score a defect for severity and priority."""
-    defect_text = json.dumps(defect, indent=2)
-    context = f"\nBusiness context: {business_context}" if business_context else ""
-
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": SCORING_PROMPT},
-            {"role": "user", "content": defect_text + context}
-        ],
-        response_format={"type": "json_object"},
-        temperature=0.2
-    )
-    return json.loads(response.choices[0].message.content)
-
-
-# Score the payment defect
-score = score_defect(
-    defect,
-    business_context="This is a B2B payment platform. Our SLA guarantees "
-                     "99.9% transaction success rate. We process $2M daily. "
-                     "Q4 is our busiest period."
-)
-
-print(f"SEVERITY: {score['severity']}")
-print(f"  Rationale: {score['severity_rationale']}")
-print(f"PRIORITY: {score['priority']}")
-print(f"  Rationale: {score['priority_rationale']}")
-print(f"Business impact: {score['business_impact_score']}/10")
-print(f"User impact: {score['user_impact_score']}/10")
-print(f"Fix complexity: {score['fix_complexity']}")
-print(f"Recommended: {score['recommended_sprint']}")
-</code></pre>
-
-      <p>The scoring output provides both the rating and the reasoning, making triage decisions transparent and auditable:</p>
+      <p>When business context is included — for example, <em>"This is a B2B payment platform with 99.9% SLA, processing $2M daily, during Q4 peak season"</em> — the scoring output provides both the rating and the reasoning, making triage decisions transparent and auditable:</p>
 
       <pre><code>SEVERITY: S2 Major
   Rationale: Payment feature is partially broken — transactions under $10K
@@ -525,77 +310,9 @@ Recommended: current sprint (fix immediately)</code></pre>
 
       <p>Individual defects are symptoms. Patterns across defects reveal systemic problems. An LLM can analyze your defect backlog and identify recurring patterns that point to architectural issues, process failures, or skill gaps.</p>
 
-      <pre><code class="language-python">PATTERN_PROMPT = """You are a quality analytics specialist. Analyze a
-collection of defect reports and identify systemic patterns.
+      <p>The pattern analysis prompt examines a batch of defects across six dimensions: component hotspots, root cause clusters, temporal patterns (clustered around releases or sprints?), regression patterns (areas that keep breaking after fixes), process gaps (requirements, code review, or testing failures), and skill gaps. For each pattern found, it provides evidence (which defect IDs), frequency, business impact, a recommendation, and effort estimate.</p>
 
-Look for:
-1. COMPONENT HOTSPOTS: Which modules have disproportionately many defects?
-2. ROOT CAUSE CLUSTERS: What types of mistakes keep recurring?
-3. TEMPORAL PATTERNS: Are defects clustered around certain events
-   (releases, sprints, seasons)?
-4. REGRESSION PATTERNS: Which areas keep breaking after fixes?
-5. PROCESS GAPS: What do the defects reveal about gaps in requirements,
-   code review, or testing?
-6. SKILL GAPS: Do certain types of defects suggest training needs?
-
-For each pattern, provide:
-- pattern_name: descriptive name
-- evidence: which defect IDs support this pattern
-- frequency: how often it occurs
-- impact: business impact of this pattern continuing
-- recommendation: specific action to address the root cause
-- effort: low/medium/high effort to fix
-
-Return JSON with key "patterns" sorted by impact (highest first)."""
-
-def find_defect_patterns(defects: list[dict]) -> list[dict]:
-    """Analyze a defect collection for systemic patterns."""
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": PATTERN_PROMPT},
-            {"role": "user", "content": f"""Analyze these {len(defects)} defects
-for systemic patterns:
-
-{json.dumps(defects, indent=2)}"""}
-        ],
-        response_format={"type": "json_object"},
-        temperature=0.4
-    )
-    return json.loads(response.choices[0].message.content)["patterns"]
-
-
-# Example with a batch of defects
-defect_batch = [
-    {"id": "BUG-4521", "title": "Payment fails for amounts > $10K",
-     "component": "payments", "type": "integration", "date": "2025-11-15"},
-    {"id": "BUG-4489", "title": "Payment receipt email delayed 2 hours",
-     "component": "payments", "type": "performance", "date": "2025-11-12"},
-    {"id": "BUG-4455", "title": "Duplicate charge on retry",
-     "component": "payments", "type": "functional", "date": "2025-11-08"},
-    {"id": "BUG-4401", "title": "Payment status shows 'pending' indefinitely",
-     "component": "payments", "type": "functional", "date": "2025-11-01"},
-    {"id": "BUG-4380", "title": "Currency conversion off by 1 cent",
-     "component": "payments", "type": "data", "date": "2025-10-28"},
-    {"id": "BUG-4352", "title": "Login fails after password change",
-     "component": "auth", "type": "functional", "date": "2025-10-25"},
-    {"id": "BUG-4298", "title": "Session timeout not enforced",
-     "component": "auth", "type": "security", "date": "2025-10-18"},
-    {"id": "BUG-4267", "title": "Report export truncates after 10K rows",
-     "component": "reporting", "type": "functional", "date": "2025-10-12"},
-]
-
-patterns = find_defect_patterns(defect_batch)
-for p in patterns:
-    print(f"\nPATTERN: {p['pattern_name']}")
-    print(f"  Evidence: {', '.join(p['evidence'])}")
-    print(f"  Frequency: {p['frequency']}")
-    print(f"  Impact: {p['impact']}")
-    print(f"  Recommendation: {p['recommendation']}")
-    print(f"  Effort: {p['effort']}")
-</code></pre>
-
-      <p>The pattern analysis reveals insights like:</p>
+      <p>For a batch of eight defects spanning payments, auth, and reporting components, the pattern analysis reveals insights like:</p>
 
       <table>
         <thead>
@@ -620,63 +337,7 @@ for p in patterns:
 
       <p>Every bug fix carries regression risk — the fix might break something else. LLMs can assess this risk by analyzing the defect, the likely fix, and the system's dependency graph to predict what else might be affected.</p>
 
-      <pre><code class="language-python">REGRESSION_PROMPT = """You are a software architect assessing regression risk.
-Given a defect and its probable fix, analyze:
-
-1. DIRECTLY AFFECTED AREAS: What code/features will the fix touch?
-2. INDIRECTLY AFFECTED AREAS: What depends on the changed code?
-3. RISK LEVEL: high/medium/low for each affected area
-4. RECOMMENDED REGRESSION TESTS: What existing tests to re-run?
-5. NEW TESTS NEEDED: What new tests should be added to prevent regression?
-6. DEPLOYMENT RISK: Should this be deployed alone or with other changes?
-7. ROLLBACK PLAN: What to do if the fix causes regression in production?
-
-Return JSON with these keys and an overall "regression_risk_score" (1-10)."""
-
-def assess_regression_risk(defect: dict, proposed_fix: str,
-                           system_context: str = "") -> dict:
-    """Assess the regression risk of a proposed defect fix."""
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": REGRESSION_PROMPT},
-            {"role": "user", "content": f"""Defect:
-{json.dumps(defect, indent=2)}
-
-Proposed Fix: {proposed_fix}
-
-System Context: {system_context}"""}
-        ],
-        response_format={"type": "json_object"},
-        temperature=0.3
-    )
-    return json.loads(response.choices[0].message.content)
-
-
-# Assess regression risk for a payment fix
-risk = assess_regression_risk(
-    defect=defect,
-    proposed_fix="Add amount-based timeout scaling: transactions over $10K "
-                 "get 60s timeout instead of 30s. Add async processing for "
-                 "high-value transactions with webhook callback.",
-    system_context="Payment service is used by 3 other microservices: "
-                   "billing, invoicing, and reconciliation. All use the "
-                   "same PaymentGateway.processTransaction() method."
-)
-
-print(f"REGRESSION RISK SCORE: {risk['regression_risk_score']}/10")
-print(f"\nDIRECTLY AFFECTED:")
-for area in risk["directly_affected_areas"]:
-    print(f"  - {area}")
-print(f"\nINDIRECTLY AFFECTED:")
-for area in risk["indirectly_affected_areas"]:
-    print(f"  - {area}")
-print(f"\nREGRESSION TESTS TO RUN:")
-for test in risk["recommended_regression_tests"]:
-    print(f"  - {test}")
-print(f"\nDEPLOYMENT: {risk['deployment_risk']}")
-print(f"ROLLBACK: {risk['rollback_plan']}")
-</code></pre>
+      <p>The regression risk assessment takes three inputs: the defect, the proposed fix, and system context (dependency graph). For a payment timeout fix involving <em>"amount-based timeout scaling and async processing with webhook callback"</em> in a service used by three other microservices (billing, invoicing, reconciliation), the LLM analyzes directly and indirectly affected areas, recommends specific regression tests, and provides a deployment strategy and rollback plan.</p>
 
       <p>A risk assessment for this fix might show:</p>
 
@@ -729,124 +390,19 @@ disable flag to revert to synchronous-only processing.</code></pre>
         <li>Track triage decision accuracy over time</li>
       </ol>
 
-      <h3>Starter Code</h3>
+      <h3>Pipeline Steps</h3>
 
-      <pre><code class="language-python">import json
-from datetime import datetime
-from pathlib import Path
-from openai import OpenAI
+      <p>The Defect Triage Assistant processes each incoming defect through five stages:</p>
 
-client = OpenAI()
+      <ol>
+        <li><strong>Classification</strong> — categorize by type, component, root cause, and reproducibility</li>
+        <li><strong>Duplicate check</strong> — compare against existing backlog using semantic matching</li>
+        <li><strong>Severity/Priority scoring</strong> — apply the standardized rubric with business context</li>
+        <li><strong>Root cause analysis</strong> — correlate with recent code changes and known issues</li>
+        <li><strong>Recommendation</strong> — generate a human-readable triage summary: close as duplicate, assign to team, or escalate</li>
+      </ol>
 
-class DefectTriageAssistant:
-    """Automated defect triage pipeline."""
-
-    def __init__(self, backlog_path: str = "backlog.json",
-                 model: str = "gpt-4o"):
-        self.model = model
-        self.backlog = self._load_backlog(backlog_path)
-        self.triage_history = []
-
-    def _load_backlog(self, path: str) -> list[dict]:
-        """Load existing defect backlog."""
-        if Path(path).exists():
-            return json.loads(Path(path).read_text())
-        return []
-
-    def triage(self, defect: dict) -> dict:
-        """Run full triage pipeline on a defect."""
-        result = {
-            "defect_id": defect["id"],
-            "timestamp": datetime.now().isoformat(),
-            "defect": defect,
-        }
-
-        # Step 1: Classification
-        print(f"  Classifying {defect['id']}...")
-        result["classification"] = classify_defect(defect)["classification"]
-
-        # Step 2: Duplicate check
-        print(f"  Checking for duplicates...")
-        dup_result = detect_duplicates(defect, self.backlog)
-        result["duplicate_check"] = {
-            "verdict": dup_result["verdict"],
-            "matches": dup_result.get("high_confidence_matches", [])
-        }
-
-        # Step 3: Severity/Priority scoring
-        print(f"  Scoring severity and priority...")
-        result["scoring"] = score_defect(defect)
-
-        # Step 4: Root cause analysis
-        print(f"  Analyzing root cause...")
-        result["root_cause"] = analyze_root_cause(defect)
-
-        # Step 5: Generate recommendation
-        result["recommendation"] = self._generate_recommendation(result)
-
-        self.triage_history.append(result)
-        return result
-
-    def _generate_recommendation(self, triage_result: dict) -> str:
-        """Generate a human-readable triage recommendation."""
-        is_duplicate = "duplicate" in triage_result["duplicate_check"]["verdict"].lower()
-        severity = triage_result["scoring"]["severity"]
-        priority = triage_result["scoring"]["priority"]
-
-        if is_duplicate:
-            match_id = triage_result["duplicate_check"]["matches"][0]["existing_id"]
-            return (f"DUPLICATE — Close as duplicate of {match_id}. "
-                    f"Add reporter's additional details as a comment.")
-
-        return (f"TRIAGE: {severity} / {priority} — "
-                f"Assign to {triage_result['classification'].get('suggested_assignee_team', 'unassigned')}. "
-                f"Root cause: {triage_result['root_cause'].get('probable_root_cause', 'Unknown')}.")
-
-    def triage_batch(self, defects: list[dict]) -> list[dict]:
-        """Triage a batch of defects."""
-        results = []
-        for defect in defects:
-            print(f"\nTriaging {defect['id']}: {defect['title']}")
-            result = self.triage(defect)
-            results.append(result)
-            print(f"  => {result['recommendation']}")
-        return results
-
-    def generate_report(self, results: list[dict]) -> str:
-        """Generate a triage summary report."""
-        report_lines = [
-            f"TRIAGE REPORT — {datetime.now().strftime('%Y-%m-%d %H:%M')}",
-            f"{'='*60}",
-            f"Defects triaged: {len(results)}",
-            f"Duplicates found: {sum(1 for r in results if 'duplicate' in r['duplicate_check']['verdict'].lower())}",
-            ""
-        ]
-
-        for r in results:
-            report_lines.append(f"[{r['defect_id']}] {r['defect']['title']}")
-            report_lines.append(f"  Severity: {r['scoring']['severity']} | "
-                              f"Priority: {r['scoring']['priority']}")
-            report_lines.append(f"  Recommendation: {r['recommendation']}")
-            report_lines.append("")
-
-        return "\n".join(report_lines)
-
-
-# Usage
-if __name__ == "__main__":
-    assistant = DefectTriageAssistant("existing_backlog.json")
-
-    new_defects = [
-        {"id": "BUG-4590", "title": "Wire transfer over $10K gets stuck",
-         "description": "..."},
-        {"id": "BUG-4591", "title": "Dashboard chart renders blank on Safari",
-         "description": "..."},
-    ]
-
-    results = assistant.triage_batch(new_defects)
-    report = assistant.generate_report(results)
-    print(report)
-</code></pre>
+      <p>The output is a structured triage report listing each defect with its severity, priority, and recommended action. Duplicates are flagged for closure, and the reporter's additional details are preserved as comments on the canonical defect.</p>
 
       <h3>Extension Ideas</h3>
       <ul>

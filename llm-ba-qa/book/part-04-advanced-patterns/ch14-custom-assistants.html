@@ -37,6 +37,107 @@
       </ul>
     </section>
 
+    <!-- SVG Diagram: Assistant Workflow Architecture -->
+    <figure>
+      <svg viewBox="0 0 900 300" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif;background:#fff;border-radius:8px;border:1px solid #e0e0e0">
+        <text x="450" y="32" text-anchor="middle" fill="#333" font-size="16" font-weight="700">Assistant Workflow Architecture</text>
+        <defs>
+          <marker id="arrowCh14" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+        <!-- User Input -->
+        <rect x="20" y="115" width="110" height="50" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="75" y="137" text-anchor="middle" fill="#333" font-size="12" font-weight="600">User Input</text>
+        <text x="75" y="153" text-anchor="middle" fill="#666" font-size="10">Question / Task</text>
+        <line x1="130" y1="140" x2="165" y2="140" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowCh14)"/>
+        <!-- Intent Classification -->
+        <rect x="165" y="105" width="120" height="70" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="225" y="132" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Intent</text>
+        <text x="225" y="148" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Classification</text>
+        <text x="225" y="165" text-anchor="middle" fill="#666" font-size="10">Route to right tool</text>
+        <line x1="285" y1="140" x2="320" y2="140" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowCh14)"/>
+        <!-- Tool Selection -->
+        <rect x="320" y="80" width="130" height="120" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="385" y="105" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">Tool Selection</text>
+        <rect x="335" y="115" width="100" height="22" rx="3" fill="#fff" fill-opacity="0.3"/>
+        <text x="385" y="130" text-anchor="middle" fill="#fff" font-size="10">Jira API</text>
+        <rect x="335" y="142" width="100" height="22" rx="3" fill="#fff" fill-opacity="0.3"/>
+        <text x="385" y="157" text-anchor="middle" fill="#fff" font-size="10">Confluence</text>
+        <rect x="335" y="169" width="100" height="22" rx="3" fill="#fff" fill-opacity="0.3"/>
+        <text x="385" y="184" text-anchor="middle" fill="#fff" font-size="10">Database</text>
+        <line x1="450" y1="140" x2="485" y2="140" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowCh14)"/>
+        <!-- LLM Reasoning -->
+        <rect x="485" y="110" width="110" height="60" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="540" y="135" text-anchor="middle" fill="#333" font-size="12" font-weight="600">LLM Reasoning</text>
+        <text x="540" y="155" text-anchor="middle" fill="#666" font-size="10">Synthesize + Decide</text>
+        <line x1="595" y1="140" x2="630" y2="140" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowCh14)"/>
+        <!-- Response + Action -->
+        <rect x="630" y="105" width="120" height="70" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="690" y="132" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Response</text>
+        <text x="690" y="148" text-anchor="middle" fill="#333" font-size="12" font-weight="600">+ Action</text>
+        <text x="690" y="165" text-anchor="middle" fill="#666" font-size="10">Answer / Create / Update</text>
+        <line x1="750" y1="140" x2="785" y2="140" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowCh14)"/>
+        <!-- Memory Update -->
+        <rect x="785" y="115" width="100" height="50" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="835" y="137" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Memory</text>
+        <text x="835" y="153" text-anchor="middle" fill="#333" font-size="12" font-weight="600">Update</text>
+        <!-- Feedback arrow from Memory back to Intent -->
+        <path d="M 835 165 L 835 250 L 225 250 L 225 175" fill="none" stroke="#666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrowCh14)"/>
+        <text x="530" y="268" text-anchor="middle" fill="#666" font-size="10" font-style="italic">Context from previous interactions feeds into next classification</text>
+      </svg>
+      <figcaption>Figure 14.1 — A custom AI assistant follows a structured workflow: classify intent, select the right tool, reason with the LLM, take action, and update memory for future context.</figcaption>
+    </figure>
+
+    <!-- SVG Diagram: Multi-Step Reasoning Chain -->
+    <figure>
+      <svg viewBox="0 0 900 250" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif;background:#fff;border-radius:8px;border:1px solid #e0e0e0">
+        <text x="450" y="30" text-anchor="middle" fill="#333" font-size="16" font-weight="700">Multi-Step Reasoning Chain</text>
+        <!-- Steps -->
+        <rect x="15" y="60" width="100" height="55" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="65" y="82" text-anchor="middle" fill="#fff" font-size="11" font-weight="600">1. Understand</text>
+        <text x="65" y="98" text-anchor="middle" fill="#fff" font-size="10">Parse request</text>
+        <line x1="115" y1="88" x2="140" y2="88" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowCh14)"/>
+
+        <rect x="140" y="60" width="100" height="55" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="190" y="82" text-anchor="middle" fill="#333" font-size="11" font-weight="600">2. Gather</text>
+        <text x="190" y="98" text-anchor="middle" fill="#666" font-size="10">Fetch context</text>
+        <line x1="240" y1="88" x2="265" y2="88" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowCh14)"/>
+
+        <rect x="265" y="60" width="100" height="55" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="315" y="82" text-anchor="middle" fill="#333" font-size="11" font-weight="600">3. Analyze</text>
+        <text x="315" y="98" text-anchor="middle" fill="#666" font-size="10">Evaluate options</text>
+        <line x1="365" y1="88" x2="390" y2="88" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowCh14)"/>
+
+        <rect x="390" y="60" width="100" height="55" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="440" y="82" text-anchor="middle" fill="#333" font-size="11" font-weight="600">4. Plan</text>
+        <text x="440" y="98" text-anchor="middle" fill="#666" font-size="10">Choose action</text>
+        <line x1="490" y1="88" x2="515" y2="88" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowCh14)"/>
+
+        <rect x="515" y="60" width="100" height="55" rx="6" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="565" y="82" text-anchor="middle" fill="#fff" font-size="11" font-weight="600">5. Execute</text>
+        <text x="565" y="98" text-anchor="middle" fill="#fff" font-size="10">Call tools/APIs</text>
+        <line x1="615" y1="88" x2="640" y2="88" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowCh14)"/>
+
+        <rect x="640" y="60" width="100" height="55" rx="6" fill="#f5f5f5" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="690" y="82" text-anchor="middle" fill="#333" font-size="11" font-weight="600">6. Verify</text>
+        <text x="690" y="98" text-anchor="middle" fill="#666" font-size="10">Check result</text>
+        <line x1="740" y1="88" x2="765" y2="88" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrowCh14)"/>
+
+        <rect x="765" y="60" width="110" height="55" rx="6" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="820" y="82" text-anchor="middle" fill="#333" font-size="11" font-weight="600">7. Respond</text>
+        <text x="820" y="98" text-anchor="middle" fill="#666" font-size="10">Deliver answer</text>
+
+        <!-- Feedback loop from Verify back to Analyze -->
+        <path d="M 690 115 L 690 170 L 315 170 L 315 115" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrowCh14)"/>
+        <rect x="430" y="158" width="120" height="24" rx="4" fill="#fff" stroke="var(--accent)" stroke-width="1"/>
+        <text x="490" y="174" text-anchor="middle" fill="var(--accent)" font-size="10" font-weight="600">Retry if verification fails</text>
+
+        <text x="450" y="225" text-anchor="middle" fill="#666" font-size="11">Each step produces structured output that feeds into the next step. The verify-to-analyze loop handles self-correction.</text>
+      </svg>
+      <figcaption>Figure 14.2 — Multi-step reasoning chains break complex tasks into discrete steps with a feedback loop from verification back to analysis for self-correction.</figcaption>
+    </figure>
+
     <!-- Section 1 -->
     <section>
       <h2>14.1 Beyond One-Off Prompts</h2>
@@ -72,115 +173,13 @@
 
       <p>An assistant workflow is a state machine. At each state, the assistant either waits for user input, performs an action, or makes a decision about what to do next. Designing these workflows explicitly — rather than letting the LLM improvise — is key to reliability.</p>
 
-      <pre><code class="language-python">from enum import Enum
-from dataclasses import dataclass, field
-from typing import Callable
+      <p>The workflow is defined as a series of named states (such as <code>GATHER_CONTEXT</code>, <code>ANALYZE_REQUIREMENTS</code>, <code>GENERATE_STORIES</code>, <code>REVIEW_AND_REFINE</code>, <code>EXPORT</code>). Each state has a description, an associated system prompt, a set of available tools, and transition rules defining which states can follow. A handler function runs the logic for each state, and the workflow controller moves through states based on LLM decisions and user input.</p>
 
-class WorkflowState(Enum):
-    """States in a requirements-gathering assistant workflow."""
-    INIT = "init"
-    GATHER_CONTEXT = "gather_context"
-    ANALYZE_INPUT = "analyze_input"
-    GENERATE_ARTIFACTS = "generate_artifacts"
-    REVIEW = "review"
-    REFINE = "refine"
-    EXPORT = "export"
-    COMPLETE = "complete"
+      <!-- Removed: ~110-line WorkflowState enum, AssistantState dataclass, and
+           workflow definition. The key concept is state-machine design
+           for reliable multi-step assistant behavior. -->
 
-@dataclass
-class StateTransition:
-    """Defines a transition between workflow states."""
-    from_state: WorkflowState
-    to_state: WorkflowState
-    condition: str  # Description of when this transition fires
-    action: str     # What happens during the transition
-
-@dataclass
-class AssistantWorkflow:
-    """Define a structured workflow for the assistant."""
-    name: str
-    description: str
-    states: list[WorkflowState]
-    transitions: list[StateTransition]
-    current_state: WorkflowState = WorkflowState.INIT
-    context: dict = field(default_factory=dict)
-
-    def get_valid_transitions(self) -> list[StateTransition]:
-        """Get transitions available from the current state."""
-        return [t for t in self.transitions
-                if t.from_state == self.current_state]
-
-    def transition_to(self, new_state: WorkflowState) -> None:
-        """Move to a new state if the transition is valid."""
-        valid = [t.to_state for t in self.get_valid_transitions()]
-        if new_state not in valid:
-            raise ValueError(
-                f"Cannot transition from {self.current_state} "
-                f"to {new_state}. Valid: {valid}"
-            )
-        print(f"  [{self.current_state.value}] -> [{new_state.value}]")
-        self.current_state = new_state
-
-
-# Define a requirements gathering workflow
-requirements_workflow = AssistantWorkflow(
-    name="Requirements Gathering Assistant",
-    description="Guides a BA through requirements elicitation",
-    states=list(WorkflowState),
-    transitions=[
-        StateTransition(
-            WorkflowState.INIT,
-            WorkflowState.GATHER_CONTEXT,
-            "User provides project name or description",
-            "Ask clarifying questions about scope, stakeholders, constraints"
-        ),
-        StateTransition(
-            WorkflowState.GATHER_CONTEXT,
-            WorkflowState.ANALYZE_INPUT,
-            "User provides transcript, notes, or raw requirements",
-            "Parse input to extract requirements, assumptions, risks"
-        ),
-        StateTransition(
-            WorkflowState.ANALYZE_INPUT,
-            WorkflowState.GENERATE_ARTIFACTS,
-            "Analysis complete",
-            "Generate user stories, acceptance criteria, test cases"
-        ),
-        StateTransition(
-            WorkflowState.GENERATE_ARTIFACTS,
-            WorkflowState.REVIEW,
-            "Artifacts generated",
-            "Present artifacts for review, ask for feedback"
-        ),
-        StateTransition(
-            WorkflowState.REVIEW,
-            WorkflowState.REFINE,
-            "User requests changes",
-            "Apply requested changes to specific artifacts"
-        ),
-        StateTransition(
-            WorkflowState.REFINE,
-            WorkflowState.REVIEW,
-            "Changes applied",
-            "Present updated artifacts for re-review"
-        ),
-        StateTransition(
-            WorkflowState.REVIEW,
-            WorkflowState.EXPORT,
-            "User approves artifacts",
-            "Export to Jira, Confluence, or file"
-        ),
-        StateTransition(
-            WorkflowState.EXPORT,
-            WorkflowState.COMPLETE,
-            "Export successful",
-            "Summarize what was created and where"
-        ),
-    ]
-)
-</code></pre>
-
-      <p>Each state maps to a specific system prompt and set of available tools. This prevents the assistant from jumping ahead (generating stories before understanding context) or going off-track (discussing unrelated topics during review).</p>
+            <p>Each state maps to a specific system prompt and set of available tools. This prevents the assistant from jumping ahead (generating stories before understanding context) or going off-track (discussing unrelated topics during review).</p>
 
       <table>
         <thead>
@@ -206,178 +205,13 @@ requirements_workflow = AssistantWorkflow(
 
       <p>Complex BA and QA tasks require the assistant to break a problem into subtasks, execute them in sequence, and combine the results. This is "chain of thought" at the workflow level — not just inside a single prompt, but across multiple LLM calls.</p>
 
-      <pre><code class="language-python">from openai import OpenAI
-import json
+      <!-- Removed: Multi-step chain-of-thought implementation.
+           The pattern decomposes complex tasks (e.g., "analyze this transcript")
+           into sequential steps: extract requirements, classify by type,
+           generate acceptance criteria, create user stories, and compile results.
+           Each step's output feeds into the next step's prompt. -->
 
-client = OpenAI()
-
-class ReasoningChain:
-    """Execute a multi-step reasoning chain with intermediate results."""
-
-    def __init__(self, model: str = "gpt-4o"):
-        self.model = model
-        self.steps: list[dict] = []
-        self.results: list[dict] = []
-
-    def add_step(self, name: str, prompt_template: str,
-                 depends_on: list[str] = None,
-                 output_format: str = "text") -> "ReasoningChain":
-        """Add a step to the chain."""
-        self.steps.append({
-            "name": name,
-            "prompt_template": prompt_template,
-            "depends_on": depends_on or [],
-            "output_format": output_format
-        })
-        return self
-
-    def execute(self, initial_input: str) -> dict:
-        """Execute all steps in sequence, passing results forward."""
-        context = {"input": initial_input}
-        self.results = []
-
-        for step in self.steps:
-            print(f"  Step: {step['name']}...")
-
-            # Resolve dependencies
-            prompt = step["prompt_template"]
-            for dep in step["depends_on"]:
-                dep_result = next(
-                    (r["output"] for r in self.results
-                     if r["name"] == dep), ""
-                )
-                prompt = prompt.replace(f"{{{dep}}}", str(dep_result))
-
-            prompt = prompt.replace("{input}", initial_input)
-
-            # Execute step
-            messages = [{"role": "user", "content": prompt}]
-            kwargs = {"model": self.model, "messages": messages,
-                      "temperature": 0.3}
-
-            if step["output_format"] == "json":
-                kwargs["response_format"] = {"type": "json_object"}
-
-            response = client.chat.completions.create(**kwargs)
-            output = response.choices[0].message.content
-
-            if step["output_format"] == "json":
-                output = json.loads(output)
-
-            self.results.append({
-                "name": step["name"],
-                "output": output,
-                "tokens_used": response.usage.total_tokens
-            })
-
-            context[step["name"]] = output
-
-        return {
-            "final_output": self.results[-1]["output"],
-            "all_steps": self.results,
-            "total_tokens": sum(r["tokens_used"] for r in self.results)
-        }
-
-
-# Example: Requirements Analysis Chain
-chain = ReasoningChain()
-
-chain.add_step(
-    name="extract_requirements",
-    prompt_template="""Extract all functional and non-functional
-requirements from this stakeholder interview transcript.
-Return JSON with keys: "functional" (array), "non_functional" (array),
-"assumptions" (array), "open_questions" (array).
-
-Transcript:
-{input}""",
-    output_format="json"
-)
-
-chain.add_step(
-    name="generate_stories",
-    prompt_template="""Convert these requirements into user stories
-in standard format: "As a [role], I want [capability],
-so that [benefit]."
-
-Requirements:
-{extract_requirements}
-
-For each story, include:
-- Story title
-- User story text
-- Acceptance criteria (Given/When/Then)
-- Priority estimate (must/should/could)
-- Story points estimate (1, 2, 3, 5, 8, 13)
-
-Return JSON with key "stories" (array of objects).""",
-    depends_on=["extract_requirements"],
-    output_format="json"
-)
-
-chain.add_step(
-    name="generate_test_cases",
-    prompt_template="""Generate test cases for each user story.
-Include positive, negative, and edge case scenarios.
-
-Stories:
-{generate_stories}
-
-For each test case, include:
-- test_id, story_ref, title, type (positive/negative/edge),
-  preconditions, steps, expected_result, priority
-
-Return JSON with key "test_cases".""",
-    depends_on=["generate_stories"],
-    output_format="json"
-)
-
-chain.add_step(
-    name="risk_analysis",
-    prompt_template="""Analyze the requirements and stories for risks.
-
-Requirements: {extract_requirements}
-Stories: {generate_stories}
-
-Identify:
-1. Missing requirements (gaps in the transcript)
-2. Conflicting requirements
-3. Ambiguous requirements needing clarification
-4. Technical risks
-5. Business risks
-
-Return JSON with key "risks" (array of objects with
-risk_type, description, severity, mitigation).""",
-    depends_on=["extract_requirements", "generate_stories"],
-    output_format="json"
-)
-
-chain.add_step(
-    name="summary",
-    prompt_template="""Create an executive summary of the requirements
-analysis. Include:
-
-1. Project scope summary (2-3 sentences)
-2. Key statistics (number of stories, test cases, risks)
-3. Top 3 risks requiring immediate attention
-4. Recommended next steps
-5. Open questions for stakeholders
-
-Requirements: {extract_requirements}
-Stories: {generate_stories}
-Test Cases: {generate_test_cases}
-Risks: {risk_analysis}""",
-    depends_on=["extract_requirements", "generate_stories",
-                "generate_test_cases", "risk_analysis"]
-)
-
-# Execute the chain
-transcript = """[Stakeholder interview transcript would go here]"""
-result = chain.execute(transcript)
-
-print(f"\nChain complete. Total tokens: {result['total_tokens']}")
-print(f"\nExecutive Summary:\n{result['final_output']}")
-</code></pre>
+      <p>The implementation follows the chain pattern from Figure 14.2: each step receives the output of the previous step as input. The chain runner iterates through steps sequentially, calling the LLM once per step with a focused prompt. If any step fails, the chain halts and reports which step failed and why. Results accumulate in a dictionary that grows richer at each step.</p>
 
       <p>Multi-step chains provide several advantages over single-prompt approaches:</p>
 
@@ -809,103 +643,11 @@ If no facts to extract, return {{"facts": {{}}}}."""
 
       <p>An assistant that produces perfect outputs but is confusing to use will be abandoned within a week. UX design for AI assistants follows different rules than traditional software UX because the interaction is conversational and the outputs are probabilistic.</p>
 
-      <pre><code class="language-python">class AssistantUX:
-    """UX patterns for building trustworthy AI assistants."""
+      <!-- Removed: AssistantUX class with conversation formatting,
+           progress indicators, and error handling display logic.
+           Key UX principles are described in prose below. -->
 
-    @staticmethod
-    def format_confidence_indicator(confidence: float) -> str:
-        """Show the user how confident the assistant is."""
-        if confidence >= 0.9:
-            return "[High confidence] "
-        elif confidence >= 0.7:
-            return "[Medium confidence — please verify] "
-        else:
-            return "[Low confidence — treat as a starting point] "
-
-    @staticmethod
-    def format_progressive_output(sections: list[dict]) -> str:
-        """Present output progressively so users can give
-        feedback before the assistant does all the work."""
-        output = ""
-        for i, section in enumerate(sections):
-            output += f"\n{'='*50}\n"
-            output += f"Step {i+1} of {len(sections)}: "
-            output += f"{section['title']}\n"
-            output += f"{'='*50}\n"
-            output += section['content']
-
-            if i < len(sections) - 1:
-                output += ("\n\n> Does this look right? Say 'continue' "
-                          "to proceed or provide feedback.\n")
-        return output
-
-    @staticmethod
-    def format_action_confirmation(actions: list[dict]) -> str:
-        """Ask for explicit confirmation before taking actions."""
-        output = "\nI am ready to take the following actions:\n\n"
-        for i, action in enumerate(actions, 1):
-            output += f"  {i}. {action['description']}\n"
-            if action.get('details'):
-                output += f"     Details: {action['details']}\n"
-            output += f"     System: {action['system']}\n\n"
-
-        output += ("Shall I proceed with all actions, or would you "
-                   "like to modify or skip any?\n"
-                   "Options: 'proceed all', 'skip N', 'modify N', "
-                   "'cancel'\n")
-        return output
-
-    @staticmethod
-    def format_error_recovery(error: str,
-                               suggestions: list[str]) -> str:
-        """Handle errors gracefully with actionable suggestions."""
-        output = f"\nI encountered an issue: {error}\n\n"
-        output += "Here is what you can try:\n"
-        for i, suggestion in enumerate(suggestions, 1):
-            output += f"  {i}. {suggestion}\n"
-        output += ("\nWould you like me to try one of these "
-                   "approaches, or would you prefer to handle "
-                   "this manually?\n")
-        return output
-
-    @staticmethod
-    def format_source_attribution(answer: str,
-                                    sources: list[dict]) -> str:
-        """Show where information came from."""
-        output = answer + "\n\n"
-        output += "---\nSources:\n"
-        for s in sources:
-            output += (f"  - [{s['type']}] {s['title']}"
-                      f" (last updated: {s.get('date', 'unknown')})\n")
-        return output
-
-
-# UX principles for AI assistants
-UX_PRINCIPLES = """
-1. TRANSPARENCY: Always show confidence levels and sources.
-   Users must know when the assistant is guessing.
-
-2. PROGRESSIVE DISCLOSURE: Show one step at a time for complex
-   workflows. Let users course-correct early.
-
-3. CONFIRMATION BEFORE ACTION: Never modify external systems
-   without explicit user approval.
-
-4. GRACEFUL DEGRADATION: When the assistant cannot complete a
-   task, explain why and suggest alternatives.
-
-5. UNDO CAPABILITY: Every action should be reversible, or at
-   minimum, the user should be warned if it is not.
-
-6. CONTEXT INDICATORS: Show what the assistant "knows" about
-   the current session — project name, loaded documents,
-   active workflow state.
-
-7. ESCAPE HATCHES: Users should always be able to override
-   the assistant's suggestions, restart a workflow, or switch
-   to manual mode.
-"""
-</code></pre>
+      <p>The UX layer wraps assistant interactions with clear formatting: user messages are visually distinct from assistant responses, tool calls show progress indicators ("Searching Jira..."), and errors display in a friendly format with suggested next steps. The assistant always confirms before taking destructive actions (like creating or updating tickets) and provides a summary of what it did at the end of multi-step workflows.</p>
 
       <p>Common UX mistakes in AI assistants and how to avoid them:</p>
 
@@ -933,241 +675,11 @@ UX_PRINCIPLES = """
 
       <p>Deploying a custom assistant means running it reliably for multiple users while monitoring quality, cost, and performance. Unlike traditional software, AI assistants can degrade silently — producing subtly worse answers without throwing errors — so monitoring requires quality metrics, not just uptime checks.</p>
 
-      <pre><code class="language-python">import json
-import time
-from datetime import datetime, timedelta
-from dataclasses import dataclass, field
+      <!-- Removed: Deployment monitoring class with cost tracking,
+           quality metrics, and usage analytics.
+           Key monitoring concepts described in prose. -->
 
-@dataclass
-class AssistantMetrics:
-    """Track assistant performance metrics for monitoring."""
-    queries: list[dict] = field(default_factory=list)
-    errors: list[dict] = field(default_factory=list)
-    tool_calls: list[dict] = field(default_factory=list)
-    feedback: list[dict] = field(default_factory=list)
-
-    def log_query(self, query: str, response: str,
-                  latency_ms: int, tokens: int,
-                  model: str) -> None:
-        """Log a query-response pair."""
-        self.queries.append({
-            "timestamp": datetime.now().isoformat(),
-            "query": query[:200],
-            "response_length": len(response),
-            "latency_ms": latency_ms,
-            "tokens": tokens,
-            "model": model
-        })
-
-    def log_error(self, error_type: str, message: str,
-                  context: str = "") -> None:
-        """Log an error event."""
-        self.errors.append({
-            "timestamp": datetime.now().isoformat(),
-            "type": error_type,
-            "message": message,
-            "context": context[:500]
-        })
-
-    def log_tool_call(self, tool_name: str, success: bool,
-                      latency_ms: int) -> None:
-        """Log a tool execution."""
-        self.tool_calls.append({
-            "timestamp": datetime.now().isoformat(),
-            "tool": tool_name,
-            "success": success,
-            "latency_ms": latency_ms
-        })
-
-    def log_feedback(self, query: str, rating: int,
-                     comment: str = "") -> None:
-        """Log user feedback (1-5 stars)."""
-        self.feedback.append({
-            "timestamp": datetime.now().isoformat(),
-            "query": query[:200],
-            "rating": rating,
-            "comment": comment
-        })
-
-    def get_dashboard(self) -> dict:
-        """Generate a monitoring dashboard summary."""
-        now = datetime.now()
-        last_24h = now - timedelta(hours=24)
-
-        recent_queries = [
-            q for q in self.queries
-            if datetime.fromisoformat(q["timestamp"]) > last_24h
-        ]
-        recent_errors = [
-            e for e in self.errors
-            if datetime.fromisoformat(e["timestamp"]) > last_24h
-        ]
-        recent_feedback = [
-            f for f in self.feedback
-            if datetime.fromisoformat(f["timestamp"]) > last_24h
-        ]
-        recent_tools = [
-            t for t in self.tool_calls
-            if datetime.fromisoformat(t["timestamp"]) > last_24h
-        ]
-
-        latencies = [q["latency_ms"] for q in recent_queries]
-        tokens = [q["tokens"] for q in recent_queries]
-        ratings = [f["rating"] for f in recent_feedback]
-
-        return {
-            "period": "Last 24 hours",
-            "total_queries": len(recent_queries),
-            "total_errors": len(recent_errors),
-            "error_rate": (
-                f"{len(recent_errors)/len(recent_queries)*100:.1f}%"
-                if recent_queries else "N/A"
-            ),
-            "avg_latency_ms": (
-                round(sum(latencies) / len(latencies))
-                if latencies else 0
-            ),
-            "p95_latency_ms": (
-                round(sorted(latencies)[int(len(latencies) * 0.95)])
-                if latencies else 0
-            ),
-            "total_tokens": sum(tokens),
-            "estimated_cost_usd": round(sum(tokens) * 0.000005, 2),
-            "avg_rating": (
-                round(sum(ratings) / len(ratings), 1)
-                if ratings else "No feedback"
-            ),
-            "tool_calls": len(recent_tools),
-            "tool_success_rate": (
-                f"{sum(1 for t in recent_tools if t['success'])"
-                f"/{len(recent_tools)}"
-                if recent_tools else "No tool calls"
-            ),
-            "low_rating_queries": [
-                f["query"] for f in recent_feedback if f["rating"] <= 2
-            ]
-        }
-
-
-class ProductionAssistant:
-    """Production-ready assistant with monitoring and guardrails."""
-
-    def __init__(self, system_prompt: str, tools: list[dict],
-                 model: str = "gpt-4o"):
-        self.model = model
-        self.tools = tools
-        self.system_prompt = system_prompt
-        self.memory = ConversationMemory()
-        self.metrics = AssistantMetrics()
-
-        # Guardrails
-        self.max_tokens_per_query = 4000
-        self.max_tool_calls_per_turn = 5
-        self.blocked_topics = ["salary", "personal_data", "credentials"]
-
-    def chat(self, user_message: str, user_id: str = "default") -> str:
-        """Process a user message with full monitoring."""
-        start_time = time.time()
-
-        try:
-            # Input guardrails
-            if self._check_blocked_topics(user_message):
-                return ("I cannot assist with that topic. Please contact "
-                        "your manager or HR directly.")
-
-            # Add to memory
-            self.memory.add_message("user", user_message)
-            self.memory.extract_facts(user_message)
-
-            # Build context
-            messages = self.memory.get_context_messages(
-                self.system_prompt
-            )
-
-            # Call LLM with tool support
-            response = client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                tools=self.tools if self.tools else None,
-                temperature=0.3,
-                max_tokens=self.max_tokens_per_query
-            )
-
-            message = response.choices[0].message
-            tool_call_count = 0
-
-            # Handle tool calls with limits
-            while (message.tool_calls
-                   and tool_call_count < self.max_tool_calls_per_turn):
-                for tool_call in message.tool_calls:
-                    tool_start = time.time()
-                    try:
-                        result = execute_tool(
-                            tool_call.function.name,
-                            json.loads(tool_call.function.arguments)
-                        )
-                        self.metrics.log_tool_call(
-                            tool_call.function.name, True,
-                            int((time.time() - tool_start) * 1000)
-                        )
-                    except Exception as e:
-                        result = json.dumps({"error": str(e)})
-                        self.metrics.log_tool_call(
-                            tool_call.function.name, False,
-                            int((time.time() - tool_start) * 1000)
-                        )
-                    tool_call_count += 1
-
-                # Get next response after tool results
-                response = client.chat.completions.create(
-                    model=self.model,
-                    messages=messages,
-                    tools=self.tools,
-                    temperature=0.3
-                )
-                message = response.choices[0].message
-
-            assistant_response = message.content or ""
-            self.memory.add_message("assistant", assistant_response)
-
-            # Log metrics
-            latency_ms = int((time.time() - start_time) * 1000)
-            self.metrics.log_query(
-                user_message, assistant_response,
-                latency_ms, response.usage.total_tokens,
-                self.model
-            )
-
-            return assistant_response
-
-        except Exception as e:
-            self.metrics.log_error(
-                type(e).__name__, str(e), user_message
-            )
-            return ("I encountered an unexpected error. The issue has "
-                    "been logged. Please try rephrasing your question "
-                    "or contact support if the problem persists.")
-
-    def _check_blocked_topics(self, message: str) -> bool:
-        """Check if the message touches blocked topics."""
-        message_lower = message.lower()
-        return any(topic in message_lower
-                   for topic in self.blocked_topics)
-
-    def get_monitoring_dashboard(self) -> str:
-        """Get a formatted monitoring dashboard."""
-        dashboard = self.metrics.get_dashboard()
-        output = "\nAssistant Monitoring Dashboard\n"
-        output += "=" * 40 + "\n"
-        for key, value in dashboard.items():
-            if key != "low_rating_queries":
-                output += f"  {key}: {value}\n"
-        if dashboard.get("low_rating_queries"):
-            output += "\nLow-rated queries requiring attention:\n"
-            for q in dashboard["low_rating_queries"]:
-                output += f"  - {q}\n"
-        return output
-</code></pre>
+      <p>Production deployment requires three monitoring layers: <strong>operational metrics</strong> (response latency, error rates, uptime), <strong>quality metrics</strong> (user satisfaction ratings, task completion rates, hallucination frequency), and <strong>cost metrics</strong> (tokens consumed per conversation, cost per task category, monthly spend trends). Log every conversation turn with timestamps, token counts, and tool calls. Set alerts for latency spikes above 10 seconds, error rates above 5%, and daily cost exceeding your budget threshold. Review a random sample of 20 conversations weekly to catch quality degradation that automated metrics miss.</p>
 
       <p>Key monitoring dimensions for production assistants:</p>
 
@@ -1209,128 +721,12 @@ class ProductionAssistant:
 
       <h3>Starter Code</h3>
 
-      <pre><code class="language-python">from openai import OpenAI
-import json
+      <!-- Removed: BA/QA Assistant starter code (~120 lines).
+           The assistant combines intent classification, tool calling,
+           memory management, and workflow orchestration.
+           See companion notebook for complete implementation. -->
 
-client = OpenAI()
-
-class BAQAAssistant:
-    """Full-featured BA/QA assistant with workflow,
-    tools, and memory."""
-
-    def __init__(self, project_key: str, model: str = "gpt-4o"):
-        self.project_key = project_key
-        self.model = model
-        self.workflow = requirements_workflow  # From Section 2
-        self.memory = ConversationMemory()
-        self.metrics = AssistantMetrics()
-        self.chain = self._build_chain()
-
-    def _build_chain(self) -> ReasoningChain:
-        """Set up the requirements-to-tests reasoning chain."""
-        chain = ReasoningChain(self.model)
-        chain.add_step("extract", "...", output_format="json")
-        chain.add_step("stories", "...", depends_on=["extract"],
-                       output_format="json")
-        chain.add_step("tests", "...", depends_on=["stories"],
-                       output_format="json")
-        chain.add_step("summary", "...",
-                       depends_on=["extract", "stories", "tests"])
-        return chain
-
-    def _get_system_prompt(self) -> str:
-        """Get the system prompt for the current workflow state."""
-        state = self.workflow.current_state.value
-        prompts = {
-            "init": f"""You are a BA/QA assistant for project
-{self.project_key}. Greet the user and ask what they need help
-with: requirements gathering, test planning, or project status.""",
-            "gather_context": """You are gathering context for a
-requirements analysis. Ask about: project scope, stakeholders,
-constraints, deadlines, and any existing documentation.""",
-            "analyze_input": """Analyze the provided input to extract
-requirements. Be thorough — identify functional requirements,
-non-functional requirements, assumptions, and risks.""",
-            "generate_artifacts": """Generate user stories and test
-cases from the analyzed requirements. Follow standard formats
-and include acceptance criteria.""",
-            "review": """Present the generated artifacts for review.
-Accept feedback and be ready to modify specific items.""",
-            "export": """Export approved artifacts to Jira and
-Confluence. Confirm each action before executing.""",
-        }
-        return prompts.get(state, prompts["init"])
-
-    def chat(self, message: str) -> str:
-        """Process a user message within the workflow."""
-        import time
-        start = time.time()
-
-        self.memory.add_message("user", message)
-        messages = self.memory.get_context_messages(
-            self._get_system_prompt()
-        )
-
-        response = client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            tools=TOOLS,
-            temperature=0.3
-        )
-
-        reply = response.choices[0].message.content or ""
-        self.memory.add_message("assistant", reply)
-
-        self.metrics.log_query(
-            message, reply,
-            int((time.time() - start) * 1000),
-            response.usage.total_tokens,
-            self.model
-        )
-
-        return reply
-
-    def analyze_transcript(self, transcript: str) -> dict:
-        """Run the full analysis chain on a transcript."""
-        self.workflow.transition_to(WorkflowState.ANALYZE_INPUT)
-        result = self.chain.execute(transcript)
-        self.workflow.transition_to(
-            WorkflowState.GENERATE_ARTIFACTS
-        )
-        return result
-
-    def status(self) -> str:
-        """Show current assistant status."""
-        return f"""
-BA/QA Assistant Status
-======================
-Project: {self.project_key}
-Workflow state: {self.workflow.current_state.value}
-Messages in context: {len(self.memory.messages)}
-Known facts: {len(self.memory.facts)}
-Session: {self.memory.session_id}
-
-{self.metrics.get_dashboard()}
-"""
-
-
-# Usage
-if __name__ == "__main__":
-    assistant = BAQAAssistant(project_key="ECOM")
-
-    print(assistant.chat("Hi, I need to analyze a stakeholder "
-                         "interview for the checkout redesign."))
-    print(assistant.chat("The stakeholders want: faster checkout, "
-                         "guest checkout option, saved payment "
-                         "methods, and order tracking."))
-
-    # Run full analysis
-    result = assistant.analyze_transcript(
-        "Interview transcript content here..."
-    )
-
-    print(assistant.status())
-</code></pre>
+      <p>Your BA/QA Assistant project integrates all the patterns from this chapter: a workflow state machine that routes user requests, tool integrations for Jira and Confluence, conversation memory with sliding-window compression, and a UX layer that confirms actions before execution. Initialize it with your API keys and tool configurations, then interact through a chat-style interface that maintains context across the full conversation.</p>
 
       <h3>Extension Ideas</h3>
       <ul>

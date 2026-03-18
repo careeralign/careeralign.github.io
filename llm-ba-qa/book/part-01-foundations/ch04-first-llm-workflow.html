@@ -37,6 +37,70 @@
     <!-- Section 4.1 -->
     <h2>4.1 Setting Up Your Environment</h2>
 
+    <figure class="diagram">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 190" width="100%" role="img" aria-label="Your First LLM Workflow — end-to-end flow from input document to structured report">
+        <style>
+          .wf-box { fill: var(--accent-light, #e0e7ff); stroke: var(--accent, #4f46e5); stroke-width: 2; rx: 10; }
+          .wf-core { fill: var(--accent, #4f46e5); stroke: var(--accent, #4f46e5); stroke-width: 2; rx: 10; }
+          .wf-label { font-family: system-ui, sans-serif; font-size: 11.5px; font-weight: 700; fill: #333; text-anchor: middle; }
+          .wf-label-light { font-family: system-ui, sans-serif; font-size: 11.5px; font-weight: 700; fill: #fff; text-anchor: middle; }
+          .wf-sub { font-family: system-ui, sans-serif; font-size: 9.5px; fill: #555; text-anchor: middle; }
+          .wf-sub-light { font-family: system-ui, sans-serif; font-size: 9.5px; fill: #e0e7ff; text-anchor: middle; }
+          .wf-icon { font-size: 24px; text-anchor: middle; }
+        </style>
+        <defs>
+          <marker id="wf-arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="var(--accent, #4f46e5)"/>
+          </marker>
+        </defs>
+
+        <!-- Step 1: Input Document -->
+        <rect x="5" y="30" width="130" height="110" class="wf-box"/>
+        <text x="70" y="60" class="wf-icon">&#128196;</text>
+        <text x="70" y="86" class="wf-label">Input</text>
+        <text x="70" y="100" class="wf-label">Document</text>
+        <text x="70" y="118" class="wf-sub">Requirements,</text>
+        <text x="70" y="130" class="wf-sub">meeting notes, etc.</text>
+        <line x1="135" y1="85" x2="165" y2="85" stroke="var(--accent,#4f46e5)" stroke-width="2" marker-end="url(#wf-arr)"/>
+
+        <!-- Step 2: Prompt Template -->
+        <rect x="165" y="40" width="120" height="90" class="wf-box"/>
+        <text x="225" y="68" class="wf-icon">&#128221;</text>
+        <text x="225" y="92" class="wf-label">Prompt</text>
+        <text x="225" y="106" class="wf-label">Template</text>
+        <text x="225" y="122" class="wf-sub">Role + task + format</text>
+        <line x1="285" y1="85" x2="315" y2="85" stroke="var(--accent,#4f46e5)" stroke-width="2" marker-end="url(#wf-arr)"/>
+
+        <!-- Step 3: LLM API -->
+        <rect x="315" y="30" width="130" height="110" class="wf-core"/>
+        <text x="380" y="60" class="wf-icon" style="fill:#fff;">&#9881;</text>
+        <text x="380" y="86" class="wf-label-light">LLM API</text>
+        <text x="380" y="104" class="wf-sub-light">GPT-4o, Claude,</text>
+        <text x="380" y="118" class="wf-sub-light">Gemini, etc.</text>
+        <line x1="445" y1="85" x2="475" y2="85" stroke="var(--accent,#4f46e5)" stroke-width="2" marker-end="url(#wf-arr)"/>
+
+        <!-- Step 4: Structured Output -->
+        <rect x="475" y="40" width="120" height="90" class="wf-box"/>
+        <text x="535" y="68" class="wf-icon">&#128202;</text>
+        <text x="535" y="92" class="wf-label">Structured</text>
+        <text x="535" y="106" class="wf-label">Output</text>
+        <text x="535" y="122" class="wf-sub">JSON, tables, scores</text>
+        <line x1="595" y1="85" x2="625" y2="85" stroke="var(--accent,#4f46e5)" stroke-width="2" marker-end="url(#wf-arr)"/>
+
+        <!-- Step 5: Report -->
+        <rect x="625" y="30" width="145" height="110" class="wf-box"/>
+        <text x="697" y="60" class="wf-icon">&#128200;</text>
+        <text x="697" y="86" class="wf-label">Report /</text>
+        <text x="697" y="100" class="wf-label">Dashboard</text>
+        <text x="697" y="118" class="wf-sub">Human review &amp;</text>
+        <text x="697" y="130" class="wf-sub">decision-making</text>
+
+        <!-- Bottom note -->
+        <text x="390" y="175" text-anchor="middle" style="font-family:system-ui,sans-serif;font-size:11px;fill:#555;font-style:italic;">You control the input and review the output. The LLM handles the heavy lifting in between.</text>
+      </svg>
+      <figcaption>Your First LLM Workflow — a repeatable pipeline where your document is combined with a prompt template, sent to an LLM API, and returned as structured output for human review. The analyst's judgment remains central at both ends.</figcaption>
+    </figure>
+
     <p>Before writing your first line of code, you need a clean, organized development environment. Even if you're not a developer by trade, setting up a proper environment is straightforward and will save you hours of frustration later.</p>
 
     <p><strong>What You Need:</strong></p>
@@ -48,49 +112,7 @@
 
     <p><strong>Step-by-step setup:</strong></p>
 
-    <pre><code class="language-bash"># Step 1: Create a project directory
-mkdir llm-analyst-toolkit
-cd llm-analyst-toolkit
-
-# Step 2: Create a virtual environment (isolates your project's packages)
-python -m venv venv
-
-# Step 3: Activate the virtual environment
-# On macOS/Linux:
-source venv/bin/activate
-# On Windows:
-# venv\Scripts\activate
-
-# Step 4: Install required packages
-pip install openai anthropic tiktoken python-dotenv pandas
-
-# Step 5: Create a .env file for API keys (NEVER commit this to git)
-echo "OPENAI_API_KEY=your-key-here" > .env
-echo "ANTHROPIC_API_KEY=your-key-here" >> .env
-
-# Step 6: Create a .gitignore to protect your keys
-echo ".env" > .gitignore
-echo "venv/" >> .gitignore
-echo "__pycache__/" >> .gitignore</code></pre>
-
-    <p><strong>Project Structure:</strong></p>
-    <pre><code>llm-analyst-toolkit/
-├── .env                 # API keys (never commit)
-├── .gitignore           # Protects sensitive files
-├── venv/                # Virtual environment
-├── prompts/             # Your prompt templates
-│   ├── requirements_analysis.txt
-│   └── test_case_generation.txt
-├── data/                # Input documents
-│   └── sample_requirements.txt
-├── output/              # Generated reports
-├── src/                 # Your Python code
-│   ├── __init__.py
-│   ├── llm_client.py    # API wrapper
-│   ├── analyzer.py      # Analysis logic
-│   └── reporter.py      # Report generation
-└── notebooks/           # Jupyter notebooks for exploration
-    └── exploration.ipynb</code></pre>
+    <p>The setup involves four steps: (1) Install Python 3.10+ and a code editor like VS Code. (2) Create a project folder and install the LLM libraries using <code>pip install openai anthropic python-dotenv</code>. (3) Create a <code>.env</code> file to store your API keys securely (never commit this to git). (4) Organize your project with folders for prompts, input data, output reports, and source code. If you need help with any of these steps, your team's developer can walk you through the one-time setup in about 15 minutes.</p>
 
     <div class="callout callout-warning">
       <strong>Security First:</strong> Your API keys are like passwords — anyone with your key can make API calls billed to your account. NEVER put API keys directly in your code. NEVER commit .env files to git. NEVER share API keys in emails, Slack, or documentation. Use environment variables or a secrets manager in production.
@@ -134,48 +156,7 @@ echo "__pycache__/" >> .gitignore</code></pre>
       </tbody>
     </table>
 
-    <p><strong>Secure Key Management:</strong></p>
-
-    <pre><code class="language-python">"""
-Secure API key management using environment variables.
-"""
-import os
-from dotenv import load_dotenv
-
-# Load API keys from .env file
-load_dotenv()
-
-def get_api_key(provider):
-    """Securely retrieve an API key with validation."""
-    key_names = {
-        "openai": "OPENAI_API_KEY",
-        "anthropic": "ANTHROPIC_API_KEY",
-        "google": "GOOGLE_API_KEY"
-    }
-
-    env_var = key_names.get(provider.lower())
-    if not env_var:
-        raise ValueError(f"Unknown provider: {provider}")
-
-    key = os.getenv(env_var)
-    if not key:
-        raise EnvironmentError(
-            f"{env_var} not found. Please add it to your .env file.\n"
-            f"Example: {env_var}=sk-your-key-here"
-        )
-
-    # Basic validation (don't log the full key!)
-    if len(key) < 20:
-        raise ValueError(f"{env_var} appears to be invalid (too short)")
-
-    # Log that we found a key without exposing it
-    masked = key[:8] + "..." + key[-4:]
-    print(f"Loaded {provider} API key: {masked}")
-
-    return key
-
-# Usage
-openai_key = get_api_key("openai")</code></pre>
+    <p><strong>Secure Key Management:</strong> Store your API keys in a <code>.env</code> file in your project folder (e.g., <code>OPENAI_API_KEY=sk-your-key-here</code>). Your Python code reads this file automatically using the <code>python-dotenv</code> library. The critical rules: never put keys directly in your code, never commit <code>.env</code> to git, and never share keys via email or Slack. Most LLM libraries (OpenAI, Anthropic) automatically detect API keys from environment variables, so the setup is straightforward.</p>
 
     <p><strong>Cost Controls:</strong></p>
     <p>Before you start making API calls, set up spending controls to avoid surprises:</p>
@@ -185,57 +166,7 @@ openai_key = get_api_key("openai")</code></pre>
       <li><strong>In your code:</strong> Track token usage and set per-session budgets</li>
     </ul>
 
-    <pre><code class="language-python">"""
-Cost tracking wrapper for LLM API calls.
-"""
-
-class CostTracker:
-    """Track API usage costs across a session."""
-
-    # Approximate costs per 1M tokens (update as pricing changes)
-    PRICING = {
-        "gpt-4o":          {"input": 2.50,  "output": 10.00},
-        "gpt-4o-mini":     {"input": 0.15,  "output": 0.60},
-        "claude-sonnet":   {"input": 3.00,  "output": 15.00},
-        "claude-haiku":    {"input": 0.25,  "output": 1.25},
-    }
-
-    def __init__(self, budget_usd=1.00):
-        self.budget = budget_usd
-        self.total_cost = 0.0
-        self.calls = []
-
-    def record_call(self, model, input_tokens, output_tokens):
-        """Record an API call and its cost."""
-        rates = self.PRICING.get(model, {"input": 5.0, "output": 15.0})
-        cost = (
-            (input_tokens / 1_000_000) * rates["input"] +
-            (output_tokens / 1_000_000) * rates["output"]
-        )
-        self.total_cost += cost
-        self.calls.append({
-            "model": model,
-            "input_tokens": input_tokens,
-            "output_tokens": output_tokens,
-            "cost": cost
-        })
-
-        if self.total_cost > self.budget:
-            print(f"WARNING: Session budget of ${self.budget:.2f} exceeded! "
-                  f"Total: ${self.total_cost:.4f}")
-
-        return cost
-
-    def summary(self):
-        """Print a cost summary for the session."""
-        print(f"\nSession Cost Summary")
-        print(f"{'='*40}")
-        print(f"Total API calls: {len(self.calls)}")
-        print(f"Total cost: ${self.total_cost:.4f}")
-        print(f"Budget remaining: ${self.budget - self.total_cost:.4f}")
-        total_in = sum(c["input_tokens"] for c in self.calls)
-        total_out = sum(c["output_tokens"] for c in self.calls)
-        print(f"Total tokens: {total_in:,} in / {total_out:,} out")</code></pre>
+    <p>Every API response includes token usage data. Track your costs by recording the input and output tokens for each call. At roughly $0.15 per million tokens for GPT-4o-mini, a typical requirements analysis session (analyzing 20 requirements) costs well under $0.05. Both OpenAI and Anthropic provide usage dashboards in their web consoles where you can set monthly spending limits and monitor costs without writing any code.</p>
 
     <div class="callout callout-tip">
       <strong>Budget Tip:</strong> For learning and experimentation, a budget of $5-10 per month is more than sufficient. Use GPT-4o-mini or Claude Haiku for iterative prompt development (each call costs fractions of a cent), then switch to GPT-4o or Claude Sonnet for final production-quality runs.
@@ -289,43 +220,7 @@ print(f"\nTokens used: {response.usage.prompt_tokens} input, "
       f"{response.usage.completion_tokens} output")
 print(f"Total: {response.usage.total_tokens} tokens")</code></pre>
 
-    <p>Now let's see the equivalent with the Anthropic API:</p>
-
-    <pre><code class="language-python">"""
-Same analysis using Anthropic's Claude API.
-"""
-from anthropic import Anthropic
-from dotenv import load_dotenv
-
-load_dotenv()
-client = Anthropic()  # Automatically uses ANTHROPIC_API_KEY
-
-requirement = """
-The system shall allow users to reset their password by clicking
-a "Forgot Password" link on the login page.
-"""
-
-response = client.messages.create(
-    model="claude-3-5-haiku-20241022",
-    max_tokens=1000,
-    temperature=0.2,
-    system="You are a Senior Business Analyst. Analyze requirements "
-           "for completeness, ambiguity, and testability. Be specific "
-           "and constructive in your feedback.",
-    messages=[
-        {
-            "role": "user",
-            "content": f"Analyze this requirement:\n\n{requirement}"
-        }
-    ]
-)
-
-analysis = response.content[0].text
-print("Analysis:")
-print(analysis)
-
-print(f"\nTokens: {response.usage.input_tokens} input, "
-      f"{response.usage.output_tokens} output")</code></pre>
+    <p>The Anthropic (Claude) API is very similar — the main differences are that the system message is a separate parameter rather than part of the messages array, and <code>max_tokens</code> is required. The response is accessed via <code>response.content[0].text</code> instead of <code>response.choices[0].message.content</code>.</p>
 
     <p>Key differences between the APIs:</p>
 
@@ -375,114 +270,28 @@ print(f"\nTokens: {response.usage.input_tokens} input, "
 
     <p>Now let's build something genuinely useful: a tool that reads a list of requirements and produces a quality assessment for each one. This is a real workflow you can use immediately in your daily work.</p>
 
-    <pre><code class="language-python">"""
-Requirements Quality Analyzer
-Reads requirements from a text file and produces a structured quality report.
-"""
+    <p>The approach is straightforward: create a system prompt that instructs the LLM to act as a Senior BA and analyze each requirement on five dimensions (clarity, completeness, testability, consistency, feasibility), return a JSON object with scores, issues found, and an improved version. Then loop through your requirements file, sending each requirement to the API and collecting the results. Here is the core of the analyzer — the part that sends a single requirement for analysis:</p>
+
+    <pre><code class="language-python"># Analyze a single requirement and get structured results
 import json
 from openai import OpenAI
-from dotenv import load_dotenv
 
-load_dotenv()
 client = OpenAI()
 
-ANALYSIS_PROMPT = """You are a Senior Business Analyst performing a requirements
-quality review. Analyze the following requirement and return a JSON object with
-this exact structure:
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    temperature=0,
+    response_format={"type": "json_object"},  # Guarantees valid JSON
+    messages=[
+        {"role": "system", "content": ANALYSIS_PROMPT},  # Your detailed prompt
+        {"role": "user", "content": requirement_text}
+    ]
+)
 
-{
-  "requirement_id": "the ID if provided, otherwise 'UNID'",
-  "original_text": "the requirement as provided",
-  "quality_scores": {
-    "clarity": 1-5,
-    "completeness": 1-5,
-    "testability": 1-5,
-    "consistency": 1-5,
-    "feasibility": 1-5
-  },
-  "overall_score": 1-5,
-  "issues": [
-    {
-      "type": "ambiguity|incompleteness|untestable|vague|conflicting",
-      "description": "specific description of the issue",
-      "suggestion": "how to fix it"
-    }
-  ],
-  "improved_version": "a rewritten version that addresses all issues",
-  "verdict": "pass|needs_revision|fail"
-}
+result = json.loads(response.choices[0].message.content)
+print(f"Score: {result['overall_score']}/5 — {result['verdict']}")</code></pre>
 
-Scoring guide:
-5 = Excellent: no issues found
-4 = Good: minor improvements possible
-3 = Acceptable: some issues that should be addressed
-2 = Poor: significant issues that must be addressed
-1 = Failing: requirement is not usable as written
-
-Requirement to analyze:"""
-
-def analyze_requirement(requirement_text, model="gpt-4o-mini"):
-    """Analyze a single requirement and return structured results."""
-    response = client.chat.completions.create(
-        model=model,
-        temperature=0,
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": ANALYSIS_PROMPT},
-            {"role": "user", "content": requirement_text}
-        ]
-    )
-
-    result = json.loads(response.choices[0].message.content)
-    result["_meta"] = {
-        "model": model,
-        "input_tokens": response.usage.prompt_tokens,
-        "output_tokens": response.usage.completion_tokens
-    }
-    return result
-
-def analyze_requirements_file(filepath, model="gpt-4o-mini"):
-    """Analyze all requirements in a file (one per line or separated by blank lines)."""
-    with open(filepath, "r") as f:
-        content = f.read()
-
-    # Split on blank lines to handle multi-line requirements
-    requirements = [r.strip() for r in content.split("\n\n") if r.strip()]
-
-    results = []
-    for i, req in enumerate(requirements, 1):
-        print(f"Analyzing requirement {i}/{len(requirements)}...")
-        result = analyze_requirement(req, model)
-        results.append(result)
-
-    return results
-
-# Example: Analyze sample requirements
-sample_requirements = [
-    "REQ-001: The system shall be fast and user-friendly.",
-
-    "REQ-002: The system shall return search results within 200ms "
-    "for queries matching a single field, and within 500ms for "
-    "full-text search across all indexed fields, measured at the "
-    "95th percentile under a load of 500 concurrent users.",
-
-    "REQ-003: Users should be able to do stuff with their accounts.",
-
-    "REQ-004: The payment processing module shall support Visa, "
-    "Mastercard, and American Express credit card transactions. "
-    "Failed transactions shall display error code and a user-friendly "
-    "message. All transaction data shall be encrypted using AES-256 "
-    "and stored in compliance with PCI DSS Level 1 standards.",
-]
-
-# Run analysis
-all_results = []
-for req in sample_requirements:
-    result = analyze_requirement(req)
-    all_results.append(result)
-    score = result["overall_score"]
-    verdict = result["verdict"]
-    print(f"  {result['requirement_id']}: Score {score}/5 — {verdict}")</code></pre>
+    <p>For a batch of requirements, wrap this in a loop that reads from a text file (one requirement per paragraph) and collects all results into a report. A typical run analyzing 20 requirements takes about 30 seconds and costs under $0.05 with GPT-4o-mini.</p>
 
     <div class="callout callout-tip">
       <strong>Iteration in Practice:</strong> Your first version of an analyzer won't be perfect. Run it on 10-20 real requirements from your project, review the outputs carefully, and adjust the prompt based on where the model's assessments differ from your expert judgment. This iterative refinement is normal and expected — it's how prompt engineering works.
@@ -493,105 +302,7 @@ for req in sample_requirements:
 
     <p>Production-quality workflows need robust error handling. LLM API calls can fail for many reasons: network issues, rate limits, invalid inputs, or unexpected response formats. Here's how to build resilience into your workflows.</p>
 
-    <pre><code class="language-python">"""
-Robust LLM client with retry logic and error handling.
-"""
-import json
-import time
-from openai import OpenAI, APIError, RateLimitError, APIConnectionError
-from dotenv import load_dotenv
-
-load_dotenv()
-
-class RobustLLMClient:
-    """An LLM client with automatic retry, error handling, and cost tracking."""
-
-    def __init__(self, max_retries=3, retry_delay=2.0):
-        self.client = OpenAI()
-        self.max_retries = max_retries
-        self.retry_delay = retry_delay
-        self.total_input_tokens = 0
-        self.total_output_tokens = 0
-        self.call_count = 0
-
-    def call(self, messages, model="gpt-4o-mini", temperature=0.2,
-             json_mode=False, max_tokens=2000):
-        """Make an API call with automatic retry on transient errors."""
-
-        kwargs = {
-            "model": model,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "messages": messages
-        }
-        if json_mode:
-            kwargs["response_format"] = {"type": "json_object"}
-
-        for attempt in range(1, self.max_retries + 1):
-            try:
-                response = self.client.chat.completions.create(**kwargs)
-
-                # Track usage
-                self.total_input_tokens += response.usage.prompt_tokens
-                self.total_output_tokens += response.usage.completion_tokens
-                self.call_count += 1
-
-                content = response.choices[0].message.content
-
-                # Parse JSON if expected
-                if json_mode:
-                    try:
-                        return json.loads(content)
-                    except json.JSONDecodeError as e:
-                        print(f"Warning: JSON parse failed: {e}")
-                        print(f"Raw response: {content[:200]}...")
-                        if attempt < self.max_retries:
-                            continue
-                        return {"error": "JSON parse failed", "raw": content}
-
-                return content
-
-            except RateLimitError:
-                wait = self.retry_delay * (2 ** (attempt - 1))  # Exponential backoff
-                print(f"Rate limited. Waiting {wait}s before retry {attempt}...")
-                time.sleep(wait)
-
-            except APIConnectionError:
-                wait = self.retry_delay * attempt
-                print(f"Connection error. Waiting {wait}s before retry {attempt}...")
-                time.sleep(wait)
-
-            except APIError as e:
-                print(f"API error (attempt {attempt}): {e}")
-                if attempt == self.max_retries:
-                    raise
-                time.sleep(self.retry_delay)
-
-        raise Exception(f"Failed after {self.max_retries} retries")
-
-    def usage_summary(self):
-        """Return a summary of API usage."""
-        return {
-            "total_calls": self.call_count,
-            "total_input_tokens": self.total_input_tokens,
-            "total_output_tokens": self.total_output_tokens,
-            "total_tokens": self.total_input_tokens + self.total_output_tokens
-        }
-
-# Usage example
-llm = RobustLLMClient(max_retries=3)
-
-result = llm.call(
-    messages=[
-        {"role": "system", "content": "You are a helpful analyst assistant."},
-        {"role": "user", "content": "List 3 common causes of ambiguous requirements."}
-    ],
-    model="gpt-4o-mini",
-    temperature=0.3
-)
-
-print(result)
-print(f"\nUsage: {llm.usage_summary()}")</code></pre>
+    <p>For production-quality workflows, wrap your API calls in a retry function that handles rate limits (wait and retry with exponential backoff), connection errors (retry after a brief pause), and JSON parse failures (retry once, then return the raw text). The OpenAI library raises specific exceptions — <code>RateLimitError</code>, <code>APIConnectionError</code>, and <code>APIError</code> — that you can catch and handle individually. Three retries with a 2-second initial delay handles the vast majority of transient failures automatically.</p>
 
     <p><strong>Common Error Patterns and Solutions:</strong></p>
 
@@ -641,154 +352,7 @@ print(f"\nUsage: {llm.usage_summary()}")</code></pre>
 
     <p>A script that runs once is useful. A tool that your whole team can use, that handles edge cases gracefully, and that produces consistent output is transformative. Let's refactor our requirements analyzer into a proper reusable tool.</p>
 
-    <pre><code class="language-python">"""
-requirements_analyzer.py — A production-ready requirements quality analyzer.
-
-Usage:
-    python requirements_analyzer.py input.txt --output report.json --model gpt-4o-mini
-    python requirements_analyzer.py input.txt --format html --threshold 3
-"""
-import argparse
-import json
-import sys
-from datetime import datetime
-from pathlib import Path
-
-# (Assume RobustLLMClient from Section 4.5 is imported)
-
-class RequirementsAnalyzer:
-    """Analyze a set of requirements for quality and produce structured reports."""
-
-    SYSTEM_PROMPT = """You are a Senior Business Analyst performing a formal
-requirements quality review. You are thorough, constructive, and specific.
-
-For each requirement, evaluate against these criteria:
-- Clarity: Is the language unambiguous?
-- Completeness: Are all necessary details specified?
-- Testability: Can this be verified with a concrete test?
-- Consistency: Does it avoid contradictions?
-- Feasibility: Is it technically achievable?
-
-Return your analysis as a JSON object with this structure:
-{
-  "requirement_id": "string",
-  "original_text": "string",
-  "quality_scores": {
-    "clarity": 1-5,
-    "completeness": 1-5,
-    "testability": 1-5,
-    "consistency": 1-5,
-    "feasibility": 1-5
-  },
-  "overall_score": 1-5,
-  "issues": [{"type": "string", "description": "string", "suggestion": "string"}],
-  "improved_version": "string",
-  "verdict": "pass|needs_revision|fail"
-}"""
-
-    def __init__(self, model="gpt-4o-mini", pass_threshold=3):
-        self.llm = RobustLLMClient()
-        self.model = model
-        self.pass_threshold = pass_threshold
-
-    def analyze(self, requirements):
-        """Analyze a list of requirement strings."""
-        results = []
-        for i, req in enumerate(requirements, 1):
-            print(f"  [{i}/{len(requirements)}] Analyzing: {req[:60]}...")
-            result = self.llm.call(
-                messages=[
-                    {"role": "system", "content": self.SYSTEM_PROMPT},
-                    {"role": "user", "content": req}
-                ],
-                model=self.model,
-                temperature=0,
-                json_mode=True
-            )
-            results.append(result)
-        return results
-
-    def generate_report(self, results):
-        """Generate a summary report from analysis results."""
-        total = len(results)
-        passing = sum(1 for r in results if r.get("overall_score", 0) >= self.pass_threshold)
-        failing = total - passing
-
-        avg_scores = {}
-        for dimension in ["clarity", "completeness", "testability", "consistency", "feasibility"]:
-            scores = [r.get("quality_scores", {}).get(dimension, 0) for r in results]
-            avg_scores[dimension] = round(sum(scores) / len(scores), 1) if scores else 0
-
-        # Identify most common issue types
-        all_issues = []
-        for r in results:
-            all_issues.extend([i.get("type", "unknown") for i in r.get("issues", [])])
-
-        issue_counts = {}
-        for issue in all_issues:
-            issue_counts[issue] = issue_counts.get(issue, 0) + 1
-
-        report = {
-            "report_date": datetime.now().isoformat(),
-            "model_used": self.model,
-            "total_requirements": total,
-            "passing": passing,
-            "failing": failing,
-            "pass_rate": f"{(passing/total)*100:.0f}%" if total > 0 else "N/A",
-            "average_scores": avg_scores,
-            "weakest_dimension": min(avg_scores, key=avg_scores.get) if avg_scores else None,
-            "common_issues": dict(sorted(issue_counts.items(), key=lambda x: -x[1])[:5]),
-            "api_usage": self.llm.usage_summary(),
-            "details": results
-        }
-        return report
-
-def parse_requirements_file(filepath):
-    """Parse a requirements file — one requirement per paragraph."""
-    text = Path(filepath).read_text()
-    reqs = [r.strip() for r in text.split("\n\n") if r.strip()]
-    return reqs
-
-def main():
-    parser = argparse.ArgumentParser(description="Analyze requirements quality")
-    parser.add_argument("input", help="Path to requirements file")
-    parser.add_argument("--output", "-o", default="report.json",
-                        help="Output file path")
-    parser.add_argument("--model", "-m", default="gpt-4o-mini",
-                        help="LLM model to use")
-    parser.add_argument("--threshold", "-t", type=int, default=3,
-                        help="Minimum score to pass (1-5)")
-    args = parser.parse_args()
-
-    print(f"Requirements Quality Analyzer")
-    print(f"{'='*40}")
-    print(f"Input: {args.input}")
-    print(f"Model: {args.model}")
-    print(f"Threshold: {args.threshold}/5\n")
-
-    requirements = parse_requirements_file(args.input)
-    print(f"Found {len(requirements)} requirements to analyze.\n")
-
-    analyzer = RequirementsAnalyzer(model=args.model, pass_threshold=args.threshold)
-    results = analyzer.analyze(requirements)
-    report = analyzer.generate_report(results)
-
-    # Save report
-    with open(args.output, "w") as f:
-        json.dump(report, f, indent=2)
-
-    # Print summary
-    print(f"\n{'='*40}")
-    print(f"RESULTS SUMMARY")
-    print(f"{'='*40}")
-    print(f"Pass rate: {report['pass_rate']} ({report['passing']}/{report['total_requirements']})")
-    print(f"Weakest area: {report['weakest_dimension']}")
-    print(f"Average scores: {report['average_scores']}")
-    print(f"Most common issues: {report['common_issues']}")
-    print(f"\nFull report saved to: {args.output}")
-
-if __name__ == "__main__":
-    main()</code></pre>
+    <p>To make the analyzer usable by your whole team, package it as a command-line tool that accepts an input file and produces a JSON report. The tool should: (1) read requirements from a text file (one per paragraph), (2) send each to the LLM with the analysis prompt, (3) collect all results, (4) compute summary statistics (pass rate, average scores, most common issues), and (5) save the report to a JSON file. The usage is simple: <code>python requirements_analyzer.py input.txt --output report.json</code>. You can then convert the JSON into a formatted HTML report or import it into a spreadsheet for team review.</p>
 
     <div class="callout callout-tip">
       <strong>Team Adoption:</strong> Once your tool works reliably, share it with your team. Create a simple README with usage examples, expected input format, and sample output. Most analysts don't need to understand the code — they just need to know how to run it and interpret the results.
@@ -796,6 +360,67 @@ if __name__ == "__main__":
 
     <!-- Section 4.7 -->
     <h2>4.7 Measuring Quality and Cost</h2>
+
+    <figure class="diagram">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 400" width="100%" role="img" aria-label="Cost vs Quality trade-off matrix showing where different LLM models fit">
+        <style>
+          .cq-axis { stroke: #555; stroke-width: 2; }
+          .cq-label { font-family: system-ui, sans-serif; font-size: 12px; font-weight: 700; fill: #333; }
+          .cq-axis-label { font-family: system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: var(--accent, #4f46e5); }
+          .cq-model { rx: 8; stroke-width: 2; }
+          .cq-model-label { font-family: system-ui, sans-serif; font-size: 11px; font-weight: 700; text-anchor: middle; }
+          .cq-model-desc { font-family: system-ui, sans-serif; font-size: 9px; text-anchor: middle; fill: #555; }
+          .cq-quad { font-family: system-ui, sans-serif; font-size: 10px; fill: #999; font-style: italic; text-anchor: middle; }
+        </style>
+        <!-- Axes -->
+        <line x1="80" y1="340" x2="580" y2="340" class="cq-axis"/>
+        <line x1="80" y1="340" x2="80" y2="40" class="cq-axis"/>
+        <!-- Arrow heads -->
+        <polygon points="580,340 570,335 570,345" fill="#555"/>
+        <polygon points="80,40 75,50 85,50" fill="#555"/>
+        <!-- Axis labels -->
+        <text x="330" y="380" text-anchor="middle" class="cq-axis-label">Cost per Request</text>
+        <text x="20" y="190" text-anchor="middle" class="cq-axis-label" transform="rotate(-90, 20, 190)">Output Quality</text>
+        <text x="100" y="360" style="font-size:10px;fill:#555;">Low</text>
+        <text x="555" y="360" style="font-size:10px;fill:#555;">High</text>
+        <text x="60" y="330" style="font-size:10px;fill:#555;">Low</text>
+        <text x="60" y="60" style="font-size:10px;fill:#555;">High</text>
+
+        <!-- Quadrant labels -->
+        <text x="220" y="80" class="cq-quad">Best value for most tasks</text>
+        <text x="450" y="80" class="cq-quad">Maximum quality</text>
+        <text x="220" y="310" class="cq-quad">Quick, simple tasks</text>
+        <text x="450" y="310" class="cq-quad">Diminishing returns</text>
+
+        <!-- Dashed quadrant lines -->
+        <line x1="330" y1="50" x2="330" y2="335" stroke="#ddd" stroke-width="1" stroke-dasharray="5,5"/>
+        <line x1="85" y1="190" x2="575" y2="190" stroke="#ddd" stroke-width="1" stroke-dasharray="5,5"/>
+
+        <!-- Model: GPT-4o-mini / Claude Haiku (low cost, good quality) -->
+        <rect x="130" y="145" width="150" height="65" class="cq-model" fill="#dcfce7" stroke="#22c55e"/>
+        <text x="205" y="168" class="cq-model-label" style="fill:#166534;">GPT-4o-mini</text>
+        <text x="205" y="182" class="cq-model-label" style="fill:#166534;">Claude Haiku</text>
+        <text x="205" y="198" class="cq-model-desc">~$0.15-0.25 / 1M tokens</text>
+
+        <!-- Model: GPT-4o / Claude Sonnet (higher cost, highest quality) -->
+        <rect x="370" y="65" width="150" height="65" class="cq-model" fill="#dbeafe" stroke="#3b82f6"/>
+        <text x="445" y="88" class="cq-model-label" style="fill:#1e40af;">GPT-4o</text>
+        <text x="445" y="102" class="cq-model-label" style="fill:#1e40af;">Claude Sonnet</text>
+        <text x="445" y="118" class="cq-model-desc">~$2.50-3.00 / 1M tokens</text>
+
+        <!-- Model: Local/Open Source (free, variable quality) -->
+        <rect x="110" y="230" width="140" height="65" class="cq-model" fill="#f5f5f5" stroke="#999"/>
+        <text x="180" y="253" class="cq-model-label" style="fill:#555;">Llama / Mistral</text>
+        <text x="180" y="267" class="cq-model-label" style="fill:#555;">(Self-hosted)</text>
+        <text x="180" y="283" class="cq-model-desc">Free, but needs hardware</text>
+
+        <!-- Strategy arrow -->
+        <line x1="205" y1="145" x2="370" y2="125" stroke="var(--accent,#4f46e5)" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#wf-arr)"/>
+        <text x="290" y="120" style="font-family:system-ui,sans-serif;font-size:9px;fill:var(--accent,#4f46e5);text-anchor:middle;">Prototype with frontier,</text>
+        <text x="290" y="132" style="font-family:system-ui,sans-serif;font-size:9px;fill:var(--accent,#4f46e5);text-anchor:middle;">then test if mini works</text>
+      </svg>
+      <figcaption>Cost vs Quality Trade-off — efficient models (GPT-4o-mini, Claude Haiku) handle most analyst tasks well at a fraction of the cost. Use frontier models (GPT-4o, Claude Sonnet) for complex analysis where quality justifies the expense. A smart strategy: prototype with the best model, then test whether a cheaper one produces acceptable results.</figcaption>
+    </figure>
 
     <p>How do you know if your LLM workflow is actually good? You need metrics — and not just the kind the model reports. You need to measure the quality of the model's output against your expert judgment and the cost-effectiveness of the workflow compared to manual alternatives.</p>
 
@@ -844,101 +469,7 @@ if __name__ == "__main__":
       </tbody>
     </table>
 
-    <pre><code class="language-python">"""
-Quality and cost measurement framework for LLM workflows.
-"""
-import time
-from dataclasses import dataclass, field
-from typing import List
-
-@dataclass
-class WorkflowMetrics:
-    """Track quality and cost metrics for an LLM-assisted workflow."""
-    workflow_name: str
-    start_time: float = field(default_factory=time.time)
-    items_generated: int = 0
-    items_accepted_as_is: int = 0
-    items_modified: int = 0
-    items_rejected: int = 0
-    issues_found_by_llm: int = 0
-    false_positives: int = 0
-    total_input_tokens: int = 0
-    total_output_tokens: int = 0
-    total_api_cost: float = 0.0
-    manual_time_estimate_hours: float = 0.0
-
-    @property
-    def acceptance_rate(self):
-        if self.items_generated == 0:
-            return 0
-        return self.items_accepted_as_is / self.items_generated
-
-    @property
-    def elapsed_hours(self):
-        return (time.time() - self.start_time) / 3600
-
-    @property
-    def time_savings_pct(self):
-        if self.manual_time_estimate_hours == 0:
-            return 0
-        return (1 - self.elapsed_hours / self.manual_time_estimate_hours) * 100
-
-    @property
-    def false_positive_rate(self):
-        total_flagged = self.issues_found_by_llm + self.false_positives
-        if total_flagged == 0:
-            return 0
-        return self.false_positives / total_flagged
-
-    @property
-    def cost_per_item(self):
-        if self.items_generated == 0:
-            return 0
-        return self.total_api_cost / self.items_generated
-
-    def report(self):
-        """Generate a metrics report."""
-        print(f"\n{'='*50}")
-        print(f"WORKFLOW METRICS: {self.workflow_name}")
-        print(f"{'='*50}")
-        print(f"Items generated:      {self.items_generated}")
-        print(f"Acceptance rate:      {self.acceptance_rate:.0%}")
-        print(f"False positive rate:  {self.false_positive_rate:.0%}")
-        print(f"Time elapsed:         {self.elapsed_hours:.2f} hours")
-        print(f"Manual estimate:      {self.manual_time_estimate_hours:.2f} hours")
-        print(f"Time savings:         {self.time_savings_pct:.0f}%")
-        print(f"API cost:             ${self.total_api_cost:.4f}")
-        print(f"Cost per item:        ${self.cost_per_item:.4f}")
-
-        # ROI calculation (assuming $75/hour analyst rate)
-        analyst_hourly_rate = 75.00
-        manual_cost = self.manual_time_estimate_hours * analyst_hourly_rate
-        llm_cost = self.elapsed_hours * analyst_hourly_rate + self.total_api_cost
-        savings = manual_cost - llm_cost
-        roi = (savings / llm_cost * 100) if llm_cost > 0 else 0
-
-        print(f"\nROI Analysis (at ${analyst_hourly_rate}/hr):")
-        print(f"  Manual cost:        ${manual_cost:.2f}")
-        print(f"  LLM-assisted cost:  ${llm_cost:.2f}")
-        print(f"  Savings:            ${savings:.2f}")
-        print(f"  ROI:                {roi:.0f}%")
-
-# Example usage
-metrics = WorkflowMetrics(
-    workflow_name="Sprint 12 Requirements Analysis",
-    manual_time_estimate_hours=6.0
-)
-
-# Simulate tracking during the workflow
-metrics.items_generated = 15
-metrics.items_accepted_as_is = 9
-metrics.items_modified = 4
-metrics.items_rejected = 2
-metrics.issues_found_by_llm = 23
-metrics.false_positives = 4
-metrics.total_api_cost = 0.12
-
-metrics.report()</code></pre>
+    <p>Track these metrics in a simple spreadsheet after each workflow run: items generated, items accepted as-is, items modified, items rejected, time elapsed vs. estimated manual time, and API cost. To calculate ROI, multiply the time saved (manual estimate minus LLM-assisted time) by your hourly rate and compare it to the API cost. For a typical sprint of 15 requirements, an analyst might save 4-5 hours of review time at a cost of $0.12 in API calls — a return of more than 2,000x on the direct cost.</p>
 
     <div class="callout callout-info">
       <strong>The Flywheel Effect:</strong> As you track metrics over time, you'll notice a pattern: your acceptance rate increases and your edit distance decreases as you refine your prompts based on what you learn. Each workflow iteration makes the next one better. This is why building measurement into your workflows from the start is so important — it creates a feedback loop that continuously improves your LLM integration.
@@ -967,86 +498,7 @@ metrics.report()</code></pre>
         <li><strong>Historical tracking:</strong> Store results over time so you can track whether your team's requirements quality is improving across sprints</li>
       </ul>
 
-      <pre><code class="language-python">"""
-Starter code for the HTML report extension.
-"""
-
-def generate_html_report(report_data):
-    """Generate an HTML report from analysis results."""
-
-    def score_color(score):
-        if score >= 4:
-            return "#22c55e"  # green
-        elif score >= 3:
-            return "#eab308"  # yellow
-        else:
-            return "#ef4444"  # red
-
-    html = f"""<!DOCTYPE html>
-<html>
-<head>
-    <title>Requirements Quality Report</title>
-    <style>
-        body {{ font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; }}
-        .score {{ display: inline-block; padding: 2px 8px; border-radius: 4px; color: white; font-weight: bold; }}
-        table {{ border-collapse: collapse; width: 100%; }}
-        th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-        th {{ background: #f3f4f6; }}
-        .pass {{ background: #dcfce7; }}
-        .fail {{ background: #fef2f2; }}
-        .needs_revision {{ background: #fefce8; }}
-    </style>
-</head>
-<body>
-    <h1>Requirements Quality Report</h1>
-    <p>Generated: {report_data['report_date']}</p>
-    <p>Model: {report_data['model_used']}</p>
-    <p>Pass rate: <strong>{report_data['pass_rate']}</strong></p>
-
-    <h2>Summary Scores</h2>
-    <table>
-        <tr>
-            <th>Dimension</th><th>Average Score</th>
-        </tr>"""
-
-    for dim, score in report_data['average_scores'].items():
-        color = score_color(score)
-        html += f"""
-        <tr>
-            <td>{dim.title()}</td>
-            <td><span class="score" style="background:{color}">{score}/5</span></td>
-        </tr>"""
-
-    html += """
-    </table>
-
-    <h2>Detailed Results</h2>
-    <table>
-        <tr><th>ID</th><th>Score</th><th>Verdict</th><th>Issues</th></tr>"""
-
-    for detail in report_data.get('details', []):
-        verdict = detail.get('verdict', 'unknown')
-        score = detail.get('overall_score', 0)
-        issues = len(detail.get('issues', []))
-        html += f"""
-        <tr class="{verdict}">
-            <td>{detail.get('requirement_id', 'N/A')}</td>
-            <td><span class="score" style="background:{score_color(score)}">{score}/5</span></td>
-            <td>{verdict}</td>
-            <td>{issues} issue(s)</td>
-        </tr>"""
-
-    html += """
-    </table>
-<footer class="footer" style="padding:1.5rem 2rem;border-top:1px solid var(--border);margin-top:2rem;font-size:0.78rem;color:var(--text-muted);text-align:center;">
-  <div>&copy; 2026 CareerAlign.com</div>
-  <div style="margin-top:4px;">Educational content provided as-is. Not affiliated with or endorsed by any vendor mentioned herein.</div>
-  <div style="margin-top:6px;"><a href="https://careeralign.com/about.html">About</a> &middot; <a href="https://careeralign.com/terms.html">Terms</a> &middot; <a href="https://careeralign.com/privacy.html">Privacy</a></div>
-</footer>
-</body>
-</html>"""
-
-    return html</code></pre>
+      <p><strong>HTML Report Extension:</strong> To create a visual report from your JSON results, build a simple HTML page that loops through each requirement, displays its score with color coding (green for 4-5, yellow for 3, red for 1-2), and shows the verdict and issue count in a table. This produces a shareable report that stakeholders can review in any browser — no technical tools required. Ask a developer on your team for help building this, or use an LLM to generate the HTML template from your JSON schema.</p>
     </section>
 
     <!-- Summary -->
