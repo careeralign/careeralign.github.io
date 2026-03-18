@@ -382,6 +382,37 @@
       footer.style.maxWidth = 'var(--content-max)';
     }
 
+    // Inject breadcrumb bar
+    var mainEl = document.querySelector('.main-content') || document.querySelector('.chapter');
+    if (mainEl) {
+      var currentHref = getCurrentHref();
+      var breadcrumbPart = '';
+      var breadcrumbChapter = '';
+      for (var bi = 0; bi < TOC.length; bi++) {
+        for (var bj = 0; bj < TOC[bi].chapters.length; bj++) {
+          if (TOC[bi].chapters[bj].href === currentHref) {
+            breadcrumbPart = TOC[bi].part;
+            breadcrumbChapter = TOC[bi].chapters[bj].title;
+            break;
+          }
+        }
+        if (breadcrumbChapter) break;
+      }
+      if (breadcrumbChapter) {
+        var bcNav = document.createElement('nav');
+        bcNav.className = 'breadcrumb';
+        var base = getBasePath();
+        bcNav.innerHTML = '<a href="https://careeralign.com/">Home</a>'
+          + '<span class="sep">&rsaquo;</span>'
+          + '<a href="' + base + 'index.html">Agentic AI</a>'
+          + '<span class="sep">&rsaquo;</span>'
+          + '<span>' + breadcrumbPart + '</span>'
+          + '<span class="sep">&rsaquo;</span>'
+          + '<span>' + breadcrumbChapter + '</span>';
+        mainEl.insertBefore(bcNav, mainEl.firstChild);
+      }
+    }
+
     // Toggle expand/collapse on chapter links with subsections
     sidebar.querySelectorAll('.sidebar-chapter').forEach(function (ch) {
       var link = ch.querySelector('.chapter-link');

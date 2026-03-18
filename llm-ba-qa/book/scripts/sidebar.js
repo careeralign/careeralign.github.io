@@ -357,6 +357,38 @@
       footer.style.maxWidth = 'var(--content-max)';
     }
 
+    // Inject breadcrumb navigation
+    var currentHref = getCurrentHref();
+    if (currentHref) {
+      var breadcrumbPart = '';
+      var breadcrumbChapter = '';
+      for (var pi = 0; pi < TOC.length; pi++) {
+        for (var ci = 0; ci < TOC[pi].chapters.length; ci++) {
+          if (TOC[pi].chapters[ci].href === currentHref) {
+            breadcrumbPart = TOC[pi].part;
+            breadcrumbChapter = TOC[pi].chapters[ci].title;
+            break;
+          }
+        }
+        if (breadcrumbPart) break;
+      }
+      if (breadcrumbPart && breadcrumbChapter) {
+        var bc = document.createElement('nav');
+        bc.className = 'breadcrumb';
+        bc.innerHTML = '<a href="https://careeralign.com/">Home</a>'
+          + '<span class="sep">&gt;</span>'
+          + '<a href="' + base + 'index.html">LLMs for BA &amp; QA</a>'
+          + '<span class="sep">&gt;</span>'
+          + '<span>' + breadcrumbPart + '</span>'
+          + '<span class="sep">&gt;</span>'
+          + '<span>' + breadcrumbChapter + '</span>';
+        var mainEl = document.querySelector('.main-content') || document.querySelector('.chapter');
+        if (mainEl) {
+          mainEl.insertBefore(bc, mainEl.firstChild);
+        }
+      }
+    }
+
     // Toggle expand/collapse on chapter links with subsections
     sidebar.querySelectorAll('.sidebar-chapter').forEach(function (ch) {
       var link = ch.querySelector('.chapter-link');
