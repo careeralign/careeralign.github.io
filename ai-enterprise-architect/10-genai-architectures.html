@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GenAI Architecture Patterns — From Chat to Enterprise — AI Enterprise Architect</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="has-insights">
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-home"><a href="https://careeralign.com/">🎯 CareerAlign Home</a></div>
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-title">AI Enterprise Architect</a>
+    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle menu">&#9776;</button>
+  </div>
+  <div class="sidebar-body">
+    <div class="sidebar-chapter">
+      <a href="00-preface.html" class="chapter-link">
+        <span class="chapter-num"></span>Preface
+      </a>
+      <ul class="sidebar-sections">
+        <li><a href="00-preface.html#who-this-book-is-for">Who This Book Is For</a></li>
+        <li><a href="00-preface.html#what-this-book-is-not">What This Book Is Not</a></li>
+        <li><a href="00-preface.html#how-to-read-this-book">How to Read This Book</a></li>
+        <li><a href="00-preface.html#the-notebooks">The Notebooks</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-part">Part I — Foundations</div>
+    <div class="sidebar-chapter">
+      <a href="01-why-ai-changes-everything.html" class="chapter-link">
+        <span class="chapter-num">1. </span>Why AI Changes Everything for Enterprise Architecture
+      </a>
+      <ul class="sidebar-sections">
+        <li><a href="01-why-ai-changes-everything.html#the-shift-youre-feeling">The Shift You’re Feeling</a></li>
+        <li><a href="01-why-ai-changes-everything.html#whats-actually-new">What’s Actually New</a></li>
+        <li><a href="01-why-ai-changes-everything.html#what-stays-the-same">What Stays the Same</a></li>
+        <li><a href="01-why-ai-changes-everything.html#the-enterprise-architects-advantage">The Enterprise Architect’s
+Advantage</a></li>
+        <li><a href="01-why-ai-changes-everything.html#real-world-example-the-insurance-company">Real-World Example:
+The Insurance Company</a></li>
+        <li><a href="01-why-ai-changes-everything.html#key-takeaways">Key Takeaways</a></li>
+        <li><a href="01-why-ai-changes-everything.html#companion-notebook">Companion Notebook</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-chapter">
+      <a href="02-ai-landscape-for-architects.html" class="chapter-link">
+        <span class="chapter-num">2. </span>The AI Landscape
+      </a>
+      <ul class="sidebar-sections">
+        <li><a href="02-ai-landscape-for-architects.html#cutting-through-the-hype">Cutting Through the Hype</a></li>
+        <li><a href="02-ai-landscape-for-architects.html#the-ai-stack-mapped-to-what-you-know">The AI Stack — Mapped to
+What You Know</a></li>
+        <li><a href="02-ai-landscape-for-architects.html#types-of-ai-that-matter-for-architects">Types of AI That Matter
+for Architects</a></li>
+        <li><a href="02-ai-landscape-for-architects.html#the-model-landscape">The Model Landscape</a></li>
+        <li><a href="02-ai-landscape-for-architects.html#vendor-landscape-for-architects">Vendor Landscape for
+Architects</a></li>
+        <li><a href="02-ai-landscape-for-architects.html#what-architects-get-wrong">What Architects Get Wrong</a></li>
+        <li><a href="02-ai-landscape-for-architects.html#key-takeaways">Key Takeaways</a></li>
+        <li><a href="02-ai-landscape-for-architects.html#companion-notebook">Companion Notebook</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-chapter">
+      <a href="03-new-building-blocks.html" class="chapter-link">
+        <span class="chapter-num">3. </span>New Building Blocks
+      </a>
+      <ul class="sidebar-sections">
+        <li><a href="03-new-building-blocks.html#expanding-your-component-library">Expanding Your Component
+Library</a></li>
+        <li><a href="03-new-building-blocks.html#llms-the-universal-text-processor">LLMs — The Universal Text
+Processor</a></li>
+        <li><a href="03-new-building-blocks.html#embeddings-making-text-searchable">Embeddings — Making Text
+Searchable</a></li>
+        <li><a href="03-new-building-blocks.html#vector-databases-the-new-index">Vector Databases — The New
+Index</a></li>
+        <li><a href="03-new-building-blocks.html#prompt-templates-the-new-configuration">Prompt Templates — The
+New Configuration</a></li>
+        <li><a href="03-new-building-blocks.html#rag-retrieval-augmented-generation-grounding-ai-in-your-data">RAG
+(Retrieval-Augmented Generation) — Grounding AI in Your Data</a></li>
+        <li><a href="03-new-building-blocks.html#agents-components-that-make-decisions">Agents — Components That
+Make Decisions</a></li>
+        <li><a href="03-new-building-blocks.html#guardrails-safety-as-architecture">Guardrails — Safety as
+Architecture</a></li>
+        <li><a href="03-new-building-blocks.html#key-takeaways">Key Takeaways</a></li>
+        <li><a href="03-new-building-blocks.html#companion-notebook">Companion Notebook</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-part">Part II — Architecture & Governance</div>
+    <div class="sidebar-chapter">
+      <a href="04-data-architecture-for-ai.html" class="chapter-link">
+        <span class="chapter-num">4. </span>Data Architecture for AI
+      </a>
+      <ul class="sidebar-sections">
+        <li><a href="04-data-architecture-for-ai.html#your-data-architecture-needs-an-upgrade">Your Data Architecture
+Needs an Upgrade</a></li>
+        <li><a href="04-data-architecture-for-ai.html#the-data-quality-problem">The Data Quality Problem</a></li>
+        <li><a href="04-data-architecture-for-ai.html#data-pipelines-for-ai">Data Pipelines for AI</a></li>
+        <li><a href="04-data-architecture-for-ai.html#data-governance-for-ai">Data Governance for AI</a></li>
+        <li><a href="04-data-architecture-for-ai.html#real-world-example-the-banks-data-journey">Real-World Example:
+The Bank’s Data Journey</a></li>
+        <li><a href="04-data-architecture-for-ai.html#key-takeaways">Key Takeaways</a></li>
+        <li><a href="04-data-architecture-for-ai.html#companion-notebook">Companion Notebook</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-chapter">
+      <a href="05-ai-integration-patterns.html" class="chapter-link">
+        <span class="chapter-num">5. </span>AI Integration Patterns
+      </a>
+      <ul class="sidebar-sections">
+        <li><a href="05-ai-integration-patterns.html#fitting-ai-into-your-existing-systems">Fitting AI Into Your
+Existing Systems</a></li>
+        <li><a href="05-ai-integration-patterns.html#pattern-1-ai-as-a-microservice">Pattern 1: AI as a
+Microservice</a></li>
+        <li><a href="05-ai-integration-patterns.html#pattern-2-ai-in-the-data-pipeline">Pattern 2: AI in the Data
+Pipeline</a></li>
+        <li><a href="05-ai-integration-patterns.html#pattern-3-ai-augmented-user-interface">Pattern 3: AI-Augmented
+User Interface</a></li>
+        <li><a href="05-ai-integration-patterns.html#pattern-4-event-driven-ai">Pattern 4: Event-Driven AI</a></li>
+        <li><a href="05-ai-integration-patterns.html#pattern-5-rag-integrated-application">Pattern 5: RAG-Integrated
+Application</a></li>
+        <li><a href="05-ai-integration-patterns.html#pattern-6-ai-gateway">Pattern 6: AI Gateway</a></li>
+        <li><a href="05-ai-integration-patterns.html#pattern-7-human-in-the-loop-ai">Pattern 7: Human-in-the-Loop
+AI</a></li>
+        <li><a href="05-ai-integration-patterns.html#choosing-the-right-pattern">Choosing the Right Pattern</a></li>
+        <li><a href="05-ai-integration-patterns.html#key-takeaways">Key Takeaways</a></li>
+        <li><a href="05-ai-integration-patterns.html#companion-notebook">Companion Notebook</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-chapter">
+      <a href="06-mlops-and-governance.html" class="chapter-link">
+        <span class="chapter-num">6. </span>MLOps and AI Governance
+      </a>
+      <ul class="sidebar-sections">
+        <li><a href="06-mlops-and-governance.html#your-cicd-pipeline-needs-a-sibling">Your CI/CD Pipeline Needs a
+Sibling</a></li>
+        <li><a href="06-mlops-and-governance.html#mlops-what-it-actually-means">MLOps — What It Actually
+Means</a></li>
+        <li><a href="06-mlops-and-governance.html#the-model-registry">The Model Registry</a></li>
+        <li><a href="06-mlops-and-governance.html#model-evaluation-your-ai-test-suite">Model Evaluation — Your AI
+Test Suite</a></li>
+        <li><a href="06-mlops-and-governance.html#monitoring-in-production">Monitoring in Production</a></li>
+        <li><a href="06-mlops-and-governance.html#ai-governance-framework">AI Governance Framework</a></li>
+        <li><a href="06-mlops-and-governance.html#real-world-example-the-retailers-mlops-journey">Real-World
+Example: The Retailer’s MLOps Journey</a></li>
+        <li><a href="06-mlops-and-governance.html#key-takeaways">Key Takeaways</a></li>
+        <li><a href="06-mlops-and-governance.html#companion-notebook">Companion Notebook</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-chapter">
+      <a href="07-responsible-ai-architecture.html" class="chapter-link">
+        <span class="chapter-num">7. </span>Responsible AI Architecture
+      </a>
+      <ul class="sidebar-sections">
+        <li><a href="07-responsible-ai-architecture.html#ethics-is-an-architecture-decision">Ethics Is an Architecture
+Decision</a></li>
+        <li><a href="07-responsible-ai-architecture.html#the-five-pillars">The Five Pillars</a></li>
+        <li><a href="07-responsible-ai-architecture.html#responsible-ai-architecture-patterns">Responsible AI
+Architecture Patterns</a></li>
+        <li><a href="07-responsible-ai-architecture.html#regulatory-landscape">Regulatory Landscape</a></li>
+        <li><a href="07-responsible-ai-architecture.html#key-takeaways">Key Takeaways</a></li>
+        <li><a href="07-responsible-ai-architecture.html#companion-notebook">Companion Notebook</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-chapter">
+      <a href="08-cloud-platforms-for-ai.html" class="chapter-link">
+        <span class="chapter-num">8. </span>Cloud Platforms for AI
+      </a>
+      <ul class="sidebar-sections">
+        <li><a href="08-cloud-platforms-for-ai.html#the-platform-decision">The Platform Decision</a></li>
+        <li><a href="08-cloud-platforms-for-ai.html#the-big-three-ai-services-compared">The Big Three — AI Services
+Compared</a></li>
+        <li><a href="08-cloud-platforms-for-ai.html#platform-comparison-matrix">Platform Comparison Matrix</a></li>
+        <li><a href="08-cloud-platforms-for-ai.html#multi-cloud-ai-architecture">Multi-Cloud AI Architecture</a></li>
+        <li><a href="08-cloud-platforms-for-ai.html#on-premises-and-hybrid-ai">On-Premises and Hybrid AI</a></li>
+        <li><a href="08-cloud-platforms-for-ai.html#key-takeaways">Key Takeaways</a></li>
+        <li><a href="08-cloud-platforms-for-ai.html#companion-notebook">Companion Notebook</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-part">Part III — Implementation</div>
+    <div class="sidebar-chapter">
+      <a href="09-migration-strategies.html" class="chapter-link">
+        <span class="chapter-num">9. </span>Migration Strategies
+      </a>
+      <ul class="sidebar-sections">
+        <li><a href="09-migration-strategies.html#you-cant-start-from-scratch">You Can’t Start from Scratch</a></li>
+        <li><a href="09-migration-strategies.html#the-three-migration-approaches">The Three Migration
+Approaches</a></li>
+        <li><a href="09-migration-strategies.html#choosing-your-migration-strategy">Choosing Your Migration
+Strategy</a></li>
+        <li><a href="09-migration-strategies.html#the-ai-readiness-assessment">The AI Readiness Assessment</a></li>
+        <li><a href="09-migration-strategies.html#migration-playbook">Migration Playbook</a></li>
+        <li><a href="09-migration-strategies.html#common-migration-mistakes">Common Migration Mistakes</a></li>
+        <li><a href="09-migration-strategies.html#key-takeaways">Key Takeaways</a></li>
+        <li><a href="09-migration-strategies.html#companion-notebook">Companion Notebook</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-chapter active">
+      <a href="10-genai-architectures.html" class="chapter-link">
+        <span class="chapter-num">10. </span>GenAI Architecture Patterns
+      </a>
+      <ul class="sidebar-sections">
+        <li><a href="10-genai-architectures.html#the-pattern-library">The Pattern Library</a></li>
+        <li><a href="10-genai-architectures.html#pattern-1-simple-chat-api">Pattern 1: Simple Chat API</a></li>
+        <li><a href="10-genai-architectures.html#pattern-2-conversational-chatbot">Pattern 2: Conversational
+Chatbot</a></li>
+        <li><a href="10-genai-architectures.html#pattern-3-rag-retrieval-augmented-generation">Pattern 3: RAG
+(Retrieval-Augmented Generation)</a></li>
+        <li><a href="10-genai-architectures.html#pattern-4-document-processing-pipeline">Pattern 4: Document
+Processing Pipeline</a></li>
+        <li><a href="10-genai-architectures.html#pattern-5-multi-model-router">Pattern 5: Multi-Model Router</a></li>
+        <li><a href="10-genai-architectures.html#pattern-6-agentic-tool-use">Pattern 6: Agentic Tool Use</a></li>
+        <li><a href="10-genai-architectures.html#pattern-7-evaluation-and-guardrails">Pattern 7: Evaluation and
+Guardrails</a></li>
+        <li><a href="10-genai-architectures.html#pattern-8-fine-tuned-model-serving">Pattern 8: Fine-Tuned Model
+Serving</a></li>
+        <li><a href="10-genai-architectures.html#pattern-9-multi-agent-orchestration">Pattern 9: Multi-Agent
+Orchestration</a></li>
+        <li><a href="10-genai-architectures.html#pattern-10-production-genai-platform">Pattern 10: Production
+GenAI Platform</a></li>
+        <li><a href="10-genai-architectures.html#choosing-the-right-pattern">Choosing the Right Pattern</a></li>
+        <li><a href="10-genai-architectures.html#key-takeaways">Key Takeaways</a></li>
+        <li><a href="10-genai-architectures.html#companion-notebook">Companion Notebook</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-chapter">
+      <a href="11-ai-agents-and-orchestration.html" class="chapter-link">
+        <span class="chapter-num">11. </span>AI Agents and Orchestration
+      </a>
+      <ul class="sidebar-sections">
+        <li><a href="11-ai-agents-and-orchestration.html#agents-are-the-next-integration-layer">Agents Are the Next
+Integration Layer</a></li>
+        <li><a href="11-ai-agents-and-orchestration.html#what-agents-actually-are">What Agents Actually Are</a></li>
+        <li><a href="11-ai-agents-and-orchestration.html#agent-architecture-components">Agent Architecture
+Components</a></li>
+        <li><a href="11-ai-agents-and-orchestration.html#orchestration-patterns">Orchestration Patterns</a></li>
+        <li><a href="11-ai-agents-and-orchestration.html#enterprise-agent-architecture">Enterprise Agent
+Architecture</a></li>
+        <li><a href="11-ai-agents-and-orchestration.html#real-world-example-the-procurement-agent">Real-World Example:
+The Procurement Agent</a></li>
+        <li><a href="11-ai-agents-and-orchestration.html#frameworks-for-building-agents">Frameworks for Building
+Agents</a></li>
+        <li><a href="11-ai-agents-and-orchestration.html#key-takeaways">Key Takeaways</a></li>
+        <li><a href="11-ai-agents-and-orchestration.html#companion-notebook">Companion Notebook</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-chapter">
+      <a href="12-cost-and-performance.html" class="chapter-link">
+        <span class="chapter-num">12. </span>Cost and Performance Engineering for AI
+      </a>
+      <ul class="sidebar-sections">
+        <li><a href="12-cost-and-performance.html#the-30kday-surprise">The $30K/Day Surprise</a></li>
+        <li><a href="12-cost-and-performance.html#understanding-ai-costs">Understanding AI Costs</a></li>
+        <li><a href="12-cost-and-performance.html#cost-optimization-strategies">Cost Optimization Strategies</a></li>
+        <li><a href="12-cost-and-performance.html#performance-optimization">Performance Optimization</a></li>
+        <li><a href="12-cost-and-performance.html#cost-monitoring-dashboard">Cost Monitoring Dashboard</a></li>
+        <li><a href="12-cost-and-performance.html#real-world-cost-optimization-case-study">Real-World Cost
+Optimization Case Study</a></li>
+        <li><a href="12-cost-and-performance.html#key-takeaways">Key Takeaways</a></li>
+        <li><a href="12-cost-and-performance.html#companion-notebook">Companion Notebook</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-chapter">
+      <a href="13-organizational-change.html" class="chapter-link">
+        <span class="chapter-num">13. </span>Organizational Change
+      </a>
+      <ul class="sidebar-sections">
+        <li><a href="13-organizational-change.html#the-hardest-part-isnt-technical">The Hardest Part Isn’t
+Technical</a></li>
+        <li><a href="13-organizational-change.html#the-architects-expanding-role">The Architect’s Expanding
+Role</a></li>
+        <li><a href="13-organizational-change.html#building-the-ai-team">Building the AI Team</a></li>
+        <li><a href="13-organizational-change.html#managing-stakeholder-expectations">Managing Stakeholder
+Expectations</a></li>
+        <li><a href="13-organizational-change.html#ai-skills-development">AI Skills Development</a></li>
+        <li><a href="13-organizational-change.html#the-ai-transformation-roadmap">The AI Transformation
+Roadmap</a></li>
+        <li><a href="13-organizational-change.html#key-takeaways">Key Takeaways</a></li>
+        <li><a href="13-organizational-change.html#companion-notebook">Companion Notebook</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-part">Part IV — Leadership & Practice</div>
+    <div class="sidebar-chapter">
+      <a href="14-case-studies.html" class="chapter-link">
+        <span class="chapter-num">14. </span>Case Studies
+      </a>
+      <ul class="sidebar-sections">
+        <li><a href="14-case-studies.html#learning-from-others-journeys">Learning from Others’
+Journeys</a></li>
+        <li><a href="14-case-studies.html#case-study-1-global-bank-ai-powered-compliance">Case Study 1:
+Global Bank — AI-Powered Compliance</a></li>
+        <li><a href="14-case-studies.html#case-study-2-healthcare-system-clinical-documentation">Case
+Study 2: Healthcare System — Clinical Documentation</a></li>
+        <li><a href="14-case-studies.html#case-study-3-retailer-ai-driven-supply-chain">Case Study 3:
+Retailer — AI-Driven Supply Chain</a></li>
+        <li><a href="14-case-studies.html#case-study-4-insurance-company-claims-processing">Case Study 4:
+Insurance Company — Claims Processing</a></li>
+        <li><a href="14-case-studies.html#cross-cutting-themes">Cross-Cutting Themes</a></li>
+        <li><a href="14-case-studies.html#key-takeaways">Key Takeaways</a></li>
+        <li><a href="14-case-studies.html#companion-notebook">Companion Notebook</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-chapter">
+      <a href="15-your-transition-roadmap.html" class="chapter-link">
+        <span class="chapter-num">15. </span>Your Transition Roadmap
+      </a>
+      <ul class="sidebar-sections">
+        <li><a href="15-your-transition-roadmap.html#this-chapter-is-about-you">This Chapter Is About You</a></li>
+        <li><a href="15-your-transition-roadmap.html#the-skills-gap-honestly-assessed">The Skills Gap — Honestly
+Assessed</a></li>
+        <li><a href="15-your-transition-roadmap.html#the-90-day-plan">The 90-Day Plan</a></li>
+        <li><a href="15-your-transition-roadmap.html#common-pitfalls-in-the-transition">Common Pitfalls in the
+Transition</a></li>
+        <li><a href="15-your-transition-roadmap.html#building-your-portfolio">Building Your Portfolio</a></li>
+        <li><a href="15-your-transition-roadmap.html#the-future-of-ai-enterprise-architecture">The Future of AI
+Enterprise Architecture</a></li>
+        <li><a href="15-your-transition-roadmap.html#final-thoughts">Final Thoughts</a></li>
+        <li><a href="15-your-transition-roadmap.html#companion-notebook">Companion Notebook</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-part">Appendix</div>
+    <div class="sidebar-chapter">
+      <a href="16-appendix-reference-architectures.html" class="chapter-link">
+        <span class="chapter-num"></span>Reference Architectures
+      </a>
+      <ul class="sidebar-sections">
+        <li><a href="16-appendix-reference-architectures.html#customer-service-ai-agent">Customer Service AI Agent</a></li>
+        <li><a href="16-appendix-reference-architectures.html#document-processing-pipeline">Document Processing
+Pipeline</a></li>
+        <li><a href="16-appendix-reference-architectures.html#ai-powered-search-knowledge-base">AI-Powered Search &amp;
+Knowledge Base</a></li>
+        <li><a href="16-appendix-reference-architectures.html#fraud-detection-with-genai-explanation">Fraud Detection with
+GenAI Explanation</a></li>
+        <li><a href="16-appendix-reference-architectures.html#clinical-documentation-ai-scribe">Clinical Documentation — AI
+Scribe</a></li>
+        <li><a href="16-appendix-reference-architectures.html#supply-chain-demand-forecasting">Supply Chain Demand
+Forecasting</a></li>
+        <li><a href="16-appendix-reference-architectures.html#code-review-development-assistant">Code Review &amp;
+Development Assistant</a></li>
+        <li><a href="16-appendix-reference-architectures.html#compliance-regulatory-monitoring">Compliance &amp; Regulatory
+Monitoring</a></li>
+        <li><a href="16-appendix-reference-architectures.html#multi-agent-research-analysis">Multi-Agent Research &amp;
+Analysis</a></li>
+        <li><a href="16-appendix-reference-architectures.html#ai-gateway-model-management-platform">AI Gateway &amp; Model
+Management Platform</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<main class="main-content">
+  <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">&#9776;</button>
+  <article>
+<h1 id="genai-architecture-patterns-from-chat-to-enterprise">GenAI
+Architecture Patterns — From Chat to Enterprise</h1>
+<h2 id="the-pattern-library">The Pattern Library</h2>
+<p>When you first sit down to build something with a large language
+model, the sheer number of possible architectures can feel overwhelming.
+Should you just call an API? Do you need a vector database? What about
+agents? The truth is, nearly every GenAI system in production today is a
+variation on one of ten core patterns — and those patterns build on each
+other in a natural progression. Think of this chapter as your field
+guide. We will walk through each pattern from the simplest to the most
+sophisticated, explaining not just what they look like but when you
+would reach for one over another. By the end, you will have a mental
+toolkit that lets you look at any business problem and immediately
+sketch the right architecture on a whiteboard.</p>
+<h2 id="pattern-1-simple-chat-api">Pattern 1: Simple Chat API</h2>
+<p>Every journey starts somewhere, and in the world of GenAI
+architecture, this is your starting line. The Simple Chat API is the
+“Hello World” of generative AI — a direct, stateless call from your
+application to a language model and back again.</p>
+<p><img src="images/chapters/ch10-00.svg" /></p>
+<p>The components here are intentionally minimal: an API endpoint that
+accepts user input, a system prompt that defines how the model should
+behave, and a connection to an LLM provider like OpenAI, Anthropic, or
+Google. That is it. There is no database, no retrieval layer, no memory
+of previous conversations. Each request stands entirely on its own.</p>
+<p>This pattern is ideal for internal tools, rapid prototypes, and
+single-purpose AI features where conversational continuity is not
+important. Think of a Slack bot that rewrites emails in a more
+professional tone, or an internal tool that generates SQL queries from
+natural language descriptions. These are situations where the user sends
+a request, gets a response, and moves on.</p>
+<p>There are a few architectural details worth paying attention to even
+at this simple level. The system prompt is doing all the heavy lifting
+in terms of shaping the model’s behavior, so invest time getting it
+right. Temperature is your dial between creativity and consistency —
+lower values produce more predictable output, which is usually what you
+want in enterprise settings. And even though it feels like a trivial
+pattern, adding response caching for repeated or near-identical queries
+can save you a surprising amount of money at scale. Do not underestimate
+how often users ask the same questions.</p>
+<h2 id="pattern-2-conversational-chatbot">Pattern 2: Conversational
+Chatbot</h2>
+<p>The moment your users expect the AI to remember what they said thirty
+seconds ago, you have outgrown Pattern 1. The Conversational Chatbot
+pattern adds memory so the system can track context across multiple
+turns of dialogue, which is what most people picture when they think of
+an AI assistant.</p>
+<p><img src="images/chapters/ch10-01.svg" /></p>
+<p>The architecture introduces a session store — some persistent layer
+where you keep the conversation history. On each new request, your
+application retrieves the prior messages, assembles them into a prompt
+alongside the new user input, sends everything to the model, and then
+stores the response back into the session for next time.</p>
+<p>This sounds straightforward, and conceptually it is, but the design
+decisions hiding inside this pattern are the ones that separate a
+polished product from a frustrating one. First, you need a memory
+strategy. The simplest approach is a window buffer — keep the last N
+messages and discard anything older. This works well for short
+interactions but falls apart in long-running sessions where important
+context was mentioned early on. A more sophisticated approach is summary
+memory, where you periodically ask the model to summarize the
+conversation so far and replace the older messages with that summary.
+This preserves the gist without consuming your entire context
+window.</p>
+<p>Second, you need to think about where those sessions live. Redis is a
+natural choice for short-lived, disposable conversations — customer
+support chats, for instance, where the session ends when the user closes
+the browser tab. But if your users expect to come back days later and
+pick up where they left off, you need durable storage in a proper
+database. Finally, and this one catches teams off guard, long
+conversations will eventually exceed the model’s context window. You
+need a truncation strategy from day one, not as an afterthought when
+production users start hitting mysterious errors.</p>
+<h2 id="pattern-3-rag-retrieval-augmented-generation">Pattern 3: RAG
+(Retrieval-Augmented Generation)</h2>
+<p>Chapter 3 introduced RAG as one of your new architectural building
+blocks. Here, we turn it into a full design pattern. If there is one
+pattern that defines enterprise GenAI adoption, it is RAG.
+Retrieval-Augmented Generation is the technique that allows a language
+model to answer questions about your data — your internal documents,
+your knowledge base, your proprietary information — without having to
+retrain the model itself. It is arguably the most important pattern in
+this entire chapter, and it is the one you will see deployed most
+frequently in real-world corporate settings.</p>
+<p><img src="images/chapters/ch10-02.svg" /></p>
+<p>The idea is elegant in its simplicity. When a user asks a question,
+you first convert that question into a vector embedding — a numerical
+representation that captures the semantic meaning of the query. You then
+search a vector database where you have previously stored embeddings of
+your own documents, finding the chunks that are most semantically
+similar to the question. Those retrieved chunks get injected into the
+prompt alongside the user’s question, and the language model generates
+an answer that is grounded in your actual data rather than its general
+training knowledge.</p>
+<p>The components required are an embedding model to convert text into
+vectors, a vector database to store and search those document
+embeddings, a chunking pipeline that breaks your documents into pieces
+small enough to embed and retrieve meaningfully, a prompt template that
+combines the user’s query with the retrieved context, and of course the
+LLM itself to generate the final answer.</p>
+<p>Where teams spend most of their time, though, is on the critical
+design decisions that determine whether the system returns genuinely
+helpful answers or frustrating near-misses. Chunk size matters
+enormously — too small and you lose context, too large and you dilute
+relevance. Most production systems settle somewhere in the range of 500
+to 1000 tokens per chunk, but the right number depends on your content.
+The number of chunks you retrieve also requires tuning; pulling back 3
+to 10 chunks is typical, but more is not always better because
+irrelevant chunks can actually confuse the model. Adding a reranking
+step — where a cross-encoder model re-scores the retrieved chunks for
+relevance before they go into the prompt — can dramatically improve
+answer quality. And metadata filtering, which lets you narrow the search
+by user permissions, document type, date range, or other attributes, is
+essential for any system where not all users should see all
+documents.</p>
+<h2 id="pattern-4-document-processing-pipeline">Pattern 4: Document
+Processing Pipeline</h2>
+<p>While the previous patterns focus on interactive question-and-answer
+experiences, the Document Processing Pipeline is about using AI to
+process documents at scale in a more batch-oriented fashion. This is the
+pattern behind invoice automation, contract review, compliance
+screening, and medical records processing — anywhere you have large
+volumes of documents that need to be read, understood, and converted
+into structured data.</p>
+<p><img src="images/chapters/ch10-03.svg" /></p>
+<p>The flow is conceptually simple: documents come in through an
+ingestion layer that handles the messy reality of different file formats
+— PDFs, scanned images, emails, Word documents. Text gets extracted,
+sometimes requiring OCR for scanned content. Then the AI processing
+layer takes over, performing tasks like classification (what type of
+document is this?), summarization, or structured extraction (pull out
+the invoice number, date, line items, and total). The output is clean,
+structured data — typically JSON conforming to a predefined schema —
+that flows into your databases and downstream systems.</p>
+<p>The architectural character of this pattern is quite different from a
+chatbot. It is batch-oriented, meaning documents typically flow through
+processing queues rather than being handled one-at-a-time in real-time.
+Structured output is critical — you want the LLM to return data in a
+precise format that your downstream systems can consume, which means
+using techniques like JSON mode or function calling to force the model
+into returning well-formed structured responses. A validation layer that
+checks extracted data against business rules catches errors before they
+propagate — for example, verifying that an extracted invoice total
+actually equals the sum of the line items. And robust error handling is
+non-negotiable. Documents that fail processing should be routed into a
+queue for human review rather than silently dropped, because in most
+enterprise contexts, missing a document is worse than processing it
+slowly.</p>
+<h2 id="pattern-5-multi-model-router">Pattern 5: Multi-Model Router</h2>
+<p>Here is a pattern that pays for itself almost immediately. The
+Multi-Model Router recognizes a simple economic truth: not every
+question requires your most powerful (and most expensive) model. A user
+asking “What time does the office close?” does not need the same
+computational firepower as a user asking “Analyze the competitive
+implications of our Q3 earnings relative to industry trends.” By routing
+requests to different model tiers based on complexity, you can
+dramatically reduce costs without meaningfully sacrificing quality.</p>
+<p><img src="images/chapters/ch10-04.svg" /></p>
+<p>The implementation starts with a request classifier — something that
+looks at each incoming request and decides how complex it is. This
+classifier can be as simple as a set of keyword rules (questions
+containing “summarize this 50-page document” probably need a stronger
+model), a small trained classifier, or even a lightweight LLM call that
+categorizes the request before routing it. Once classified, the request
+goes to the appropriate model tier: fast and cheap for simple tasks,
+mid-range for moderate complexity, and the flagship model only for
+requests that truly demand it.</p>
+<p>A smart addition is a fallback mechanism: if the fast model’s
+response fails a quality check (maybe it returns an obviously incomplete
+answer or triggers a confidence threshold), the system automatically
+escalates to a stronger model. This gives you a safety net that
+preserves quality while still capturing the cost savings on the majority
+of requests. And those savings are substantial — teams typically report
+60 to 80 percent cost reductions after implementing this pattern,
+because the reality is that most requests in most applications are
+simple enough for a smaller model to handle well. This is one of the
+first patterns you should implement once your GenAI application starts
+scaling, because the economics become compelling very quickly.</p>
+<h2 id="pattern-6-agentic-tool-use">Pattern 6: Agentic Tool Use</h2>
+<p>Up to this point, every pattern has been about generating text —
+answering questions, summarizing documents, having conversations.
+Agentic Tool Use is where things get genuinely interesting, because it
+gives the LLM the ability to take actions in the real world. Instead of
+just producing words, the model can search databases, call APIs, execute
+queries, and interact with external systems.</p>
+<p><img src="images/chapters/ch10-05.svg" /></p>
+<p>The architecture follows what is sometimes called the
+“think-act-observe” loop. The agent receives a user request, reasons
+about what needs to be done, selects a tool to call, executes that tool,
+observes the result, and then decides whether it has enough information
+to respond or needs to take another action. This loop can repeat
+multiple times for complex requests, with the agent chaining together
+several tool calls to accomplish a multi-step task.</p>
+<p>The key architectural decisions here are fundamentally about control
+and safety. Tool definitions need to be crisp and unambiguous — clear
+descriptions of what each tool does, along with typed parameters, so the
+model knows exactly what is available and how to use it. Sandboxing is
+essential because you are giving an AI system the ability to interact
+with real systems. Restrict tool permissions carefully: read-only
+database access rather than write access, approved API endpoints rather
+than open-ended HTTP calls. A step budget — a maximum number of tool
+calls per request — prevents the agent from getting stuck in infinite
+loops where it keeps calling tools without making progress. And a
+wall-clock timeout ensures that even a well-behaved agent does not tie
+up resources indefinitely on a single request. These guardrails might
+feel overly cautious when you are building your prototype, but they are
+the difference between a system you can trust in production and one that
+keeps you up at night. Chapter 11 is devoted entirely to agent
+architecture — tool registries, memory systems, permission models, and
+production deployment — so if agentic patterns are central to your use
+case, that chapter is your next stop.</p>
+<h2 id="pattern-7-evaluation-and-guardrails">Pattern 7: Evaluation and
+Guardrails</h2>
+<p>This pattern is not optional. Every GenAI system that touches real
+users or real data needs a safety layer, and the Evaluation and
+Guardrails pattern provides exactly that. Think of it as the security
+checkpoint that wraps around whichever other pattern you have deployed —
+inspecting what goes in and scrutinizing what comes out.</p>
+<p><img src="images/chapters/ch10-06.svg" /></p>
+<p>On the input side, guardrails screen for prompt injection attempts
+(where a user tries to manipulate the model into ignoring its
+instructions), off-topic requests that fall outside the system’s
+intended scope, personally identifiable information that should not be
+sent to an external model, and rate limit violations that might indicate
+abuse. On the output side, guardrails check the model’s response for
+leaked PII, harmful or inappropriate content, detected hallucinations,
+and violations of expected output format.</p>
+<p>There are three main implementation approaches, and most production
+systems use a combination. Rule-based guardrails — regex patterns,
+keyword lists, format validators — are fast, cheap, and deterministic.
+They are your first line of defense and they handle the obvious cases
+well. Classifier-based guardrails use a small, purpose-trained model to
+detect things like toxicity or PII, offering more accuracy than rules
+alone at a modest computational cost. And LLM-based guardrails, where
+you use a model to evaluate another model’s output, provide the most
+flexibility. You can ask a judge model questions like “Does this
+response contain information that contradicts the provided source
+documents?” to catch subtle hallucinations. This last approach is the
+most expensive, but for high-stakes applications — healthcare, financial
+advice, legal analysis — the cost is justified by the risk it mitigates.
+The important thing is to treat guardrails as a first-class
+architectural component, not something you bolt on after launch.</p>
+<h2 id="pattern-8-fine-tuned-model-serving">Pattern 8: Fine-Tuned Model
+Serving</h2>
+<p>Sometimes, no matter how cleverly you craft your prompts, the base
+model just does not produce output that meets your requirements. Maybe
+you need a very specific brand voice that the model cannot nail from
+instructions alone, or your domain uses specialized terminology that the
+model consistently gets wrong. This is where fine-tuning comes in —
+training a model on your own data so that its default behavior aligns
+more closely with what you need.</p>
+<p><img src="images/chapters/ch10-07.svg" /></p>
+<p>The architecture involves a training pipeline that takes your curated
+examples, fine-tunes a base model, evaluates the result against an
+automated test suite, and, if it passes, registers the new model version
+for serving. The evaluation suite is critical — without it, you have no
+way of knowing whether a new fine-tuning run actually improved things or
+introduced regressions.</p>
+<p>Knowing when to fine-tune and when not to is one of the more
+important judgment calls in this field. Fine-tuning makes sense when you
+have consistent style or format requirements that prompting cannot
+reliably achieve, when your domain uses terminology that the base model
+gets wrong even with examples in the prompt, when you need to optimize
+costs by replacing a large model with a smaller fine-tuned one that
+performs just as well on your specific task, or when latency is critical
+and a smaller, faster model would make a meaningful difference to the
+user experience.</p>
+<p>But fine-tuning is not a silver bullet, and reaching for it too early
+is a common mistake. If RAG would solve your problem — because the issue
+is that the model lacks specific knowledge rather than specific behavior
+— then RAG is almost always cheaper, easier to update, and faster to
+deploy. If the base model handles your task well with good prompting,
+fine-tuning adds complexity without adding value. And if your training
+data set is very small, say fewer than a hundred examples, you are
+unlikely to see meaningful improvement from fine-tuning and may even
+make things worse. Exhaust the simpler approaches first.</p>
+<h2 id="pattern-9-multi-agent-orchestration">Pattern 9: Multi-Agent
+Orchestration</h2>
+<p>When a task is complex enough that a single agent with a pile of
+tools starts to feel unwieldy, the Multi-Agent Orchestration pattern
+offers a more elegant solution. Instead of one agent trying to do
+everything, you break the work into specialized roles — a research
+agent, an analysis agent, a writing agent — each with its own focused
+set of tools and system prompt, coordinated by an orchestrator that
+manages the overall workflow.</p>
+<p><img src="images/chapters/ch10-08.svg" /></p>
+<p>There are several orchestration patterns you can employ depending on
+the nature of the work. Sequential orchestration, sometimes called a
+pipeline, passes the output of one agent directly to the next — research
+feeds analysis, which feeds writing. This is clean and predictable,
+making it easy to debug when something goes wrong. Parallel
+orchestration dispatches multiple agents simultaneously and merges their
+results, which is useful when the subtasks are independent and speed
+matters. Hierarchical orchestration introduces a manager agent that
+delegates tasks to subordinates and reviews their work before assembling
+the final output, mimicking how a human team lead might operate. And the
+debate pattern, which is particularly interesting for analytical tasks,
+has two agents argue different perspectives on a question while a third
+agent synthesizes their arguments into a balanced conclusion.</p>
+<p>The key thing to remember about multi-agent systems is that they add
+significant complexity — more moving parts, more failure modes, more
+latency, more cost. They are worth it for genuinely complex tasks that
+benefit from specialization, such as comprehensive research reports,
+multi-step data analysis workflows, or content creation pipelines. They
+are absolutely not worth it for simple question-and-answer interactions
+where a single model call or a basic RAG setup would do the job just as
+well. Reach for this pattern when you have exhausted the simpler ones,
+not before. For a detailed treatment of multi-agent orchestration
+patterns — including sequential pipelines, parallel fan-out, supervisor
+hierarchies, and human-in-the-loop designs — see Chapter 11.</p>
+<h2 id="pattern-10-production-genai-platform">Pattern 10: Production
+GenAI Platform</h2>
+<p>The final pattern is not so much a single architecture as it is the
+convergence of all the previous patterns into an enterprise-grade
+platform. This is what a mature organization’s GenAI infrastructure
+looks like when they have moved past the pilot phase and are running
+generative AI at scale across multiple use cases and teams.</p>
+<p><img src="images/chapters/ch10-09.svg" /></p>
+<p>At the top sits an AI Gateway that handles all the cross-cutting
+concerns — authentication, rate limiting, request routing, logging, and
+cost management. Below that, you have the individual capability layers:
+the Chat API for conversational interfaces, the RAG Engine for knowledge
+retrieval, the Agents Runtime for tool-using agents, the Batch Pipeline
+for document processing, and Custom Models for any fine-tuned models
+serving specific use cases. Underneath all of that, a shared services
+layer provides guardrails, evaluation, monitoring, and a prompt registry
+that teams can draw from. And at the foundation, a data platform houses
+your vector stores, feature stores, training data, and centralized
+logging.</p>
+<p>This is the target state, and it is important to understand it as
+exactly that — a destination, not a starting point. No organization
+should attempt to build this all at once. You grow into it organically
+as teams adopt different patterns and the need for shared infrastructure
+becomes apparent. The first team builds a RAG application and stands up
+a vector database. The second team builds a chatbot and needs the same
+guardrails. By the third or fourth team, someone recognizes that a
+shared AI Gateway would save everyone time and money. That is when the
+platform starts to take shape naturally. Trying to build the platform
+before you have the use cases is a classic enterprise anti-pattern that
+leads to expensive infrastructure nobody uses.</p>
+<h2 id="choosing-the-right-pattern">Choosing the Right Pattern</h2>
+<p>With ten patterns in your toolkit, the natural question is: which one
+do I actually need? The answer depends on what you are trying to
+accomplish. The table below maps common needs to the patterns that
+address them, and in many real-world systems you will combine several
+patterns together.</p>
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>Pattern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Quick prototype</td>
+<td>1 (Simple Chat)</td>
+</tr>
+<tr>
+<td>Customer support</td>
+<td>2 (Chatbot) + 3 (RAG) + 7 (Guardrails)</td>
+</tr>
+<tr>
+<td>Internal knowledge</td>
+<td>3 (RAG)</td>
+</tr>
+<tr>
+<td>Document automation</td>
+<td>4 (Document Pipeline)</td>
+</tr>
+<tr>
+<td>Cost optimization</td>
+<td>5 (Multi-Model Router)</td>
+</tr>
+<tr>
+<td>Task automation</td>
+<td>6 (Agentic)</td>
+</tr>
+<tr>
+<td>Complex workflows</td>
+<td>9 (Multi-Agent)</td>
+</tr>
+<tr>
+<td>Enterprise scale</td>
+<td>10 (Platform)</td>
+</tr>
+</tbody>
+</table>
+<p>Notice how customer support, which is one of the most common GenAI
+use cases, actually combines three patterns — a chatbot for
+conversational interaction, RAG for grounding answers in your knowledge
+base, and guardrails for production safety. This is the norm rather than
+the exception. Real systems are almost always compositions of multiple
+patterns, and understanding each one individually is what lets you
+assemble them confidently.</p>
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ol type="1">
+<li>These ten patterns cover the full spectrum of GenAI architectures,
+from a simple API call all the way to an enterprise-wide platform, and
+nearly every production system you encounter will be a variation or
+combination of them.</li>
+<li>Start with Patterns 1 through 3 — Simple Chat, Conversational
+Chatbot, and RAG — and only add complexity when a genuine requirement
+demands it, because premature architecture is just as costly as
+premature optimization.</li>
+<li>The Multi-Model Router (Pattern 5) typically saves 60 to 80 percent
+on inference costs by routing simple requests to cheaper models, making
+it one of the highest-ROI patterns to implement early in your
+journey.</li>
+<li>Every production system needs guardrails (Pattern 7), full stop —
+this is not optional, and treating it as an afterthought is one of the
+most common and most damaging mistakes teams make.</li>
+<li>The Production GenAI Platform (Pattern 10) is the long-term target
+state for mature organizations, not a starting point — build it
+incrementally as use cases justify the investment.</li>
+</ol>
+<h2 id="companion-notebook">Companion Notebook</h2>
+<p><a href="https://colab.research.google.com/github/careeralign/ai-enterprise-architect/blob/gh-pages/notebooks/ch10-multi-model-router.ipynb" target="_blank" rel="noopener"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab" height="20" style="display:inline;vertical-align:middle;margin-right:6px"></a> — Build a
+request classifier that routes questions to different model tiers based
+on complexity. Measure cost savings compared to using the best model for
+everything.</p>
+
+  </article>
+  <nav class="bottom-nav">
+  <a href="09-migration-strategies.html" class="nav-prev">&larr; Migration Strategies — AI-Enabling Your Existing Systems</a>
+  <a href="index.html">Contents</a>
+  <a href="11-ai-agents-and-orchestration.html" class="nav-next">AI Agents and Orchestration — The Architect's Guide &rarr;</a>
+</nav>
+</main>
+<aside class="insight-panel">
+  <div class="insight-header">
+    <div class="insight-header-title">Why This Matters to You</div>
+    <div class="insight-header-sub">Context as you read</div>
+  </div>
+  <div class="insight-body">
+    <div class="audio-player">
+      <div class="audio-label">Listen to Chapter Summary</div>
+      <audio controls preload="none">
+        <source src="audio/10-genai-architectures.mp3" type="audio/mpeg">
+      </audio>
+    </div>
+    <div class="audio-player podcast-player">
+      <div class="audio-label">Chapter Podcast Discussion</div>
+      <audio controls preload="none">
+        <source src="podcast/10-genai-architectures.mp3" type="audio/mpeg">
+      </audio>
+    </div>
+    <div class="insight-card" data-section="the-pattern-library">
+      <div class="insight-section-label">The Pattern Library</div>
+      <div class="insight-text">These ten patterns are the vocabulary you will use in every architecture discussion about GenAI for the foreseeable future. When a product team comes to you with a vague request to add AI, your job is to map their needs to the right pattern — and knowing all ten means you will never over-engineer or under-engineer the solution. This is the chapter you will reference more than any other in your day-to-day work.</div>
+      <div class="mustknow">
+        <div class="mustknow-label">Things you must know</div>
+        <ul>
+        <li>Nearly every GenAI system is a variation of ten core patterns.</li>
+        <li>Patterns build on each other in a natural progression of complexity.</li>
+        <li>Real production systems combine multiple patterns together.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="insight-card" data-section="pattern-1-simple-chat-api">
+      <div class="insight-section-label">Pattern 1: Simple Chat API</div>
+      <div class="insight-text">Do not skip this pattern because it looks too simple. Most internal AI tools that actually get used in production are variations of this pattern, and understanding its constraints helps you recognize exactly when you need to graduate to something more complex. Getting response caching and system prompt design right at this level saves you real money at scale.</div>
+      <div class="mustknow">
+        <div class="mustknow-label">Things you must know</div>
+        <ul>
+        <li>Simple Chat is stateless: each request stands entirely on its own.</li>
+        <li>The system prompt does all heavy lifting for model behavior.</li>
+        <li>Lower temperature produces more predictable enterprise-appropriate output.</li>
+        <li>Response caching for repeated queries saves significant cost at scale.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="insight-card" data-section="pattern-2-conversational-chatbot">
+      <div class="insight-section-label">Pattern 2: Conversational
+Chatbot</div>
+      <div class="insight-text">The moment your users expect the AI to remember context, you are designing a stateful system with all the complexity that implies. Session management, memory strategies, and context window limits are the decisions that determine whether your chatbot feels polished or frustrating. Getting these wrong is the number one reason enterprise chatbot pilots fail to convert into production deployments.</div>
+      <div class="mustknow">
+        <div class="mustknow-label">Things you must know</div>
+        <ul>
+        <li>Conversational memory requires a session store for conversation history.</li>
+        <li>Summary memory preserves context without consuming the full context window.</li>
+        <li>Plan a context window truncation strategy from day one.</li>
+        <li>Use Redis for ephemeral chats; use a database for persistent sessions.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="insight-card" data-section="pattern-3-rag-retrieval-augmented-generation">
+      <div class="insight-section-label">Pattern 3: RAG
+(Retrieval-Augmented Generation)</div>
+      <div class="insight-text">RAG is the pattern behind the majority of enterprise GenAI deployments today, and you will almost certainly be asked to design or review a RAG system within the next quarter. The difference between a RAG system that impresses stakeholders and one that frustrates them comes down to chunking strategy, retrieval tuning, and reranking — details that are easy to get wrong if you treat RAG as a simple plug-and-play solution.</div>
+      <div class="mustknow">
+        <div class="mustknow-label">Things you must know</div>
+        <ul>
+        <li>RAG grounds LLM answers in your data without retraining the model.</li>
+        <li>Chunk size of 500 to 1000 tokens is typical for production.</li>
+        <li>Reranking with a cross-encoder dramatically improves retrieval quality.</li>
+        <li>Metadata filtering enforces user permissions and scopes document search.</li>
+        <li>More retrieved chunks is not always better; irrelevant chunks confuse models.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="insight-card" data-section="pattern-4-document-processing-pipeline">
+      <div class="insight-section-label">Pattern 4: Document
+Processing Pipeline</div>
+      <div class="insight-text">If your organization processes high volumes of invoices, contracts, claims, or compliance documents, this pattern has some of the clearest and most immediate ROI of anything in this chapter. The architectural challenge is not the AI itself but the validation layer and error handling that make it trustworthy enough for finance and legal teams to rely on. Getting the human-review queue right is what separates a demo from a deployed system.</div>
+      <div class="mustknow">
+        <div class="mustknow-label">Things you must know</div>
+        <ul>
+        <li>Use JSON mode or function calling to force structured LLM output.</li>
+        <li>Add a validation layer to check extracted data against business rules.</li>
+        <li>Route failed documents to human review rather than silently dropping them.</li>
+        <li>Document pipelines are batch-oriented, not real-time like chatbots.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="insight-card" data-section="pattern-5-multi-model-router">
+      <div class="insight-section-label">Pattern 5: Multi-Model Router</div>
+      <div class="insight-text">This is the pattern that will make your CFO happy. When your AI inference bill starts climbing, the multi-model router is your most effective lever — and the 60 to 80 percent cost reduction is not theoretical; it is what teams actually see in production. Implementing this early also gives you a natural fallback mechanism that improves reliability, which makes it a win on both cost and resilience.</div>
+      <div class="mustknow">
+        <div class="mustknow-label">Things you must know</div>
+        <ul>
+        <li>Route simple requests to cheaper models to cut costs 60 to 80 percent.</li>
+        <li>A fallback mechanism escalates to stronger models on quality check failure.</li>
+        <li>Most requests in most applications are simple enough for smaller models.</li>
+        <li>Implement multi-model routing as soon as your application starts scaling.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="insight-card" data-section="pattern-6-agentic-tool-use">
+      <div class="insight-section-label">Pattern 6: Agentic Tool Use</div>
+      <div class="insight-text">This is where AI stops being a text generator and starts being a system that takes actions on behalf of users. As an architect, your primary concern shifts from output quality to safety and control — sandboxing, permission scoping, and step budgets become your most important design decisions. Every enterprise that deploys agents without these guardrails eventually has an incident that sets their program back.</div>
+      <div class="mustknow">
+        <div class="mustknow-label">Things you must know</div>
+        <ul>
+        <li>Agents follow a think-act-observe loop that can repeat multiple times.</li>
+        <li>Tool definitions must be crisp; vague descriptions cause wrong tool calls.</li>
+        <li>Always sandbox agent tool access with read-only and scoped permissions.</li>
+        <li>Set a step budget and wall-clock timeout to prevent infinite loops.</li>
+        <li>Restrict agents to approved API endpoints, never open-ended HTTP access.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="insight-card" data-section="pattern-7-evaluation-and-guardrails">
+      <div class="insight-section-label">Pattern 7: Evaluation and
+Guardrails</div>
+      <div class="insight-text">This is the pattern your security team, legal team, and compliance team all need to see before they will sign off on any GenAI deployment. Treating guardrails as a first-class architectural component — not a bolt-on — is what separates organizations that scale AI confidently from those that lurch from one incident to the next. You will be asked about prompt injection, PII leakage, and hallucination detection in every architecture review, so know this pattern cold.</div>
+      <div class="mustknow">
+        <div class="mustknow-label">Things you must know</div>
+        <ul>
+        <li>Every production GenAI system needs both input and output guardrails.</li>
+        <li>Rule-based guardrails are fast and deterministic; use them as first defense.</li>
+        <li>LLM-as-judge catches subtle hallucinations that rules and classifiers miss.</li>
+        <li>Treat guardrails as a first-class architectural component, not an afterthought.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="insight-card" data-section="pattern-8-fine-tuned-model-serving">
+      <div class="insight-section-label">Pattern 8: Fine-Tuned Model
+Serving</div>
+      <div class="insight-text">Knowing when not to fine-tune is just as valuable as knowing how. You will face pressure from data science teams who want to fine-tune everything and from business stakeholders who assume fine-tuning is the answer to every quality problem. Your role as architect is to make the judgment call about whether RAG, better prompting, or fine-tuning is the right tool — and that judgment call has direct implications for cost, timeline, and operational complexity.</div>
+      <div class="mustknow">
+        <div class="mustknow-label">Things you must know</div>
+        <ul>
+        <li>Fine-tune only when prompting cannot achieve required style or format.</li>
+        <li>If the problem is missing knowledge, use RAG instead of fine-tuning.</li>
+        <li>An automated evaluation suite is critical to detect fine-tuning regressions.</li>
+        <li>Fewer than 100 training examples rarely produces meaningful fine-tuning improvement.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="insight-card" data-section="pattern-9-multi-agent-orchestration">
+      <div class="insight-section-label">Pattern 9: Multi-Agent
+Orchestration</div>
+      <div class="insight-text">Multi-agent systems are powerful but the complexity is genuinely multiplicative — more agents means more failure modes, more latency, and more cost. Your job as architect is to be the voice of restraint here, pushing back when teams reach for multi-agent patterns before they have exhausted simpler approaches. When the use case genuinely demands it, though, understanding the orchestration options lets you pick the right coordination pattern instead of defaulting to the most complex one.</div>
+      <div class="mustknow">
+        <div class="mustknow-label">Things you must know</div>
+        <ul>
+        <li>Break complex tasks into specialized agent roles coordinated by an orchestrator.</li>
+        <li>Sequential pipelines are clean but propagate errors through every downstream agent.</li>
+        <li>Parallel fan-out gives speed gains for independent subtasks.</li>
+        <li>Multi-agent systems add multiplicative complexity; exhaust simpler patterns first.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="insight-card" data-section="pattern-10-production-genai-platform">
+      <div class="insight-section-label">Pattern 10: Production
+GenAI Platform</div>
+      <div class="insight-text">This is your target-state architecture — the north star you are building toward as your organization matures. Understanding it now helps you make incremental decisions that move you in the right direction rather than creating technical debt you will have to unwind later. But resist the urge to build it all at once; the organizations that succeed grow into this platform organically as use cases justify each layer.</div>
+      <div class="mustknow">
+        <div class="mustknow-label">Things you must know</div>
+        <ul>
+        <li>The production platform converges all patterns under a shared AI Gateway.</li>
+        <li>Shared services include guardrails, evaluation, monitoring, and prompt registry.</li>
+        <li>Build the platform incrementally as use cases justify it.</li>
+        <li>Building platform infrastructure before having use cases is an anti-pattern.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="insight-card" data-section="choosing-the-right-pattern">
+      <div class="insight-section-label">Choosing the Right Pattern</div>
+      <div class="insight-text">This is the decision framework you will use every time a team brings you a new AI use case. Being able to quickly map a business need to the right pattern — or the right combination of patterns — is what makes you valuable in the room. Most real systems combine three or four patterns, and knowing which ones compose well together is the kind of practical knowledge that only comes from studying the full catalog.</div>
+      <div class="mustknow">
+        <div class="mustknow-label">Things you must know</div>
+        <ul>
+        <li>Customer support typically combines chatbot, RAG, and guardrails patterns.</li>
+        <li>Start with patterns one through three; add complexity only when required.</li>
+        <li>Real systems are almost always compositions of multiple patterns.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="insight-card" data-section="key-takeaways">
+      <div class="insight-section-label">Key Takeaways</div>
+      <div class="insight-text">These five principles should guide every GenAI architecture decision you make. Start simple, add complexity only when requirements demand it, never skip guardrails, and treat the production platform as a destination rather than a starting point. If you remember nothing else from this chapter, remember that premature architecture is just as costly as premature optimization.</div>
+    </div>
+    <div class="insight-card" data-section="companion-notebook">
+      <div class="insight-section-label">Companion Notebook</div>
+      <div class="insight-text">Building a working multi-model router and measuring the actual cost savings against a single-model baseline is one of the most convincing demos you can run for leadership. Hard numbers showing 60 to 80 percent cost reduction on real queries are the kind of evidence that unlocks budget for your broader AI platform investments.</div>
+    </div>
+    <div class="insight-empty">Scroll through the chapter to see section insights.</div>
+  </div>
+</aside>
+<footer class="chapter-footer">
+  <div>&copy; 2026 CareerAlign.com</div>
+  <div class="footer-disclaimer">Educational content provided as-is. Not affiliated with or endorsed by any cloud provider, vendor, or certification body mentioned herein.</div>
+  <div class="footer-links"><a href="https://careeralign.com/about.html">About</a> &middot; <a href="https://careeralign.com/terms.html">Terms</a> &middot; <a href="https://careeralign.com/privacy.html">Privacy</a></div>
+</footer>
+<script src="nav.js"></script>
+<script src="breadcrumb.js"></script>
+</body>
+</html>
