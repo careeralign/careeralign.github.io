@@ -212,6 +212,27 @@ img, svg { display: block; }
 }
 .nav-home:hover { background: rgba(99,102,241,0.1); }
 
+/* Hamburger button — hidden on desktop, shown on mobile via media query */
+.nav-hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px 7px;
+  font-size: 20px;
+  line-height: 1;
+  transition: color .2s, border-color .2s;
+  margin-left: auto;
+}
+.nav-hamburger:hover {
+  color: var(--text-primary);
+  border-color: var(--accent-indigo);
+}
+
 .nav-right {
   display: flex;
   align-items: center;
@@ -1308,19 +1329,41 @@ footer a:hover { text-decoration: underline; }
     gap: 10px;
     height: 52px;
     flex-wrap: nowrap;
+    position: relative;
   }
   .nav-logo { font-size: 15px; }
-  .nav-links {
-    overflow-x: auto;
-    overflow-y: hidden;
-    flex-wrap: nowrap;
-    gap: 4px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+  .nav-hamburger { display: flex; }
+  div.nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background: var(--bg-base);
+    border-bottom: 1px solid var(--border-default);
+    padding: 8px 16px 12px;
+    gap: 2px;
+    z-index: 99;
+    backdrop-filter: blur(14px);
+    flex: none;
+    overflow: visible;
   }
-  .nav-links::-webkit-scrollbar { display: none; }
-  .nav-links a { font-size: 11px; padding: 3px 6px; }
+  [data-theme="light"] div.nav-links {
+    background: rgba(245,246,250,0.97);
+  }
+  div.nav-links.open {
+    display: flex;
+  }
+  div.nav-links a {
+    font-size: 13px;
+    padding: 8px 10px;
+    border-radius: 6px;
+  }
+  div.nav-links a:hover { background: var(--bg-elevated); }
+  div.nav-links.nav-links--wide a { font-size: 13px; padding: 8px 10px; color: var(--text-secondary); }
   .nav-home { font-size: 11px; padding: 4px 10px; }
+  .theme-toggle { margin-left: 0; }
 
   .hero { padding: 64px 20px 48px; }
   .hero--landing { padding: 64px 20px 48px; }
@@ -1363,7 +1406,6 @@ footer a:hover { text-decoration: underline; }
   .stats { flex-direction: column; gap: 12px; }
   .hero--landing h1,
   .hero h1 { font-size: 1.5rem; }
-  .nav-links { display: none; }
   .section--landing { padding: 36px 14px; }
 }
 
