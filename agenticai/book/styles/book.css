@@ -41,14 +41,12 @@ body {
 
 .main-content {
   margin-left: var(--sidebar-width);
-  max-width: var(--content-max);
+  margin-right: var(--insight-width);
   padding: 2rem 2.5rem 3rem;
   min-height: 100vh;
 }
 
-body.has-insights .main-content {
-  margin-right: var(--insight-width);
-}
+/* margin-right already set on .main-content */
 
 /* ═══════════════════════════════════════════
    ── Sidebar (Fixed Left Panel) ──
@@ -1001,10 +999,6 @@ figcaption {
 /* ── Footer ── */
 .footer {
   margin-left: var(--sidebar-width);
-  max-width: var(--content-max);
-}
-
-body.has-insights .footer {
   margin-right: var(--insight-width);
 }
 
@@ -1047,8 +1041,8 @@ body.has-insights .footer {
 
 /* ── Chapter layout (for pages using .chapter wrapper) ── */
 .chapter {
-  max-width: var(--content-max);
-  margin: 0 auto;
+  margin-left: var(--sidebar-width);
+  margin-right: var(--insight-width);
   padding: 2rem 2.5rem 3rem;
 }
 
@@ -1064,12 +1058,7 @@ body.has-insights .footer {
   figure.diagram { break-inside: avoid; }
 }
 
-/* ── Wide screen ── */
-@media (min-width: 1400px) {
-  body.has-insights .main-content {
-    max-width: calc(100vw - var(--sidebar-width) - var(--insight-width) - 2rem);
-  }
-}
+/* (wide-screen rule removed — margins handle layout now) */
 
 /* ── Tablet ── */
 @media (max-width: 1024px) {
@@ -1089,6 +1078,7 @@ body.has-insights .footer {
 
   .main-content, .chapter {
     margin-left: 0;
+    margin-right: 0;
     padding: 3.5rem 1rem 2rem;
     font-size: 1rem;
     max-width: 100%;
@@ -1098,7 +1088,6 @@ body.has-insights .footer {
   .mobile-menu-btn { display: block; }
 
   .insight-panel { display: none; }
-  body.has-insights .main-content { margin-right: 0; }
 
   .footer { margin-left: 0; margin-right: 0; }
   body.has-insights .footer { margin-right: 0; }
