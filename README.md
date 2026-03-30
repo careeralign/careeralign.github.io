@@ -35,7 +35,7 @@ Companion notebooks for [careeralign.com](https://careeralign.com). Open any not
 Click any `.ipynb` file, then click the "Open in Colab" badge at the top of the notebook — or use this URL pattern:
 
 ```
-https://colab.research.google.com/github/careeralign/careeralign.github.io/blob/main/{section}/{notebook}.ipynb
+https://colab.research.google.com/github/careeralign/notebooks/blob/main/{section}/{notebook}.ipynb
 ```
 
 ## License
